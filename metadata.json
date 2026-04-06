@@ -1,0 +1,5 @@
+{
+  "name": "GestSilo",
+  "description": "Sistema completo de gestão agrícola: silos, talhões, insumos, frota e financeiro.",
+  "requestFramePermissions": []
+}
