@@ -45,19 +45,10 @@ export default function ConfiguracoesPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Mocking data
-      const mockProfile: Profile = { id: '1', nome: 'Administrador', email: 'admin@gestsilo.com', perfil: 'Administrador', fazenda_id: '1' };
-      setProfile(mockProfile);
-
-      const mockFazenda: Fazenda = { id: '1', nome: 'Fazenda São José', localizacao: 'BR-163, KM 450, Sorriso - MT', area_total: 850 };
-      setFazenda(mockFazenda);
-
-      const mockUsers: Profile[] = [
-        { id: '1', nome: 'Administrador', email: 'admin@gestsilo.com', perfil: 'Administrador', fazenda_id: '1' },
-        { id: '2', nome: 'João Silva', email: 'joao@fazenda.com', perfil: 'Operador', fazenda_id: '1' },
-        { id: '3', nome: 'Maria Santos', email: 'maria@fazenda.com', perfil: 'Visualizador', fazenda_id: '1' },
-      ];
-      setUsers(mockUsers);
+      // Data will be fetched from Supabase here
+      setProfile(null);
+      setFazenda(null);
+      setUsers([]);
     } catch (error) {
       toast.error('Erro ao carregar configurações');
     } finally {
@@ -74,6 +65,14 @@ export default function ConfiguracoesPage() {
     e.preventDefault();
     toast.success('Dados da fazenda atualizados!');
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -203,6 +202,13 @@ export default function ConfiguracoesPage() {
                       </TableCell>
                     </TableRow>
                   ))}
+                  {users.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                        Nenhum outro usuário cadastrado para esta fazenda.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

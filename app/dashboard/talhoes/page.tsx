@@ -56,20 +56,9 @@ export default function TalhoesPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Mocking data
-      const mockTalhoes: Talhao[] = [
-        { id: '1', nome: 'Talhão 01', area: 50, tipo_solo: 'Argiloso', localizacao: 'Setor Norte', status: 'Plantado', fazenda_id: '1' },
-        { id: '2', nome: 'Talhão 02', area: 120, tipo_solo: 'Misto', localizacao: 'Setor Sul', status: 'Em preparo', fazenda_id: '1' },
-        { id: '3', nome: 'Talhão 03', area: 85, tipo_solo: 'Arenoso', localizacao: 'Setor Leste', status: 'Colhido', fazenda_id: '1' },
-        { id: '4', nome: 'Talhão 04', area: 200, tipo_solo: 'Argiloso', localizacao: 'Setor Oeste', status: 'Em pousio', fazenda_id: '1' },
-      ];
-      setTalhoes(mockTalhoes);
-
-      const mockCiclos: CicloAgricola[] = [
-        { id: '1', talhao_id: '1', cultura: 'Milho', data_plantio: '2026-01-15', data_colheita_prevista: '2026-05-20', data_colheita_real: null, produtividade: null },
-        { id: '2', talhao_id: '3', cultura: 'Soja', data_plantio: '2025-10-10', data_colheita_prevista: '2026-02-15', data_colheita_real: '2026-02-18', produtividade: 3.5 },
-      ];
-      setCiclos(mockCiclos);
+      // Data will be fetched from Supabase here
+      setTalhoes([]);
+      setCiclos([]);
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -209,6 +198,13 @@ export default function TalhoesPage() {
             </CardContent>
           </Card>
         ))}
+        {talhoes.length === 0 && !loading && (
+          <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
+            <Map className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+            <CardTitle className="text-muted-foreground">Nenhum talhão cadastrado</CardTitle>
+            <CardDescription>Clique em &quot;Novo Talhão&quot; para começar a gerenciar suas áreas de cultivo.</CardDescription>
+          </Card>
+        )}
       </div>
 
       <Card>
@@ -251,6 +247,13 @@ export default function TalhoesPage() {
                   </TableCell>
                 </TableRow>
               ))}
+              {ciclos.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    Nenhum ciclo agrícola registrado.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

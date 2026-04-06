@@ -37,59 +37,72 @@ export function Header() {
   };
 
   return (
-    <div className="flex items-center p-4 bg-background border-b">
+    <div className="flex items-center p-4 bg-white/80 backdrop-blur-md border-b border-green-100 sticky top-0 z-40">
       <Sheet>
         <SheetTrigger
           render={
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <Button variant="ghost" size="icon" className="md:hidden text-gray-600 hover:bg-green-50">
               <Menu />
             </Button>
           }
         />
-        <SheetContent side="left" className="p-0 bg-sidebar">
+        <SheetContent side="left" className="p-0 w-72 border-r-0">
           <Sidebar />
         </SheetContent>
       </Sheet>
       <div className="flex w-full justify-end items-center gap-x-4">
         <div className="hidden md:flex flex-col items-end">
-          <p className="text-sm font-medium">{user?.email?.split('@')[0] || 'Usuário'}</p>
-          <p className="text-xs text-muted-foreground">Fazenda São José</p>
+          <p className="text-sm font-bold text-gray-900">{user?.email?.split('@')[0] || 'Usuário'}</p>
+          <p className="text-xs text-green-600 font-medium">Minha Propriedade</p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 transition-colors">
+                <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm">
                   <AvatarImage src="" alt="Avatar" />
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    <User className="h-4 w-4" />
+                  <AvatarFallback className="bg-green-100 text-green-700 rounded-2xl">
+                    <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
               </Button>
             }
           />
-          <DropdownMenuContent className="w-56" align="end">
+          <DropdownMenuContent className="w-64 mt-2 p-2 rounded-2xl border-green-50 shadow-xl" align="end">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="font-normal">
+              <DropdownMenuLabel className="font-normal p-3">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.email?.split('@')[0]}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
+                  <p className="text-sm font-bold text-gray-900 leading-none">{user?.email?.split('@')[0]}</p>
+                  <p className="text-xs leading-none text-gray-400 mt-1">
                     {user?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/dashboard/configuracoes')}>
-              Perfil
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push('/dashboard/configuracoes')}>
-              Configurações
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-              Sair
-            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-gray-50" />
+            <div className="p-1">
+              <DropdownMenuItem 
+                onClick={() => router.push('/dashboard/configuracoes')}
+                className="rounded-xl focus:bg-green-50 focus:text-green-700 p-3 cursor-pointer"
+              >
+                Perfil do Usuário
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => router.push('/dashboard/configuracoes')}
+                className="rounded-xl focus:bg-green-50 focus:text-green-700 p-3 cursor-pointer"
+              >
+                Configurações
+              </DropdownMenuItem>
+            </div>
+            <DropdownMenuSeparator className="bg-gray-50" />
+            <div className="p-1">
+              <DropdownMenuItem 
+                onClick={handleLogout} 
+                className="rounded-xl focus:bg-red-50 focus:text-red-600 p-3 cursor-pointer text-red-500"
+              >
+                Sair da conta
+              </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

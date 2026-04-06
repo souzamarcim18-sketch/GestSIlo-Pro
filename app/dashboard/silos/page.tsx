@@ -61,19 +61,9 @@ export default function SilosPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Mocking data for now as we don't have a real Supabase instance configured
-      const mockSilos: Silo[] = [
-        { id: '1', nome: 'Silo A', tipo: 'Bunker', capacidade: 500, localizacao: 'Setor Norte', fazenda_id: '1' },
-        { id: '2', nome: 'Silo B', tipo: 'Convencional', capacidade: 1000, localizacao: 'Setor Sul', fazenda_id: '1' },
-        { id: '3', nome: 'Silo C', tipo: 'Bolsa', capacidade: 200, localizacao: 'Setor Leste', fazenda_id: '1' },
-      ];
-      setSilos(mockSilos);
-
-      const mockMovs: MovimentacaoSilo[] = [
-        { id: '1', silo_id: '1', tipo: 'Entrada', quantidade: 45, data: '2026-04-06', talhao_id: '1', responsavel: 'João Silva', observacao: 'Milho colhido' },
-        { id: '2', silo_id: '1', tipo: 'Saída', quantidade: 12, data: '2026-04-05', talhao_id: null, responsavel: 'Maria Santos', observacao: 'Trato animais' },
-      ];
-      setMovimentacoes(mockMovs);
+      // Data will be fetched from Supabase here
+      setSilos([]);
+      setMovimentacoes([]);
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -251,6 +241,13 @@ export default function SilosPage() {
             </Card>
           );
         })}
+        {silos.length === 0 && !loading && (
+          <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
+            <Database className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+            <CardTitle className="text-muted-foreground">Nenhum silo cadastrado</CardTitle>
+            <CardDescription>Clique em &quot;Novo Silo&quot; para começar a gerenciar seu armazenamento.</CardDescription>
+          </Card>
+        )}
       </div>
 
       <Card>

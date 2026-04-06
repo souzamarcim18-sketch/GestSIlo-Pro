@@ -9,13 +9,12 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="h-full relative">
-      <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-80 bg-sidebar">
+      <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-80">
         <Sidebar />
       </div>
-      <main className="md:pl-72 pb-10">
+      <main className="md:pl-72 min-h-screen flex flex-col">
         <Header />
-        <div className="p-4 md:p-8">
-          <Breadcrumbs />
+        <div className="flex-1">
           {children}
         </div>
       </main>

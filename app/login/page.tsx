@@ -36,13 +36,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex relative">
       {/* Botão Voltar para Home */}
-      <Link
-        href="/"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm"
+      <button
+        onClick={() => router.push('/')}
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm cursor-pointer"
       >
         <Home className="w-4 h-4" />
         <span>Voltar ao Início</span>
-      </Link>
+      </button>
 
       {/* ===== LADO ESQUERDO — Hero ===== */}
       <div

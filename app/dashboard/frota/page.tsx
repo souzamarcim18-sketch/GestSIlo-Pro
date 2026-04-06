@@ -57,30 +57,11 @@ export default function FrotaPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Mocking data
-      const mockMaquinas: Maquina[] = [
-        { id: '1', nome: 'Trator JD 6125', tipo: 'Trator', marca: 'John Deere', modelo: '6125J', ano: 2022, identificacao: 'TR-001', fazenda_id: '1' },
-        { id: '2', nome: 'Colheitadeira S700', tipo: 'Colheitadeira', marca: 'John Deere', modelo: 'S700', ano: 2023, identificacao: 'CH-001', fazenda_id: '1' },
-        { id: '3', nome: 'Pulverizador 4730', tipo: 'Pulverizador', marca: 'John Deere', modelo: '4730', ano: 2021, identificacao: 'PV-001', fazenda_id: '1' },
-        { id: '4', nome: 'Caminhão VW 24.280', tipo: 'Caminhão', marca: 'VW', modelo: 'Constellation', ano: 2020, identificacao: 'CM-001', fazenda_id: '1' },
-      ];
-      setMaquinas(mockMaquinas);
-
-      const mockUsos: UsoMaquina[] = [
-        { id: '1', maquina_id: '1', data: '2026-04-06', operador: 'João Silva', atividade: 'Preparo de solo', horas: 8, km: null },
-        { id: '2', maquina_id: '4', data: '2026-04-05', operador: 'Pedro Santos', atividade: 'Transporte silagem', horas: null, km: 120 },
-      ];
-      setUsos(mockUsos);
-
-      const mockManutencoes: Manutencao[] = [
-        { id: '1', maquina_id: '1', data: '2026-03-15', tipo: 'Preventiva', descricao: 'Troca de óleo e filtros', custo: 1200, proxima_manutencao: '2026-04-01' },
-      ];
-      setManutencoes(mockManutencoes);
-
-      const mockAbastecimentos: Abastecimento[] = [
-        { id: '1', maquina_id: '1', data: '2026-04-06', combustivel: 'Diesel S10', litros: 150, valor: 900, hodometro: 1250 },
-      ];
-      setAbastecimentos(mockAbastecimentos);
+      // Data will be fetched from Supabase here
+      setMaquinas([]);
+      setUsos([]);
+      setManutencoes([]);
+      setAbastecimentos([]);
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -264,6 +245,13 @@ export default function FrotaPage() {
             </CardContent>
           </Card>
         ))}
+        {maquinas.length === 0 && !loading && (
+          <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
+            <Truck className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+            <CardTitle className="text-muted-foreground">Nenhuma máquina cadastrada</CardTitle>
+            <CardDescription>Clique em &quot;Nova Máquina&quot; para começar a gerenciar sua frota.</CardDescription>
+          </Card>
+        )}
       </div>
 
       <Tabs defaultValue="uso" className="w-full">
@@ -309,6 +297,13 @@ export default function FrotaPage() {
                       <TableCell>{uso.km ? `${uso.km}km` : '-'}</TableCell>
                     </TableRow>
                   ))}
+                  {usos.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                        Nenhum registro de uso encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

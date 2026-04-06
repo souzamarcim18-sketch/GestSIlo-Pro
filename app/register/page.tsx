@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Home } from 'lucide-react';
@@ -18,7 +17,6 @@ export default function RegisterPage() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [perfil, setPerfil] = useState('Operador');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -33,7 +31,7 @@ export default function RegisterPage() {
         options: {
           data: {
             nome,
-            perfil,
+            perfil: 'Administrador',
           },
         },
       });
@@ -49,7 +47,7 @@ export default function RegisterPage() {
               id: data.user.id,
               nome,
               email,
-              perfil,
+              perfil: 'Administrador',
             },
           ]);
 
@@ -66,23 +64,36 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted/50 p-4 relative">
+    <div className="flex items-center justify-center min-h-screen p-4 relative" style={{ background: '#e8f5e9' }}>
+      {/* Padrão geométrico sutil */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid-register" width="60" height="60" patternUnits="userSpaceOnUse">
+              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#00A651" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid-register)" />
+        </svg>
+      </div>
       {/* Botão Voltar para Home */}
-      <Link
-        href="/"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm"
+      <button
+        onClick={() => router.push('/')}
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm cursor-pointer"
       >
         <Home className="w-4 h-4" />
         <span>Voltar ao Início</span>
-      </Link>
+      </button>
 
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="GestSilo" width={40} height={40} className="rounded-xl shadow-md object-contain" referrerPolicy="no-referrer" />
+          <div className="flex items-center gap-4">
+            <Image src="/logo.png" alt="GestSilo" width={64} height={64} className="rounded-2xl shadow-xl object-contain" referrerPolicy="no-referrer" />
             <div>
-              <span className="font-bold text-2xl" style={{ color: '#00A651' }}>Gest</span>
-              <span className="font-bold text-2xl" style={{ color: '#6B8E23' }}>Silo</span>
+              <h1 className="font-black text-3xl tracking-tight">
+                <span style={{ color: '#00A651' }}>Gest</span>
+                <span style={{ color: '#6B8E23' }}>Silo</span>
+              </h1>
             </div>
           </div>
         </div>
@@ -125,19 +136,6 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="perfil">Perfil de Acesso</Label>
-                <Select value={perfil} onValueChange={(v) => v && setPerfil(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um perfil" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Administrador">Administrador</SelectItem>
-                    <SelectItem value="Operador">Operador</SelectItem>
-                    <SelectItem value="Visualizador">Visualizador</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">

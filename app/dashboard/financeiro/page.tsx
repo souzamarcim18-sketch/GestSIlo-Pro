@@ -55,12 +55,12 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const cashFlowData = [
-  { name: 'Jan', receita: 45000, despesa: 32000 },
-  { name: 'Fev', receita: 52000, despesa: 38000 },
-  { name: 'Mar', receita: 48000, despesa: 41000 },
-  { name: 'Abr', receita: 61000, despesa: 35000 },
-  { name: 'Mai', receita: 55000, despesa: 42000 },
-  { name: 'Jun', receita: 67000, despesa: 39000 },
+  { name: 'Jan', receita: 0, despesa: 0 },
+  { name: 'Fev', receita: 0, despesa: 0 },
+  { name: 'Mar', receita: 0, despesa: 0 },
+  { name: 'Abr', receita: 0, despesa: 0 },
+  { name: 'Mai', receita: 0, despesa: 0 },
+  { name: 'Jun', receita: 0, despesa: 0 },
 ];
 
 export default function FinanceiroPage() {
@@ -74,13 +74,8 @@ export default function FinanceiroPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Mocking data
-      const mockFinanceiro: Financeiro[] = [
-        { id: '1', tipo: 'Receita', descricao: 'Venda de Silagem Milho', categoria: 'Venda Produção', valor: 25000, data: '2026-04-05', forma_pagamento: 'Transferência', referencia_id: '1', referencia_tipo: 'Silo', fazenda_id: '1' },
-        { id: '2', tipo: 'Despesa', descricao: 'Compra de Fertilizante', categoria: 'Insumos', valor: 12000, data: '2026-04-02', forma_pagamento: 'Boleto', referencia_id: '1', referencia_tipo: 'Talhão', fazenda_id: '1' },
-        { id: '3', tipo: 'Despesa', descricao: 'Manutenção Trator JD', categoria: 'Manutenção', valor: 1200, data: '2026-03-28', forma_pagamento: 'Cartão', referencia_id: '1', referencia_tipo: 'Máquina', fazenda_id: '1' },
-      ];
-      setFinanceiro(mockFinanceiro);
+      // Data will be fetched from Supabase here
+      setFinanceiro([]);
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -335,6 +330,13 @@ export default function FinanceiroPage() {
                   </TableCell>
                 </TableRow>
               ))}
+              {financeiro.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    Nenhum lançamento financeiro encontrado.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

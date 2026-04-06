@@ -57,20 +57,9 @@ export default function InsumosPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Mocking data
-      const mockInsumos: Insumo[] = [
-        { id: '1', nome: 'Fertilizante NPK 04-14-08', tipo: 'Fertilizante', unidade: 'kg', estoque_minimo: 500, estoque_atual: 1200, fazenda_id: '1' },
-        { id: '2', nome: 'Glifosato 480', tipo: 'Defensivo', unidade: 'L', estoque_minimo: 150, estoque_atual: 120, fazenda_id: '1' },
-        { id: '3', nome: 'Semente Milho Híbrido', tipo: 'Semente', unidade: 'Saco 60k', estoque_minimo: 100, estoque_atual: 450, fazenda_id: '1' },
-        { id: '4', nome: 'Óleo Diesel S10', tipo: 'Combustível', unidade: 'L', estoque_minimo: 1000, estoque_atual: 2500, fazenda_id: '1' },
-      ];
-      setInsumos(mockInsumos);
-
-      const mockMovs: MovimentacaoInsumo[] = [
-        { id: '1', insumo_id: '1', tipo: 'Entrada', quantidade: 1000, data: '2026-04-01', destino: 'Depósito Central', responsavel: 'João Silva', valor_unitario: 3.5 },
-        { id: '2', insumo_id: '2', tipo: 'Saída', quantidade: 50, data: '2026-04-05', destino: 'Talhão 01', responsavel: 'Maria Santos', valor_unitario: 45.0 },
-      ];
-      setMovimentacoes(mockMovs);
+      // Data will be fetched from Supabase here
+      setInsumos([]);
+      setMovimentacoes([]);
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -243,6 +232,13 @@ export default function InsumosPage() {
             </Card>
           );
         })}
+        {insumos.length === 0 && !loading && (
+          <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
+            <Package className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+            <CardTitle className="text-muted-foreground">Nenhum insumo cadastrado</CardTitle>
+            <CardDescription>Clique em &quot;Novo Insumo&quot; para começar a gerenciar seu estoque.</CardDescription>
+          </Card>
+        )}
       </div>
 
       <Card>
@@ -296,6 +292,13 @@ export default function InsumosPage() {
                   <TableCell>{mov.responsavel}</TableCell>
                 </TableRow>
               ))}
+              {movimentacoes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    Nenhuma movimentação registrada.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
