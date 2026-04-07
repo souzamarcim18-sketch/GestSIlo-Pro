@@ -102,7 +102,6 @@ export function Sidebar() {
             width={48} 
             height={48} 
             className="rounded-xl shadow-md object-contain group-hover:scale-105 transition-transform" 
-            referrerPolicy="no-referrer" 
           />
           <div className="flex flex-col -space-y-1">
             <span className="font-black text-xl tracking-tight" style={{ color: '#00A651' }}>Gest</span>

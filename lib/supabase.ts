@@ -9,6 +9,7 @@ export const supabase = new Proxy({} as any, {
   get(target, prop) {
     if (!supabaseInstance) {
       if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('Supabase credentials missing! NEXT_PUBLIC_SUPABASE_URL:', !!supabaseUrl, 'NEXT_PUBLIC_SUPABASE_ANON_KEY:', !!supabaseAnonKey);
         throw new Error('Supabase credentials missing. Please check your .env file.');
       }
       supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);

@@ -21,30 +21,40 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      setError('E-mail ou senha inválidos. Verifique suas credenciais.');
-      toast.error('E-mail ou senha inválidos.');
-      setLoading(false);
-    } else {
-      // Buscar perfil para redirecionamento correto
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('perfil')
-          .eq('id', user.id)
-          .single();
+      if (error) {
+        setError('E-mail ou senha inválidos. Verifique suas credenciais.');
+        toast.error('E-mail ou senha inválidos.');
+        setLoading(false);
+      } else {
+        // Buscar perfil para redirecionamento correto
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('perfil')
+            .eq('id', user.id)
+            .single();
 
-        toast.success('Login realizado com sucesso!');
-        
-        if (profile?.perfil === 'Operador') {
-          router.push('/operador');
+          toast.success('Login realizado com sucesso!');
+          
+          if (profile?.perfil === 'Operador') {
+            router.push('/operador');
+          } else {
+            router.push('/dashboard');
+          }
         } else {
-          router.push('/dashboard');
+          setLoading(false);
+          toast.error('Erro ao recuperar dados do usuário.');
         }
       }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError('Ocorreu um erro inesperado. Tente novamente.');
+      toast.error('Erro ao realizar login.');
+      setLoading(false);
     }
   };
 
@@ -77,7 +87,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 flex items-center gap-4">
-          <Image src="/logo.png" alt="GestSilo" width={80} height={80} className="rounded-2xl shadow-xl object-contain" referrerPolicy="no-referrer" />
+          <Image src="/logo.png" alt="GestSilo" width={80} height={80} className="rounded-2xl shadow-xl object-contain" />
           <div>
             <h1 className="font-black text-4xl tracking-tight">
               <span style={{ color: '#00A651' }}>Gest</span>
@@ -114,7 +124,7 @@ export default function LoginPage() {
         {/* Logo mobile */}
         <div className="lg:hidden flex items-center gap-3 mb-10">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg p-2 bg-white">
-            <Image src="/logo.png" alt="GestSilo" width={48} height={48} className="object-contain" referrerPolicy="no-referrer" />
+            <Image src="/logo.png" alt="GestSilo" width={48} height={48} className="object-contain" />
           </div>
           <div>
             <span className="font-bold text-xl" style={{ color: '#00A651' }}>Gest</span>

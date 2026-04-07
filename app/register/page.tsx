@@ -88,7 +88,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-4">
-            <Image src="/logo.png" alt="GestSilo" width={64} height={64} className="rounded-2xl shadow-xl object-contain" referrerPolicy="no-referrer" />
+            <Image src="/logo.png" alt="GestSilo" width={64} height={64} className="rounded-2xl shadow-xl object-contain" />
             <div>
               <h1 className="font-black text-3xl tracking-tight">
                 <span style={{ color: '#00A651' }}>Gest</span>
