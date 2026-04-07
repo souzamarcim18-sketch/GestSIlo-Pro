@@ -222,7 +222,7 @@ export default function ModoOperadorPage() {
             <form onSubmit={handleRetirada} className="space-y-6 py-4">
               <div className="space-y-3">
                 <Label className="text-lg font-bold">Selecionar Silo</Label>
-                <Select onValueChange={(v) => v && setSelectedSilo(v)} required>
+                <Select onValueChange={(v: string | null) => v && setSelectedSilo(v)} required>
                   <SelectTrigger className="h-16 bg-zinc-800 border-zinc-700 text-xl rounded-2xl">
                     <SelectValue placeholder="Escolha o silo" />
                   </SelectTrigger>
@@ -280,7 +280,7 @@ export default function ModoOperadorPage() {
             <form onSubmit={handlePerda} className="space-y-6 py-4">
               <div className="space-y-3">
                 <Label className="text-lg font-bold">Selecionar Silo</Label>
-                <Select onValueChange={(v) => v && setSelectedSilo(v)} required>
+                <Select onValueChange={(v: string | null) => v && setSelectedSilo(v)} required>
                   <SelectTrigger className="h-16 bg-zinc-800 border-zinc-700 text-xl rounded-2xl">
                     <SelectValue placeholder="Escolha o silo" />
                   </SelectTrigger>
@@ -295,7 +295,7 @@ export default function ModoOperadorPage() {
               </div>
               <div className="space-y-3">
                 <Label className="text-lg font-bold">Tipo de Perda</Label>
-                <Select onValueChange={(v) => v && setTipoPerda(v)} required>
+                <Select onValueChange={(v: string | null) => v && setTipoPerda(v)} required>
                   <SelectTrigger className="h-16 bg-zinc-800 border-zinc-700 text-xl rounded-2xl">
                     <SelectValue placeholder="Motivo da perda" />
                   </SelectTrigger>

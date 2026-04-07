@@ -199,7 +199,7 @@ export default function SilosPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="mov-silo">Silo</Label>
-                    <Select onValueChange={(v) => v && setNewMov({ ...newMov, silo_id: v })}>
+                    <Select onValueChange={(v: string | null) => v && setNewMov({ ...newMov, silo_id: v })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o silo" />
                       </SelectTrigger>
@@ -210,7 +210,7 @@ export default function SilosPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mov-tipo">Tipo</Label>
-                    <Select defaultValue="Entrada" onValueChange={(v) => v && setNewMov({ ...newMov, tipo: v as any })}>
+                    <Select defaultValue="Entrada" onValueChange={(v: string | null) => v && setNewMov({ ...newMov, tipo: v as any })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -307,7 +307,7 @@ export default function SilosPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="silo-lona">Lona Utilizada</Label>
-                    <Select onValueChange={(v) => v && setNewSilo({ ...newSilo, insumo_lona_id: v })}>
+                    <Select onValueChange={(v: string | null) => v && setNewSilo({ ...newSilo, insumo_lona_id: v })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -320,7 +320,7 @@ export default function SilosPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="silo-inoc">Inoculante</Label>
-                    <Select onValueChange={(v) => v && setNewSilo({ ...newSilo, insumo_inoculante_id: v })}>
+                    <Select onValueChange={(v: string | null) => v && setNewSilo({ ...newSilo, insumo_inoculante_id: v })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>

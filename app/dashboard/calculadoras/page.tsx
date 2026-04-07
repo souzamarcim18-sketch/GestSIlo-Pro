@@ -150,7 +150,7 @@ export default function CalculadorasPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Método de Cálculo</Label>
-                    <Select value={calagemData.metodo} onValueChange={(v) => v && setCalagemData({...calagemData, metodo: v})}>
+                    <Select value={calagemData.metodo} onValueChange={(v: string | null) => v && setCalagemData({...calagemData, metodo: v})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -264,7 +264,7 @@ export default function CalculadorasPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Fertilizante Disponível</Label>
-                    <Select value={npkData.fertilizante_id} onValueChange={(v) => v && setNpkData({...npkData, fertilizante_id: v})}>
+                    <Select value={npkData.fertilizante_id} onValueChange={(v: string | null) => v && setNpkData({...npkData, fertilizante_id: v})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o insumo" />
                       </SelectTrigger>
