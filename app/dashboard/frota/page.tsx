@@ -422,11 +422,11 @@ export default function FrotaPage() {
                   <div className="flex gap-4 pt-2 border-t">
                     <div className="flex items-center gap-1 text-xs font-medium text-blue-600">
                       <Clock className="w-3 h-3" />
-                      {usos.filter(u => u.maquina_id === maquina.id).reduce((acc: number, u) => acc + (u.horas || 0), 0)}h
+                      {usos.filter(u => u.maquina_id === maquina.id).reduce((acc: number, u: UsoMaquina) => acc + (u.horas || 0), 0)}h
                     </div>
                     <div className="flex items-center gap-1 text-xs font-medium text-emerald-600">
                       <Gauge className="w-3 h-3" />
-                      {usos.filter(u => u.maquina_id === maquina.id).reduce((acc: number, u) => acc + (u.km || 0), 0)}km
+                      {usos.filter(u => u.maquina_id === maquina.id).reduce((acc: number, u: UsoMaquina) => acc + (u.km || 0), 0)}km
                     </div>
                     {maquina.consumo_medio_lh && (
                       <div className="flex items-center gap-1 text-xs font-medium text-amber-600">

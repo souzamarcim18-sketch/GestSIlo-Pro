@@ -83,8 +83,8 @@ export default function FinanceiroPage() {
     }
   };
 
-  const totalReceita = financeiro.filter(f => f.tipo === 'Receita').reduce((acc: number, f) => acc + f.valor, 0);
-  const totalDespesa = financeiro.filter(f => f.tipo === 'Despesa').reduce((acc: number, f) => acc + f.valor, 0);
+  const totalReceita = financeiro.filter(f => f.tipo === 'Receita').reduce((acc: number, f: Financeiro) => acc + f.valor, 0);
+  const totalDespesa = financeiro.filter(f => f.tipo === 'Despesa').reduce((acc: number, f: Financeiro) => acc + f.valor, 0);
   const saldo = totalReceita - totalDespesa;
 
   return (

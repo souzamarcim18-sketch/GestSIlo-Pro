@@ -75,14 +75,14 @@ export default function SimuladorForrageiroPage() {
 
         // Sugerir valores baseados no histórico
         if (ciclosData.data && ciclosData.data.length > 0) {
-          const avgProd = ciclosData.data.reduce((acc: number, c) => acc + (c.produtividade || 0), 0) / ciclosData.data.length;
+          const avgProd = (ciclosData.data as CicloAgricola[]).reduce((acc: number, c: CicloAgricola) => acc + (c.produtividade || 0), 0) / ciclosData.data.length;
           setProdutividadeEsperada(Math.round(avgProd));
         }
 
         if (silosData.length > 0) {
           const silosComMS = silosData.filter(s => s.materia_seca_percent);
           if (silosComMS.length > 0) {
-            const avgMS = silosComMS.reduce((acc: number, s) => acc + (s.materia_seca_percent || 0), 0) / silosComMS.length;
+            const avgMS = silosComMS.reduce((acc: number, s: Silo) => acc + (s.materia_seca_percent || 0), 0) / silosComMS.length;
             setMsEsperada(Math.round(avgMS));
           }
         }
@@ -103,7 +103,7 @@ export default function SimuladorForrageiroPage() {
     if (!selectedPeriodo) return null;
 
     // 1. Necessidade do Rebanho (Demanda)
-    const consumoDiarioMS_kg = categorias.reduce((acc: number, c) => 
+    const consumoDiarioMS_kg = categorias.reduce((acc: number, c: CategoriaRebanho) => 
       acc + (c.quantidade_cabecas * c.consumo_ms_kg_cab_dia), 0);
     
     const diasPeriodo = differenceInDays(
@@ -205,7 +205,7 @@ export default function SimuladorForrageiroPage() {
                 />
                 <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                   <Info className="w-3 h-3" />
-                  Média histórica da fazenda: {historicoCiclos.length > 0 ? (historicoCiclos.reduce((acc: number, c) => acc + (c.produtividade || 0), 0) / historicoCiclos.length).toFixed(1) : '--'} t/ha
+                  Média histórica da fazenda: {historicoCiclos.length > 0 ? (historicoCiclos.reduce((acc: number, c: CicloAgricola) => acc + (c.produtividade || 0), 0) / historicoCiclos.length).toFixed(1) : '--'} t/ha
                 </p>
               </div>
 
@@ -225,7 +225,7 @@ export default function SimuladorForrageiroPage() {
                 />
                 <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                   <Info className="w-3 h-3" />
-                  Média dos seus silos: {silos.filter(s => s.materia_seca_percent).length > 0 ? (silos.filter(s => s.materia_seca_percent).reduce((acc: number, s) => acc + (s.materia_seca_percent || 0), 0) / silos.filter(s => s.materia_seca_percent).length).toFixed(1) : '--'}%
+                  Média dos seus silos: {silos.filter(s => s.materia_seca_percent).length > 0 ? (silos.filter(s => s.materia_seca_percent).reduce((acc: number, s: Silo) => acc + (s.materia_seca_percent || 0), 0) / silos.filter(s => s.materia_seca_percent).length).toFixed(1) : '--'}%
                 </p>
               </div>
             </CardContent>

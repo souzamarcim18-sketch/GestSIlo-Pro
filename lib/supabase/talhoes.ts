@@ -1,4 +1,4 @@
-import { supabase, Talhao, CicloAgricola } from '../supabase';
+import { supabase, Talhao, CicloAgricola, Financeiro } from '../supabase';
 
 export async function getTalhoesByFazenda(fazendaId: string) {
   const { data, error } = await supabase
@@ -56,6 +56,6 @@ export async function getCustoTalhaoPeriodo(talhaoId: string, dataInicio: string
 
   if (error) throw error;
   
-  const custoTotal = data?.reduce((acc: number, r) => acc + (r.valor || 0), 0) ?? 0;
+  const custoTotal = (data as Financeiro[])?.reduce((acc: number, r: Financeiro) => acc + (r.valor || 0), 0) ?? 0;
   return custoTotal;
 }

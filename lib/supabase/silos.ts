@@ -1,4 +1,4 @@
-import { supabase, Silo } from '../supabase';
+import { supabase, Silo, MovimentacaoSilo, AtividadeCampo, Financeiro } from '../supabase';
 
 export async function getSilosByFazenda(fazendaId: string) {
   const { data, error } = await supabase
@@ -80,10 +80,10 @@ export async function getCustoProducaoSilagem(siloId: string) {
       .from('atividades_campo')
       .select('custo_total')
       .eq('ciclo_id', ciclo.id);
-    custoAtividades = atividades?.reduce((acc: number, a) => acc + (a.custo_total || 0), 0) || 0;
+    custoAtividades = (atividades as AtividadeCampo[])?.reduce((acc: number, a: AtividadeCampo) => acc + (a.custo_total || 0), 0) || 0;
   }
 
-  const custoFinanceiroTotal = custosFinanceiro?.reduce((acc: number, c) => acc + c.valor, 0) || 0;
+  const custoFinanceiroTotal = (custosFinanceiro as Financeiro[])?.reduce((acc: number, c: Financeiro) => acc + c.valor, 0) || 0;
   const custoTotal = custoFinanceiroTotal + custoAtividades;
 
   // 5. Somar total de toneladas ensiladas (Entradas)
@@ -93,7 +93,7 @@ export async function getCustoProducaoSilagem(siloId: string) {
     .eq('silo_id', siloId)
     .eq('tipo', 'Entrada');
 
-  const totalToneladas = entradas?.reduce((acc: number, e) => acc + e.quantidade, 0) || 0;
+  const totalToneladas = (entradas as MovimentacaoSilo[])?.reduce((acc: number, e: MovimentacaoSilo) => acc + e.quantidade, 0) || 0;
 
   if (totalToneladas === 0) return null;
 
