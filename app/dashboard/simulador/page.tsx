@@ -183,7 +183,7 @@ export default function SimuladorForrageiroPage() {
                 </div>
                 <Slider 
                   value={[areaSimulada]} 
-                  onValueChange={(v) => setAreaSimulada(v[0])}
+                  onValueChange={(v) => setAreaSimulada(Array.isArray(v) ? v[0] : v)}
                   max={200}
                   step={0.5}
                   className="py-4"
@@ -198,7 +198,7 @@ export default function SimuladorForrageiroPage() {
                 </div>
                 <Slider 
                   value={[produtividadeEsperada]} 
-                  onValueChange={(v) => setProdutividadeEsperada(v[0])}
+                  onValueChange={(v) => setProdutividadeEsperada(Array.isArray(v) ? v[0] : v)}
                   max={80}
                   step={1}
                   className="py-4"
@@ -217,7 +217,7 @@ export default function SimuladorForrageiroPage() {
                 </div>
                 <Slider 
                   value={[msEsperada]} 
-                  onValueChange={(v) => setMsEsperada(v[0])}
+                  onValueChange={(v) => setMsEsperada(Array.isArray(v) ? v[0] : v)}
                   min={20}
                   max={45}
                   step={1}
