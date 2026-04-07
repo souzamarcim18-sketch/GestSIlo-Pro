@@ -36,18 +36,44 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Map, Sprout, Tractor, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, Map, Sprout, Tractor, CheckCircle2, Clock, DollarSign, Calendar, Search, ClipboardList, Droplets, FlaskConical, Shovel } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Talhao, CicloAgricola } from '@/lib/supabase';
+import { supabase, Talhao, CicloAgricola, AtividadeCampo, Insumo, Maquina } from '@/lib/supabase';
+import { getTalhoesByFazenda, getCiclosByTalhoes, createTalhao, createCiclo, getCustoTalhaoPeriodo } from '@/lib/supabase/talhoes';
+import { createAtividade, getAtividadesByFazenda } from '@/lib/supabase/atividades_campo';
+import { getInsumosByFazenda } from '@/lib/supabase/insumos';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function TalhoesPage() {
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [ciclos, setCiclos] = useState<CicloAgricola[]>([]);
+  const [atividades, setAtividades] = useState<AtividadeCampo[]>([]);
+  const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [maquinas, setMaquinas] = useState<Maquina[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddTalhaoOpen, setIsAddTalhaoOpen] = useState(false);
   const [isAddCicloOpen, setIsAddCicloOpen] = useState(false);
+  const [isAddAtividadeOpen, setIsAddAtividadeOpen] = useState(false);
+
+  // Cost tool state
+  const [costTalhaoId, setCostTalhaoId] = useState<string>('');
+  const [costStartDate, setCostStartDate] = useState<string>('');
+  const [costEndDate, setCostEndDate] = useState<string>('');
+  const [calculatedCost, setCalculatedCost] = useState<number | null>(null);
+  const [calculating, setCalculating] = useState(false);
+
+  // Form states
+  const [newTalhao, setNewTalhao] = useState({ nome: '', area: '', tipo_solo: '', localizacao: '' });
+  const [newCiclo, setNewCiclo] = useState({ talhao_id: '', cultura: '', data_plantio: '', data_colheita_prevista: '' });
+  const [newAtividade, setNewAtividade] = useState({
+    talhao_id: '',
+    tipo_atividade: 'Preparo de Solo' as AtividadeCampo['tipo_atividade'],
+    data_atividade: format(new Date(), 'yyyy-MM-dd'),
+    custo_total: '',
+    observacoes: '',
+    dados: {} as any
+  });
 
   useEffect(() => {
     fetchData();
@@ -56,13 +82,158 @@ export default function TalhoesPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Data will be fetched from Supabase here
-      setTalhoes([]);
-      setCiclos([]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('fazenda_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.fazenda_id) {
+        const [talhoesData, insumosData, maquinasData, atividadesData] = await Promise.all([
+          getTalhoesByFazenda(profile.fazenda_id),
+          getInsumosByFazenda(profile.fazenda_id),
+          supabase.from('maquinas').select('*').eq('fazenda_id', profile.fazenda_id),
+          getAtividadesByFazenda(profile.fazenda_id)
+        ]);
+        
+        setTalhoes(talhoesData);
+        setInsumos(insumosData);
+        setMaquinas(maquinasData.data || []);
+        setAtividades(atividadesData);
+        
+        if (talhoesData.length > 0) {
+          const ciclosData = await getCiclosByTalhoes(talhoesData.map(t => t.id));
+          setCiclos(ciclosData);
+        }
+      }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddTalhao = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('fazenda_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.fazenda_id) {
+        await createTalhao({
+          nome: newTalhao.nome,
+          area: Number(newTalhao.area),
+          tipo_solo: newTalhao.tipo_solo || null,
+          localizacao: newTalhao.localizacao || null,
+          fazenda_id: profile.fazenda_id,
+          status: 'Em pousio'
+        });
+        toast.success('Talhão cadastrado com sucesso!');
+        setIsAddTalhaoOpen(false);
+        fetchData();
+        setNewTalhao({ nome: '', area: '', tipo_solo: '', localizacao: '' });
+      }
+    } catch (error) {
+      toast.error('Erro ao cadastrar talhão');
+    }
+  };
+
+  const handleAddCiclo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createCiclo({
+        talhao_id: newCiclo.talhao_id,
+        cultura: newCiclo.cultura,
+        data_plantio: newCiclo.data_plantio,
+        data_colheita_prevista: newCiclo.data_colheita_prevista || null,
+        data_colheita_real: null,
+        produtividade: null
+      });
+      toast.success('Ciclo registrado com sucesso!');
+      setIsAddCicloOpen(false);
+      fetchData();
+      setNewCiclo({ talhao_id: '', cultura: '', data_plantio: '', data_colheita_prevista: '' });
+    } catch (error) {
+      toast.error('Erro ao registrar ciclo');
+    }
+  };
+
+  const handleAddAtividade = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('fazenda_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.fazenda_id) {
+        const cicloAtivo = ciclos.find(c => c.talhao_id === newAtividade.talhao_id && !c.data_colheita_real);
+        
+        await createAtividade({
+          fazenda_id: profile.fazenda_id,
+          talhao_id: newAtividade.talhao_id,
+          ciclo_id: cicloAtivo?.id || null,
+          tipo_atividade: newAtividade.tipo_atividade,
+          data_atividade: newAtividade.data_atividade,
+          custo_total: newAtividade.custo_total ? Number(newAtividade.custo_total) : null,
+          observacoes: newAtividade.observacoes,
+          dados_json: newAtividade.dados
+        });
+
+        // Se for colheita, atualizar o ciclo
+        if (newAtividade.tipo_atividade === 'Colheita' && cicloAtivo) {
+          await supabase
+            .from('ciclos_agricolas')
+            .update({
+              data_colheita_real: newAtividade.data_atividade,
+              produtividade: Number(newAtividade.dados.produtividade_ton_ha)
+            })
+            .eq('id', cicloAtivo.id);
+        }
+
+        toast.success('Atividade registrada com sucesso!');
+        setIsAddAtividadeOpen(false);
+        fetchData();
+        setNewAtividade({
+          talhao_id: '',
+          tipo_atividade: 'Preparo de Solo',
+          data_atividade: format(new Date(), 'yyyy-MM-dd'),
+          custo_total: '',
+          observacoes: '',
+          dados: {}
+        });
+      }
+    } catch (error) {
+      toast.error('Erro ao registrar atividade');
+    }
+  };
+
+  const handleCalculateCost = async () => {
+    if (!costTalhaoId || !costStartDate || !costEndDate) {
+      toast.error('Preencha todos os campos para calcular');
+      return;
+    }
+    setCalculating(true);
+    try {
+      const cost = await getCustoTalhaoPeriodo(costTalhaoId, costStartDate, costEndDate);
+      setCalculatedCost(cost);
+    } catch (error) {
+      toast.error('Erro ao calcular custo');
+    } finally {
+      setCalculating(false);
     }
   };
 
@@ -81,6 +252,180 @@ export default function TalhoesPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Gestão de Talhões</h2>
         <div className="flex gap-2">
+          <Dialog open={isAddAtividadeOpen} onOpenChange={setIsAddAtividadeOpen}>
+            <DialogTrigger
+              render={
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Registrar Atividade
+                </Button>
+              }
+            />
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Registro de Atividade de Campo</DialogTitle>
+                <DialogDescription>Documente as operações técnicas realizadas no talhão.</DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddAtividade} className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Talhão</Label>
+                    <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, talhao_id: v })} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {talhoes.map(t => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tipo de Atividade</Label>
+                    <Select onValueChange={(v: any) => setNewAtividade({ ...newAtividade, tipo_atividade: v, dados: {} })} defaultValue="Preparo de Solo">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Preparo de Solo">Preparo de Solo</SelectItem>
+                        <SelectItem value="Calagem">Calagem</SelectItem>
+                        <SelectItem value="Gessagem">Gessagem</SelectItem>
+                        <SelectItem value="Plantio">Plantio</SelectItem>
+                        <SelectItem value="Pulverização">Pulverização</SelectItem>
+                        <SelectItem value="Colheita">Colheita</SelectItem>
+                        <SelectItem value="Análise de Solo">Análise de Solo</SelectItem>
+                        <SelectItem value="Irrigação">Irrigação</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Data</Label>
+                    <Input type="date" value={newAtividade.data_atividade} onChange={(e) => setNewAtividade({ ...newAtividade, data_atividade: e.target.value })} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Custo Total (R$)</Label>
+                    <Input type="number" step="0.01" value={newAtividade.custo_total} onChange={(e) => setNewAtividade({ ...newAtividade, custo_total: e.target.value })} />
+                  </div>
+                </div>
+
+                {/* Campos dinâmicos baseados no tipo */}
+                <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <FlaskConical className="w-4 h-4" />
+                    Dados Técnicos: {newAtividade.tipo_atividade}
+                  </h4>
+                  
+                  {newAtividade.tipo_atividade === 'Preparo de Solo' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Tipo de Operação</Label>
+                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, tipo_operacao: v } })}>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Aração">Aração</SelectItem>
+                            <SelectItem value="Gradagem">Gradagem</SelectItem>
+                            <SelectItem value="Subsolagem">Subsolagem</SelectItem>
+                            <SelectItem value="Escarificação">Escarificação</SelectItem>
+                            <SelectItem value="Nivelamento">Nivelamento</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Horas Máquina</Label>
+                        <Input type="number" step="0.1" onChange={(e) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, horas_maquina: e.target.value } })} />
+                      </div>
+                    </div>
+                  )}
+
+                  {(newAtividade.tipo_atividade === 'Calagem' || newAtividade.tipo_atividade === 'Gessagem') && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Insumo</Label>
+                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, insumo_id: v } })}>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            {insumos.map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Dose (kg/ha)</Label>
+                        <Input type="number" onChange={(e) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, dose_por_hectare_kg: e.target.value } })} />
+                      </div>
+                    </div>
+                  )}
+
+                  {newAtividade.tipo_atividade === 'Plantio' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Semente</Label>
+                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, semente_id: v } })}>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            {insumos.filter(i => i.tipo === 'Semente').map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">População (plantas/ha)</Label>
+                        <Input type="number" onChange={(e) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, populacao_plantas_ha: e.target.value } })} />
+                      </div>
+                    </div>
+                  )}
+
+                  {newAtividade.tipo_atividade === 'Pulverização' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Insumo (Defensivo)</Label>
+                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, insumo_id: v } })}>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            {insumos.filter(i => i.tipo === 'Defensivo').map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Dose (L/ha)</Label>
+                        <Input type="number" step="0.1" onChange={(e) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, dose_por_hectare: e.target.value } })} />
+                      </div>
+                    </div>
+                  )}
+
+                  {newAtividade.tipo_atividade === 'Colheita' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Produtividade (ton/ha)</Label>
+                        <Input type="number" step="0.1" required onChange={(e) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, produtividade_ton_ha: e.target.value } })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Destino</Label>
+                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, destino: v } })}>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Silo">Silo (Próprio)</SelectItem>
+                            <SelectItem value="Venda">Venda Direta</SelectItem>
+                            <SelectItem value="Grão">Armazém de Grãos</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Observações</Label>
+                  <Input value={newAtividade.observacoes} onChange={(e) => setNewAtividade({ ...newAtividade, observacoes: e.target.value })} placeholder="Detalhes adicionais..." />
+                </div>
+
+                <DialogFooter>
+                  <Button type="submit" className="w-full">Finalizar Registro</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={isAddCicloOpen} onOpenChange={setIsAddCicloOpen}>
             <DialogTrigger
               render={
@@ -95,10 +440,10 @@ export default function TalhoesPage() {
                 <DialogTitle>Registrar Novo Ciclo</DialogTitle>
                 <DialogDescription>Inicie um novo ciclo de plantio em um talhão.</DialogDescription>
               </DialogHeader>
-              <form onSubmit={(e) => { e.preventDefault(); setIsAddCicloOpen(false); toast.success('Ciclo registrado!'); }} className="space-y-4 py-4">
+              <form onSubmit={handleAddCiclo} className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="ciclo-talhao">Talhão</Label>
-                  <Select required>
+                  <Select onValueChange={(v) => setNewCiclo({ ...newCiclo, talhao_id: v })} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o talhão" />
                     </SelectTrigger>
@@ -109,16 +454,33 @@ export default function TalhoesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ciclo-cultura">Cultura</Label>
-                  <Input id="ciclo-cultura" placeholder="Ex: Milho, Soja, Sorgo" required />
+                  <Input 
+                    id="ciclo-cultura" 
+                    placeholder="Ex: Milho, Soja, Sorgo" 
+                    required 
+                    value={newCiclo.cultura}
+                    onChange={(e) => setNewCiclo({ ...newCiclo, cultura: e.target.value })}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="ciclo-plantio">Data de Plantio</Label>
-                    <Input id="ciclo-plantio" type="date" required />
+                    <Input 
+                      id="ciclo-plantio" 
+                      type="date" 
+                      required 
+                      value={newCiclo.data_plantio}
+                      onChange={(e) => setNewCiclo({ ...newCiclo, data_plantio: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="ciclo-colheita">Previsão de Colheita</Label>
-                    <Input id="ciclo-colheita" type="date" />
+                    <Input 
+                      id="ciclo-colheita" 
+                      type="date" 
+                      value={newCiclo.data_colheita_prevista}
+                      onChange={(e) => setNewCiclo({ ...newCiclo, data_colheita_prevista: e.target.value })}
+                    />
                   </div>
                 </div>
                 <DialogFooter>
@@ -142,24 +504,47 @@ export default function TalhoesPage() {
                 <DialogTitle>Cadastrar Novo Talhão</DialogTitle>
                 <DialogDescription>Adicione uma nova área de produção.</DialogDescription>
               </DialogHeader>
-              <form onSubmit={(e) => { e.preventDefault(); setIsAddTalhaoOpen(false); toast.success('Talhão cadastrado!'); }} className="space-y-4 py-4">
+              <form onSubmit={handleAddTalhao} className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="talhao-nome">Identificação do Talhão</Label>
-                  <Input id="talhao-nome" placeholder="Ex: Talhão 05" required />
+                  <Input 
+                    id="talhao-nome" 
+                    placeholder="Ex: Talhão 05" 
+                    required 
+                    value={newTalhao.nome}
+                    onChange={(e) => setNewTalhao({ ...newTalhao, nome: e.target.value })}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="talhao-area">Área (ha)</Label>
-                    <Input id="talhao-area" type="number" step="0.1" required />
+                    <Input 
+                      id="talhao-area" 
+                      type="number" 
+                      step="0.1" 
+                      required 
+                      value={newTalhao.area}
+                      onChange={(e) => setNewTalhao({ ...newTalhao, area: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="talhao-solo">Tipo de Solo</Label>
-                    <Input id="talhao-solo" placeholder="Ex: Argiloso" />
+                    <Input 
+                      id="talhao-solo" 
+                      placeholder="Ex: Argiloso" 
+                      value={newTalhao.tipo_solo}
+                      onChange={(e) => setNewTalhao({ ...newTalhao, tipo_solo: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="talhao-loc">Localização</Label>
-                  <Input id="talhao-loc" placeholder="Descrição ou coordenadas" />
+                  <Input 
+                    id="talhao-loc" 
+                    placeholder="Descrição ou coordenadas" 
+                    value={newTalhao.localizacao}
+                    onChange={(e) => setNewTalhao({ ...newTalhao, localizacao: e.target.value })}
+                  />
                 </div>
                 <DialogFooter>
                   <Button type="submit">Cadastrar</Button>
@@ -170,42 +555,145 @@ export default function TalhoesPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {talhoes.map((talhao) => (
-          <Card key={talhao.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-bold">{talhao.nome}</CardTitle>
-              <Map className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Área: {talhao.area} ha</span>
-                  {getStatusBadge(talhao.status)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Solo: {talhao.tipo_solo || 'Não informado'}
-                </div>
-                {talhao.status === 'Plantado' && (
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center gap-2 text-xs font-medium text-green-600">
-                      <Sprout className="w-3 h-3" />
-                      {ciclos.find(c => c.talhao_id === talhao.id)?.cultura} em desenvolvimento
-                    </div>
-                  </div>
-                )}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="col-span-full lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-green-600" />
+              Custo por Período
+            </CardTitle>
+            <CardDescription>Calcule os custos vinculados a um talhão.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Selecionar Talhão</Label>
+              <Select onValueChange={setCostTalhaoId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {talhoes.map(t => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label className="text-xs">Data Início</Label>
+                <Input type="date" value={costStartDate} onChange={(e) => setCostStartDate(e.target.value)} />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-        {talhoes.length === 0 && !loading && (
-          <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
-            <Map className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-            <CardTitle className="text-muted-foreground">Nenhum talhão cadastrado</CardTitle>
-            <CardDescription>Clique em &quot;Novo Talhão&quot; para começar a gerenciar suas áreas de cultivo.</CardDescription>
-          </Card>
-        )}
+              <div className="space-y-2">
+                <Label className="text-xs">Data Fim</Label>
+                <Input type="date" value={costEndDate} onChange={(e) => setCostEndDate(e.target.value)} />
+              </div>
+            </div>
+            <Button className="w-full" onClick={handleCalculateCost} disabled={calculating}>
+              {calculating ? 'Calculando...' : (
+                <>
+                  <Search className="w-4 h-4 mr-2" />
+                  Calcular Custo
+                </>
+              )}
+            </Button>
+            {calculatedCost !== null && (
+              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-100 text-center">
+                <div className="text-xs text-green-700 font-medium uppercase tracking-wider">Custo Total no Período</div>
+                <div className="text-2xl font-bold text-green-900">R$ {calculatedCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="col-span-full lg:col-span-2 grid gap-6 md:grid-cols-2">
+          {talhoes.map((talhao) => (
+            <Card key={talhao.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-bold">{talhao.nome}</CardTitle>
+                <Map className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Área: {talhao.area} ha</span>
+                    {getStatusBadge(talhao.status)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Solo: {talhao.tipo_solo || 'Não informado'}
+                  </div>
+                  {talhao.status === 'Plantado' && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center gap-2 text-xs font-medium text-green-600">
+                        <Sprout className="w-3 h-3" />
+                        {ciclos.find(c => c.talhao_id === talhao.id && !c.data_colheita_real)?.cultura} em desenvolvimento
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {talhoes.length === 0 && !loading && (
+            <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
+              <Map className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+              <CardTitle className="text-muted-foreground">Nenhum talhão cadastrado</CardTitle>
+              <CardDescription>Clique em &quot;Novo Talhão&quot; para começar a gerenciar suas áreas de cultivo.</CardDescription>
+            </Card>
+          )}
+        </div>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Histórico de Atividades de Campo</CardTitle>
+            <CardDescription>Registro cronológico de todas as operações realizadas.</CardDescription>
+          </div>
+          <Button variant="outline" size="sm">
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Ver Todas
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Talhão</TableHead>
+                <TableHead>Atividade</TableHead>
+                <TableHead>Custo</TableHead>
+                <TableHead>Observações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {atividades.slice(0, 10).map((atv) => (
+                <TableRow key={atv.id}>
+                  <TableCell>{format(new Date(atv.data_atividade), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
+                  <TableCell className="font-medium">
+                    {talhoes.find(t => t.id === atv.talhao_id)?.nome}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-normal">
+                      {atv.tipo_atividade}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {atv.custo_total ? `R$ ${atv.custo_total.toLocaleString('pt-BR')}` : '-'}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                    {atv.observacoes || '-'}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {atividades.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                    Nenhuma atividade registrada.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

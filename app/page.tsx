@@ -1,16 +1,35 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function LandingPage() {
   const router = useRouter();
 
+  const checkAuth = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('perfil')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile?.perfil === 'Operador') {
+        router.push('/operador');
+      } else {
+        router.push('/dashboard');
+      }
+    }
+  }, [router]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

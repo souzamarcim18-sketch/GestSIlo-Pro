@@ -28,8 +28,23 @@ export default function LoginPage() {
       toast.error('E-mail ou senha inválidos.');
       setLoading(false);
     } else {
-      toast.success('Login realizado com sucesso!');
-      router.push('/dashboard');
+      // Buscar perfil para redirecionamento correto
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('perfil')
+          .eq('id', user.id)
+          .single();
+
+        toast.success('Login realizado com sucesso!');
+        
+        if (profile?.perfil === 'Operador') {
+          router.push('/operador');
+        } else {
+          router.push('/dashboard');
+        }
+      }
     }
   };
 

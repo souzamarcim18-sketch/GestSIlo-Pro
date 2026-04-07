@@ -37,21 +37,33 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Plus, ArrowDownRight, ArrowUpRight, History, Database } from 'lucide-react';
+import { Plus, ArrowDownRight, ArrowUpRight, History, Database, Calendar, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Silo, MovimentacaoSilo } from '@/lib/supabase';
-import { format } from 'date-fns';
+import { supabase, Silo, MovimentacaoSilo, Insumo } from '@/lib/supabase';
+import { getSilosByFazenda, createSilo } from '@/lib/supabase/silos';
+import { getInsumosByFazenda } from '@/lib/supabase/insumos';
+import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function SilosPage() {
   const [silos, setSilos] = useState<Silo[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
+  const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
   const [isAddMovOpen, setIsAddMovOpen] = useState(false);
 
   // Form states
-  const [newSilo, setNewSilo] = useState({ nome: '', tipo: 'Bunker', capacidade: '', localizacao: '' });
+  const [newSilo, setNewSilo] = useState({ 
+    nome: '', 
+    tipo: 'Bunker', 
+    capacidade: '', 
+    localizacao: '',
+    materia_seca_percent: '',
+    consumo_medio_diario_ton: '',
+    insumo_lona_id: '',
+    insumo_inoculante_id: ''
+  });
   const [newMov, setNewMov] = useState({ silo_id: '', tipo: 'Entrada', quantidade: '', talhao_id: '', responsavel: '', observacao: '' });
 
   useEffect(() => {
@@ -61,9 +73,31 @@ export default function SilosPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Data will be fetched from Supabase here
-      setSilos([]);
-      setMovimentacoes([]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('fazenda_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.fazenda_id) {
+        const [silosData, insumosData] = await Promise.all([
+          getSilosByFazenda(profile.fazenda_id),
+          getInsumosByFazenda(profile.fazenda_id)
+        ]);
+        setSilos(silosData);
+        setInsumos(insumosData);
+        
+        const { data: movs } = await supabase
+          .from('movimentacoes_silo')
+          .select('*')
+          .in('silo_id', silosData.map(s => s.id))
+          .order('data', { ascending: false });
+        
+        setMovimentacoes(movs || []);
+      }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -73,8 +107,45 @@ export default function SilosPage() {
 
   const handleAddSilo = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Silo cadastrado com sucesso!');
-    setIsAddSiloOpen(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('fazenda_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.fazenda_id) {
+        await createSilo({
+          nome: newSilo.nome,
+          tipo: newSilo.tipo as any,
+          capacidade: Number(newSilo.capacidade),
+          localizacao: newSilo.localizacao,
+          fazenda_id: profile.fazenda_id,
+          materia_seca_percent: newSilo.materia_seca_percent ? Number(newSilo.materia_seca_percent) : null,
+          consumo_medio_diario_ton: newSilo.consumo_medio_diario_ton ? Number(newSilo.consumo_medio_diario_ton) : null,
+          insumo_lona_id: newSilo.insumo_lona_id || null,
+          insumo_inoculante_id: newSilo.insumo_inoculante_id || null
+        });
+        toast.success('Silo cadastrado com sucesso!');
+        setIsAddSiloOpen(false);
+        fetchData();
+        setNewSilo({ 
+          nome: '', 
+          tipo: 'Bunker', 
+          capacidade: '', 
+          localizacao: '',
+          materia_seca_percent: '',
+          consumo_medio_diario_ton: '',
+          insumo_lona_id: '',
+          insumo_inoculante_id: ''
+        });
+      }
+    } catch (error) {
+      toast.error('Erro ao cadastrar silo');
+    }
   };
 
   const handleAddMov = async (e: React.FormEvent) => {
@@ -196,9 +267,66 @@ export default function SilosPage() {
                     <Input id="silo-cap" type="number" required />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
+                    <Input 
+                      id="silo-ms" 
+                      type="number" 
+                      step="0.1" 
+                      placeholder="Ex: 32.5" 
+                      value={newSilo.materia_seca_percent}
+                      onChange={(e) => setNewSilo({ ...newSilo, materia_seca_percent: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="silo-cons">Consumo Diário (ton)</Label>
+                    <Input 
+                      id="silo-cons" 
+                      type="number" 
+                      step="0.01" 
+                      placeholder="Ex: 1.5" 
+                      value={newSilo.consumo_medio_diario_ton}
+                      onChange={(e) => setNewSilo({ ...newSilo, consumo_medio_diario_ton: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="silo-lona">Lona Utilizada</Label>
+                    <Select onValueChange={(v) => setNewSilo({ ...newSilo, insumo_lona_id: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {insumos.filter(i => i.tipo === 'Outros').map(i => (
+                          <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="silo-inoc">Inoculante</Label>
+                    <Select onValueChange={(v) => setNewSilo({ ...newSilo, insumo_inoculante_id: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {insumos.filter(i => i.tipo === 'Outros').map(i => (
+                          <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="silo-loc">Localização</Label>
-                  <Input id="silo-loc" placeholder="Descrição ou coordenadas" />
+                  <Input 
+                    id="silo-loc" 
+                    placeholder="Descrição ou coordenadas" 
+                    value={newSilo.localizacao}
+                    onChange={(e) => setNewSilo({ ...newSilo, localizacao: e.target.value })}
+                  />
                 </div>
                 <DialogFooter>
                   <Button type="submit">Cadastrar</Button>
@@ -212,6 +340,8 @@ export default function SilosPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {silos.map((silo) => {
           const { total, percentage } = calculateOccupancy(silo.id, silo.capacidade);
+          const diasRestantes = silo.consumo_medio_diario_ton ? Math.floor(total / silo.consumo_medio_diario_ton) : null;
+          
           return (
             <Card key={silo.id}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -228,12 +358,32 @@ export default function SilosPage() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
-                      <span>{total} ton</span>
+                      <span>{total.toFixed(1)} ton</span>
                       <span>{silo.capacidade} ton</span>
                     </div>
                     <Progress value={percentage} className="h-2" />
                   </div>
-                  <div className="pt-2 border-t text-xs text-muted-foreground">
+                  
+                  {diasRestantes !== null && (
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-1 text-xs font-medium">
+                        <Calendar className="w-3 h-3" />
+                        Estoque para:
+                      </div>
+                      <Badge 
+                        variant={diasRestantes < 30 ? "destructive" : diasRestantes < 60 ? "secondary" : "outline"}
+                        className={diasRestantes < 60 && diasRestantes >= 30 ? "bg-amber-500 text-white border-none" : ""}
+                      >
+                        {diasRestantes} dias
+                      </Badge>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t grid grid-cols-2 gap-2 text-[10px] text-muted-foreground">
+                    <div>MS: {silo.materia_seca_percent || '-'}%</div>
+                    <div>Consumo: {silo.consumo_medio_diario_ton || '-'} t/dia</div>
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
                     Localização: {silo.localizacao || 'Não informada'}
                   </div>
                 </div>

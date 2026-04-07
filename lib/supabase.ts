@@ -39,6 +39,10 @@ export type Silo = {
   capacidade: number;
   localizacao: string | null;
   fazenda_id: string;
+  materia_seca_percent: number | null;
+  consumo_medio_diario_ton: number | null;
+  insumo_lona_id: string | null;
+  insumo_inoculante_id: string | null;
 };
 
 export type MovimentacaoSilo = {
@@ -102,6 +106,10 @@ export type Maquina = {
   ano: number | null;
   identificacao: string | null;
   fazenda_id: string;
+  consumo_medio_lh: number | null;
+  valor_aquisicao: number | null;
+  data_aquisicao: string | null;
+  vida_util_anos: number | null;
 };
 
 export type UsoMaquina = {
@@ -145,4 +153,35 @@ export type Financeiro = {
   referencia_id: string | null;
   referencia_tipo: 'Silo' | 'Talhão' | 'Máquina' | null;
   fazenda_id: string;
+};
+
+export type AtividadeCampo = {
+  id: string;
+  fazenda_id: string;
+  talhao_id: string;
+  ciclo_id: string | null;
+  tipo_atividade: 'Preparo de Solo' | 'Calagem' | 'Gessagem' | 'Plantio' | 'Pulverização' | 'Colheita' | 'Análise de Solo' | 'Irrigação';
+  data_atividade: string;
+  custo_total: number | null;
+  observacoes: string | null;
+  dados_json: any;
+  created_at: string;
+};
+
+export type CategoriaRebanho = {
+  id: string;
+  fazenda_id: string;
+  nome: string;
+  quantidade_cabecas: number;
+  consumo_ms_kg_cab_dia: number;
+  created_at: string;
+};
+
+export type PeriodoConfinamento = {
+  id: string;
+  fazenda_id: string;
+  nome: string;
+  data_inicio: string;
+  data_fim: string;
+  created_at: string;
 };

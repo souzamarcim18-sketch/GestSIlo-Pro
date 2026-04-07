@@ -13,7 +13,8 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Sprout
+  Sprout,
+  Calculator
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -31,6 +32,12 @@ const routes = [
     icon: Database,
     href: '/dashboard/silos',
     color: 'text-amber-500',
+  },
+  {
+    label: 'Planejador',
+    icon: Calculator,
+    href: '/dashboard/rebanho',
+    color: 'text-rose-500',
   },
   {
     label: 'Talhões',
