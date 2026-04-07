@@ -169,7 +169,7 @@ export default function SilosPage() {
 
   const calculateOccupancy = (siloId: string, capacity: number) => {
     const siloMovs = movimentacoes.filter(m => m.silo_id === siloId);
-    const total = siloMovs.reduce((acc, m) => m.tipo === 'Entrada' ? acc + m.quantidade : acc - m.quantidade, 0);
+    const total = siloMovs.reduce((acc: number, m) => m.tipo === 'Entrada' ? acc + m.quantidade : acc - m.quantidade, 0);
     return {
       total,
       percentage: Math.min(Math.round((total / capacity) * 100), 100)

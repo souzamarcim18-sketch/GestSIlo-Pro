@@ -81,7 +81,7 @@ export default function PlanejadorRebanhoPage() {
   const calculos = useMemo(() => {
     if (!selectedPeriodo) return null;
 
-    const consumoDiarioMS_kg = categorias.reduce((acc, c) => 
+    const consumoDiarioMS_kg = categorias.reduce((acc: number, c) => 
       acc + (c.quantidade_cabecas * c.consumo_ms_kg_cab_dia), 0);
     
     const consumoDiarioMS_ton = consumoDiarioMS_kg / 1000;
@@ -94,10 +94,10 @@ export default function PlanejadorRebanhoPage() {
     const necessidadeTotalMS = consumoDiarioMS_ton * diasPeriodo;
 
     // Estoque disponível em MS
-    const estoqueMS = silos.reduce((acc, s) => {
+    const estoqueMS = silos.reduce((acc: number, s) => {
       const estoqueAtualSilo = movimentacoes
         .filter(m => m.silo_id === s.id)
-        .reduce((sum, m) => m.tipo === 'Entrada' ? sum + m.quantidade : sum - m.quantidade, 0);
+        .reduce((sum: number, m) => m.tipo === 'Entrada' ? sum + m.quantidade : sum - m.quantidade, 0);
       
       return acc + (estoqueAtualSilo * (s.materia_seca_percent || 30) / 100);
     }, 0);

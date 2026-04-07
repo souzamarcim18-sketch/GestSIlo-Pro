@@ -56,6 +56,6 @@ export async function getCustoTalhaoPeriodo(talhaoId: string, dataInicio: string
 
   if (error) throw error;
   
-  const custoTotal = data?.reduce((acc, r) => acc + (r.valor || 0), 0) ?? 0;
+  const custoTotal = data?.reduce((acc: number, r) => acc + (r.valor || 0), 0) ?? 0;
   return custoTotal;
 }
