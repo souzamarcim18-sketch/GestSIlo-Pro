@@ -38,7 +38,7 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="GestSilo" width={40} height={40} className="rounded-xl shadow-md object-contain" />
+            <Image src="/logo.png?v=1" alt="GestSilo" width={40} height={40} className="rounded-xl shadow-md object-contain" unoptimized />
             <div>
               <span className="font-bold text-lg" style={{ color: '#00A651' }}>Gest</span>
               <span className="font-bold text-lg" style={{ color: '#6B8E23' }}>Silo</span>
@@ -93,7 +93,7 @@ export default function LandingPage() {
 
               {/* Logo no Hero */}
               <div className="mb-8">
-                <Image src="/logo.png" alt="GestSilo" width={80} height={80} className="rounded-2xl shadow-xl object-contain" />
+                <Image src="/logo.png?v=1" alt="GestSilo" width={80} height={80} className="rounded-2xl shadow-xl object-contain" unoptimized />
               </div>
 
               {/* Título */}
@@ -146,7 +146,7 @@ export default function LandingPage() {
                 {/* Imagem principal */}
                 <div className="relative z-10 rounded-[32px] overflow-hidden shadow-2xl w-full max-w-md" style={{ aspectRatio: '4/3' }}>
                   <Image
-                    src="/imagem-hero.png"
+                    src="/imagem-hero.png?v=1"
                     alt="Gestão agrícola com GestSilo"
                     fill
                     className="object-cover"

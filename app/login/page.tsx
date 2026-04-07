@@ -87,7 +87,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 flex items-center gap-4">
-          <Image src="/logo.png" alt="GestSilo" width={80} height={80} className="rounded-2xl shadow-xl object-contain" />
+          <Image src="/logo.png?v=1" alt="GestSilo" width={80} height={80} className="rounded-2xl shadow-xl object-contain" unoptimized />
           <div>
             <h1 className="font-black text-4xl tracking-tight">
               <span style={{ color: '#00A651' }}>Gest</span>
@@ -124,7 +124,7 @@ export default function LoginPage() {
         {/* Logo mobile */}
         <div className="lg:hidden flex items-center gap-3 mb-10">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg p-2 bg-white">
-            <Image src="/logo.png" alt="GestSilo" width={48} height={48} className="object-contain" />
+            <Image src="/logo.png?v=1" alt="GestSilo" width={48} height={48} className="object-contain" unoptimized />
           </div>
           <div>
             <span className="font-bold text-xl" style={{ color: '#00A651' }}>Gest</span>

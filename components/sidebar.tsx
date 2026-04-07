@@ -97,11 +97,12 @@ export function Sidebar() {
       <div className="px-6 py-8 flex-1 flex flex-col min-h-0">
         <Link href="/dashboard" className="flex items-center gap-3 mb-10 group transition-all">
           <Image 
-            src="/logo.png" 
+            src="/logo.png?v=1" 
             alt="GestSilo" 
             width={48} 
             height={48} 
             className="rounded-xl shadow-md object-contain group-hover:scale-105 transition-transform" 
+            unoptimized
           />
           <div className="flex flex-col -space-y-1">
             <span className="font-black text-xl tracking-tight" style={{ color: '#00A651' }}>Gest</span>
@@ -109,7 +110,7 @@ export function Sidebar() {
           </div>
         </Link>
         
-        <ScrollArea className="flex-1 -mx-2 px-2">
+        <ScrollArea className="flex-1 -mx-2 px-2 min-h-0 h-full">
           <div className="space-y-1 pb-4">
             {routes.map((route) => (
               <Link
