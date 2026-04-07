@@ -287,7 +287,7 @@ export default function FrotaPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="maq-tipo">Tipo</Label>
-                    <Select onValueChange={(v: any) => setNewMaquina({ ...newMaquina, tipo: v })} defaultValue="Trator">
+                    <Select onValueChange={(v: any) => v && setNewMaquina({ ...newMaquina, tipo: v })} defaultValue="Trator">
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

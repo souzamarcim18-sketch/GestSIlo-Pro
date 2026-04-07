@@ -270,7 +270,7 @@ export default function TalhoesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Talhão</Label>
-                    <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, talhao_id: v })} required>
+                    <Select onValueChange={(v) => v && setNewAtividade({ ...newAtividade, talhao_id: v })} required>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -281,7 +281,7 @@ export default function TalhoesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Tipo de Atividade</Label>
-                    <Select onValueChange={(v: any) => setNewAtividade({ ...newAtividade, tipo_atividade: v, dados: {} })} defaultValue="Preparo de Solo">
+                    <Select onValueChange={(v: any) => v && setNewAtividade({ ...newAtividade, tipo_atividade: v, dados: {} })} defaultValue="Preparo de Solo">
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -321,7 +321,7 @@ export default function TalhoesPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs">Tipo de Operação</Label>
-                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, tipo_operacao: v } })}>
+                        <Select onValueChange={(v) => v && setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, tipo_operacao: v } })}>
                           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Aração">Aração</SelectItem>
@@ -343,7 +343,7 @@ export default function TalhoesPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs">Insumo</Label>
-                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, insumo_id: v } })}>
+                        <Select onValueChange={(v) => v && setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, insumo_id: v } })}>
                           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                           <SelectContent>
                             {insumos.map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
@@ -361,7 +361,7 @@ export default function TalhoesPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs">Semente</Label>
-                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, semente_id: v } })}>
+                        <Select onValueChange={(v) => v && setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, semente_id: v } })}>
                           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                           <SelectContent>
                             {insumos.filter(i => i.tipo === 'Semente').map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
@@ -379,7 +379,7 @@ export default function TalhoesPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs">Insumo (Defensivo)</Label>
-                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, insumo_id: v } })}>
+                        <Select onValueChange={(v) => v && setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, insumo_id: v } })}>
                           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                           <SelectContent>
                             {insumos.filter(i => i.tipo === 'Defensivo').map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
@@ -401,7 +401,7 @@ export default function TalhoesPage() {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs">Destino</Label>
-                        <Select onValueChange={(v) => setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, destino: v } })}>
+                        <Select onValueChange={(v) => v && setNewAtividade({ ...newAtividade, dados: { ...newAtividade.dados, destino: v } })}>
                           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Silo">Silo (Próprio)</SelectItem>
@@ -443,7 +443,7 @@ export default function TalhoesPage() {
               <form onSubmit={handleAddCiclo} className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="ciclo-talhao">Talhão</Label>
-                  <Select onValueChange={(v) => setNewCiclo({ ...newCiclo, talhao_id: v })} required>
+                  <Select onValueChange={(v) => v && setNewCiclo({ ...newCiclo, talhao_id: v })} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o talhão" />
                     </SelectTrigger>
@@ -567,7 +567,7 @@ export default function TalhoesPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Selecionar Talhão</Label>
-              <Select onValueChange={setCostTalhaoId}>
+              <Select onValueChange={(v) => v && setCostTalhaoId(v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
