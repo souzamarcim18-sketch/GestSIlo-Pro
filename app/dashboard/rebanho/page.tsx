@@ -185,12 +185,14 @@ export default function PlanejadorRebanhoPage() {
         </div>
         <div className="flex items-center gap-2">
           <Dialog open={isPeriodoModalOpen} onOpenChange={setIsPeriodoModalOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingPeriodo({})} variant="outline">
-                <Calendar className="w-4 h-4 mr-2" />
-                Novo Período
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger
+              render={
+                <Button onClick={() => setEditingPeriodo({})} variant="outline">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Novo Período
+                </Button>
+              }
+            />
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Período de Trato</DialogTitle>
@@ -234,12 +236,14 @@ export default function PlanejadorRebanhoPage() {
           </Dialog>
 
           <Dialog open={isCategoriaModalOpen} onOpenChange={setIsCategoriaModalOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingCategoria({})}>
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Categoria
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger
+              render={
+                <Button onClick={() => setEditingCategoria({})}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Categoria
+                </Button>
+              }
+            />
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Categoria do Rebanho</DialogTitle>

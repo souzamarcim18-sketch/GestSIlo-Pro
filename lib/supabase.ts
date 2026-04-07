@@ -84,6 +84,9 @@ export type Insumo = {
   estoque_minimo: number;
   estoque_atual: number;
   fazenda_id: string;
+  teor_n_percent?: number;
+  teor_p_percent?: number;
+  teor_k_percent?: number;
 };
 
 export type MovimentacaoInsumo = {

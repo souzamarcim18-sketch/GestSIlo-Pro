@@ -14,7 +14,8 @@ import {
   Settings,
   LogOut,
   Sprout,
-  Calculator
+  Calculator,
+  Beaker
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,6 +39,18 @@ const routes = [
     icon: Calculator,
     href: '/dashboard/rebanho',
     color: 'text-rose-500',
+  },
+  {
+    label: 'Simulador',
+    icon: Sprout,
+    href: '/dashboard/simulador',
+    color: 'text-lime-600',
+  },
+  {
+    label: 'Calculadoras',
+    icon: Beaker,
+    href: '/dashboard/calculadoras',
+    color: 'text-indigo-500',
   },
   {
     label: 'Talhões',

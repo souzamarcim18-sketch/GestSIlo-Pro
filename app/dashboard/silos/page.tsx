@@ -37,10 +37,10 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Plus, ArrowDownRight, ArrowUpRight, History, Database, Calendar, AlertTriangle } from 'lucide-react';
+import { Plus, ArrowDownRight, ArrowUpRight, History, Database, Calendar, AlertTriangle, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase, Silo, MovimentacaoSilo, Insumo } from '@/lib/supabase';
-import { getSilosByFazenda, createSilo } from '@/lib/supabase/silos';
+import { getSilosByFazenda, createSilo, getCustoProducaoSilagem } from '@/lib/supabase/silos';
 import { getInsumosByFazenda } from '@/lib/supabase/insumos';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -49,6 +49,7 @@ export default function SilosPage() {
   const [silos, setSilos] = useState<Silo[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
   const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [custos, setCustos] = useState<Record<string, { custoPorTonelada: number } | null>>({});
   const [loading, setLoading] = useState(true);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
   const [isAddMovOpen, setIsAddMovOpen] = useState(false);
@@ -97,6 +98,18 @@ export default function SilosPage() {
           .order('data', { ascending: false });
         
         setMovimentacoes(movs || []);
+
+        // Buscar custos de produção em paralelo
+        const custosPromises = silosData.map(async (s) => {
+          const custo = await getCustoProducaoSilagem(s.id);
+          return { id: s.id, custo };
+        });
+        const custosResults = await Promise.all(custosPromises);
+        const custosMap: Record<string, any> = {};
+        custosResults.forEach(r => {
+          custosMap[r.id] = r.custo;
+        });
+        setCustos(custosMap);
       }
     } catch (error) {
       toast.error('Erro ao carregar dados');
@@ -383,6 +396,19 @@ export default function SilosPage() {
                     <div>MS: {silo.materia_seca_percent || '-'}%</div>
                     <div>Consumo: {silo.consumo_medio_diario_ton || '-'} t/dia</div>
                   </div>
+                  
+                  {custos[silo.id] && (
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="flex items-center gap-1 text-xs font-bold text-green-700">
+                        <DollarSign className="w-3 h-3" />
+                        Custo Produção:
+                      </div>
+                      <span className="text-xs font-black text-green-700">
+                        R$ {custos[silo.id]?.custoPorTonelada.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /ton
+                      </span>
+                    </div>
+                  )}
+
                   <div className="text-[10px] text-muted-foreground">
                     Localização: {silo.localizacao || 'Não informada'}
                   </div>

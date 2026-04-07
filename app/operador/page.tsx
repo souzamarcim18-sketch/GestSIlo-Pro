@@ -204,12 +204,14 @@ export default function ModoOperadorPage() {
         
         {/* Botão Retirada */}
         <Dialog open={isRetiradaOpen} onOpenChange={setIsRetiradaOpen}>
-          <DialogTrigger asChild>
-            <button className="w-full h-24 bg-green-600 hover:bg-green-500 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 shadow-xl shadow-green-900/20">
-              <PackageMinus className="w-10 h-10 text-white" />
-              <span className="text-2xl font-black text-white uppercase tracking-tight">Retirada de Silo</span>
-            </button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <button className="w-full h-24 bg-green-600 hover:bg-green-500 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 shadow-xl shadow-green-900/20">
+                <PackageMinus className="w-10 h-10 text-white" />
+                <span className="text-2xl font-black text-white uppercase tracking-tight">Retirada de Silo</span>
+              </button>
+            }
+          />
           <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 sm:max-w-md rounded-3xl">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-green-500">Registrar Retirada</DialogTitle>
@@ -260,12 +262,14 @@ export default function ModoOperadorPage() {
 
         {/* Botão Perda */}
         <Dialog open={isPerdaOpen} onOpenChange={setIsPerdaOpen}>
-          <DialogTrigger asChild>
-            <button className="w-full h-24 bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 border border-zinc-700 shadow-xl">
-              <AlertOctagon className="w-10 h-10 text-red-500" />
-              <span className="text-2xl font-black text-zinc-100 uppercase tracking-tight">Registrar Perda</span>
-            </button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <button className="w-full h-24 bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 border border-zinc-700 shadow-xl">
+                <AlertOctagon className="w-10 h-10 text-red-500" />
+                <span className="text-2xl font-black text-zinc-100 uppercase tracking-tight">Registrar Perda</span>
+              </button>
+            }
+          />
           <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 sm:max-w-md rounded-3xl">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-red-500">Registrar Perda</DialogTitle>
