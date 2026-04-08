@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogTrigger, DialogClose,
+  DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -54,15 +54,14 @@ const lancamentoSchema = z.object({
   descricao: z.string().min(2, 'Descrição deve ter ao menos 2 caracteres'),
   categoria: z.string().min(1, 'Informe a categoria'),
   valor: z.preprocess(
-  (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-  z.number().positive('Valor deve ser maior que zero'),
-),
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number().positive('Valor deve ser maior que zero'),
+  ),
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
   referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
 });
 
-// ✅ Tipo definido manualmente — evita o bug do z.output<> no Zod v4
 type LancamentoFormData = {
   tipo: 'Receita' | 'Despesa';
   descricao: string;
@@ -113,7 +112,6 @@ export default function FinanceiroPage() {
     filtroFim:    `${uid}-filtro-fim`,
   };
 
-  // ✅ Cast explícito para satisfazer o TypeScript com Zod v4
   const form = useForm<LancamentoFormData>({
     resolver: zodResolver(lancamentoSchema) as any,
     defaultValues: {
@@ -406,10 +404,15 @@ export default function FinanceiroPage() {
         </div>
       </div>
 
+      {/* ✅ Sem DialogClose — fecha via estado */}
       <DialogFooter>
-        <DialogClose asChild>
-          <Button type="button" variant="outline">Cancelar</Button>
-        </DialogClose>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsFormOpen(false)}
+        >
+          Cancelar
+        </Button>
         <Button type="submit" disabled={submitting}>
           {submitting ? 'Salvando...' : editingLancamento ? 'Atualizar' : 'Lançar'}
         </Button>
@@ -724,10 +727,14 @@ export default function FinanceiroPage() {
               Essa ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
+          {/* ✅ Sem DialogClose — fecha via estado */}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
+            <Button
+              variant="outline"
+              onClick={() => setDeletingLancamento(null)}
+            >
+              Cancelar
+            </Button>
             <Button variant="destructive" onClick={handleConfirmDelete} disabled={submitting}>
               {submitting ? 'Removendo...' : 'Remover'}
             </Button>
