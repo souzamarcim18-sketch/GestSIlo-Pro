@@ -78,7 +78,8 @@ type LancamentoFormData = {
 const brl = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const tooltipFormatter = (value: number) => brl(value);
+const tooltipFormatter = (value: number | string | undefined) =>
+  typeof value === 'number' ? brl(value) : String(value ?? '');
 
 // ---------------------------------------------------------------------------
 // Componente
