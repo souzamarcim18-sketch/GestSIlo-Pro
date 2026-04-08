@@ -53,15 +53,25 @@ const lancamentoSchema = z.object({
   tipo: z.enum(['Receita', 'Despesa']),
   descricao: z.string().min(2, 'Descrição deve ter ao menos 2 caracteres'),
   categoria: z.string().min(1, 'Informe a categoria'),
-  valor: z.coerce
-  .number()
-  .positive('Valor deve ser maior que zero'),
+  valor: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number({ required_error: 'Informe o valor' }).positive('Valor deve ser maior que zero'),
+  ),
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
   referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
 });
 
-type LancamentoFormData = z.output<typeof lancamentoSchema>;
+// ✅ Tipo definido manualmente — evita o bug do z.output<> no Zod v4
+type LancamentoFormData = {
+  tipo: 'Receita' | 'Despesa';
+  descricao: string;
+  categoria: string;
+  valor: number;
+  data: string;
+  forma_pagamento?: string;
+  referencia_tipo?: 'Silo' | 'Talhão' | 'Máquina' | null;
+};
 
 // ---------------------------------------------------------------------------
 // Formatadores
@@ -88,7 +98,6 @@ export default function FinanceiroPage() {
   const [deletingLancamento, setDeletingLancamento] = useState<Financeiro | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // IDs estáveis para associação label ↔ controle
   const uid = useId();
   const ids = {
     dialogTitle:  `${uid}-dialog-title`,
@@ -104,8 +113,9 @@ export default function FinanceiroPage() {
     filtroFim:    `${uid}-filtro-fim`,
   };
 
+  // ✅ Cast explícito para satisfazer o TypeScript com Zod v4
   const form = useForm<LancamentoFormData>({
-    resolver: zodResolver(lancamentoSchema),
+    resolver: zodResolver(lancamentoSchema) as any,
     defaultValues: {
       tipo: 'Despesa',
       descricao: '',
@@ -455,7 +465,6 @@ export default function FinanceiroPage() {
     </TableRow>
   );
 
-  // Estado vazio anunciado por AT
   const TabelaVazia = ({ cols = 7 }: { cols?: number }) => (
     <TableRow>
       <TableCell
@@ -477,16 +486,12 @@ export default function FinanceiroPage() {
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* h1 real da página */}
         <h1 className="text-3xl font-bold tracking-tight">Gestão Financeira</h1>
 
         <div className="flex flex-wrap gap-2 items-center">
 
-          {/* Filtro de período — inputs com Label visível via sr-only */}
           <div className="flex items-center gap-2 text-sm" role="group" aria-label="Filtro de período">
-            <Label htmlFor={ids.filtroInicio} className="sr-only">
-              Data inicial do filtro
-            </Label>
+            <Label htmlFor={ids.filtroInicio} className="sr-only">Data inicial do filtro</Label>
             <Input
               id={ids.filtroInicio}
               type="date"
@@ -496,9 +501,7 @@ export default function FinanceiroPage() {
               aria-label="Data inicial do filtro"
             />
             <span className="text-muted-foreground" aria-hidden="true">até</span>
-            <Label htmlFor={ids.filtroFim} className="sr-only">
-              Data final do filtro
-            </Label>
+            <Label htmlFor={ids.filtroFim} className="sr-only">Data final do filtro</Label>
             <Input
               id={ids.filtroFim}
               type="date"
@@ -519,7 +522,6 @@ export default function FinanceiroPage() {
             )}
           </div>
 
-          {/* Dialog: Novo Lançamento */}
           <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) setIsFormOpen(false); }}>
             <DialogTrigger asChild>
               <Button onClick={handleOpenNew}>
@@ -527,10 +529,7 @@ export default function FinanceiroPage() {
                 Novo Lançamento
               </Button>
             </DialogTrigger>
-            <DialogContent
-              aria-labelledby={ids.dialogTitle}
-              aria-describedby={ids.dialogDesc}
-            >
+            <DialogContent aria-labelledby={ids.dialogTitle} aria-describedby={ids.dialogDesc}>
               <DialogHeader>
                 <DialogTitle id={ids.dialogTitle}>
                   {editingLancamento ? 'Editar Lançamento' : 'Novo Lançamento Financeiro'}
@@ -554,17 +553,11 @@ export default function FinanceiroPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-receitas">
-                Total Receitas
-              </CardTitle>
+              <CardTitle className="text-sm font-medium" id="card-receitas">Total Receitas</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-500" aria-hidden="true" />
             </CardHeader>
             <CardContent>
-              <div
-                className="text-2xl font-bold text-green-600"
-                aria-labelledby="card-receitas"
-                aria-live="polite"
-              >
+              <div className="text-2xl font-bold text-green-600" aria-labelledby="card-receitas" aria-live="polite">
                 {loading ? '—' : brl(resumo.totalReceitas)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -575,17 +568,11 @@ export default function FinanceiroPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-despesas">
-                Total Despesas
-              </CardTitle>
+              <CardTitle className="text-sm font-medium" id="card-despesas">Total Despesas</CardTitle>
               <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />
             </CardHeader>
             <CardContent>
-              <div
-                className="text-2xl font-bold text-destructive"
-                aria-labelledby="card-despesas"
-                aria-live="polite"
-              >
+              <div className="text-2xl font-bold text-destructive" aria-labelledby="card-despesas" aria-live="polite">
                 {loading ? '—' : brl(resumo.totalDespesas)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -596,9 +583,7 @@ export default function FinanceiroPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-saldo">
-                Saldo Líquido
-              </CardTitle>
+              <CardTitle className="text-sm font-medium" id="card-saldo">Saldo Líquido</CardTitle>
               <Wallet className="h-4 w-4 text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
@@ -620,17 +605,9 @@ export default function FinanceiroPage() {
       <Card>
         <CardHeader>
           <CardTitle id="grafico-titulo">Fluxo de Caixa Mensal</CardTitle>
-          <CardDescription>
-            Comparativo de receitas e despesas nos últimos 6 meses.
-          </CardDescription>
+          <CardDescription>Comparativo de receitas e despesas nos últimos 6 meses.</CardDescription>
         </CardHeader>
         <CardContent>
-          {/*
-            Recharts não é acessível nativamente.
-            role="img" + aria-labelledby dão pelo menos um nome ao bloco.
-            Para conformidade WCAG 1.1.1 completa, adicione uma tabela
-            de dados visualmente oculta como alternativa textual.
-          */}
           <div
             className="h-[280px]"
             role="img"
@@ -638,10 +615,7 @@ export default function FinanceiroPage() {
             aria-label="Gráfico de área com fluxo de caixa mensal — receitas e despesas nos últimos 6 meses"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={fluxoMensal}
-                margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
-              >
+              <AreaChart data={fluxoMensal} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.15} />
@@ -659,29 +633,12 @@ export default function FinanceiroPage() {
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                   width={56}
                 />
-                <Tooltip
-                  formatter={tooltipFormatter}
-                  labelStyle={{ fontWeight: 600 }}
-                />
+                <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
                 <Legend iconType="circle" iconSize={8} />
-                <Area
-                  type="monotone"
-                  dataKey="receita"
-                  name="Receita"
-                  stroke="hsl(var(--primary))"
-                  fill="url(#gradReceita)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="despesa"
-                  name="Despesa"
-                  stroke="#ef4444"
-                  fill="url(#gradDespesa)"
-                  strokeWidth={2}
-                  dot={false}
-                />
+                <Area type="monotone" dataKey="receita" name="Receita"
+                  stroke="hsl(var(--primary))" fill="url(#gradReceita)" strokeWidth={2} dot={false} />
+                <Area type="monotone" dataKey="despesa" name="Despesa"
+                  stroke="#ef4444" fill="url(#gradDespesa)" strokeWidth={2} dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -733,7 +690,6 @@ export default function FinanceiroPage() {
                         <TableHead scope="col">Referência</TableHead>
                         <TableHead scope="col">Valor</TableHead>
                         <TableHead scope="col">Pagamento</TableHead>
-                        {/* Coluna de ações — sr-only para não poluir visualmente */}
                         <TableHead scope="col" className="w-[80px]">
                           <span className="sr-only">Ações</span>
                         </TableHead>
@@ -758,10 +714,7 @@ export default function FinanceiroPage() {
         open={!!deletingLancamento}
         onOpenChange={(open) => { if (!open) setDeletingLancamento(null); }}
       >
-        <DialogContent
-          aria-labelledby="delete-dialog-title"
-          aria-describedby="delete-dialog-desc"
-        >
+        <DialogContent aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-desc">
           <DialogHeader>
             <DialogTitle id="delete-dialog-title">Confirmar exclusão</DialogTitle>
             <DialogDescription id="delete-dialog-desc">
@@ -775,11 +728,7 @@ export default function FinanceiroPage() {
             <DialogClose asChild>
               <Button variant="outline">Cancelar</Button>
             </DialogClose>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDelete}
-              disabled={submitting}
-            >
+            <Button variant="destructive" onClick={handleConfirmDelete} disabled={submitting}>
               {submitting ? 'Removendo...' : 'Remover'}
             </Button>
           </DialogFooter>
