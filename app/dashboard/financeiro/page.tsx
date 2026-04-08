@@ -53,7 +53,10 @@ const lancamentoSchema = z.object({
   tipo: z.enum(['Receita', 'Despesa']),
   descricao: z.string().min(2, 'Descrição deve ter ao menos 2 caracteres'),
   categoria: z.string().min(1, 'Informe a categoria'),
-  valor: z.coerce.number().positive('Valor deve ser maior que zero'),
+  valor: z
+    .union([z.string(), z.number()])
+    .transform((v) => Number(v))
+    .pipe(z.number().positive('Valor deve ser maior que zero')),
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
   referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
