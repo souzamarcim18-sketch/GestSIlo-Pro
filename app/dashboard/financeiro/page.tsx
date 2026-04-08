@@ -54,7 +54,7 @@ const lancamentoSchema = z.object({
   descricao: z.string().min(2, 'Descrição deve ter ao menos 2 caracteres'),
   categoria: z.string().min(1, 'Informe a categoria'),
   valor: z.coerce
-  .number({ invalid_type_error: 'Informe um número válido' })
+  .number()
   .positive('Valor deve ser maior que zero'),
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
