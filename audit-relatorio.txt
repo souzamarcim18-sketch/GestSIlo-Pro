@@ -1,0 +1,134 @@
+============================================================
+  RELATORIO DE ACESSIBILIDADE - GestSiloPRO
+  Gerado em: 08/04/2026, 15:50:34
+============================================================
+
+RESUMO GERAL
+  Rotas auditadas : 15
+  Rotas com erro  : 15
+  Total violacoes : 69
+
+RANKING - VIOLACOES MAIS FREQUENTES
+------------------------------------------------------------
+[MODERATE] region
+  Aparece em 15 pagina(s): /, /login, /register, /operador, /dashboard, /dashboard/calculadoras, /dashboard/configuracoes, /dashboard/financeiro, /dashboard/frota, /dashboard/insumos, /dashboard/rebanho, /dashboard/relatorios, /dashboard/silos, /dashboard/simulador, /dashboard/talhoes
+[SERIOUS]  color-contrast
+  Aparece em 14 pagina(s): /, /login, /operador, /dashboard, /dashboard/calculadoras, /dashboard/configuracoes, /dashboard/financeiro, /dashboard/frota, /dashboard/insumos, /dashboard/rebanho, /dashboard/relatorios, /dashboard/silos, /dashboard/simulador, /dashboard/talhoes
+[CRITICAL] button-name
+  Aparece em 13 pagina(s): /login, /operador, /dashboard, /dashboard/calculadoras, /dashboard/configuracoes, /dashboard/financeiro, /dashboard/frota, /dashboard/insumos, /dashboard/rebanho, /dashboard/relatorios, /dashboard/silos, /dashboard/simulador, /dashboard/talhoes
+[MINOR]    image-redundant-alt
+  Aparece em 11 pagina(s): /dashboard, /dashboard/calculadoras, /dashboard/configuracoes, /dashboard/financeiro, /dashboard/frota, /dashboard/insumos, /dashboard/rebanho, /dashboard/relatorios, /dashboard/silos, /dashboard/simulador, /dashboard/talhoes
+[MODERATE] page-has-heading-one
+  Aparece em 7 pagina(s): /dashboard/configuracoes, /dashboard/financeiro, /dashboard/frota, /dashboard/insumos, /dashboard/relatorios, /dashboard/silos, /dashboard/talhoes
+[MODERATE] landmark-one-main
+  Aparece em 3 pagina(s): /login, /register, /operador
+[CRITICAL] label
+  Aparece em 3 pagina(s): /dashboard/calculadoras, /dashboard/simulador, /dashboard/talhoes
+[CRITICAL] select-name
+  Aparece em 2 pagina(s): /dashboard/rebanho, /dashboard/simulador
+[MODERATE] heading-order
+  Aparece em 1 pagina(s): /
+
+DETALHES POR ROTA
+------------------------------------------------------------
+
+[FAIL] / (publica) - 3 violacao(oes)
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [16 elemento(s)]
+  [MODERATE] heading-order - Ensure the order of headings is semantically correct [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [39 elemento(s)]
+
+[FAIL] /login (publica) - 4 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [7 elemento(s)]
+  [MODERATE] landmark-one-main - Ensure the document has a main landmark [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [11 elemento(s)]
+
+[FAIL] /register (publica) - 2 violacao(oes)
+  [MODERATE] landmark-one-main - Ensure the document has a main landmark [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [4 elemento(s)]
+
+[FAIL] /operador (protegida) - 4 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [2 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MODERATE] landmark-one-main - Ensure the document has a main landmark [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard (protegida) - 4 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [9 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/calculadoras (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [2 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [CRITICAL] label - Ensure every form element has a label [6 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/configuracoes (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/financeiro (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [4 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/frota (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/insumos (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/rebanho (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+  [CRITICAL] select-name - Ensure select element has an accessible name [1 elemento(s)]
+
+[FAIL] /dashboard/relatorios (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/silos (protegida) - 5 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [MODERATE] page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+[FAIL] /dashboard/simulador (protegida) - 6 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [1 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [3 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [CRITICAL] label - Ensure every form element has a label [3 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+  [CRITICAL] select-name - Ensure select element has an accessible name [1 elemento(s)]
+
+[FAIL] /dashboard/talhoes (protegida) - 6 violacao(oes)
+  [CRITICAL] button-name - Ensure buttons have discernible text [2 elemento(s)]
+  [SERIOUS]  color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds [4 elemento(s)]
+  [MINOR]    image-redundant-alt - Ensure image alternative is not repeated as text [1 elemento(s)]
+  [CRITICAL] label - Ensure every form element has a label [2 elemento(s)]
+  [MODERATE] page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading [1 elemento(s)]
+  [MODERATE] region - Ensure all page content is contained by landmarks [1 elemento(s)]
+
+============================================================

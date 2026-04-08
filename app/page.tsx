@@ -146,7 +146,7 @@ export default function LandingPage() {
                 {/* Imagem principal */}
                 <div className="relative z-10 rounded-[32px] overflow-hidden shadow-2xl w-full max-w-md" style={{ aspectRatio: '4/3' }}>
                   <Image
-                    src="/imagem-hero.png?v=1"
+                    src="/imagem-hero.webp?v=1"
                     alt="Gestão agrícola com GestSilo"
                     fill
                     className="object-cover"

@@ -36,68 +36,96 @@ export function Header() {
     router.push('/login');
   };
 
+  const userDisplayName = user?.email?.split('@')[0] || 'Usuário';
+
   return (
-    <div className="flex items-center p-4 bg-white/80 backdrop-blur-md border-b border-green-100 sticky top-0 z-40">
+    <div
+      className="flex items-center p-4 bg-white/80 backdrop-blur-md border-b border-green-100 sticky top-0 z-40"
+      role="toolbar"
+      aria-label="Barra superior"
+    >
+      {/* Menu mobile */}
       <Sheet>
-        <SheetTrigger
-          render={
-            <Button variant="ghost" size="icon" className="md:hidden text-gray-600 hover:bg-green-50">
-              <Menu />
-            </Button>
-          }
-        />
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden text-gray-600 hover:bg-green-50"
+            aria-label="Abrir menu de navegação"
+          >
+            <Menu aria-hidden="true" />
+          </Button>
+        </SheetTrigger>
         <SheetContent side="left" className="p-0 w-72 border-r-0">
           <Sidebar />
         </SheetContent>
       </Sheet>
+
+      {/* Área direita */}
       <div className="flex w-full justify-end items-center gap-x-4">
-        <div className="hidden md:flex flex-col items-end">
-          <p className="text-sm font-bold text-gray-900">{user?.email?.split('@')[0] || 'Usuário'}</p>
+
+        {/* Nome do usuário — desktop */}
+        <div className="hidden md:flex flex-col items-end" aria-hidden="true">
+          <p className="text-sm font-bold text-gray-900">{userDisplayName}</p>
           <p className="text-xs text-green-600 font-medium">Minha Propriedade</p>
         </div>
+
+        {/* Menu do usuário */}
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 transition-colors">
-                <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm">
-                  <AvatarImage src="" alt="Avatar" />
-                  <AvatarFallback className="bg-green-100 text-green-700 rounded-2xl">
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            }
-          />
-          <DropdownMenuContent className="w-64 mt-2 p-2 rounded-2xl border-green-50 shadow-xl" align="end">
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 transition-colors"
+              aria-label={`Menu do usuário: ${userDisplayName}`}
+            >
+              <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm">
+                <AvatarImage src="" alt="" />
+                <AvatarFallback className="bg-green-100 text-green-700 rounded-2xl">
+                  <User className="h-5 w-5" aria-hidden="true" />
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            className="w-64 mt-2 p-2 rounded-2xl border-green-50 shadow-xl"
+            align="end"
+          >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="font-normal p-3">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-bold text-gray-900 leading-none">{user?.email?.split('@')[0]}</p>
+                  <p className="text-sm font-bold text-gray-900 leading-none">
+                    {userDisplayName}
+                  </p>
                   <p className="text-xs leading-none text-gray-400 mt-1">
                     {user?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator className="bg-gray-50" />
+
             <div className="p-1">
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
                 className="rounded-xl focus:bg-green-50 focus:text-green-700 p-3 cursor-pointer"
               >
                 Perfil do Usuário
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
                 className="rounded-xl focus:bg-green-50 focus:text-green-700 p-3 cursor-pointer"
               >
                 Configurações
               </DropdownMenuItem>
             </div>
+
             <DropdownMenuSeparator className="bg-gray-50" />
+
             <div className="p-1">
-              <DropdownMenuItem 
-                onClick={handleLogout} 
+              <DropdownMenuItem
+                onClick={handleLogout}
                 className="rounded-xl focus:bg-red-50 focus:text-red-600 p-3 cursor-pointer text-red-500"
               >
                 Sair da conta
@@ -105,6 +133,7 @@ export function Header() {
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
+
       </div>
     </div>
   );
