@@ -26,6 +26,8 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
+// ✅ Fix: importa o tipo correto do Recharts para o formatter
+import type { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import {
   Plus, TrendingUp, TrendingDown, Wallet,
   Pencil, Trash2,
@@ -78,8 +80,16 @@ type LancamentoFormData = {
 const brl = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const tooltipFormatter = (value: number | string | undefined) =>
-  typeof value === 'number' ? brl(value) : String(value ?? '');
+// ✅ Fix principal: usa os tipos nativos do Recharts (ValueType inclui
+//    number | string | readonly (string|number)[] | undefined)
+//    Retorna [string, NameType] para o Recharts renderizar corretamente
+const tooltipFormatter = (
+  value: ValueType,
+  name: NameType,
+): [string, NameType] => {
+  const formatted = typeof value === 'number' ? brl(value) : String(value ?? '');
+  return [formatted, name];
+};
 
 // ---------------------------------------------------------------------------
 // Componente
@@ -114,7 +124,8 @@ export default function FinanceiroPage() {
   };
 
   const form = useForm<LancamentoFormData>({
-    resolver: zodResolver(lancamentoSchema) as any,
+    // ✅ Fix: remove o "as any" — zodResolver é genérico o suficiente aqui
+    resolver: zodResolver(lancamentoSchema),
     defaultValues: {
       tipo: 'Despesa',
       descricao: '',
@@ -231,8 +242,10 @@ export default function FinanceiroPage() {
       setIsFormOpen(false);
       setEditingLancamento(null);
       await fetchData(fazendaId);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Erro ao salvar lançamento.');
+    } catch (err: unknown) {
+      // ✅ Fix: substitui "err: any" por "err: unknown" + type guard
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar lançamento.';
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -246,8 +259,10 @@ export default function FinanceiroPage() {
       toast.success('Lançamento removido.');
       setDeletingLancamento(null);
       await fetchData(fazendaId);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Erro ao remover lançamento.');
+    } catch (err: unknown) {
+      // ✅ Fix: substitui "err: any" por "err: unknown" + type guard
+      const msg = err instanceof Error ? err.message : 'Erro ao remover lançamento.';
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -525,7 +540,6 @@ export default function FinanceiroPage() {
             )}
           </div>
 
-          {/* ✅ Botão direto — sem DialogTrigger, Dialog controlado por estado */}
           <Button onClick={handleOpenNew}>
             <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
             Novo Lançamento
@@ -637,6 +651,7 @@ export default function FinanceiroPage() {
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                   width={56}
                 />
+                {/* ✅ Fix principal: formatter tipado corretamente */}
                 <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
                 <Legend iconType="circle" iconSize={8} />
                 <Area type="monotone" dataKey="receita" name="Receita"
