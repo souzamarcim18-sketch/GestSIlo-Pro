@@ -122,9 +122,11 @@ export default function ConfiguracoesPage() {
         <TabsContent value="perfil" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle as="h2" id={ids.perfilTitle}>
-                Informações Pessoais
-              </CardTitle>
+              <CardTitle>
+  <h2 id={ids.perfilTitle} className="text-xl font-semibold leading-none tracking-tight">
+    Informações Pessoais
+  </h2>
+</CardTitle>
               <CardDescription>
                 Gerencie seus dados de acesso e perfil.
               </CardDescription>
@@ -207,9 +209,11 @@ export default function ConfiguracoesPage() {
         <TabsContent value="fazenda" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle as="h2" id={ids.fazendaTitle}>
-                Dados da Propriedade
-              </CardTitle>
+              <CardTitle>
+  <h2 id={ids.fazendaTitle} className="text-xl font-semibold leading-none tracking-tight">
+    Dados da Propriedade
+  </h2>
+</CardTitle>
               <CardDescription>
                 Informações gerais da fazenda ativa.
               </CardDescription>
@@ -273,9 +277,11 @@ export default function ConfiguracoesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle as="h2" id={ids.usuariosTitle}>
-                  Controle de Usuários
-                </CardTitle>
+                <CardTitle>
+  <h2 id={ids.usuariosTitle} className="text-xl font-semibold leading-none tracking-tight">
+    Controle de Usuários
+  </h2>
+</CardTitle>
                 <CardDescription>
                   Gerencie quem tem acesso ao sistema da fazenda.
                 </CardDescription>
