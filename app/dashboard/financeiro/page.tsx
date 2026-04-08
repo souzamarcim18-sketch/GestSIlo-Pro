@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogTrigger,
+  DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -404,7 +404,6 @@ export default function FinanceiroPage() {
         </div>
       </div>
 
-      {/* ✅ Sem DialogClose — fecha via estado */}
       <DialogFooter>
         <Button
           type="button"
@@ -525,13 +524,13 @@ export default function FinanceiroPage() {
             )}
           </div>
 
+          {/* ✅ Botão direto — sem DialogTrigger, Dialog controlado por estado */}
+          <Button onClick={handleOpenNew}>
+            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+            Novo Lançamento
+          </Button>
+
           <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) setIsFormOpen(false); }}>
-            <DialogTrigger asChild>
-              <Button onClick={handleOpenNew}>
-                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                Novo Lançamento
-              </Button>
-            </DialogTrigger>
             <DialogContent aria-labelledby={ids.dialogTitle} aria-describedby={ids.dialogDesc}>
               <DialogHeader>
                 <DialogTitle id={ids.dialogTitle}>
@@ -546,6 +545,7 @@ export default function FinanceiroPage() {
               {formNode}
             </DialogContent>
           </Dialog>
+
         </div>
       </div>
 
@@ -727,7 +727,6 @@ export default function FinanceiroPage() {
               Essa ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          {/* ✅ Sem DialogClose — fecha via estado */}
           <DialogFooter>
             <Button
               variant="outline"
