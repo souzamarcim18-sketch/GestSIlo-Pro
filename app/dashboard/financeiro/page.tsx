@@ -54,9 +54,9 @@ const lancamentoSchema = z.object({
   descricao: z.string().min(2, 'Descrição deve ter ao menos 2 caracteres'),
   categoria: z.string().min(1, 'Informe a categoria'),
   valor: z.preprocess(
-    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-    z.number({ required_error: 'Informe o valor' }).positive('Valor deve ser maior que zero'),
-  ),
+  (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+  z.number().positive('Valor deve ser maior que zero'),
+),
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
   referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
