@@ -307,10 +307,7 @@ const insumos = {
   async listAbaixoMinimo(): Promise<Insumo[]> {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
-      .from('insumos')
-      .select('*')
-      .eq('fazenda_id', fazendaId)
-      .filter('estoque_atual', 'lt', 'estoque_minimo');
+      .rpc('get_insumos_abaixo_minimo', { p_fazenda_id: fazendaId });
     if (error) throw error;
     return data as Insumo[];
   },
