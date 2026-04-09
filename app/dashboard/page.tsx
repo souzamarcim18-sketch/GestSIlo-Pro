@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 interface DashboardStats {
@@ -30,6 +31,7 @@ function formatBRL(value: number): string {
 }
 
 export default function DashboardPage() {
+  const { fazendaId, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
@@ -48,19 +50,10 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
     const init = async () => {
       setLoading(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('fazenda_id')
-          .eq('id', user.id)
-          .single();
-
-        const fazendaId = profile?.fazenda_id;
         if (!fazendaId) {
           setStats({
             silosOcupacao: '—',
@@ -178,7 +171,7 @@ export default function DashboardPage() {
       }
     };
     init();
-  }, []);
+  }, [authLoading, fazendaId]);
 
   const statCards = [
     {

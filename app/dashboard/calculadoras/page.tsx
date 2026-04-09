@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { supabase, Insumo, Talhao } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { getInsumosByFazenda } from '@/lib/supabase/insumos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -13,7 +14,7 @@ import { toast } from 'sonner';
 import { Calculator, Beaker, Sprout, Download, Info, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function CalculadorasPage() {
-  const [fazendaId, setFazendaId] = useState<string | null>(null);
+  const { fazendaId, loading: authLoading } = useAuth();
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,35 +30,24 @@ export default function CalculadorasPage() {
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.fazenda_id) {
-        setFazendaId(profile.fazenda_id);
+    if (authLoading) return;
+    const loadData = async () => {
+      try {
+        if (!fazendaId) { setLoading(false); return; }
         const [insumosData, talhoesData] = await Promise.all([
-          getInsumosByFazenda(profile.fazenda_id),
-          supabase.from('talhoes').select('*').eq('fazenda_id', profile.fazenda_id)
+          getInsumosByFazenda(fazendaId),
+          supabase.from('talhoes').select('*').eq('fazenda_id', fazendaId)
         ]);
         setInsumos(insumosData);
         setTalhoes(talhoesData.data || []);
+      } catch {
+        toast.error('Erro ao carregar dados');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      toast.error('Erro ao carregar dados');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    loadData();
+  }, [authLoading, fazendaId]);
 
   // --- Lógica Calagem ---
   const resultadoCalagem = useMemo(() => {

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase, CategoriaRebanho, PeriodoConfinamento, Silo, MovimentacaoSilo } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { getCategoriasRebanho, upsertCategoriaRebanho, deleteCategoriaRebanho, getPeriodosConfinamento, upsertPeriodoConfinamento, deletePeriodoConfinamento } from '@/lib/supabase/rebanho';
 import { getSilosByFazenda } from '@/lib/supabase/silos';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 export default function PlanejadorRebanhoPage() {
-  const [fazendaId, setFazendaId] = useState<string | null>(null);
+  const { fazendaId, loading: authLoading } = useAuth();
   const [categorias, setCategorias] = useState<CategoriaRebanho[]>([]);
   const [periodos, setPeriodos] = useState<PeriodoConfinamento[]>([]);
   const [silos, setSilos] = useState<Silo[]>([]);
@@ -32,38 +33,23 @@ export default function PlanejadorRebanhoPage() {
   const [editingCategoria, setEditingCategoria] = useState<Partial<CategoriaRebanho> | null>(null);
   const [editingPeriodo, setEditingPeriodo] = useState<Partial<PeriodoConfinamento> | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!fazendaId) { setLoading(false); return; }
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const [cats, perds, silosData, movs] = await Promise.all([
+        getCategoriasRebanho(fazendaId),
+        getPeriodosConfinamento(fazendaId),
+        getSilosByFazenda(fazendaId),
+        supabase.from('movimentacoes_silo').select('*').in('silo_id', (await getSilosByFazenda(fazendaId)).map(s => s.id))
+      ]);
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
+      setCategorias(cats);
+      setPeriodos(perds);
+      setSilos(silosData);
+      setMovimentacoes(movs.data || []);
 
-      if (profile?.fazenda_id) {
-        setFazendaId(profile.fazenda_id);
-        const [cats, perds, silosData, movs] = await Promise.all([
-          getCategoriasRebanho(profile.fazenda_id),
-          getPeriodosConfinamento(profile.fazenda_id),
-          getSilosByFazenda(profile.fazenda_id),
-          supabase.from('movimentacoes_silo').select('*').in('silo_id', (await getSilosByFazenda(profile.fazenda_id)).map(s => s.id))
-        ]);
-
-        setCategorias(cats);
-        setPeriodos(perds);
-        setSilos(silosData);
-        setMovimentacoes(movs.data || []);
-        
-        if (perds.length > 0) {
-          setSelectedPeriodoId(perds[0].id);
-        }
+      if (perds.length > 0) {
+        setSelectedPeriodoId(perds[0].id);
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -73,7 +59,12 @@ export default function PlanejadorRebanhoPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fazendaId]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    loadData();
+  }, [authLoading, loadData]);
 
   const selectedPeriodo = useMemo(() => 
     periodos.find(p => p.id === selectedPeriodoId), 

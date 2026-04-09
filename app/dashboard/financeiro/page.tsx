@@ -33,7 +33,8 @@ import {
   Pencil, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Financeiro } from '@/lib/supabase';
+import { Financeiro } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import {
   getLancamentosByFazenda,
   createLancamento,
@@ -84,7 +85,7 @@ const tooltipFormatter = (
 // Componente
 // ---------------------------------------------------------------------------
 export default function FinanceiroPage() {
-  const [fazendaId, setFazendaId] = useState<string | null>(null);
+  const { fazendaId, loading: authLoading } = useAuth();
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,28 +146,11 @@ export default function FinanceiroPage() {
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('fazenda_id')
-          .eq('id', user.id)
-          .single();
-        if (profile?.fazenda_id) {
-          setFazendaId(profile.fazenda_id);
-          await fetchData(profile.fazenda_id);
-        }
-      } catch {
-        toast.error('Erro ao inicializar a página.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, [fetchData]);
+    if (authLoading) return;
+    if (!fazendaId) { setLoading(false); return; }
+    setLoading(true);
+    fetchData(fazendaId).finally(() => setLoading(false));
+  }, [authLoading, fazendaId, fetchData]);
 
   // ---------------------------------------------------------------------------
   // Dados derivados

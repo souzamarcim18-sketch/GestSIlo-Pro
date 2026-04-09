@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -39,6 +39,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Map, Sprout, Tractor, CheckCircle2, Clock, DollarSign, Calendar, Search, ClipboardList, Droplets, FlaskConical, Shovel } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase, Talhao, CicloAgricola, AtividadeCampo, Insumo, Maquina } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { getTalhoesByFazenda, getCiclosByTalhoes, createTalhao, createCiclo, getCustoTalhaoPeriodo } from '@/lib/supabase/talhoes';
 import { createAtividade, getAtividadesByFazenda } from '@/lib/supabase/atividades_campo';
 import { getInsumosByFazenda } from '@/lib/supabase/insumos';
@@ -46,6 +47,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function TalhoesPage() {
+  const { fazendaId, loading: authLoading } = useAuth();
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [ciclos, setCiclos] = useState<CicloAgricola[]>([]);
   const [atividades, setAtividades] = useState<AtividadeCampo[]>([]);
@@ -75,66 +77,48 @@ export default function TalhoesPage() {
     dados: {} as any
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (!fazendaId) { setLoading(false); return; }
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const [talhoesData, insumosData, maquinasData, atividadesData] = await Promise.all([
+        getTalhoesByFazenda(fazendaId),
+        getInsumosByFazenda(fazendaId),
+        supabase.from('maquinas').select('*').eq('fazenda_id', fazendaId),
+        getAtividadesByFazenda(fazendaId)
+      ]);
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
+      setTalhoes(talhoesData);
+      setInsumos(insumosData);
+      setMaquinas(maquinasData.data || []);
+      setAtividades(atividadesData);
 
-      if (profile?.fazenda_id) {
-        const [talhoesData, insumosData, maquinasData, atividadesData] = await Promise.all([
-          getTalhoesByFazenda(profile.fazenda_id),
-          getInsumosByFazenda(profile.fazenda_id),
-          supabase.from('maquinas').select('*').eq('fazenda_id', profile.fazenda_id),
-          getAtividadesByFazenda(profile.fazenda_id)
-        ]);
-        
-        setTalhoes(talhoesData);
-        setInsumos(insumosData);
-        setMaquinas(maquinasData.data || []);
-        setAtividades(atividadesData);
-        
-        if (talhoesData.length > 0) {
-          const ciclosData = await getCiclosByTalhoes(talhoesData.map(t => t.id));
-          setCiclos(ciclosData);
-        }
+      if (talhoesData.length > 0) {
+        const ciclosData = await getCiclosByTalhoes(talhoesData.map(t => t.id));
+        setCiclos(ciclosData);
       }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  };
+  }, [fazendaId]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    fetchData();
+  }, [authLoading, fetchData]);
 
   const handleAddTalhao = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.fazenda_id) {
+      if (fazendaId) {
         await createTalhao({
           nome: newTalhao.nome,
           area: Number(newTalhao.area),
           tipo_solo: newTalhao.tipo_solo || null,
           localizacao: newTalhao.localizacao || null,
-          fazenda_id: profile.fazenda_id,
+          fazenda_id: fazendaId,
           status: 'Em pousio'
         });
         toast.success('Talhão cadastrado com sucesso!');
@@ -170,20 +154,11 @@ export default function TalhoesPage() {
   const handleAddAtividade = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.fazenda_id) {
+      if (fazendaId) {
         const cicloAtivo = ciclos.find(c => c.talhao_id === newAtividade.talhao_id && !c.data_colheita_real);
-        
+
         await createAtividade({
-          fazenda_id: profile.fazenda_id,
+          fazenda_id: fazendaId,
           talhao_id: newAtividade.talhao_id,
           ciclo_id: cicloAtivo?.id || null,
           tipo_atividade: newAtividade.tipo_atividade,

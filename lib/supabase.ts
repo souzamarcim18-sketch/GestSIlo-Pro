@@ -24,8 +24,11 @@ export type Profile = {
   id: string;
   nome: string;
   email: string;
+  telefone?: string | null;
   perfil: 'Administrador' | 'Operador' | 'Visualizador';
+  role?: 'Administrador' | 'Operador' | 'Visualizador' | null;
   fazenda_id: string | null;
+  fazendas?: { nome: string } | null;
 };
 
 export type Fazenda = {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { supabase, CategoriaRebanho, PeriodoConfinamento, CicloAgricola, Silo } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { getCategoriasRebanho, getPeriodosConfinamento } from '@/lib/supabase/rebanho';
 import { getSilosByFazenda } from '@/lib/supabase/silos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,7 +25,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function SimuladorForrageiroPage() {
-  const [fazendaId, setFazendaId] = useState<string | null>(null);
+  const { fazendaId, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   
   // Dados para cálculo de base
@@ -40,27 +41,15 @@ export default function SimuladorForrageiroPage() {
   const [selectedPeriodoId, setSelectedPeriodoId] = useState<string>('');
 
   useEffect(() => {
-    loadBaseData();
-  }, []);
+    if (authLoading) return;
+    const loadBaseData = async () => {
+      try {
+        if (!fazendaId) { setLoading(false); return; }
 
-  const loadBaseData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.fazenda_id) {
-        setFazendaId(profile.fazenda_id);
-        
         const [cats, perds, silosData, ciclosData] = await Promise.all([
-          getCategoriasRebanho(profile.fazenda_id),
-          getPeriodosConfinamento(profile.fazenda_id),
-          getSilosByFazenda(profile.fazenda_id),
+          getCategoriasRebanho(fazendaId),
+          getPeriodosConfinamento(fazendaId),
+          getSilosByFazenda(fazendaId),
           supabase.from('ciclos_agricolas').select('*').not('produtividade', 'is', null)
         ]);
 
@@ -86,14 +75,15 @@ export default function SimuladorForrageiroPage() {
             setMsEsperada(Math.round(avgMS));
           }
         }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        toast.error('Erro ao carregar dados para o simulador');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao carregar dados para o simulador');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    loadBaseData();
+  }, [authLoading, fazendaId]);
 
   const selectedPeriodo = useMemo(() => 
     periodos.find(p => p.id === selectedPeriodoId), 

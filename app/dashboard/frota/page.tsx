@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useId } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import {
   Card,
   CardContent,
@@ -48,11 +48,13 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase, Maquina, UsoMaquina, Manutencao, Abastecimento } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { getMaquinasByFazenda, createMaquina } from '@/lib/supabase/maquinas';
 import { format, isBefore, addDays, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function FrotaPage() {
+  const { fazendaId, loading: authLoading } = useAuth();
   const [maquinas, setMaquinas]           = useState<Maquina[]>([]);
   const [usos, setUsos]                   = useState<UsoMaquina[]>([]);
   const [manutencoes, setManutencoes]     = useState<Manutencao[]>([]);
@@ -92,58 +94,40 @@ export default function FrotaPage() {
     vida_util_anos: '10',
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (!fazendaId) { setLoading(false); return; }
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // ✅ Busca maquinas uma única vez e reutiliza os IDs
+      const maquinasData = await getMaquinasByFazenda(fazendaId);
+      const ids_maquinas = maquinasData.map((m) => m.id);
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
+      const [usosRes, manutencoesRes, abastecimentosRes] = await Promise.all([
+        supabase.from('uso_maquinas').select('*').in('maquina_id', ids_maquinas),
+        supabase.from('manutencoes').select('*').in('maquina_id', ids_maquinas),
+        supabase.from('abastecimentos').select('*').in('maquina_id', ids_maquinas),
+      ]);
 
-      if (profile?.fazenda_id) {
-        // ✅ Busca maquinas uma única vez e reutiliza os IDs
-        const maquinasData = await getMaquinasByFazenda(profile.fazenda_id);
-        const ids_maquinas = maquinasData.map((m) => m.id);
-
-        const [usosRes, manutencoesRes, abastecimentosRes] = await Promise.all([
-          supabase.from('uso_maquinas').select('*').in('maquina_id', ids_maquinas),
-          supabase.from('manutencoes').select('*').in('maquina_id', ids_maquinas),
-          supabase.from('abastecimentos').select('*').in('maquina_id', ids_maquinas),
-        ]);
-
-        setMaquinas(maquinasData);
-        setUsos(usosRes.data || []);
-        setManutencoes(manutencoesRes.data || []);
-        setAbastecimentos(abastecimentosRes.data || []);
-      }
+      setMaquinas(maquinasData);
+      setUsos(usosRes.data || []);
+      setManutencoes(manutencoesRes.data || []);
+      setAbastecimentos(abastecimentosRes.data || []);
     } catch {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  };
+  }, [fazendaId]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    fetchData();
+  }, [authLoading, fetchData]);
 
   const handleAddMaquina = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.fazenda_id) {
+      if (fazendaId) {
         await createMaquina({
           nome: newMaquina.nome,
           tipo: newMaquina.tipo,
@@ -151,7 +135,7 @@ export default function FrotaPage() {
           modelo: newMaquina.modelo || null,
           ano: newMaquina.ano ? Number(newMaquina.ano) : null,
           identificacao: newMaquina.identificacao || null,
-          fazenda_id: profile.fazenda_id,
+          fazenda_id: fazendaId,
           consumo_medio_lh: newMaquina.consumo_medio_lh
             ? Number(newMaquina.consumo_medio_lh) : null,
           valor_aquisicao: newMaquina.valor_aquisicao

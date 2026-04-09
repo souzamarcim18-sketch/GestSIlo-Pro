@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -48,12 +48,14 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase, Silo, MovimentacaoSilo, Insumo } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { getSilosByFazenda, createSilo, createMovimentacao, getCustoProducaoSilagem } from '@/lib/supabase/silos';
 import { getInsumosByFazenda } from '@/lib/supabase/insumos';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function SilosPage() {
+  const { fazendaId, loading: authLoading } = useAuth();
   const [silos, setSilos] = useState<Silo[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
   const [insumos, setInsumos] = useState<Insumo[]>([]);
@@ -82,75 +84,57 @@ export default function SilosPage() {
     observacao: '',
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (!fazendaId) { setLoading(false); return; }
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const [silosData, insumosData] = await Promise.all([
+        getSilosByFazenda(fazendaId),
+        getInsumosByFazenda(fazendaId),
+      ]);
+      setSilos(silosData);
+      setInsumos(insumosData);
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
+      const { data: movs } = await supabase
+        .from('movimentacoes_silo')
+        .select('*')
+        .in('silo_id', silosData.map((s) => s.id))
+        .order('data', { ascending: false });
 
-      if (profile?.fazenda_id) {
-        const [silosData, insumosData] = await Promise.all([
-          getSilosByFazenda(profile.fazenda_id),
-          getInsumosByFazenda(profile.fazenda_id),
-        ]);
-        setSilos(silosData);
-        setInsumos(insumosData);
+      setMovimentacoes(movs || []);
 
-        const { data: movs } = await supabase
-          .from('movimentacoes_silo')
-          .select('*')
-          .in('silo_id', silosData.map((s) => s.id))
-          .order('data', { ascending: false });
-
-        setMovimentacoes(movs || []);
-
-        const custosPromises = silosData.map(async (s) => {
-          const custo = await getCustoProducaoSilagem(s.id);
-          return { id: s.id, custo };
-        });
-        const custosResults = await Promise.all(custosPromises);
-        const custosMap: Record<string, any> = {};
-        custosResults.forEach((r) => {
-          custosMap[r.id] = r.custo;
-        });
-        setCustos(custosMap);
-      }
+      const custosPromises = silosData.map(async (s) => {
+        const custo = await getCustoProducaoSilagem(s.id);
+        return { id: s.id, custo };
+      });
+      const custosResults = await Promise.all(custosPromises);
+      const custosMap: Record<string, any> = {};
+      custosResults.forEach((r) => {
+        custosMap[r.id] = r.custo;
+      });
+      setCustos(custosMap);
     } catch {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  };
+  }, [fazendaId]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    fetchData();
+  }, [authLoading, fetchData]);
 
   const handleAddSilo = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.fazenda_id) {
+      if (fazendaId) {
         await createSilo({
           nome: newSilo.nome,
           tipo: newSilo.tipo as any,
           capacidade: Number(newSilo.capacidade),
           localizacao: newSilo.localizacao,
-          fazenda_id: profile.fazenda_id,
+          fazenda_id: fazendaId,
           materia_seca_percent: newSilo.materia_seca_percent
             ? Number(newSilo.materia_seca_percent)
             : null,
@@ -183,16 +167,7 @@ export default function SilosPage() {
     e.preventDefault();
     setMovLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('fazenda_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.fazenda_id) {
+      if (!fazendaId) {
         toast.error('Fazenda não encontrada');
         return;
       }

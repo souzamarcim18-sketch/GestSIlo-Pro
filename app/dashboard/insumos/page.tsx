@@ -27,7 +27,8 @@ import {
   AlertTriangle, Pencil, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Insumo, MovimentacaoInsumo } from '@/lib/supabase';
+import { Insumo, MovimentacaoInsumo } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import {
   getInsumosByFazenda,
   createInsumo,
@@ -77,7 +78,7 @@ type MovComNome = MovimentacaoInsumo & { insumo_nome: string; insumo_unidade: st
 // Componente
 // ---------------------------------------------------------------------------
 export default function InsumosPage() {
-  const [fazendaId, setFazendaId] = useState<string | null>(null);
+  const { fazendaId, loading: authLoading } = useAuth();
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<MovComNome[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,28 +126,11 @@ export default function InsumosPage() {
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('fazenda_id')
-          .eq('id', user.id)
-          .single();
-        if (profile?.fazenda_id) {
-          setFazendaId(profile.fazenda_id);
-          await fetchData(profile.fazenda_id);
-        }
-      } catch {
-        toast.error('Erro ao inicializar a página.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, [fetchData]);
+    if (authLoading) return;
+    if (!fazendaId) { setLoading(false); return; }
+    setLoading(true);
+    fetchData(fazendaId).finally(() => setLoading(false));
+  }, [authLoading, fazendaId, fetchData]);
 
   // ---------------------------------------------------------------------------
   // Handlers — Insumo
