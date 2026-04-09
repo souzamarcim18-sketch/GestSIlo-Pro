@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useId } from 'react';
+import { useState, useEffect, useId, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -23,13 +23,29 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Profile, Fazenda } from '@/lib/supabase';
+import { Profile, Fazenda } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  getProfile,
+  updateProfile,
+  getFazenda,
+  updateFazenda,
+  getUsersByFazenda,
+} from '@/lib/supabase/configuracoes';
 
 export default function ConfiguracoesPage() {
+  const { user, fazendaId, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fazenda, setFazenda]  = useState<Fazenda | null>(null);
   const [users, setUsers]      = useState<Profile[]>([]);
   const [loading, setLoading]  = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingFazenda, setSavingFazenda] = useState(false);
+
+  const profileNomeRef = useRef<HTMLInputElement>(null);
+  const fazendaNomeRef = useRef<HTMLInputElement>(null);
+  const fazendaLocRef  = useRef<HTMLInputElement>(null);
+  const fazendaAreaRef = useRef<HTMLInputElement>(null);
 
   // IDs estáveis para associação label ↔ controle e aria-describedby
   const uid = useId();
@@ -41,31 +57,69 @@ export default function ConfiguracoesPage() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (authLoading) return;
+    if (!user || !fazendaId) {
+      setLoading(false);
+      return;
+    }
+    fetchData(user.id, fazendaId);
+  }, [authLoading, user, fazendaId]);
 
-  const fetchData = async () => {
+  const fetchData = async (userId: string, fId: string) => {
     setLoading(true);
     try {
-      setProfile(null);
-      setFazenda(null);
-      setUsers([]);
-    } catch {
-      // ✅ variável omitida — evita @typescript-eslint/no-unused-vars
-      toast.error('Erro ao carregar configurações');
+      const [profileData, fazendaData, usersData] = await Promise.all([
+        getProfile(userId),
+        getFazenda(fId),
+        getUsersByFazenda(fId),
+      ]);
+      setProfile(profileData);
+      setFazenda(fazendaData);
+      setUsers(usersData);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao carregar configurações';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Perfil atualizado com sucesso!');
+    if (!user) return;
+    setSavingProfile(true);
+    try {
+      const nome = profileNomeRef.current?.value ?? profile?.nome ?? '';
+      const updated = await updateProfile(user.id, { nome });
+      setProfile(updated);
+      toast.success('Perfil atualizado com sucesso!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar perfil';
+      toast.error(msg);
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
-  const handleSaveFazenda = (e: React.FormEvent) => {
+  const handleSaveFazenda = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Dados da fazenda atualizados!');
+    if (!fazendaId) return;
+    setSavingFazenda(true);
+    try {
+      const nome        = fazendaNomeRef.current?.value ?? fazenda?.nome ?? '';
+      const localizacao = fazendaLocRef.current?.value ?? fazenda?.localizacao ?? null;
+      const area_total  = fazendaAreaRef.current?.value
+        ? parseFloat(fazendaAreaRef.current.value)
+        : fazenda?.area_total ?? null;
+      const updated = await updateFazenda(fazendaId, { nome, localizacao, area_total });
+      setFazenda(updated);
+      toast.success('Dados da fazenda atualizados!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar dados da fazenda';
+      toast.error(msg);
+    } finally {
+      setSavingFazenda(false);
+    }
   };
 
   // ---------------------------------------------------------------------------
@@ -143,6 +197,8 @@ export default function ConfiguracoesPage() {
                     <Label htmlFor="prof-nome">Nome Completo</Label>
                     <Input
                       id="prof-nome"
+                      ref={profileNomeRef}
+                      key={profile?.nome}
                       defaultValue={profile?.nome}
                       autoComplete="name"
                     />
@@ -196,9 +252,9 @@ export default function ConfiguracoesPage() {
                   </div>
                 </div>
 
-                <Button type="submit">
+                <Button type="submit" disabled={savingProfile}>
                   <Save className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Salvar Alterações
+                  {savingProfile ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </form>
             </CardContent>
@@ -229,6 +285,8 @@ export default function ConfiguracoesPage() {
                   <Label htmlFor="faz-nome">Nome da Fazenda</Label>
                   <Input
                     id="faz-nome"
+                    ref={fazendaNomeRef}
+                    key={`nome-${fazenda?.nome}`}
                     defaultValue={fazenda?.nome}
                   />
                 </div>
@@ -237,6 +295,8 @@ export default function ConfiguracoesPage() {
                   <Label htmlFor="faz-loc">Localização / Endereço</Label>
                   <Input
                     id="faz-loc"
+                    ref={fazendaLocRef}
+                    key={`loc-${fazenda?.localizacao}`}
                     defaultValue={fazenda?.localizacao || ''}
                     autoComplete="street-address"
                   />
@@ -247,6 +307,8 @@ export default function ConfiguracoesPage() {
                     <Label htmlFor="faz-area">Área Total (ha)</Label>
                     <Input
                       id="faz-area"
+                      ref={fazendaAreaRef}
+                      key={`area-${fazenda?.area_total}`}
                       type="number"
                       min="0"
                       step="0.01"
@@ -263,9 +325,9 @@ export default function ConfiguracoesPage() {
                   </div>
                 </div>
 
-                <Button type="submit">
+                <Button type="submit" disabled={savingFazenda}>
                   <Save className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Salvar Dados
+                  {savingFazenda ? 'Salvando...' : 'Salvar Dados'}
                 </Button>
               </form>
             </CardContent>
