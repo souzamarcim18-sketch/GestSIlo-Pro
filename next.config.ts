@@ -8,12 +8,6 @@ const withPWA = require('next-pwa')({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: false,
-  },
   images: {
     remotePatterns: [
       {
