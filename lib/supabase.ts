@@ -1,21 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+let _client: SupabaseClient | null = null;
 
-let supabaseInstance: any = null;
-
-export const supabase = new Proxy({} as any, {
-  get(target, prop) {
-    if (!supabaseInstance) {
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.error('Supabase credentials missing! NEXT_PUBLIC_SUPABASE_URL:', !!supabaseUrl, 'NEXT_PUBLIC_SUPABASE_ANON_KEY:', !!supabaseAnonKey);
-        throw new Error('Supabase credentials missing. Please check your .env file.');
-      }
-      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
-    }
-    return supabaseInstance[prop];
+export function getSupabaseClient(): SupabaseClient {
+  if (!_client) {
+    _client = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
   }
+  return _client;
+}
+
+// Typed lazy singleton — defers createClient until first use so SSR prerendering
+// does not throw when env vars are absent from the build context.
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getSupabaseClient(), prop, receiver);
+  },
 });
 
 export type Profile = {
