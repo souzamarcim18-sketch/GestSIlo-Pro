@@ -89,7 +89,7 @@ export default function LoginPage() {
 
         <div className="relative z-10 flex items-center gap-4">
           <Image
-            src="/logo.png?v=1"
+            src="/logo.png?v=2"
             alt=""
             width={80}
             height={80}
@@ -133,7 +133,7 @@ export default function LoginPage() {
         <div className="lg:hidden flex items-center gap-3 mb-10" aria-hidden="true">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg p-2 bg-white">
             <Image
-              src="/logo.png?v=1"
+              src="/logo.png?v=2"
               alt=""
               width={48}
               height={48}

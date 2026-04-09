@@ -113,7 +113,7 @@ export default function RegisterPage() {
         <div className="flex justify-center mb-8" aria-hidden="true">
           <div className="flex items-center gap-4">
             <Image
-              src="/logo.png?v=1"
+              src="/logo.png?v=2"
               alt=""
               width={64}
               height={64}

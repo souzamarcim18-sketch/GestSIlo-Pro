@@ -60,7 +60,7 @@ export function Sidebar() {
           aria-label="GestSilo — ir para o Dashboard"
         >
           <Image
-            src="/logo.png?v=1"
+            src="/logo.png?v=2"
             alt=""
             width={48}
             height={48}
