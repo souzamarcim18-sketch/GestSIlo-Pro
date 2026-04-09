@@ -48,7 +48,7 @@ export default function LoginPage() {
           toast.error('Erro ao recuperar dados do usuário.');
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
       setError('Ocorreu um erro inesperado. Tente novamente.');
       toast.error('Erro ao realizar login.');

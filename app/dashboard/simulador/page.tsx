@@ -50,7 +50,7 @@ export default function SimuladorForrageiroPage() {
           getCategoriasRebanho(fazendaId),
           getPeriodosConfinamento(fazendaId),
           getSilosByFazenda(fazendaId),
-          supabase.from('ciclos_agricolas').select('*').not('produtividade', 'is', null)
+          supabase.from('ciclos_agricolas').select('*').eq('fazenda_id', fazendaId).not('produtividade', 'is', null)
         ]);
 
         setCategorias(cats);

@@ -160,7 +160,7 @@ export default function ModoOperadorPage() {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-green-500">GestSiloPRO</h1>
           <p className="text-sm text-zinc-300 font-medium uppercase tracking-widest">
-            {(profile as any)?.fazendas?.nome || 'Fazenda'}
+            {profile?.fazendas?.nome || 'Fazenda'}
           </p>
         </div>
         <div className="flex items-center gap-4">

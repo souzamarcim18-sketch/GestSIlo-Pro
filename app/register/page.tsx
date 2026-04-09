@@ -60,8 +60,9 @@ export default function RegisterPage() {
 
       toast.success('Cadastro realizado! Verifique seu e-mail.');
       router.push('/login');
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao realizar cadastro');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro ao realizar cadastro';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
