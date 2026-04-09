@@ -39,6 +39,31 @@ export async function deleteSilo(id: string) {
   if (error) throw error;
 }
 
+export async function createMovimentacao(data: {
+  silo_id: string;
+  tipo: 'Entrada' | 'Saída';
+  quantidade: number;
+  responsavel: string | null;
+  observacao: string | null;
+  talhao_id?: string | null;
+}) {
+  const { data: result, error } = await supabase
+    .from('movimentacoes_silo')
+    .insert({
+      silo_id: data.silo_id,
+      tipo: data.tipo,
+      quantidade: data.quantidade,
+      responsavel: data.responsavel,
+      observacao: data.observacao,
+      talhao_id: data.talhao_id ?? null,
+      data: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return result as MovimentacaoSilo;
+}
+
 export async function getCustoProducaoSilagem(siloId: string) {
   // 1. Buscar a primeira entrada para identificar o talhão de origem
   const { data: primeiraEntrada } = await supabase

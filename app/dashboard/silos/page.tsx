@@ -48,7 +48,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase, Silo, MovimentacaoSilo, Insumo } from '@/lib/supabase';
-import { getSilosByFazenda, createSilo, getCustoProducaoSilagem } from '@/lib/supabase/silos';
+import { getSilosByFazenda, createSilo, createMovimentacao, getCustoProducaoSilagem } from '@/lib/supabase/silos';
 import { getInsumosByFazenda } from '@/lib/supabase/insumos';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -61,6 +61,7 @@ export default function SilosPage() {
   const [loading, setLoading] = useState(true);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
   const [isAddMovOpen, setIsAddMovOpen] = useState(false);
+  const [movLoading, setMovLoading] = useState(false);
 
   const [newSilo, setNewSilo] = useState({
     nome: '',
@@ -180,8 +181,40 @@ export default function SilosPage() {
 
   const handleAddMov = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Movimentação registrada com sucesso!');
-    setIsAddMovOpen(false);
+    setMovLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('fazenda_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.fazenda_id) {
+        toast.error('Fazenda não encontrada');
+        return;
+      }
+
+      const nova = await createMovimentacao({
+        silo_id: newMov.silo_id,
+        tipo: newMov.tipo as 'Entrada' | 'Saída',
+        quantidade: Number(newMov.quantidade),
+        responsavel: newMov.responsavel || null,
+        observacao: newMov.observacao || null,
+        talhao_id: newMov.talhao_id || null,
+      });
+
+      setMovimentacoes((prev) => [nova, ...prev]);
+      toast.success('Movimentação registrada com sucesso!');
+      setIsAddMovOpen(false);
+      setNewMov({ silo_id: '', tipo: 'Entrada', quantidade: '', talhao_id: '', responsavel: '', observacao: '' });
+    } catch {
+      toast.error('Erro ao registrar movimentação');
+    } finally {
+      setMovLoading(false);
+    }
   };
 
   const calculateOccupancy = (siloId: string, capacity: number) => {
@@ -267,19 +300,39 @@ export default function SilosPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="mov-qty">Quantidade (toneladas)</Label>
-                    <Input id="mov-qty" type="number" step="0.1" required aria-required="true" />
+                    <Input
+                      id="mov-qty"
+                      type="number"
+                      step="0.1"
+                      required
+                      aria-required="true"
+                      value={newMov.quantidade}
+                      onChange={(e) => setNewMov({ ...newMov, quantidade: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mov-resp">Responsável</Label>
-                    <Input id="mov-resp" required aria-required="true" />
+                    <Input
+                      id="mov-resp"
+                      required
+                      aria-required="true"
+                      value={newMov.responsavel}
+                      onChange={(e) => setNewMov({ ...newMov, responsavel: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="mov-obs">Observações</Label>
-                  <Input id="mov-obs" />
+                  <Input
+                    id="mov-obs"
+                    value={newMov.observacao}
+                    onChange={(e) => setNewMov({ ...newMov, observacao: e.target.value })}
+                  />
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Salvar</Button>
+                  <Button type="submit" disabled={movLoading}>
+                    {movLoading ? 'Salvando...' : 'Salvar'}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
