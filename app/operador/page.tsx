@@ -214,7 +214,7 @@ export default function ModoOperadorPage() {
 
           {/* ── Dialog: Retirada ──────────────────────────────────────────── */}
           <Dialog open={isRetiradaOpen} onOpenChange={setIsRetiradaOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger>
               <button
                 className="w-full h-24 bg-green-600 hover:bg-green-500 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 shadow-xl shadow-green-900/20"
                 aria-haspopup="dialog"
@@ -247,7 +247,7 @@ export default function ModoOperadorPage() {
                     Selecionar Silo
                   </Label>
                   <Select
-                    onValueChange={(v) => v && setSelectedSiloRetirada(v)}
+                    onValueChange={(v: string | null) => { if (v) setSelectedSiloRetirada(v); }}
                     required
                     name="silo-retirada"
                   >
@@ -303,7 +303,7 @@ export default function ModoOperadorPage() {
 
           {/* ── Dialog: Perda ─────────────────────────────────────────────── */}
           <Dialog open={isPerdaOpen} onOpenChange={setIsPerdaOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger>
               <button
                 className="w-full h-24 bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 border border-zinc-700 shadow-xl"
                 aria-haspopup="dialog"
@@ -333,7 +333,7 @@ export default function ModoOperadorPage() {
                     Selecionar Silo
                   </Label>
                   <Select
-                    onValueChange={(v) => v && setSelectedSiloPerda(v)}
+                    onValueChange={(v: string | null) => { if (v) setSelectedSiloPerda(v); }}
                     required
                     name="silo-perda"
                   >
@@ -360,7 +360,7 @@ export default function ModoOperadorPage() {
                     Tipo de Perda
                   </Label>
                   <Select
-                    onValueChange={(v) => v && setTipoPerda(v)}
+                    onValueChange={(v: string | null) => { if (v) setTipoPerda(v); }}
                     required
                     name="tipo-perda"
                   >

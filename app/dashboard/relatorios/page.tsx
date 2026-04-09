@@ -123,7 +123,7 @@ export default function RelatoriosPage() {
                   </div>
                   <div className="space-y-1">
                     {/* ✅ h3 dentro de section com h2 via sr-only */}
-                    <CardTitle as="h3" className="text-lg">
+                    <CardTitle className="text-lg">
                       {report.title}
                     </CardTitle>
                     <CardDescription className="text-xs leading-relaxed">
@@ -168,7 +168,7 @@ export default function RelatoriosPage() {
       {/* ── Card: Relatórios Customizados ──────────────────────────────── */}
       <Card className="bg-primary/5 border-primary/20">
         <CardHeader>
-          <CardTitle className="text-primary" as="h2">
+          <CardTitle className="text-primary">
             Relatórios Customizados
           </CardTitle>
           <CardDescription>

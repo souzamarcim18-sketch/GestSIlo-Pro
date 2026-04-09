@@ -154,5 +154,5 @@ export async function getCategoriasByFazenda(fazendaId: string): Promise<string[
     .eq('fazenda_id', fazendaId);
   if (error) throw error;
   const todas = (data ?? []).map((r: { categoria: string }) => r.categoria);
-  return [...new Set(todas)].sort();
+  return [...new Set<string>(todas)].sort();
 }

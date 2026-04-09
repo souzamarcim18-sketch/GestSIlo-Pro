@@ -45,7 +45,9 @@ export async function syncAll(supabase: SupabaseClient) {
 
   if (actions.length === 0) return;
 
-  console.log(`[SyncQueue] Sincronizando ${actions.length} ações pendentes...`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[SyncQueue] Sincronizando ${actions.length} ações pendentes...`);
+  }
 
   for (const action of actions) {
     try {
@@ -62,17 +64,19 @@ export async function syncAll(supabase: SupabaseClient) {
       }
 
       if (result?.error) {
-        console.error(`[SyncQueue] Erro ao sincronizar ${action.tabela}:`, result.error);
-        // Se for um erro crítico (ex: permissão), talvez devêssemos manter na fila?
-        // Por simplicidade, vamos remover se não for erro de conexão.
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`[SyncQueue] Erro ao sincronizar ${action.tabela}:`, result.error);
+        }
       } else {
         // Sucesso, remove da fila
         await db.delete('sync_queue', action.id!);
       }
     } catch (err) {
-      console.error(`[SyncQueue] Falha na rede durante sincronização de ${action.tabela}:`, err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`[SyncQueue] Falha na rede durante sincronização de ${action.tabela}:`, err);
+      }
       // Mantém na fila para tentar novamente depois
-      break; 
+      break;
     }
   }
 }

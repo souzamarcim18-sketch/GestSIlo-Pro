@@ -219,7 +219,7 @@ export default function FrotaPage() {
 
           {/* Dialog: Registrar Manutenção */}
           <Dialog open={isManutencaoOpen} onOpenChange={setIsManutencaoOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger>
               <Button variant="outline">
                 <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
                 Registrar Manutenção
@@ -305,7 +305,7 @@ export default function FrotaPage() {
 
           {/* Dialog: Nova Máquina */}
           <Dialog open={isAddMaquinaOpen} onOpenChange={setIsAddMaquinaOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger>
               <Button>
                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                 Nova Máquina
@@ -498,7 +498,7 @@ export default function FrotaPage() {
             return (
               <Card key={maquina.id} aria-label={`Máquina: ${maquina.nome}`}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle as="h3" className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold">
                     {maquina.nome}
                   </CardTitle>
                   <Truck className="h-5 w-5 text-muted-foreground" aria-hidden="true" />

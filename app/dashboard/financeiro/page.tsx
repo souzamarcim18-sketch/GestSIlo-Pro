@@ -55,24 +55,13 @@ const lancamentoSchema = z.object({
   tipo: z.enum(['Receita', 'Despesa']),
   descricao: z.string().min(2, 'Descrição deve ter ao menos 2 caracteres'),
   categoria: z.string().min(1, 'Informe a categoria'),
-  valor: z.preprocess(
-    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-    z.number().positive('Valor deve ser maior que zero'),
-  ),
+  valor: z.number().positive('Valor deve ser maior que zero'),
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
   referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
 });
 
-type LancamentoFormData = {
-  tipo: 'Receita' | 'Despesa';
-  descricao: string;
-  categoria: string;
-  valor: number;
-  data: string;
-  forma_pagamento?: string;
-  referencia_tipo?: 'Silo' | 'Talhão' | 'Máquina' | null;
-};
+type LancamentoFormData = z.infer<typeof lancamentoSchema>;
 
 // ---------------------------------------------------------------------------
 // Formatadores
@@ -84,11 +73,11 @@ const brl = (v: number) =>
 //    number | string | readonly (string|number)[] | undefined)
 //    Retorna [string, NameType] para o Recharts renderizar corretamente
 const tooltipFormatter = (
-  value: ValueType,
-  name: NameType,
+  value: ValueType | undefined,
+  name: NameType | undefined,
 ): [string, NameType] => {
   const formatted = typeof value === 'number' ? brl(value) : String(value ?? '');
-  return [formatted, name];
+  return [formatted, (name ?? '') as NameType];
 };
 
 // ---------------------------------------------------------------------------
@@ -311,7 +300,7 @@ export default function FinanceiroPage() {
             aria-required="true"
             aria-invalid={!!errors.valor}
             aria-describedby={errors.valor ? `${ids.formValor}-err` : undefined}
-            {...register('valor')}
+            {...register('valor', { valueAsNumber: true })}
           />
           {errors.valor && (
             <p id={`${ids.formValor}-err`} className="text-xs text-destructive" role="alert">

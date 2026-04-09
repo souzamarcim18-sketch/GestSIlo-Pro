@@ -46,7 +46,7 @@ export function Header() {
     >
       {/* Menu mobile */}
       <Sheet>
-        <SheetTrigger asChild>
+        <SheetTrigger>
           <Button
             variant="ghost"
             size="icon"
@@ -72,7 +72,7 @@ export function Header() {
 
         {/* Menu do usuário */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <Button
               variant="ghost"
               className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 transition-colors"

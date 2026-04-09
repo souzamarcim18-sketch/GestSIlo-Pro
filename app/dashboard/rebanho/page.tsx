@@ -66,7 +66,9 @@ export default function PlanejadorRebanhoPage() {
         }
       }
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao carregar dados:', error);
+      }
       toast.error('Erro ao carregar dados do planejador');
     } finally {
       setLoading(false);

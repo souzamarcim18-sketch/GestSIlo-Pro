@@ -207,7 +207,7 @@ export default function SilosPage() {
 
           {/* Dialog: Registrar Movimentação */}
           <Dialog open={isAddMovOpen} onOpenChange={setIsAddMovOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger>
               <Button variant="outline">
                 <History className="mr-2 h-4 w-4" aria-hidden="true" />
                 Registrar Movimentação
@@ -287,7 +287,7 @@ export default function SilosPage() {
 
           {/* Dialog: Novo Silo */}
           <Dialog open={isAddSiloOpen} onOpenChange={setIsAddSiloOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger>
               <Button>
                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                 Novo Silo
@@ -457,7 +457,7 @@ export default function SilosPage() {
               <Card key={silo.id} aria-label={`Silo ${silo.nome}`}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   {/* h3 dentro de section com h2 via sr-only — hierarquia correta */}
-                  <CardTitle as="h3" className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold">
                     {silo.nome}
                   </CardTitle>
                   {/* Ícone puramente decorativo */}

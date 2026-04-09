@@ -48,18 +48,18 @@ const insumoSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
   tipo: z.enum(TIPOS_INSUMO),
   unidade: z.string().min(1, 'Informe a unidade (ex: kg, L, Saco)'),
-  estoque_minimo: z.coerce.number().min(0, 'Estoque mínimo não pode ser negativo'),
-  estoque_atual: z.coerce.number().min(0, 'Estoque inicial não pode ser negativo'),
-  teor_n_percent: z.coerce.number().min(0).max(100).optional(),
-  teor_p_percent: z.coerce.number().min(0).max(100).optional(),
-  teor_k_percent: z.coerce.number().min(0).max(100).optional(),
+  estoque_minimo: z.number().min(0, 'Estoque mínimo não pode ser negativo'),
+  estoque_atual: z.number().min(0, 'Estoque inicial não pode ser negativo'),
+  teor_n_percent: z.number().min(0).max(100).optional(),
+  teor_p_percent: z.number().min(0).max(100).optional(),
+  teor_k_percent: z.number().min(0).max(100).optional(),
 });
 
 const movimentacaoSchema = z.object({
   insumo_id: z.string().min(1, 'Selecione um insumo'),
   tipo: z.enum(['Entrada', 'Saída']),
-  quantidade: z.coerce.number().positive('Quantidade deve ser maior que zero'),
-  valor_unitario: z.coerce.number().min(0).optional(),
+  quantidade: z.number().positive('Quantidade deve ser maior que zero'),
+  valor_unitario: z.number().min(0).optional(),
   destino: z.string().min(1, 'Informe o destino ou fornecedor'),
   responsavel: z.string().min(1, 'Informe o responsável'),
   data: z.string().min(1, 'Informe a data'),
@@ -276,14 +276,14 @@ export default function InsumosPage() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <Label htmlFor="estoque_minimo">Estoque Mínimo</Label>
-          <Input id="estoque_minimo" type="number" step="0.01" {...insumoForm.register('estoque_minimo')} />
+          <Input id="estoque_minimo" type="number" step="0.01" {...insumoForm.register('estoque_minimo', { valueAsNumber: true })} />
           {insumoForm.formState.errors.estoque_minimo && (
             <p className="text-xs text-destructive">{insumoForm.formState.errors.estoque_minimo.message}</p>
           )}
         </div>
         <div className="space-y-1">
           <Label htmlFor="estoque_atual">Estoque Atual</Label>
-          <Input id="estoque_atual" type="number" step="0.01" {...insumoForm.register('estoque_atual')} />
+          <Input id="estoque_atual" type="number" step="0.01" {...insumoForm.register('estoque_atual', { valueAsNumber: true })} />
           {insumoForm.formState.errors.estoque_atual && (
             <p className="text-xs text-destructive">{insumoForm.formState.errors.estoque_atual.message}</p>
           )}
@@ -295,15 +295,15 @@ export default function InsumosPage() {
         <div className="grid grid-cols-3 gap-3">
           <div className="space-y-1">
             <Label htmlFor="n">% N</Label>
-            <Input id="n" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_n_percent')} />
+            <Input id="n" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_n_percent', { valueAsNumber: true })} />
           </div>
           <div className="space-y-1">
             <Label htmlFor="p">% P₂O₅</Label>
-            <Input id="p" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_p_percent')} />
+            <Input id="p" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_p_percent', { valueAsNumber: true })} />
           </div>
           <div className="space-y-1">
             <Label htmlFor="k">% K₂O</Label>
-            <Input id="k" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_k_percent')} />
+            <Input id="k" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_k_percent', { valueAsNumber: true })} />
           </div>
         </div>
       )}
@@ -392,14 +392,14 @@ export default function InsumosPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <Label htmlFor="mov-qty">Quantidade</Label>
-                    <Input id="mov-qty" type="number" step="0.01" {...movForm.register('quantidade')} />
+                    <Input id="mov-qty" type="number" step="0.01" {...movForm.register('quantidade', { valueAsNumber: true })} />
                     {movForm.formState.errors.quantidade && (
                       <p className="text-xs text-destructive">{movForm.formState.errors.quantidade.message}</p>
                     )}
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="mov-valor">Valor Unitário (R$)</Label>
-                    <Input id="mov-valor" type="number" step="0.01" placeholder="0,00" {...movForm.register('valor_unitario')} />
+                    <Input id="mov-valor" type="number" step="0.01" placeholder="0,00" {...movForm.register('valor_unitario', { valueAsNumber: true })} />
                   </div>
                 </div>
 
