@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
-import { Sidebar } from '@/components/sidebar';
+import { Sidebar } from '@/components/Sidebar';
 import { useEffect, useState } from 'react';
 import type { User as AuthUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';

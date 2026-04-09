@@ -36,12 +36,16 @@ export default function PlanejadorRebanhoPage() {
   const loadData = useCallback(async () => {
     if (!fazendaId) { setLoading(false); return; }
     try {
-      const [cats, perds, silosData, movs] = await Promise.all([
+      const [cats, perds, silosData] = await Promise.all([
         getCategoriasRebanho(fazendaId),
         getPeriodosConfinamento(fazendaId),
         getSilosByFazenda(fazendaId),
-        supabase.from('movimentacoes_silo').select('*').in('silo_id', (await getSilosByFazenda(fazendaId)).map(s => s.id))
       ]);
+
+      const siloIds = silosData.map(s => s.id);
+      const movs = siloIds.length > 0
+        ? await supabase.from('movimentacoes_silo').select('*').in('silo_id', siloIds)
+        : { data: [] };
 
       setCategorias(cats);
       setPeriodos(perds);

@@ -1,6 +1,6 @@
-import { Sidebar } from '@/components/sidebar';
-import { Header } from '@/components/header';
-import { Breadcrumbs } from '@/components/breadcrumbs';
+import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 
 export default function DashboardLayout({
   children,
@@ -28,6 +28,9 @@ export default function DashboardLayout({
 
         {/* Conteúdo da página */}
         <div className="flex-1">
+          <div className="px-6 pt-4">
+            <Breadcrumbs />
+          </div>
           {children}
         </div>
 
