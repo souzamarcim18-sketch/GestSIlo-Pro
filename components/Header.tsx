@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
@@ -60,15 +59,11 @@ export function Header() {
     >
       {/* Menu mobile */}
       <Sheet>
-        <SheetTrigger>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden text-gray-600 hover:bg-green-50"
-            aria-label="Abrir menu de navegação"
-          >
-            <Menu aria-hidden="true" />
-          </Button>
+        <SheetTrigger
+          className="inline-flex items-center justify-center rounded-md p-2 md:hidden text-gray-600 hover:bg-green-50 transition-colors"
+          aria-label="Abrir menu de navegação"
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" />
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-72 border-r-0">
           <Sidebar />
@@ -80,15 +75,11 @@ export function Header() {
 
         {/* Toggle de tema */}
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-xl hover:bg-green-50 dark:hover:bg-green-950"
-              aria-label="Alternar tema"
-            >
-              {currentIcon}
-            </Button>
+          <DropdownMenuTrigger
+            className="inline-flex items-center justify-center h-9 w-9 rounded-xl hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+            aria-label="Alternar tema"
+          >
+            {currentIcon}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-36 rounded-xl">
             {themeOptions.map(opt => (
@@ -114,19 +105,16 @@ export function Header() {
 
         {/* Menu do usuário */}
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button
-              variant="ghost"
-              className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 transition-colors"
-              aria-label={`Menu do usuário: ${userDisplayName}`}
-            >
-              <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm">
-                <AvatarImage src="" alt="" />
-                <AvatarFallback className="bg-green-100 text-green-700 rounded-2xl">
-                  <User className="h-5 w-5" aria-hidden="true" />
-                </AvatarFallback>
-              </Avatar>
-            </Button>
+          <DropdownMenuTrigger
+            className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 transition-colors"
+            aria-label={`Menu do usuário: ${userDisplayName}`}
+          >
+            <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm">
+              <AvatarImage src="" alt="" />
+              <AvatarFallback className="bg-green-100 text-green-700 rounded-2xl">
+                <User className="h-5 w-5" aria-hidden="true" />
+              </AvatarFallback>
+            </Avatar>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent

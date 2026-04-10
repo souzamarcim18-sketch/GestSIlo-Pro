@@ -11,7 +11,9 @@
       "Bash(node -e \"const fs=require\\('fs'\\); const buf=fs.readFileSync\\('public/logo.png'\\); console.log\\('magic:', buf.slice\\(0,8\\).toString\\('hex'\\), 'size:', buf.length\\)\")",
       "Bash(node:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)"
     ]
   }
 }
