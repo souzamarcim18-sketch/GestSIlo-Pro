@@ -90,8 +90,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (isTimeout) {
             console.log(`⚠️ [FETCH-PROFILE] Timeout, retrying... (${retries + 1}/${MAX_RETRIES})`);
             retries++;
+            // IMPORTANTE: Limpar fetchingRef ANTES de retry para permitir nova tentativa
+            fetchingRef.current = null;
             // Wait 2 segundos antes de retry
             await new Promise(resolve => setTimeout(resolve, 2000));
+            // Settar novamente para esta tentativa
+            fetchingRef.current = currentUser.id;
             return attemptFetch();
           }
         }
