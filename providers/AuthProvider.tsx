@@ -36,25 +36,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = useCallback(async (currentUser: User) => {
     try {
+      console.log('🔐 [FETCH-PROFILE] STARTING for user:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
       // Timeout explícito para evitar hang (10 segundos)
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout after 10s')), 10000)
-      );
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        console.log('🔐 [FETCH-PROFILE] Setting 10s timeout...');
+        setTimeout(() => {
+          const timeoutError = new Error('Profile fetch timeout after 10s');
+          console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
+          reject(timeoutError);
+        }, 10000);
+      });
 
+      console.log('🔐 [FETCH-PROFILE] Making query...');
       const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
         .single();
 
+      console.log('🔐 [FETCH-PROFILE] Awaiting promise.race...');
       const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
+      console.log('🔐 [FETCH-PROFILE] Race resolved with:', { data: !!data, error: !!error });
+
       if (error) {
+        console.error('🔐 [FETCH-PROFILE] Query returned error:', error);
         throw error;
       }
 
+      console.log('✅ [FETCH-PROFILE] SUCCESS - profile loaded:', data);
       authLog('[FETCH-PROFILE] SUCCESS - profile loaded:', data);
       setUser(currentUser);
       setProfile(data ?? null);
@@ -65,12 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const errorStatus = (error as any)?.status;
       const errorDetails = (error as any)?.details;
 
-      console.error('🔐 [FETCH-PROFILE] Full error object:', error);
+      console.error('❌ [FETCH-PROFILE] CAUGHT ERROR:', { errorMessage, errorCode, errorStatus, errorDetails, fullError: error });
       authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus, details: errorDetails });
       setProfileError(errorMessage);
       setUser(currentUser);
       setProfile(null);
     } finally {
+      console.log('🔐 [FETCH-PROFILE] FINALLY - setting loading false');
       setLoading(false);
     }
   }, []);
