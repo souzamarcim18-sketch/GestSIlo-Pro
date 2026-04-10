@@ -36,40 +36,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = useCallback(async (currentUser: User) => {
     try {
-      // Log SEMPRE visível (não depende de DEBUG_AUTH)
-      console.log('🔐 [FETCH-PROFILE] START - userId:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      console.log('🔐 [FETCH-PROFILE] Querying profiles table...');
-
-      // Criar promise com timeout explícito para evitar hang
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout after 10s')), 10000)
-      );
-
-      const queryPromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
         .single();
 
-      console.log('🔐 [FETCH-PROFILE] Before .single() call...');
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
-
-      console.log('🔐 [FETCH-PROFILE] Response received:', {
-        data,
-        errorMsg: error?.message,
-        errorCode: (error as any)?.code,
-        errorStatus: (error as any)?.status,
-        errorDetails: (error as any)?.details
-      });
-      authLog('[FETCH-PROFILE] Response:', { data, error: error?.message });
-
       if (error) {
         throw error;
       }
 
-      console.log('✅ [FETCH-PROFILE] SUCCESS - profile loaded:', data);
       authLog('[FETCH-PROFILE] SUCCESS - profile loaded:', data);
       setUser(currentUser);
       setProfile(data ?? null);
@@ -78,8 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao buscar perfil';
       const errorCode = (error as any)?.code;
       const errorStatus = (error as any)?.status;
-      const errorDetails = (error as any)?.details;
-      console.error('❌ [FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus, details: errorDetails });
       authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus });
       setProfileError(errorMessage);
       setUser(currentUser);
@@ -104,11 +80,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user ?? null;
 
-      console.log('🔐 [AUTH-STATE-CHANGE] Event:', event, 'User:', currentUser?.id);
       authLog('Auth event:', event, 'user:', currentUser?.id);
 
       if (!currentUser) {
-        console.log('🔐 [AUTH-STATE-CHANGE] SIGNED_OUT');
         authLog('Auth event: SIGNED_OUT');
         setUser(null);
         setProfile(null);
@@ -117,8 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      console.log('🔐 [AUTH-STATE-CHANGE] SIGNED_IN - fetching profile...');
-      authLog('Auth event: SIGNED_IN', event);
+      authLog('Auth event: SIGNED_IN');
       setProfileError(null); // Limpar erro anterior quando usuário faz login
       await fetchProfile(currentUser);
     });

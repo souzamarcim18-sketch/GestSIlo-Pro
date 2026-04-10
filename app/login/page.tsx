@@ -22,16 +22,12 @@ export default function LoginPage() {
 
   // Redireciona quando o AuthProvider confirma o login
   useEffect(() => {
-    // Log SEMPRE visível
-    console.log('📱 [LOGIN-PAGE] useEffect:', { authLoading, user: !!user, profile: !!profile, profileError, timeout });
     authLog('LoginPage useEffect: authLoading=', authLoading, 'user=', !!user, 'profile=', !!profile, 'profileError=', profileError);
 
     // Se ainda está carregando, iniciar timeout de 5s
     if (authLoading && user && !timeout) {
-      console.log('⏳ [LOGIN-PAGE] Profile still loading, setting 5s timeout...');
       authLog('Profile still loading, setting timeout...');
       const timeoutId = window.setTimeout(() => {
-        console.log('⏰ [LOGIN-PAGE] Profile loading timeout!');
         authLog('Profile loading timeout!');
         setTimeout(true);
       }, AUTH_PROFILE_FETCH_TIMEOUT_MS);
@@ -41,7 +37,6 @@ export default function LoginPage() {
 
     // Se carregou e tem profile, redirecionar
     if (!authLoading && user && profile && !timeout) {
-      console.log('✅ [LOGIN-PAGE] Profile loaded, redirecting to:', profile.perfil === 'Operador' ? '/operador' : '/dashboard');
       authLog('Profile loaded, redirecting...');
       if (profile.perfil === 'Operador') {
         router.push('/operador');
@@ -52,7 +47,6 @@ export default function LoginPage() {
 
     // Se timeout ocorreu e profile ainda não chegou, mostrar erro
     if (timeout && (!profile || profileError)) {
-      console.error('❌ [LOGIN-PAGE] Timeout occurred and profile error or missing');
       authLog('Timeout occurred and profile error or missing');
       setError('Tempo limite ao carregar seu perfil. Tente fazer login novamente.');
     }
@@ -66,28 +60,22 @@ export default function LoginPage() {
       setTimeout(false); // Resetar timeout ao tentar novamente
 
       try {
-        console.log('🔐 [HANDLE-LOGIN] Starting signInWithPassword for:', email);
         authLog('handleLogin: starting signInWithPassword');
-        const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-
-        console.log('🔐 [HANDLE-LOGIN] signIn response:', { error: error?.message, user: data?.user?.id });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
 
         if (error) {
           setError('E-mail ou senha inválidos. Verifique suas credenciais.');
           toast.error('E-mail ou senha inválidos.');
-          console.error('❌ [HANDLE-LOGIN] signIn error:', error.message);
           authLog('handleLogin: signIn error:', error.message);
           return;
         }
 
-        console.log('✅ [HANDLE-LOGIN] signIn success, user:', data.user?.id);
         authLog('handleLogin: signIn success, waiting for AuthProvider...');
         toast.success('Login realizado com sucesso!');
         // Não busca profile aqui — o AuthProvider já faz isso
         // O useEffect acima cuida do redirecionamento
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-        console.error('❌ [HANDLE-LOGIN] caught error:', errorMessage);
         authLog('handleLogin: caught error:', errorMessage);
         setError('Ocorreu um erro inesperado. Tente novamente.');
         toast.error('Erro ao realizar login.');
