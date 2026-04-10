@@ -1,6 +1,8 @@
 'use client';
 
-import { User, Sun, Moon, Monitor } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { User, Sun, Moon, Monitor, Menu } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,55 +14,101 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
-import { useEffect, useState } from 'react';
-import type { User as AuthUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
 
+// ── Helpers ────────────────────────────────────────────────────────────
+function capitalizeName(name: string): string {
+  const preposicoes = ['de', 'da', 'do', 'dos', 'das', 'e'];
+  return name
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map((word, index) =>
+      index > 0 && preposicoes.includes(word)
+        ? word
+        : word.charAt(0).toUpperCase() + word.slice(1)
+    )
+    .join(' ');
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter((n) => n[0] === n[0].toUpperCase()) // ignora "de", "da", etc.
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join('');
+}
+
+// ── Componente ─────────────────────────────────────────────────────────
 export function Header() {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const { user, fazendaId } = useAuth();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [fazendaNome, setFazendaNome] = useState('');
 
-  const themeOptions: { value: string; label: string; icon: React.ReactNode }[] = [
-    { value: 'light',  label: 'Claro',    icon: <Sun className="h-4 w-4" /> },
-    { value: 'dark',   label: 'Escuro',   icon: <Moon className="h-4 w-4" /> },
-    { value: 'system', label: 'Sistema',  icon: <Monitor className="h-4 w-4" /> },
+  // ── Tema ─────────────────────────────────────────────────────────────
+  const themeOptions = [
+    { value: 'light',  label: 'Claro',   icon: <Sun className="h-4 w-4" /> },
+    { value: 'dark',   label: 'Escuro',  icon: <Moon className="h-4 w-4" /> },
+    { value: 'system', label: 'Sistema', icon: <Monitor className="h-4 w-4" /> },
   ];
 
   const currentIcon =
-    theme === 'dark' ? <Moon className="h-4 w-4" /> :
+    theme === 'dark'  ? <Moon className="h-4 w-4" /> :
     theme === 'light' ? <Sun className="h-4 w-4" /> :
     <Monitor className="h-4 w-4" />;
 
+  // ── Buscar nome da fazenda ───────────────────────────────────────────
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
+    if (!fazendaId) return;
 
+    const fetchFazenda = async () => {
+      const { data } = await supabase
+        .from('fazendas')
+        .select('nome')
+        .eq('id', fazendaId)
+        .single();
+
+      if (data?.nome) setFazendaNome(data.nome);
+    };
+
+    fetchFazenda();
+  }, [fazendaId]);
+
+  // ── Logout ───────────────────────────────────────────────────────────
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
   };
 
-  const userDisplayName = user?.email?.split('@')[0] || 'Usuário';
+  // ── Dados do usuário ────────────────────────────────────────────────
+  const rawName =
+    user?.user_metadata?.nome ||
+    user?.user_metadata?.full_name ||
+    '';
 
+  const fullName = rawName ? capitalizeName(rawName) : '';
+  const displayName = fullName || user?.email?.split('@')[0] || 'Usuário';
+
+  const initials = fullName
+    ? getInitials(fullName)
+    : displayName[0]?.toUpperCase() || 'U';
+
+  // ── Render ──────────────────────────────────────────────────────────
   return (
-    <div
-      className="flex items-center p-4 bg-white/80 backdrop-blur-md border-b border-green-100 sticky top-0 z-40"
+    <header
+      className="flex items-center p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-green-100 dark:border-green-900 sticky top-0 z-40"
       role="toolbar"
       aria-label="Barra superior"
     >
       {/* Menu mobile */}
       <Sheet>
         <SheetTrigger
-          className="inline-flex items-center justify-center rounded-md p-2 md:hidden text-gray-600 hover:bg-green-50 transition-colors"
+          className="inline-flex items-center justify-center rounded-md p-2 md:hidden text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
           aria-label="Abrir menu de navegação"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
@@ -76,18 +124,20 @@ export function Header() {
         {/* Toggle de tema */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="inline-flex items-center justify-center h-9 w-9 rounded-xl hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
             aria-label="Alternar tema"
           >
             {currentIcon}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-36 rounded-xl">
-            {themeOptions.map(opt => (
+            {themeOptions.map((opt) => (
               <DropdownMenuItem
                 key={opt.value}
                 onClick={() => setTheme(opt.value)}
                 className={`flex items-center gap-2 rounded-lg cursor-pointer ${
-                  theme === opt.value ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400' : ''
+                  theme === opt.value
+                    ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
+                    : ''
                 }`}
               >
                 {opt.icon}
@@ -97,74 +147,84 @@ export function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Nome do usuário — desktop */}
+        {/* Nome + Fazenda — desktop */}
         <div className="hidden md:flex flex-col items-end" aria-hidden="true">
-          <p className="text-sm font-bold text-gray-900">{userDisplayName}</p>
-          <p className="text-xs text-green-600 font-medium">Minha Propriedade</p>
+          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">
+            {displayName}
+          </p>
+          {fazendaNome && (
+            <p className="text-xs text-green-600 dark:text-green-400 font-medium leading-tight mt-0.5">
+              {fazendaNome}
+            </p>
+          )}
         </div>
 
         {/* Menu do usuário */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 transition-colors"
-            aria-label={`Menu do usuário: ${userDisplayName}`}
+            className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+            aria-label={`Menu do usuário: ${displayName}`}
           >
-            <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm">
-              <AvatarImage src="" alt="" />
-              <AvatarFallback className="bg-green-100 text-green-700 rounded-2xl">
-                <User className="h-5 w-5" aria-hidden="true" />
+            <Avatar className="h-10 w-10 rounded-2xl border-2 border-white dark:border-gray-700 shadow-sm">
+              <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt="" />
+              <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 font-bold rounded-2xl text-sm">
+                {initials}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            className="w-64 mt-2 p-2 rounded-2xl border-green-50 shadow-xl"
+            className="w-64 mt-2 p-2 rounded-2xl border-green-50 dark:border-green-900 shadow-xl"
             align="end"
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="font-normal p-3">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-bold text-gray-900 leading-none">
-                    {userDisplayName}
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">
+                    {displayName}
                   </p>
                   <p className="text-xs leading-none text-gray-400 mt-1">
                     {user?.email}
                   </p>
+                  {fazendaNome && (
+                    <p className="text-xs leading-none text-green-600 dark:text-green-400 font-medium mt-1.5">
+                      🌱 {fazendaNome}
+                    </p>
+                  )}
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator className="bg-gray-50" />
+            <DropdownMenuSeparator className="bg-gray-50 dark:bg-gray-800" />
 
             <div className="p-1">
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-green-50 focus:text-green-700 p-3 cursor-pointer"
+                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-green-950 dark:focus:text-green-400 p-3 cursor-pointer"
               >
                 Perfil do Usuário
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-green-50 focus:text-green-700 p-3 cursor-pointer"
+                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-green-950 dark:focus:text-green-400 p-3 cursor-pointer"
               >
                 Configurações
               </DropdownMenuItem>
             </div>
 
-            <DropdownMenuSeparator className="bg-gray-50" />
+            <DropdownMenuSeparator className="bg-gray-50 dark:bg-gray-800" />
 
             <div className="p-1">
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="rounded-xl focus:bg-red-50 focus:text-red-600 p-3 cursor-pointer text-red-500"
+                className="rounded-xl focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950 dark:focus:text-red-400 p-3 cursor-pointer text-red-500 dark:text-red-400"
               >
                 Sair da conta
               </DropdownMenuItem>
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
-
       </div>
-    </div>
+    </header>
   );
 }
