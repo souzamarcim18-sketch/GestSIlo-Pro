@@ -9,6 +9,10 @@ export interface AuthState {
   profile: Profile | null;
   fazendaId: string | null;
   loading: boolean;
+  /** true quando o usuário está logado mas ainda não tem fazenda */
+  needsOnboarding: boolean;
+  /** Atualiza o state após criar fazenda (evita reload) */
+  refreshProfile: () => Promise<void>;
 }
 
 export function useAuth(): AuthState {
@@ -17,32 +21,57 @@ export function useAuth(): AuthState {
     profile: null,
     fazendaId: null,
     loading: true,
+    needsOnboarding: false,
+    refreshProfile: async () => {},
   });
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const user = session?.user ?? null;
+    const fetchProfile = async (user: User) => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-        if (!user) {
-          setState({ user: null, profile: null, fazendaId: null, loading: false });
-          return;
-        }
+      const fazendaId = profile?.fazenda_id ?? null;
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+      setState((prev) => ({
+        ...prev,
+        user,
+        profile: profile ?? null,
+        fazendaId,
+        loading: false,
+        needsOnboarding: !!profile && !fazendaId,
+      }));
+    };
 
-        setState({
-          user,
-          profile: profile ?? null,
-          fazendaId: profile?.fazenda_id ?? null,
+    const refreshProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await fetchProfile(user);
+    };
+
+    // Expor refreshProfile no state
+    setState((prev) => ({ ...prev, refreshProfile }));
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const user = session?.user ?? null;
+
+      if (!user) {
+        setState((prev) => ({
+          ...prev,
+          user: null,
+          profile: null,
+          fazendaId: null,
           loading: false,
-        });
+          needsOnboarding: false,
+        }));
+        return;
       }
-    );
+
+      await fetchProfile(user);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
