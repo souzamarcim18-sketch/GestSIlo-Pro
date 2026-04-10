@@ -49,8 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const attemptFetch = async (): Promise<any> => {
       try {
-        console.log(`🔐 [FETCH-PROFILE] ATTEMPT ${retries + 1}/${MAX_RETRIES + 1} for user:`, currentUser.id);
-        authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
+        authLog(`[FETCH-PROFILE] ATTEMPT ${retries + 1}/${MAX_RETRIES + 1}`);
 
         // Timeout explícito para evitar hang
         // Antes do warmup: 60s (cold start Supabase)
@@ -58,37 +57,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const timeoutMs = hasWarmedUpRef.current ? 10000 : 60000;
 
         const timeoutPromise = new Promise<never>((_, reject) => {
-          console.log(`🔐 [FETCH-PROFILE] Setting ${timeoutMs}ms timeout...`);
           setTimeout(() => {
             const timeoutError = new Error(`Profile fetch timeout after ${timeoutMs}ms`);
-            console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
             reject(timeoutError);
           }, timeoutMs);
         });
 
-        console.log('🔐 [FETCH-PROFILE] Making query...');
         const queryPromise = supabase
           .from('profiles')
           .select('*')
           .eq('id', currentUser.id)
           .single();
 
-        console.log('🔐 [FETCH-PROFILE] Awaiting promise.race...');
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
         if (error) {
-          console.error('🔐 [FETCH-PROFILE] Query returned error:', error);
           throw error;
         }
 
-        console.log('✅ [FETCH-PROFILE] SUCCESS - profile loaded:', data);
+        authLog('[FETCH-PROFILE] SUCCESS');
         return { data, error: null };
       } catch (error) {
         // Se timeout e ainda tem retries, tenta novamente
         if (retries < MAX_RETRIES) {
           const isTimeout = error instanceof Error && error.message.includes('timeout');
           if (isTimeout) {
-            console.log(`⚠️ [FETCH-PROFILE] Timeout, retrying... (${retries + 1}/${MAX_RETRIES})`);
+            authLog(`[FETCH-PROFILE] Timeout, retrying...`);
             retries++;
             // Wait 2 segundos antes de retry
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -102,7 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await attemptFetch();
 
-      authLog('[FETCH-PROFILE] SUCCESS - profile loaded:', data);
       setUser(currentUser);
       setProfile(data ?? null);
       setProfileError(null); // Limpar erro anterior se sucesso
@@ -110,15 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao buscar perfil';
       const errorCode = (error as any)?.code;
       const errorStatus = (error as any)?.status;
-      const errorDetails = (error as any)?.details;
 
-      console.error('❌ [FETCH-PROFILE] FINAL ERROR after retries:', { errorMessage, errorCode, errorStatus, errorDetails });
-      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus, details: errorDetails });
+      authError('[FETCH-PROFILE] ERROR after retries:', { message: errorMessage, code: errorCode, status: errorStatus });
       setProfileError(errorMessage);
       setUser(currentUser);
       setProfile(null);
     } finally {
-      console.log('🔐 [FETCH-PROFILE] FINALLY - setting loading false');
       fetchingRef.current = null;
       setLoading(false);
     }
@@ -137,14 +127,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Warmup call silencioso para evitar cold start no Supabase
     const warmupSupabase = async () => {
       try {
-        console.log('🔐 [WARMUP] Heating up Supabase...');
+        authLog('🔐 Warmup: Heating up Supabase...');
         // Requisição leve para aquentar o servidor
         await supabase.from('profiles').select('id').limit(1);
         hasWarmedUpRef.current = true;
-        console.log('🔐 [WARMUP] Supabase ready!');
+        authLog('🔐 Warmup: Supabase ready!');
       } catch (err) {
         // Silenciosamente ignora erro (warmup é opcional)
-        console.log('🔐 [WARMUP] Supabase warmup skipped');
+        authLog('🔐 Warmup: Supabase warmup skipped');
       }
     };
 
