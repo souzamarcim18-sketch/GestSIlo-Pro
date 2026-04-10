@@ -1,19 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Home } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, profile, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redireciona quando o AuthProvider confirma o login
+  useEffect(() => {
+    if (!authLoading && user && profile) {
+      if (profile.perfil === 'Operador') {
+        router.push('/operador');
+      } else {
+        router.push('/dashboard');
+      }
+    }
+  }, [authLoading, user, profile, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,30 +34,19 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         setError('E-mail ou senha inválidos. Verifique suas credenciais.');
         toast.error('E-mail ou senha inválidos.');
         setLoading(false);
-      } else if (data.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('perfil')
-          .eq('id', data.user.id)
-          .single();
-
-        toast.success('Login realizado com sucesso!');
-
-        if (profile?.perfil === 'Operador') {
-          router.push('/operador');
-        } else {
-          router.push('/dashboard');
-        }
-      } else {
-        setLoading(false);
-        toast.error('Erro ao recuperar dados do usuário.');
+        return;
       }
+
+      toast.success('Login realizado com sucesso!');
+      // Não busca profile aqui — o AuthProvider já faz isso
+      // O useEffect acima cuida do redirecionamento
+
     } catch (err: unknown) {
       console.error('Login error:', err);
       setError('Ocorreu um erro inesperado. Tente novamente.');
