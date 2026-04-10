@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, Profile } from '@/lib/supabase';
 import { authLog, authError } from '@/lib/auth/logger';
@@ -30,23 +30,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const fetchingRef = useRef<string | null>(null); // Track current fetch to avoid duplicates
 
   const fazendaId = profile?.fazenda_id ?? null;
   const needsOnboarding = !!user && !!profile && !fazendaId;
 
   const fetchProfile = useCallback(async (currentUser: User) => {
+    // Evitar múltiplas requisições simultâneas do mesmo usuário
+    if (fetchingRef.current === currentUser.id) {
+      console.log('⏭️ [FETCH-PROFILE] Skipping - already fetching for user:', currentUser.id);
+      return;
+    }
+
+    fetchingRef.current = currentUser.id;
+
     try {
       console.log('🔐 [FETCH-PROFILE] STARTING for user:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      // Timeout explícito para evitar hang (20 segundos - RLS query pode ser lenta)
+      // Timeout explícito para evitar hang (30 segundos - first call pode ser lenta por cold start)
       const timeoutPromise = new Promise<never>((_, reject) => {
-        console.log('🔐 [FETCH-PROFILE] Setting 20s timeout...');
+        console.log('🔐 [FETCH-PROFILE] Setting 30s timeout...');
         setTimeout(() => {
-          const timeoutError = new Error('Profile fetch timeout after 20s');
+          const timeoutError = new Error('Profile fetch timeout after 30s');
           console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
           reject(timeoutError);
-        }, 20000);
+        }, 30000);
       });
 
       console.log('🔐 [FETCH-PROFILE] Making query...');
@@ -84,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
     } finally {
       console.log('🔐 [FETCH-PROFILE] FINALLY - setting loading false');
+      fetchingRef.current = null;
       setLoading(false);
     }
   }, []);

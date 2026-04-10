@@ -4,7 +4,7 @@
  */
 
 // Timeouts (em milissegundos)
-export const AUTH_PROFILE_FETCH_TIMEOUT_MS = 5000; // 5 segundos para buscar profile
+export const AUTH_PROFILE_FETCH_TIMEOUT_MS = 35000; // 35 segundos para buscar profile (primeira requisição pode ter cold start)
 export const AUTH_REDIRECT_DELAY_MS = 500; // Aguardar antes de redirecionar (ms)
 
 // Retry configuration
