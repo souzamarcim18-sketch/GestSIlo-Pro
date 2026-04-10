@@ -14,13 +14,14 @@ export async function createFazenda(
   userId: string,
   input: CreateFazendaInput
 ): Promise<Fazenda> {
-  // 1. Criar a fazenda
+  // 1. Criar a fazenda (com owner_id)
   const { data: fazenda, error: fazendaError } = await supabase
     .from('fazendas')
     .insert({
       nome: input.nome,
       localizacao: input.localizacao ?? null,
       area_total: input.area_total ?? null,
+      owner_id: userId, // <-- vincula ao usuário logado
     })
     .select()
     .single();
