@@ -40,13 +40,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔐 [FETCH-PROFILE] START - userId:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      const { data, error } = await supabase
+      console.log('🔐 [FETCH-PROFILE] Querying profiles table...');
+
+      // Criar promise com timeout explícito para evitar hang
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout after 10s')), 10000)
+      );
+
+      const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
         .single();
 
-      console.log('🔐 [FETCH-PROFILE] Response:', { data, errorMsg: error?.message, errorCode: (error as any)?.code });
+      console.log('🔐 [FETCH-PROFILE] Before .single() call...');
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
+      console.log('🔐 [FETCH-PROFILE] Response received:', {
+        data,
+        errorMsg: error?.message,
+        errorCode: (error as any)?.code,
+        errorStatus: (error as any)?.status,
+        errorDetails: (error as any)?.details
+      });
       authLog('[FETCH-PROFILE] Response:', { data, error: error?.message });
 
       if (error) {
@@ -61,9 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao buscar perfil';
       const errorCode = (error as any)?.code;
+      const errorStatus = (error as any)?.status;
       const errorDetails = (error as any)?.details;
-      console.error('❌ [FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, details: errorDetails, fullError: error });
-      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode });
+      console.error('❌ [FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus, details: errorDetails });
+      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus });
       setProfileError(errorMessage);
       setUser(currentUser);
       setProfile(null);
