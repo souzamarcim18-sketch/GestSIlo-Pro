@@ -39,14 +39,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔐 [FETCH-PROFILE] STARTING for user:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      // Timeout explícito para evitar hang (10 segundos)
+      // Timeout explícito para evitar hang (20 segundos - RLS query pode ser lenta)
       const timeoutPromise = new Promise<never>((_, reject) => {
-        console.log('🔐 [FETCH-PROFILE] Setting 10s timeout...');
+        console.log('🔐 [FETCH-PROFILE] Setting 20s timeout...');
         setTimeout(() => {
-          const timeoutError = new Error('Profile fetch timeout after 10s');
+          const timeoutError = new Error('Profile fetch timeout after 20s');
           console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
           reject(timeoutError);
-        }, 10000);
+        }, 20000);
       });
 
       console.log('🔐 [FETCH-PROFILE] Making query...');
