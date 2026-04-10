@@ -4,7 +4,7 @@
  */
 
 // Timeouts (em milissegundos)
-export const AUTH_PROFILE_FETCH_TIMEOUT_MS = 35000; // 35 segundos para buscar profile (primeira requisição pode ter cold start)
+export const AUTH_PROFILE_FETCH_TIMEOUT_MS = 65000; // 65 segundos para buscar profile (primeira requisição pode ter cold start Supabase)
 export const AUTH_REDIRECT_DELAY_MS = 500; // Aguardar antes de redirecionar (ms)
 
 // Retry configuration

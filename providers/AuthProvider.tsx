@@ -48,14 +48,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔐 [FETCH-PROFILE] STARTING for user:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      // Timeout explícito para evitar hang (30 segundos - first call pode ser lenta por cold start)
+      // Timeout explícito para evitar hang (60 segundos - first call pode ser lenta por cold start Supabase)
       const timeoutPromise = new Promise<never>((_, reject) => {
-        console.log('🔐 [FETCH-PROFILE] Setting 30s timeout...');
+        console.log('🔐 [FETCH-PROFILE] Setting 60s timeout...');
         setTimeout(() => {
-          const timeoutError = new Error('Profile fetch timeout after 30s');
+          const timeoutError = new Error('Profile fetch timeout after 60s');
           console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
           reject(timeoutError);
-        }, 30000);
+        }, 60000);
       });
 
       console.log('🔐 [FETCH-PROFILE] Making query...');
