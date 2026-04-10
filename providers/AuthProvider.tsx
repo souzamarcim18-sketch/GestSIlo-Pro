@@ -63,7 +63,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao buscar perfil';
       const errorCode = (error as any)?.code;
       const errorStatus = (error as any)?.status;
-      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus });
+      const errorDetails = (error as any)?.details;
+
+      console.error('🔐 [FETCH-PROFILE] Full error object:', error);
+      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus, details: errorDetails });
       setProfileError(errorMessage);
       setUser(currentUser);
       setProfile(null);

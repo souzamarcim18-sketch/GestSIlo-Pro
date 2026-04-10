@@ -26,7 +26,19 @@ export function authLog(...args: any[]): void {
  */
 export function authError(...args: any[]): void {
   const timestamp = new Date().toISOString();
-  console.error(`[AUTH ERROR ${timestamp}]`, ...args);
+
+  // Parse objects to string for better console display
+  const parsedArgs = args.map(arg => {
+    if (arg instanceof Error) {
+      return `${arg.name}: ${arg.message}`;
+    }
+    if (typeof arg === 'object' && arg !== null) {
+      return JSON.stringify(arg, null, 2);
+    }
+    return arg;
+  });
+
+  console.error(`[AUTH ERROR ${timestamp}]`, ...parsedArgs);
 
   // Integração futura com serviço de logging externo
   // if (process.env.NODE_ENV === 'production') {
