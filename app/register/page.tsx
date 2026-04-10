@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { authLog, authError } from '@/lib/auth/logger';
 import {
   Select,
   SelectContent,
@@ -40,6 +41,8 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      authLog('handleRegister: starting signUp for email:', email);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -51,9 +54,14 @@ export default function RegisterPage() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        authError('handleRegister: signUp error:', error.message);
+        throw error;
+      }
 
       if (data.user) {
+        authLog('handleRegister: signUp success, creating profile row');
+
         const { error: profileError } = await supabase
           .from('profiles')
           .insert([
@@ -65,13 +73,19 @@ export default function RegisterPage() {
             },
           ]);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          authError('handleRegister: profile insert error:', profileError.message);
+          throw new Error('Erro ao finalizar cadastro. Contate o suporte.');
+        }
+
+        authLog('handleRegister: profile created successfully');
       }
 
       toast.success('Cadastro realizado! Verifique seu e-mail.');
       router.push('/login');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao realizar cadastro';
+      authError('handleRegister: caught error:', message);
       toast.error(message);
     } finally {
       setLoading(false);

@@ -1,59 +1,90 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Home } from 'lucide-react';
+import { AUTH_PROFILE_FETCH_TIMEOUT_MS } from '@/lib/auth/constants';
+import { authLog } from '@/lib/auth/logger';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, profileError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [timeout, setTimeout] = useState(false); // Timeout ao buscar profile
 
   // Redireciona quando o AuthProvider confirma o login
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    authLog('LoginPage useEffect: authLoading=', authLoading, 'user=', !!user, 'profile=', !!profile, 'profileError=', profileError);
+
+    // Se ainda está carregando, iniciar timeout de 5s
+    if (authLoading && user && !timeout) {
+      authLog('Profile still loading, setting timeout...');
+      const timeoutId = window.setTimeout(() => {
+        authLog('Profile loading timeout!');
+        setTimeout(true);
+      }, AUTH_PROFILE_FETCH_TIMEOUT_MS);
+
+      return () => clearTimeout(timeoutId);
+    }
+
+    // Se carregou e tem profile, redirecionar
+    if (!authLoading && user && profile && !timeout) {
+      authLog('Profile loaded, redirecting...');
       if (profile.perfil === 'Operador') {
         router.push('/operador');
       } else {
         router.push('/dashboard');
       }
     }
-  }, [authLoading, user, profile, router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        setError('E-mail ou senha inválidos. Verifique suas credenciais.');
-        toast.error('E-mail ou senha inválidos.');
-        setLoading(false);
-        return;
-      }
-
-      toast.success('Login realizado com sucesso!');
-      // Não busca profile aqui — o AuthProvider já faz isso
-      // O useEffect acima cuida do redirecionamento
-
-    } catch (err: unknown) {
-      console.error('Login error:', err);
-      setError('Ocorreu um erro inesperado. Tente novamente.');
-      toast.error('Erro ao realizar login.');
-      setLoading(false);
+    // Se timeout ocorreu e profile ainda não chegou, mostrar erro
+    if (timeout && (!profile || profileError)) {
+      authLog('Timeout occurred and profile error or missing');
+      setError('Tempo limite ao carregar seu perfil. Tente fazer login novamente.');
     }
-  };
+  }, [authLoading, user, profile, profileError, timeout, router]);
+
+  const handleLogin = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      setError('');
+      setTimeout(false); // Resetar timeout ao tentar novamente
+
+      try {
+        authLog('handleLogin: starting signInWithPassword');
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          setError('E-mail ou senha inválidos. Verifique suas credenciais.');
+          toast.error('E-mail ou senha inválidos.');
+          authLog('handleLogin: signIn error:', error.message);
+          return;
+        }
+
+        authLog('handleLogin: signIn success, waiting for AuthProvider...');
+        toast.success('Login realizado com sucesso!');
+        // Não busca profile aqui — o AuthProvider já faz isso
+        // O useEffect acima cuida do redirecionamento
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+        authLog('handleLogin: caught error:', errorMessage);
+        setError('Ocorreu um erro inesperado. Tente novamente.');
+        toast.error('Erro ao realizar login.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [email, password]
+  );
 
   return (
     <div className="min-h-screen flex relative">
@@ -262,7 +293,7 @@ export default function LoginPage() {
             </div>
 
             {/* Erro */}
-            {error && (
+            {(error || profileError || timeout) && (
               <div
                 id="form-error"
                 role="alert"
@@ -279,7 +310,16 @@ export default function LoginPage() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-red-700 text-sm font-medium">{error}</p>
+                <div className="flex-1">
+                  <p className="text-red-700 text-sm font-medium">
+                    {error || profileError || (timeout && 'Tempo limite ao carregar seu perfil. Tente fazer login novamente.')}
+                  </p>
+                  {(profileError || timeout) && (
+                    <p className="text-red-600 text-xs mt-1">
+                      Contate o suporte se o problema persistir.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 

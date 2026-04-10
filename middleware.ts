@@ -43,14 +43,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Auth routes: redirect to /dashboard if already authenticated
+  // Auth routes: NOT redirecting from /login or /register even if authenticated
+  // Reason: Middleware runs on server before client AuthProvider initializes
+  // Risk: Race condition where middleware redirects /login → /dashboard, but
+  // AuthProvider hasn't loaded user/profile yet on client, causing layout redirect loop
+  // Solution: Leave redirect responsibility to client useEffect in login/register pages
+  // They have direct access to AuthProvider context and can wait for profile loading
   const isAuthRoute =
     pathname === '/login' || pathname === '/register';
 
+  // Just validate auth on these routes, don't redirect
+  // (client handles redirect via useEffect when profile loads)
   if (isAuthRoute && user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/dashboard';
-    return NextResponse.redirect(redirectUrl);
+    // User is authenticated, let client decide next action via useEffect
+    // This prevents redirect before profile loading is complete
   }
 
   return supabaseResponse;

@@ -10,6 +10,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { authLog, authError } from '@/lib/auth/logger';
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ export default function ModoOperadorPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [silos, setSilos] = useState<Silo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isRetiradaOpen, setIsRetiradaOpen] = useState(false);
   const [isPerdaOpen, setIsPerdaOpen] = useState(false);
 
@@ -46,23 +48,53 @@ export default function ModoOperadorPage() {
   const { isOnline, updateStatus } = useOfflineSync();
 
   const checkAuth = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push('/login'); return; }
+    try {
+      authLog('checkAuth: starting');
+      const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*, fazendas(nome)')
-      .eq('id', user.id)
-      .single();
+      if (!user) {
+        authLog('checkAuth: no user found');
+        router.push('/login');
+        return;
+      }
 
-    if (!profileData) { router.push('/login'); return; }
+      authLog('checkAuth: fetching profile for user:', user.id);
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*, fazendas(nome)')
+        .eq('id', user.id)
+        .single();
 
-    setProfile(profileData);
-    if (profileData.fazenda_id) {
-      const silosData = await q.silos.list();
-      setSilos(silosData);
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (!profileData) {
+        setError('Perfil não encontrado. Contate o administrador.');
+        authLog('checkAuth: profile not found');
+        return;
+      }
+
+      if (profileData.perfil !== 'Operador') {
+        authLog('checkAuth: user is not Operador, redirecting to dashboard');
+        router.push('/dashboard');
+        return;
+      }
+
+      authLog('checkAuth: profile loaded successfully');
+      setProfile(profileData);
+      if (profileData.fazenda_id) {
+        const silosData = await q.silos.list();
+        setSilos(silosData);
+      }
+      setError(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados do operador';
+      authError('checkAuth: error:', errorMessage);
+      setError('Erro ao carregar dados. Tente novamente ou contacte o suporte.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [router]);
 
   useEffect(() => { checkAuth(); }, [checkAuth]);
@@ -134,6 +166,34 @@ export default function ModoOperadorPage() {
     await supabase.auth.signOut();
     router.push('/login');
   };
+
+  // ── Error ──────────────────────────────────────────────────────────────────
+  if (error) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold mb-2">Erro ao Carregar</h1>
+          <p className="text-zinc-300 mb-6">{error}</p>
+          <div className="flex gap-4 justify-center">
+            <Button
+              onClick={() => router.push('/login')}
+              className="bg-green-600 hover:bg-green-500"
+            >
+              Voltar ao Login
+            </Button>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-900"
+            >
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
