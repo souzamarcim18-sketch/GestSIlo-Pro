@@ -152,31 +152,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Fazer warmup assim que o app carrega (não bloqueia nada)
-    warmupSupabase();
+    // Warmup e depois setupar listener de auth
+    let unsubscribe: (() => void) | null = null;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const currentUser = session?.user ?? null;
+    const initAuth = async () => {
+      // Esperar warmup completar antes de listener (garante timeouts curtos desde o início)
+      await warmupSupabase();
 
-      authLog('Auth event:', event, 'user:', currentUser?.id);
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const currentUser = session?.user ?? null;
 
-      if (!currentUser) {
-        authLog('Auth event: SIGNED_OUT');
-        setUser(null);
-        setProfile(null);
-        setProfileError(null);
-        setLoading(false);
-        return;
-      }
+        authLog('Auth event:', event, 'user:', currentUser?.id);
 
-      authLog('Auth event: SIGNED_IN');
-      setProfileError(null); // Limpar erro anterior quando usuário faz login
-      await fetchProfile(currentUser);
-    });
+        if (!currentUser) {
+          authLog('Auth event: SIGNED_OUT');
+          setUser(null);
+          setProfile(null);
+          setProfileError(null);
+          setLoading(false);
+          return;
+        }
 
-    return () => subscription.unsubscribe();
+        authLog('Auth event: SIGNED_IN');
+        setProfileError(null); // Limpar erro anterior quando usuário faz login
+        await fetchProfile(currentUser);
+      });
+
+      unsubscribe = () => subscription.unsubscribe();
+    };
+
+    initAuth();
+
+    return () => {
+      unsubscribe?.();
+    };
   }, [fetchProfile]);
 
   return (
