@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "@/providers/AuthProvider";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -26,9 +27,11 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
     <html lang="pt-BR" className={cn("font-sans h-full", geist.variable)} suppressHydrationWarning>
       <body suppressHydrationWarning className="h-full">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-          <Toaster position="top-right" />
-          <SyncStatusBar />
+          <AuthProvider>
+            {children}
+            <Toaster position="top-right" />
+            <SyncStatusBar />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
