@@ -36,6 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = useCallback(async (currentUser: User) => {
     try {
+      // Log SEMPRE visível (não depende de DEBUG_AUTH)
+      console.log('🔐 [FETCH-PROFILE] START - userId:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
       const { data, error } = await supabase
@@ -44,19 +46,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', currentUser.id)
         .single();
 
+      console.log('🔐 [FETCH-PROFILE] Response:', { data, errorMsg: error?.message, errorCode: (error as any)?.code });
       authLog('[FETCH-PROFILE] Response:', { data, error: error?.message });
 
       if (error) {
         throw error;
       }
 
+      console.log('✅ [FETCH-PROFILE] SUCCESS - profile loaded:', data);
       authLog('[FETCH-PROFILE] SUCCESS - profile loaded:', data);
       setUser(currentUser);
       setProfile(data ?? null);
       setProfileError(null); // Limpar erro anterior se sucesso
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao buscar perfil';
-      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: (error as any)?.code });
+      const errorCode = (error as any)?.code;
+      const errorDetails = (error as any)?.details;
+      console.error('❌ [FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, details: errorDetails, fullError: error });
+      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode });
       setProfileError(errorMessage);
       setUser(currentUser);
       setProfile(null);
@@ -80,7 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user ?? null;
 
+      console.log('🔐 [AUTH-STATE-CHANGE] Event:', event, 'User:', currentUser?.id);
+      authLog('Auth event:', event, 'user:', currentUser?.id);
+
       if (!currentUser) {
+        console.log('🔐 [AUTH-STATE-CHANGE] SIGNED_OUT');
         authLog('Auth event: SIGNED_OUT');
         setUser(null);
         setProfile(null);
@@ -89,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      console.log('🔐 [AUTH-STATE-CHANGE] SIGNED_IN - fetching profile...');
       authLog('Auth event: SIGNED_IN', event);
       setProfileError(null); // Limpar erro anterior quando usuário faz login
       await fetchProfile(currentUser);
