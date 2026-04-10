@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
   const fetchingRef = useRef<string | null>(null); // Track current fetch to avoid duplicates
+  const hasWarmedUpRef = useRef(false); // Track if warmup was done
 
   const fazendaId = profile?.fazenda_id ?? null;
   const needsOnboarding = !!user && !!profile && !fazendaId;
@@ -48,14 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔐 [FETCH-PROFILE] STARTING for user:', currentUser.id);
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      // Timeout explícito para evitar hang (60 segundos - first call pode ser lenta por cold start Supabase)
+      // Timeout explícito para evitar hang
+      // Antes do warmup: 60s (cold start Supabase)
+      // Depois do warmup: 10s (servidor já está quente)
+      const timeoutMs = hasWarmedUpRef.current ? 10000 : 60000;
+
       const timeoutPromise = new Promise<never>((_, reject) => {
-        console.log('🔐 [FETCH-PROFILE] Setting 60s timeout...');
+        console.log(`🔐 [FETCH-PROFILE] Setting ${timeoutMs}ms timeout...`);
         setTimeout(() => {
-          const timeoutError = new Error('Profile fetch timeout after 60s');
+          const timeoutError = new Error(`Profile fetch timeout after ${timeoutMs}ms`);
           console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
           reject(timeoutError);
-        }, 60000);
+        }, timeoutMs);
       });
 
       console.log('🔐 [FETCH-PROFILE] Making query...');
@@ -108,6 +113,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchProfile]);
 
   useEffect(() => {
+    // Warmup call silencioso para evitar cold start no Supabase
+    const warmupSupabase = async () => {
+      try {
+        console.log('🔐 [WARMUP] Heating up Supabase...');
+        // Requisição leve para aquentar o servidor
+        await supabase.from('profiles').select('id').limit(1);
+        hasWarmedUpRef.current = true;
+        console.log('🔐 [WARMUP] Supabase ready!');
+      } catch (err) {
+        // Silenciosamente ignora erro (warmup é opcional)
+        console.log('🔐 [WARMUP] Supabase warmup skipped');
+      }
+    };
+
+    // Fazer warmup assim que o app carrega (não bloqueia nada)
+    warmupSupabase();
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
