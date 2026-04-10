@@ -38,11 +38,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      const { data, error } = await supabase
+      // Timeout explícito para evitar hang (10 segundos)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout after 10s')), 10000)
+      );
+
+      const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
         .single();
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error) {
         throw error;
