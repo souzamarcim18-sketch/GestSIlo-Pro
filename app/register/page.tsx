@@ -9,6 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Card,
   CardContent,
   CardFooter,
@@ -18,10 +25,13 @@ import {
 import { toast } from 'sonner';
 import Image from 'next/image';
 
+type Perfil = 'Administrador' | 'Operador';
+
 export default function RegisterPage() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [perfil, setPerfil] = useState<Perfil>('Administrador');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -36,7 +46,7 @@ export default function RegisterPage() {
         options: {
           data: {
             nome,
-            perfil: 'Administrador',
+            perfil,
           },
         },
       });
@@ -51,7 +61,7 @@ export default function RegisterPage() {
               id: data.user.id,
               nome,
               email,
-              perfil: 'Administrador',
+              perfil,
             },
           ]);
 
@@ -185,6 +195,27 @@ export default function RegisterPage() {
                   aria-required="true"
                   minLength={8}
                 />
+              </div>
+
+              {/* Perfil */}
+              <div className="space-y-2">
+                <Label htmlFor="perfil">Perfil de Acesso</Label>
+                <Select
+                  value={perfil}
+                  onValueChange={(v) => setPerfil(v as Perfil)}
+                >
+                  <SelectTrigger id="perfil" aria-label="Selecione o perfil de acesso">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Administrador">Administrador</SelectItem>
+                    <SelectItem value="Operador">Operador</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Administrador: acesso completo ao dashboard.
+                  Operador: acesso restrito à tela de operações.
+                </p>
               </div>
 
             </CardContent>
