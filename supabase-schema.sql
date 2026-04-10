@@ -161,5 +161,23 @@ ALTER TABLE fazendas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 -- ... and so on for all tables
 
+-- ========================================
+-- RLS POLICIES FOR PROFILES TABLE
+-- ========================================
+-- Allow users to read their own profile
+CREATE POLICY "Users can read their own profile" ON profiles
+  FOR SELECT
+  USING (id = auth.uid());
+
+-- Allow users to update their own profile
+CREATE POLICY "Users can update their own profile" ON profiles
+  FOR UPDATE
+  USING (id = auth.uid());
+
+-- Allow users to insert their own profile (for registration)
+CREATE POLICY "Users can create their own profile" ON profiles
+  FOR INSERT
+  WITH CHECK (id = auth.uid());
+
 -- Example Policy: Users can see data from their farm
 -- CREATE POLICY "Users can see their farm data" ON silos FOR ALL USING (fazenda_id IN (SELECT fazenda_id FROM profiles WHERE id = auth.uid()));

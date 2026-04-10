@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = useCallback(async (currentUser: User) => {
     try {
-      authLog('fetchProfile started for user:', currentUser.id);
+      authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -44,17 +44,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', currentUser.id)
         .single();
 
+      authLog('[FETCH-PROFILE] Response:', { data, error: error?.message });
+
       if (error) {
         throw error;
       }
 
-      authLog('fetchProfile success:', data);
+      authLog('[FETCH-PROFILE] SUCCESS - profile loaded:', data);
       setUser(currentUser);
       setProfile(data ?? null);
       setProfileError(null); // Limpar erro anterior se sucesso
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao buscar perfil';
-      authError('fetchProfile error:', errorMessage);
+      authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: (error as any)?.code });
       setProfileError(errorMessage);
       setUser(currentUser);
       setProfile(null);
