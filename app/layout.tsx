@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
+import { ThemeProvider } from "next-themes";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -22,11 +23,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="pt-BR" className={cn("font-sans h-full", geist.variable)}>
+    <html lang="pt-BR" className={cn("font-sans h-full", geist.variable)} suppressHydrationWarning>
       <body suppressHydrationWarning className="h-full">
-        {children}
-        <Toaster position="top-right" />
-        <SyncStatusBar />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster position="top-right" />
+          <SyncStatusBar />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { type Insumo, type Talhao } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { calcularCalagem, calcularNPK, type CalagemInput } from '@/lib/calculadoras';
 import { q } from '@/lib/supabase/queries-audit';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -20,7 +21,7 @@ export default function CalculadorasPage() {
   const [loading, setLoading] = useState(true);
 
   // --- Estados Calculadora de Calagem ---
-  const [calagemData, setCalagemData] = useState({
+  const [calagemData, setCalagemData] = useState<CalagemInput>({
     al: '', ca: '', mg: '', v1: '', ctc: '', prnt: '80', v2: '60', area: '', metodo: 'saturacao'
   });
 
@@ -50,61 +51,12 @@ export default function CalculadorasPage() {
   }, [authLoading, fazendaId]);
 
   // --- Lógica Calagem ---
-  const resultadoCalagem = useMemo(() => {
-    const { al, ca, mg, v1, ctc, prnt, v2, area, metodo } = calagemData;
-    if (!prnt || !area) return null;
-
-    const valAl = parseFloat(al) || 0;
-    const valCa = parseFloat(ca) || 0;
-    const valMg = parseFloat(mg) || 0;
-    const valV1 = parseFloat(v1) || 0;
-    const valCTC = parseFloat(ctc) || 0;
-    const valPRNT = parseFloat(prnt) || 80;
-    const valV2 = parseFloat(v2) || 60;
-    const valArea = parseFloat(area) || 0;
-
-    let nc = 0; // Necessidade de Calagem em t/ha
-
-    if (metodo === 'saturacao') {
-      nc = ((valV2 - valV1) * valCTC) / (valPRNT * 10);
-    } else if (metodo === 'al_ca_mg') {
-      nc = (valAl * 2 + Math.max(0, 2 - (valCa + valMg))) / (valPRNT / 100);
-    } else if (metodo === 'mg_manual') {
-      nc = Math.max(0, (3 * valAl) + (2 - (valCa + valMg))) / (valPRNT / 100);
-    }
-
-    nc = Math.max(0, nc);
-    const total = nc * valArea;
-
-    return { nc, total };
-  }, [calagemData]);
+  const resultadoCalagem = useMemo(() => calcularCalagem(calagemData), [calagemData]);
 
   // --- Lógica NPK ---
   const resultadoNPK = useMemo(() => {
-    const { n_nec, p_nec, k_nec, area, fertilizante_id } = npkData;
-    const fert = insumos.find(i => i.id === fertilizante_id);
-    if (!fert || !area) return null;
-
-    const valN = parseFloat(n_nec) || 0;
-    const valP = parseFloat(p_nec) || 0;
-    const valK = parseFloat(k_nec) || 0;
-    const valArea = parseFloat(area) || 0;
-
-    const teorN = fert.teor_n_percent || 0;
-    const teorP = fert.teor_p_percent || 0;
-    const teorK = fert.teor_k_percent || 0;
-
-    // Cálculo simplificado baseado no nutriente limitante (o que exige mais do fertilizante escolhido)
-    const doses = [
-      teorN > 0 ? valN / (teorN / 100) : 0,
-      teorP > 0 ? valP / (teorP / 100) : 0,
-      teorK > 0 ? valK / (teorK / 100) : 0
-    ];
-
-    const dosePorHa = Math.max(...doses); // kg/ha
-    const total = (dosePorHa * valArea) / 1000; // toneladas totais
-
-    return { dosePorHa, total, fertNome: fert.nome };
+    const fert = insumos.find(i => i.id === npkData.fertilizante_id) ?? null;
+    return calcularNPK(npkData, fert);
   }, [npkData, insumos]);
 
   if (loading) return <div className="p-8 text-center">Carregando calculadoras...</div>;
@@ -140,7 +92,7 @@ export default function CalculadorasPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Método de Cálculo</Label>
-                    <Select value={calagemData.metodo} onValueChange={(v: string | null) => v && setCalagemData({...calagemData, metodo: v})}>
+                    <Select value={calagemData.metodo} onValueChange={(v: string | null) => v && setCalagemData({...calagemData, metodo: v as CalagemInput['metodo']})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from 'lucide-react';
+import { User, Sun, Moon, Monitor } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,10 +19,23 @@ import { useEffect, useState } from 'react';
 import type { User as AuthUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 export function Header() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+
+  const themeOptions: { value: string; label: string; icon: React.ReactNode }[] = [
+    { value: 'light',  label: 'Claro',    icon: <Sun className="h-4 w-4" /> },
+    { value: 'dark',   label: 'Escuro',   icon: <Moon className="h-4 w-4" /> },
+    { value: 'system', label: 'Sistema',  icon: <Monitor className="h-4 w-4" /> },
+  ];
+
+  const currentIcon =
+    theme === 'dark' ? <Moon className="h-4 w-4" /> :
+    theme === 'light' ? <Sun className="h-4 w-4" /> :
+    <Monitor className="h-4 w-4" />;
 
   useEffect(() => {
     const getUser = async () => {
@@ -64,6 +77,34 @@ export function Header() {
 
       {/* Área direita */}
       <div className="flex w-full justify-end items-center gap-x-4">
+
+        {/* Toggle de tema */}
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl hover:bg-green-50 dark:hover:bg-green-950"
+              aria-label="Alternar tema"
+            >
+              {currentIcon}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-36 rounded-xl">
+            {themeOptions.map(opt => (
+              <DropdownMenuItem
+                key={opt.value}
+                onClick={() => setTheme(opt.value)}
+                className={`flex items-center gap-2 rounded-lg cursor-pointer ${
+                  theme === opt.value ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400' : ''
+                }`}
+              >
+                {opt.icon}
+                {opt.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Nome do usuário — desktop */}
         <div className="hidden md:flex flex-col items-end" aria-hidden="true">
