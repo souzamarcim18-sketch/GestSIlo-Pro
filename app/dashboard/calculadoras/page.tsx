@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { supabase, Insumo, Talhao } from '@/lib/supabase';
+import { type Insumo, type Talhao } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { getInsumosByFazenda } from '@/lib/supabase/insumos';
+import { q } from '@/lib/supabase/queries-audit';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -35,11 +35,11 @@ export default function CalculadorasPage() {
       try {
         if (!fazendaId) { setLoading(false); return; }
         const [insumosData, talhoesData] = await Promise.all([
-          getInsumosByFazenda(fazendaId),
-          supabase.from('talhoes').select('*').eq('fazenda_id', fazendaId)
+          q.insumos.list(),
+          q.talhoes.list(),
         ]);
         setInsumos(insumosData);
-        setTalhoes(talhoesData.data || []);
+        setTalhoes(talhoesData);
       } catch {
         toast.error('Erro ao carregar dados');
       } finally {

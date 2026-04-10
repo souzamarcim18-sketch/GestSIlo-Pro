@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase, Silo, Profile } from '@/lib/supabase';
-import { getSilosByFazenda } from '@/lib/supabase/silos';
+import { supabase, type Silo, type Profile } from '@/lib/supabase';
+import { q } from '@/lib/supabase/queries-audit';
 import { registrarRetiradaSilo, registrarPerdaSilo } from '@/lib/supabase/operador';
 import { enqueue } from '@/lib/db/syncQueue';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
@@ -59,7 +59,7 @@ export default function ModoOperadorPage() {
 
     setProfile(profileData);
     if (profileData.fazenda_id) {
-      const silosData = await getSilosByFazenda(profileData.fazenda_id);
+      const silosData = await q.silos.list();
       setSilos(silosData);
     }
     setLoading(false);

@@ -133,6 +133,19 @@ const movimentacoesSilo = {
     return data as MovimentacaoSilo[];
   },
 
+  /** Busca movimentações de múltiplos silos de uma vez (batch) */
+  async listBySilos(siloIds: string[]): Promise<MovimentacaoSilo[]> {
+    if (siloIds.length === 0) return [];
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('movimentacoes_silo')
+      .select('*')
+      .in('silo_id', siloIds)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as MovimentacaoSilo[];
+  },
+
   async create(payload: Omit<MovimentacaoSilo, 'id'>): Promise<MovimentacaoSilo> {
     // Verificar que o silo_id pertence à fazenda antes de inserir
     const fazendaId = await getFazendaId();
@@ -457,6 +470,18 @@ const usoMaquinas = {
     return data as UsoMaquina[];
   },
 
+  async listByMaquinas(maquinaIds: string[]): Promise<UsoMaquina[]> {
+    if (maquinaIds.length === 0) return [];
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('uso_maquinas')
+      .select('*')
+      .in('maquina_id', maquinaIds)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as UsoMaquina[];
+  },
+
   async create(payload: Omit<UsoMaquina, 'id'>): Promise<UsoMaquina> {
     const fazendaId = await getFazendaId();
     const { count, error: checkError } = await supabase
@@ -497,6 +522,18 @@ const manutencoes = {
       .from('manutencoes')
       .select('*')
       .eq('maquina_id', maquinaId)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as Manutencao[];
+  },
+
+  async listByMaquinas(maquinaIds: string[]): Promise<Manutencao[]> {
+    if (maquinaIds.length === 0) return [];
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('manutencoes')
+      .select('*')
+      .in('maquina_id', maquinaIds)
       .order('data', { ascending: false });
     if (error) throw error;
     return data as Manutencao[];
@@ -554,6 +591,18 @@ const abastecimentos = {
       .from('abastecimentos')
       .select('*')
       .eq('maquina_id', maquinaId)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as Abastecimento[];
+  },
+
+  async listByMaquinas(maquinaIds: string[]): Promise<Abastecimento[]> {
+    if (maquinaIds.length === 0) return [];
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('abastecimentos')
+      .select('*')
+      .in('maquina_id', maquinaIds)
       .order('data', { ascending: false });
     if (error) throw error;
     return data as Abastecimento[];

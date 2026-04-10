@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Card,
   CardContent,
@@ -47,15 +50,41 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Silo, MovimentacaoSilo, Insumo } from '@/lib/supabase';
+import { type Silo, type MovimentacaoSilo, type Insumo } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { getSilosByFazenda, createSilo, createMovimentacao, getCustoProducaoSilagem } from '@/lib/supabase/silos';
-import { getInsumosByFazenda } from '@/lib/supabase/insumos';
+import { q } from '@/lib/supabase/queries-audit';
+import { getCustoProducaoSilagem } from '@/lib/supabase/silos';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// ---------------------------------------------------------------------------
+// Schemas Zod
+// ---------------------------------------------------------------------------
+const TIPOS_SILO = ['Bolsa', 'Bunker', 'Convencional'] as const;
+
+const siloSchema = z.object({
+  nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
+  tipo: z.enum(TIPOS_SILO),
+  capacidade: z.number().positive('Capacidade deve ser positiva'),
+  localizacao: z.string().optional(),
+  materia_seca_percent: z.number().min(0).max(100).nullable().optional(),
+  consumo_medio_diario_ton: z.number().min(0).nullable().optional(),
+  insumo_lona_id: z.string().nullable().optional(),
+  insumo_inoculante_id: z.string().nullable().optional(),
+});
+type SiloFormData = z.infer<typeof siloSchema>;
+
+const movSchema = z.object({
+  silo_id: z.string().min(1, 'Selecione um silo'),
+  tipo: z.enum(['Entrada', 'Saída'] as const),
+  quantidade: z.number().positive('Quantidade deve ser positiva'),
+  responsavel: z.string().min(1, 'Informe o responsável'),
+  observacao: z.string().optional(),
+});
+type MovFormData = z.infer<typeof movSchema>;
+
 export default function SilosPage() {
-  const { fazendaId, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [silos, setSilos] = useState<Silo[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
   const [insumos, setInsumos] = useState<Insumo[]>([]);
@@ -63,132 +92,100 @@ export default function SilosPage() {
   const [loading, setLoading] = useState(true);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
   const [isAddMovOpen, setIsAddMovOpen] = useState(false);
-  const [movLoading, setMovLoading] = useState(false);
 
-  const [newSilo, setNewSilo] = useState({
-    nome: '',
-    tipo: 'Bunker',
-    capacidade: '',
-    localizacao: '',
-    materia_seca_percent: '',
-    consumo_medio_diario_ton: '',
-    insumo_lona_id: '',
-    insumo_inoculante_id: '',
+  const siloForm = useForm<SiloFormData>({
+    resolver: zodResolver(siloSchema),
+    defaultValues: {
+      nome: '',
+      tipo: 'Bunker',
+      localizacao: '',
+      materia_seca_percent: null,
+      consumo_medio_diario_ton: null,
+      insumo_lona_id: null,
+      insumo_inoculante_id: null,
+    },
   });
-  const [newMov, setNewMov] = useState({
-    silo_id: '',
-    tipo: 'Entrada',
-    quantidade: '',
-    talhao_id: '',
-    responsavel: '',
-    observacao: '',
+
+  const movForm = useForm<MovFormData>({
+    resolver: zodResolver(movSchema),
+    defaultValues: {
+      silo_id: '',
+      tipo: 'Entrada',
+      responsavel: '',
+      observacao: '',
+    },
   });
 
   const fetchData = useCallback(async () => {
-    if (!fazendaId) { setLoading(false); return; }
     setLoading(true);
     try {
       const [silosData, insumosData] = await Promise.all([
-        getSilosByFazenda(fazendaId),
-        getInsumosByFazenda(fazendaId),
+        q.silos.list(),
+        q.insumos.list(),
       ]);
       setSilos(silosData);
       setInsumos(insumosData);
 
-      const { data: movs } = await supabase
-        .from('movimentacoes_silo')
-        .select('*')
-        .in('silo_id', silosData.map((s) => s.id))
-        .order('data', { ascending: false });
+      const movsData = await q.movimentacoesSilo.listBySilos(silosData.map((s) => s.id));
+      setMovimentacoes(movsData);
 
-      setMovimentacoes(movs || []);
-
-      const custosPromises = silosData.map(async (s) => {
-        const custo = await getCustoProducaoSilagem(s.id);
-        return { id: s.id, custo };
-      });
-      const custosResults = await Promise.all(custosPromises);
-      const custosMap: Record<string, any> = {};
-      custosResults.forEach((r) => {
-        custosMap[r.id] = r.custo;
-      });
+      const custosResults = await Promise.all(
+        silosData.map(async (s) => ({ id: s.id, custo: await getCustoProducaoSilagem(s.id) }))
+      );
+      const custosMap: Record<string, { custoPorTonelada: number } | null> = {};
+      custosResults.forEach((r) => { custosMap[r.id] = r.custo; });
       setCustos(custosMap);
     } catch {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  }, [fazendaId]);
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
     fetchData();
   }, [authLoading, fetchData]);
 
-  const handleAddSilo = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddSilo = async (data: SiloFormData) => {
     try {
-      if (fazendaId) {
-        await createSilo({
-          nome: newSilo.nome,
-          tipo: newSilo.tipo as any,
-          capacidade: Number(newSilo.capacidade),
-          localizacao: newSilo.localizacao,
-          fazenda_id: fazendaId,
-          materia_seca_percent: newSilo.materia_seca_percent
-            ? Number(newSilo.materia_seca_percent)
-            : null,
-          consumo_medio_diario_ton: newSilo.consumo_medio_diario_ton
-            ? Number(newSilo.consumo_medio_diario_ton)
-            : null,
-          insumo_lona_id: newSilo.insumo_lona_id || null,
-          insumo_inoculante_id: newSilo.insumo_inoculante_id || null,
-        });
-        toast.success('Silo cadastrado com sucesso!');
-        setIsAddSiloOpen(false);
-        fetchData();
-        setNewSilo({
-          nome: '',
-          tipo: 'Bunker',
-          capacidade: '',
-          localizacao: '',
-          materia_seca_percent: '',
-          consumo_medio_diario_ton: '',
-          insumo_lona_id: '',
-          insumo_inoculante_id: '',
-        });
-      }
-    } catch {
-      toast.error('Erro ao cadastrar silo');
+      await q.silos.create({
+        nome: data.nome,
+        tipo: data.tipo,
+        capacidade: data.capacidade,
+        localizacao: data.localizacao || null,
+        fazenda_id: '',
+        materia_seca_percent: data.materia_seca_percent ?? null,
+        consumo_medio_diario_ton: data.consumo_medio_diario_ton ?? null,
+        insumo_lona_id: data.insumo_lona_id || null,
+        insumo_inoculante_id: data.insumo_inoculante_id || null,
+      });
+      toast.success('Silo cadastrado com sucesso!');
+      setIsAddSiloOpen(false);
+      siloForm.reset();
+      fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao cadastrar silo');
     }
   };
 
-  const handleAddMov = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMovLoading(true);
+  const handleAddMov = async (data: MovFormData) => {
     try {
-      if (!fazendaId) {
-        toast.error('Fazenda não encontrada');
-        return;
-      }
-
-      const nova = await createMovimentacao({
-        silo_id: newMov.silo_id,
-        tipo: newMov.tipo as 'Entrada' | 'Saída',
-        quantidade: Number(newMov.quantidade),
-        responsavel: newMov.responsavel || null,
-        observacao: newMov.observacao || null,
-        talhao_id: newMov.talhao_id || null,
+      const nova = await q.movimentacoesSilo.create({
+        silo_id: data.silo_id,
+        tipo: data.tipo,
+        quantidade: data.quantidade,
+        responsavel: data.responsavel || null,
+        observacao: data.observacao || null,
+        talhao_id: null,
+        data: new Date().toISOString(),
       });
-
       setMovimentacoes((prev) => [nova, ...prev]);
       toast.success('Movimentação registrada com sucesso!');
       setIsAddMovOpen(false);
-      setNewMov({ silo_id: '', tipo: 'Entrada', quantidade: '', talhao_id: '', responsavel: '', observacao: '' });
-    } catch {
-      toast.error('Erro ao registrar movimentação');
-    } finally {
-      setMovLoading(false);
+      movForm.reset();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao registrar movimentação');
     }
   };
 
@@ -214,7 +211,10 @@ export default function SilosPage() {
         <div className="flex gap-2">
 
           {/* Dialog: Registrar Movimentação */}
-          <Dialog open={isAddMovOpen} onOpenChange={setIsAddMovOpen}>
+          <Dialog
+            open={isAddMovOpen}
+            onOpenChange={(open) => { setIsAddMovOpen(open); if (!open) movForm.reset(); }}
+          >
             <DialogTrigger>
               <Button variant="outline">
                 <History className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -229,47 +229,50 @@ export default function SilosPage() {
                 </DialogDescription>
               </DialogHeader>
               <form
-                onSubmit={handleAddMov}
+                onSubmit={movForm.handleSubmit(handleAddMov)}
                 className="space-y-4 py-4"
                 aria-labelledby="dialog-mov-title"
               >
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    {/* Label associado via htmlFor + id no SelectTrigger */}
                     <Label htmlFor="mov-silo">Silo</Label>
-                    <Select
-                      onValueChange={(v: string | null) =>
-                        v && setNewMov({ ...newMov, silo_id: v })
-                      }
-                    >
-                      <SelectTrigger id="mov-silo" aria-labelledby="mov-silo">
-                        <SelectValue placeholder="Selecione o silo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {silos.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={movForm.control}
+                      name="silo_id"
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger id="mov-silo" aria-labelledby="mov-silo">
+                            <SelectValue placeholder="Selecione o silo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {silos.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {movForm.formState.errors.silo_id && (
+                      <p className="text-xs text-destructive">{movForm.formState.errors.silo_id.message}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mov-tipo">Tipo</Label>
-                    <Select
-                      defaultValue="Entrada"
-                      onValueChange={(v: string | null) =>
-                        v && setNewMov({ ...newMov, tipo: v as any })
-                      }
-                    >
-                      <SelectTrigger id="mov-tipo" aria-labelledby="mov-tipo">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Entrada">Entrada</SelectItem>
-                        <SelectItem value="Saída">Saída</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={movForm.control}
+                      name="tipo"
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger id="mov-tipo" aria-labelledby="mov-tipo">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Entrada">Entrada</SelectItem>
+                            <SelectItem value="Saída">Saída</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -279,34 +282,32 @@ export default function SilosPage() {
                       id="mov-qty"
                       type="number"
                       step="0.1"
-                      required
                       aria-required="true"
-                      value={newMov.quantidade}
-                      onChange={(e) => setNewMov({ ...newMov, quantidade: e.target.value })}
+                      {...movForm.register('quantidade', { valueAsNumber: true })}
                     />
+                    {movForm.formState.errors.quantidade && (
+                      <p className="text-xs text-destructive">{movForm.formState.errors.quantidade.message}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mov-resp">Responsável</Label>
                     <Input
                       id="mov-resp"
-                      required
                       aria-required="true"
-                      value={newMov.responsavel}
-                      onChange={(e) => setNewMov({ ...newMov, responsavel: e.target.value })}
+                      {...movForm.register('responsavel')}
                     />
+                    {movForm.formState.errors.responsavel && (
+                      <p className="text-xs text-destructive">{movForm.formState.errors.responsavel.message}</p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="mov-obs">Observações</Label>
-                  <Input
-                    id="mov-obs"
-                    value={newMov.observacao}
-                    onChange={(e) => setNewMov({ ...newMov, observacao: e.target.value })}
-                  />
+                  <Input id="mov-obs" {...movForm.register('observacao')} />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" disabled={movLoading}>
-                    {movLoading ? 'Salvando...' : 'Salvar'}
+                  <Button type="submit" disabled={movForm.formState.isSubmitting}>
+                    {movForm.formState.isSubmitting ? 'Salvando...' : 'Salvar'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -314,7 +315,10 @@ export default function SilosPage() {
           </Dialog>
 
           {/* Dialog: Novo Silo */}
-          <Dialog open={isAddSiloOpen} onOpenChange={setIsAddSiloOpen}>
+          <Dialog
+            open={isAddSiloOpen}
+            onOpenChange={(open) => { setIsAddSiloOpen(open); if (!open) siloForm.reset(); }}
+          >
             <DialogTrigger>
               <Button>
                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -329,7 +333,7 @@ export default function SilosPage() {
                 </DialogDescription>
               </DialogHeader>
               <form
-                onSubmit={handleAddSilo}
+                onSubmit={siloForm.handleSubmit(handleAddSilo)}
                 className="space-y-4 py-4"
                 aria-labelledby="dialog-silo-title"
               >
@@ -338,41 +342,44 @@ export default function SilosPage() {
                   <Input
                     id="silo-nome"
                     placeholder="Ex: Silo Norte 01"
-                    required
                     aria-required="true"
-                    value={newSilo.nome}
-                    onChange={(e) => setNewSilo({ ...newSilo, nome: e.target.value })}
+                    {...siloForm.register('nome')}
                   />
+                  {siloForm.formState.errors.nome && (
+                    <p className="text-xs text-destructive">{siloForm.formState.errors.nome.message}</p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="silo-tipo">Tipo de Estrutura</Label>
-                    <Select
-                      defaultValue="Bunker"
-                      onValueChange={(v: string | null) =>
-                        v && setNewSilo({ ...newSilo, tipo: v })
-                      }
-                    >
-                      <SelectTrigger id="silo-tipo" aria-labelledby="silo-tipo">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Bolsa">Bolsa</SelectItem>
-                        <SelectItem value="Bunker">Bunker</SelectItem>
-                        <SelectItem value="Convencional">Convencional</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={siloForm.control}
+                      name="tipo"
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger id="silo-tipo" aria-labelledby="silo-tipo">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Bolsa">Bolsa</SelectItem>
+                            <SelectItem value="Bunker">Bunker</SelectItem>
+                            <SelectItem value="Convencional">Convencional</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="silo-cap">Capacidade (toneladas)</Label>
                     <Input
                       id="silo-cap"
                       type="number"
-                      required
                       aria-required="true"
-                      value={newSilo.capacidade}
-                      onChange={(e) => setNewSilo({ ...newSilo, capacidade: e.target.value })}
+                      {...siloForm.register('capacidade', { valueAsNumber: true })}
                     />
+                    {siloForm.formState.errors.capacidade && (
+                      <p className="text-xs text-destructive">{siloForm.formState.errors.capacidade.message}</p>
+                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -383,10 +390,9 @@ export default function SilosPage() {
                       type="number"
                       step="0.1"
                       placeholder="Ex: 32.5"
-                      value={newSilo.materia_seca_percent}
-                      onChange={(e) =>
-                        setNewSilo({ ...newSilo, materia_seca_percent: e.target.value })
-                      }
+                      {...siloForm.register('materia_seca_percent', {
+                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                      })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -396,55 +402,60 @@ export default function SilosPage() {
                       type="number"
                       step="0.01"
                       placeholder="Ex: 1.5"
-                      value={newSilo.consumo_medio_diario_ton}
-                      onChange={(e) =>
-                        setNewSilo({ ...newSilo, consumo_medio_diario_ton: e.target.value })
-                      }
+                      {...siloForm.register('consumo_medio_diario_ton', {
+                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                      })}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="silo-lona">Lona Utilizada</Label>
-                    <Select
-                      onValueChange={(v: string | null) =>
-                        v && setNewSilo({ ...newSilo, insumo_lona_id: v })
-                      }
-                    >
-                      <SelectTrigger id="silo-lona" aria-labelledby="silo-lona">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {insumos
-                          .filter((i) => i.tipo === 'Outros')
-                          .map((i) => (
-                            <SelectItem key={i.id} value={i.id}>
-                              {i.nome}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={siloForm.control}
+                      name="insumo_lona_id"
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? ''}
+                        >
+                          <SelectTrigger id="silo-lona" aria-labelledby="silo-lona">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {insumos
+                              .filter((i) => i.tipo === 'Outros')
+                              .map((i) => (
+                                <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="silo-inoc">Inoculante</Label>
-                    <Select
-                      onValueChange={(v: string | null) =>
-                        v && setNewSilo({ ...newSilo, insumo_inoculante_id: v })
-                      }
-                    >
-                      <SelectTrigger id="silo-inoc" aria-labelledby="silo-inoc">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {insumos
-                          .filter((i) => i.tipo === 'Outros')
-                          .map((i) => (
-                            <SelectItem key={i.id} value={i.id}>
-                              {i.nome}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={siloForm.control}
+                      name="insumo_inoculante_id"
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? ''}
+                        >
+                          <SelectTrigger id="silo-inoc" aria-labelledby="silo-inoc">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {insumos
+                              .filter((i) => i.tipo === 'Outros')
+                              .map((i) => (
+                                <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -452,12 +463,13 @@ export default function SilosPage() {
                   <Input
                     id="silo-loc"
                     placeholder="Descrição ou coordenadas"
-                    value={newSilo.localizacao}
-                    onChange={(e) => setNewSilo({ ...newSilo, localizacao: e.target.value })}
+                    {...siloForm.register('localizacao')}
                   />
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Cadastrar</Button>
+                  <Button type="submit" disabled={siloForm.formState.isSubmitting}>
+                    {siloForm.formState.isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -484,11 +496,9 @@ export default function SilosPage() {
             return (
               <Card key={silo.id} aria-label={`Silo ${silo.nome}`}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  {/* h3 dentro de section com h2 via sr-only — hierarquia correta */}
                   <CardTitle className="text-xl font-bold">
                     {silo.nome}
                   </CardTitle>
-                  {/* Ícone puramente decorativo */}
                   <Database className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                 </CardHeader>
                 <CardContent>
@@ -514,7 +524,6 @@ export default function SilosPage() {
                         <span>{total.toFixed(1)} ton</span>
                         <span>{silo.capacidade} ton</span>
                       </div>
-                      {/* Progress com aria-label completo */}
                       <Progress
                         value={percentage}
                         className="h-2"
@@ -551,7 +560,6 @@ export default function SilosPage() {
                       </div>
                     )}
 
-                    {/* Tamanho mínimo 12px para passar WCAG 1.4.4 — era text-[10px] */}
                     <div className="pt-2 border-t grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                       <div>MS: {silo.materia_seca_percent || '-'}%</div>
                       <div>Consumo: {silo.consumo_medio_diario_ton || '-'} t/dia</div>
@@ -574,7 +582,6 @@ export default function SilosPage() {
                       </div>
                     )}
 
-                    {/* Localização — text-xs mínimo */}
                     <div className="text-xs text-muted-foreground">
                       Localização: {silo.localizacao || 'Não informada'}
                     </div>

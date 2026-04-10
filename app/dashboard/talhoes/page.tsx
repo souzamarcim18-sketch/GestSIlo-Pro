@@ -38,11 +38,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Map, Sprout, Tractor, CheckCircle2, Clock, DollarSign, Calendar, Search, ClipboardList, Droplets, FlaskConical, Shovel } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Talhao, CicloAgricola, AtividadeCampo, Insumo, Maquina } from '@/lib/supabase';
+import { type Talhao, type CicloAgricola, type AtividadeCampo, type Insumo, type Maquina } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { getTalhoesByFazenda, getCiclosByTalhoes, createTalhao, createCiclo, getCustoTalhaoPeriodo } from '@/lib/supabase/talhoes';
-import { createAtividade, getAtividadesByFazenda } from '@/lib/supabase/atividades_campo';
-import { getInsumosByFazenda } from '@/lib/supabase/insumos';
+import { q } from '@/lib/supabase/queries-audit';
+import { getCustoTalhaoPeriodo } from '@/lib/supabase/talhoes';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -82,22 +81,22 @@ export default function TalhoesPage() {
     setLoading(true);
     try {
       const [talhoesData, insumosData, maquinasData, atividadesData] = await Promise.all([
-        getTalhoesByFazenda(fazendaId),
-        getInsumosByFazenda(fazendaId),
-        supabase.from('maquinas').select('*').eq('fazenda_id', fazendaId),
-        getAtividadesByFazenda(fazendaId)
+        q.talhoes.list(),
+        q.insumos.list(),
+        q.maquinas.list(),
+        q.atividadesCampo.list(),
       ]);
 
       setTalhoes(talhoesData);
       setInsumos(insumosData);
-      setMaquinas(maquinasData.data || []);
+      setMaquinas(maquinasData);
       setAtividades(atividadesData);
 
       if (talhoesData.length > 0) {
-        const ciclosData = await getCiclosByTalhoes(talhoesData.map(t => t.id));
+        const ciclosData = await q.ciclosAgricolas.listByTalhoes(talhoesData.map(t => t.id));
         setCiclos(ciclosData);
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
@@ -112,21 +111,19 @@ export default function TalhoesPage() {
   const handleAddTalhao = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (fazendaId) {
-        await createTalhao({
-          nome: newTalhao.nome,
-          area: Number(newTalhao.area),
-          tipo_solo: newTalhao.tipo_solo || null,
-          localizacao: newTalhao.localizacao || null,
-          fazenda_id: fazendaId,
-          status: 'Em pousio'
-        });
-        toast.success('Talhão cadastrado com sucesso!');
-        setIsAddTalhaoOpen(false);
-        fetchData();
-        setNewTalhao({ nome: '', area: '', tipo_solo: '', localizacao: '' });
-      }
-    } catch (error) {
+      await q.talhoes.create({
+        nome: newTalhao.nome,
+        area: Number(newTalhao.area),
+        tipo_solo: newTalhao.tipo_solo || null,
+        localizacao: newTalhao.localizacao || null,
+        fazenda_id: '',
+        status: 'Em pousio'
+      });
+      toast.success('Talhão cadastrado com sucesso!');
+      setIsAddTalhaoOpen(false);
+      fetchData();
+      setNewTalhao({ nome: '', area: '', tipo_solo: '', localizacao: '' });
+    } catch {
       toast.error('Erro ao cadastrar talhão');
     }
   };
@@ -134,7 +131,7 @@ export default function TalhoesPage() {
   const handleAddCiclo = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createCiclo({
+      await q.ciclosAgricolas.create({
         talhao_id: newCiclo.talhao_id,
         cultura: newCiclo.cultura,
         data_plantio: newCiclo.data_plantio,
@@ -146,7 +143,7 @@ export default function TalhoesPage() {
       setIsAddCicloOpen(false);
       fetchData();
       setNewCiclo({ talhao_id: '', cultura: '', data_plantio: '', data_colheita_prevista: '' });
-    } catch (error) {
+    } catch {
       toast.error('Erro ao registrar ciclo');
     }
   };
@@ -154,11 +151,11 @@ export default function TalhoesPage() {
   const handleAddAtividade = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (fazendaId) {
+      {
         const cicloAtivo = ciclos.find(c => c.talhao_id === newAtividade.talhao_id && !c.data_colheita_real);
 
-        await createAtividade({
-          fazenda_id: fazendaId,
+        await q.atividadesCampo.create({
+          fazenda_id: '',
           talhao_id: newAtividade.talhao_id,
           ciclo_id: cicloAtivo?.id || null,
           tipo_atividade: newAtividade.tipo_atividade,
@@ -170,13 +167,10 @@ export default function TalhoesPage() {
 
         // Se for colheita, atualizar o ciclo
         if (newAtividade.tipo_atividade === 'Colheita' && cicloAtivo) {
-          await supabase
-            .from('ciclos_agricolas')
-            .update({
-              data_colheita_real: newAtividade.data_atividade,
-              produtividade: Number(newAtividade.dados.produtividade_ton_ha)
-            })
-            .eq('id', cicloAtivo.id);
+          await q.ciclosAgricolas.update(cicloAtivo.id, {
+            data_colheita_real: newAtividade.data_atividade,
+            produtividade: Number(newAtividade.dados.produtividade_ton_ha)
+          });
         }
 
         toast.success('Atividade registrada com sucesso!');
@@ -191,7 +185,7 @@ export default function TalhoesPage() {
           dados: {}
         });
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao registrar atividade');
     }
   };

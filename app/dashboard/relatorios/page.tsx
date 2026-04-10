@@ -23,12 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { getLancamentosByFazenda } from '@/lib/supabase/financeiro';
-import { getSilosByFazenda } from '@/lib/supabase/silos';
-import { getInsumosByFazenda } from '@/lib/supabase/insumos';
-import { getTalhoesByFazenda } from '@/lib/supabase/talhoes';
-import { getMaquinasByFazenda } from '@/lib/supabase/maquinas';
-import { supabase } from '@/lib/supabase';
+import { q } from '@/lib/supabase/queries-audit';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -49,8 +44,8 @@ function downloadXlsx(workbook: XLSX.WorkBook, filename: string) {
 // ---------------------------------------------------------------------------
 // Report generators
 // ---------------------------------------------------------------------------
-async function exportFinanceiro(fazendaId: string) {
-  const lancamentos = await getLancamentosByFazenda(fazendaId);
+async function exportFinanceiro() {
+  const lancamentos = await q.financeiro.list();
   const rows = lancamentos.map((l) => ({
     Data: l.data,
     Tipo: l.tipo,
@@ -64,15 +59,9 @@ async function exportFinanceiro(fazendaId: string) {
   downloadXlsx(wb, `financeiro_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-async function exportSilos(fazendaId: string) {
-  const silos = await getSilosByFazenda(fazendaId);
-
-  // movimentações de cada silo
-  const { data: movs } = await supabase
-    .from('movimentacoes_silo')
-    .select('*')
-    .in('silo_id', silos.map((s) => s.id))
-    .order('data', { ascending: false });
+async function exportSilos() {
+  const silos = await q.silos.list();
+  const movs = await q.movimentacoesSilo.listBySilos(silos.map((s) => s.id));
 
   const wbSilos = XLSX.utils.json_to_sheet(
     silos.map((s) => ({
@@ -86,7 +75,7 @@ async function exportSilos(fazendaId: string) {
   );
 
   const wbMovs = XLSX.utils.json_to_sheet(
-    (movs ?? []).map((m: Record<string, unknown>) => ({
+    movs.map((m) => ({
       'Silo ID': m.silo_id,
       Data: m.data,
       Tipo: m.tipo,
@@ -102,8 +91,8 @@ async function exportSilos(fazendaId: string) {
   downloadXlsx(wb, `silos_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-async function exportInsumos(fazendaId: string) {
-  const insumos = await getInsumosByFazenda(fazendaId);
+async function exportInsumos() {
+  const insumos = await q.insumos.list();
   const rows = insumos.map((i) => ({
     Nome: i.nome,
     Tipo: i.tipo,
@@ -120,8 +109,8 @@ async function exportInsumos(fazendaId: string) {
   downloadXlsx(wb, `insumos_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-async function exportTalhoes(fazendaId: string) {
-  const talhoes = await getTalhoesByFazenda(fazendaId);
+async function exportTalhoes() {
+  const talhoes = await q.talhoes.list();
   const rows = talhoes.map((t) => ({
     Nome: t.nome,
     'Área (ha)': t.area,
@@ -135,8 +124,8 @@ async function exportTalhoes(fazendaId: string) {
   downloadXlsx(wb, `talhoes_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-async function exportFrota(fazendaId: string) {
-  const maquinas = await getMaquinasByFazenda(fazendaId);
+async function exportFrota() {
+  const maquinas = await q.maquinas.list();
   const rows = maquinas.map((m) => ({
     Nome: m.nome,
     Tipo: m.tipo,
@@ -164,10 +153,7 @@ type ReportKey =
   | 'financeiro'
   | 'estoque';
 
-const exportFunctions: Record<
-  ReportKey,
-  (fazendaId: string) => Promise<void>
-> = {
+const exportFunctions: Record<ReportKey, () => Promise<void>> = {
   talhoes: exportTalhoes,
   silos: exportSilos,
   insumos: exportInsumos,
@@ -251,7 +237,7 @@ export default function RelatoriosPage() {
     }
     setLoadingKey(key);
     try {
-      await exportFunctions[key](fazendaId);
+      await exportFunctions[key]();
       toast.success(`${title} exportado com sucesso!`);
     } catch (err: unknown) {
       console.error('Export error:', err);

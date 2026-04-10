@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { supabase, CategoriaRebanho, PeriodoConfinamento, CicloAgricola, Silo } from '@/lib/supabase';
+import { supabase, type CategoriaRebanho, type PeriodoConfinamento, type CicloAgricola, type Silo } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { getCategoriasRebanho, getPeriodosConfinamento } from '@/lib/supabase/rebanho';
-import { getSilosByFazenda } from '@/lib/supabase/silos';
+import { q } from '@/lib/supabase/queries-audit';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -47,10 +46,10 @@ export default function SimuladorForrageiroPage() {
         if (!fazendaId) { setLoading(false); return; }
 
         const [cats, perds, silosData, ciclosData] = await Promise.all([
-          getCategoriasRebanho(fazendaId),
-          getPeriodosConfinamento(fazendaId),
-          getSilosByFazenda(fazendaId),
-          supabase.from('ciclos_agricolas').select('*').eq('fazenda_id', fazendaId).not('produtividade', 'is', null)
+          q.categoriasRebanho.list(),
+          q.periodosConfinamento.list(),
+          q.silos.list(),
+          supabase.from('ciclos_agricolas').select('*').not('produtividade', 'is', null)
         ]);
 
         setCategorias(cats);

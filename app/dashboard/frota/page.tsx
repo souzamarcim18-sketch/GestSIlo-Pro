@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useId } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Card,
   CardContent,
@@ -47,14 +50,33 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, Maquina, UsoMaquina, Manutencao, Abastecimento } from '@/lib/supabase';
+import { type Maquina, type UsoMaquina, type Manutencao, type Abastecimento } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { getMaquinasByFazenda, createMaquina } from '@/lib/supabase/maquinas';
+import { q } from '@/lib/supabase/queries-audit';
 import { format, isBefore, addDays, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// ---------------------------------------------------------------------------
+// Schema Zod — Nova Máquina
+// ---------------------------------------------------------------------------
+const TIPOS_MAQUINA = ['Trator', 'Colheitadeira', 'Pulverizador', 'Caminhão', 'Outros'] as const;
+
+const maquinaSchema = z.object({
+  nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
+  tipo: z.enum(TIPOS_MAQUINA),
+  marca: z.string().optional(),
+  modelo: z.string().optional(),
+  ano: z.number().int().min(1900).max(2100).nullable().optional(),
+  identificacao: z.string().optional(),
+  consumo_medio_lh: z.number().min(0).nullable().optional(),
+  valor_aquisicao: z.number().min(0).nullable().optional(),
+  data_aquisicao: z.string().nullable().optional(),
+  vida_util_anos: z.number().int().min(1).optional(),
+});
+type MaquinaFormData = z.infer<typeof maquinaSchema>;
+
 export default function FrotaPage() {
-  const { fazendaId, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [maquinas, setMaquinas]           = useState<Maquina[]>([]);
   const [usos, setUsos]                   = useState<UsoMaquina[]>([]);
   const [manutencoes, setManutencoes]     = useState<Manutencao[]>([]);
@@ -66,95 +88,83 @@ export default function FrotaPage() {
   // IDs estáveis para associação label ↔ controle
   const uid = useId();
   const ids = {
-    // Dialog manutenção
     manTitle:   `${uid}-man-title`,
     manDesc:    `${uid}-man-desc`,
     manMaq:     `${uid}-man-maq`,
     manTipo:    `${uid}-man-tipo`,
-    // Dialog nova máquina
     maqTitle:   `${uid}-maq-title`,
     maqDesc:    `${uid}-maq-desc`,
     maqTipo:    `${uid}-maq-tipo`,
-    // Depreciação
     depValor:   `${uid}-dep-valor`,
     depData:    `${uid}-dep-data`,
     depVida:    `${uid}-dep-vida`,
   };
 
-  const [newMaquina, setNewMaquina] = useState({
-    nome: '',
-    tipo: 'Trator' as Maquina['tipo'],
-    marca: '',
-    modelo: '',
-    ano: '',
-    identificacao: '',
-    consumo_medio_lh: '',
-    valor_aquisicao: '',
-    data_aquisicao: '',
-    vida_util_anos: '10',
+  const maquinaForm = useForm<MaquinaFormData>({
+    resolver: zodResolver(maquinaSchema),
+    defaultValues: {
+      nome: '',
+      tipo: 'Trator',
+      marca: '',
+      modelo: '',
+      ano: null,
+      identificacao: '',
+      consumo_medio_lh: null,
+      valor_aquisicao: null,
+      data_aquisicao: null,
+      vida_util_anos: 10,
+    },
   });
 
   const fetchData = useCallback(async () => {
-    if (!fazendaId) { setLoading(false); return; }
     setLoading(true);
     try {
-      // ✅ Busca maquinas uma única vez e reutiliza os IDs
-      const maquinasData = await getMaquinasByFazenda(fazendaId);
-      const ids_maquinas = maquinasData.map((m) => m.id);
+      const maquinasData = await q.maquinas.list();
+      const maquinaIds = maquinasData.map((m) => m.id);
 
-      const [usosRes, manutencoesRes, abastecimentosRes] = await Promise.all([
-        supabase.from('uso_maquinas').select('*').in('maquina_id', ids_maquinas),
-        supabase.from('manutencoes').select('*').in('maquina_id', ids_maquinas),
-        supabase.from('abastecimentos').select('*').in('maquina_id', ids_maquinas),
+      const [usosData, manutencoesData, abastecimentosData] = await Promise.all([
+        q.usoMaquinas.listByMaquinas(maquinaIds),
+        q.manutencoes.listByMaquinas(maquinaIds),
+        q.abastecimentos.listByMaquinas(maquinaIds),
       ]);
 
       setMaquinas(maquinasData);
-      setUsos(usosRes.data || []);
-      setManutencoes(manutencoesRes.data || []);
-      setAbastecimentos(abastecimentosRes.data || []);
+      setUsos(usosData);
+      setManutencoes(manutencoesData);
+      setAbastecimentos(abastecimentosData);
     } catch {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  }, [fazendaId]);
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
     fetchData();
   }, [authLoading, fetchData]);
 
-  const handleAddMaquina = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddMaquina = async (data: MaquinaFormData) => {
     try {
-      if (fazendaId) {
-        await createMaquina({
-          nome: newMaquina.nome,
-          tipo: newMaquina.tipo,
-          marca: newMaquina.marca || null,
-          modelo: newMaquina.modelo || null,
-          ano: newMaquina.ano ? Number(newMaquina.ano) : null,
-          identificacao: newMaquina.identificacao || null,
-          fazenda_id: fazendaId,
-          consumo_medio_lh: newMaquina.consumo_medio_lh
-            ? Number(newMaquina.consumo_medio_lh) : null,
-          valor_aquisicao: newMaquina.valor_aquisicao
-            ? Number(newMaquina.valor_aquisicao) : null,
-          data_aquisicao: newMaquina.data_aquisicao || null,
-          vida_util_anos: newMaquina.vida_util_anos
-            ? Number(newMaquina.vida_util_anos) : 10,
-        });
-        toast.success('Máquina cadastrada com sucesso!');
-        setIsAddMaquinaOpen(false);
-        fetchData();
-        setNewMaquina({
-          nome: '', tipo: 'Trator', marca: '', modelo: '', ano: '',
-          identificacao: '', consumo_medio_lh: '', valor_aquisicao: '',
-          data_aquisicao: '', vida_util_anos: '10',
-        });
-      }
-    } catch {
-      toast.error('Erro ao cadastrar máquina');
+      await q.maquinas.create({
+        nome: data.nome,
+        tipo: data.tipo,
+        marca: data.marca || null,
+        modelo: data.modelo || null,
+        ano: data.ano ?? null,
+        identificacao: data.identificacao || null,
+        fazenda_id: '',
+        consumo_medio_lh: data.consumo_medio_lh ?? null,
+        valor_aquisicao: data.valor_aquisicao ?? null,
+        data_aquisicao: data.data_aquisicao || null,
+        vida_util_anos: data.vida_util_anos ?? 10,
+      });
+      toast.success('Máquina cadastrada com sucesso!');
+      setIsAddMaquinaOpen(false);
+      maquinaForm.reset();
+      fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao cadastrar máquina');
     }
   };
 
@@ -171,10 +181,6 @@ export default function FrotaPage() {
     };
   };
 
-  /**
-   * Retorna dados de status de manutenção — sem JSX, para manter lógica separada.
-   * O JSX é renderizado diretamente no card com aria correto.
-   */
   const getMaintenanceStatus = (maquinaId: string) => {
     const maquinaManutencoes = manutencoes.filter((m) => m.maquina_id === maquinaId);
     if (maquinaManutencoes.length === 0) return null;
@@ -288,7 +294,10 @@ export default function FrotaPage() {
           </Dialog>
 
           {/* Dialog: Nova Máquina */}
-          <Dialog open={isAddMaquinaOpen} onOpenChange={setIsAddMaquinaOpen}>
+          <Dialog
+            open={isAddMaquinaOpen}
+            onOpenChange={(open) => { setIsAddMaquinaOpen(open); if (!open) maquinaForm.reset(); }}
+          >
             <DialogTrigger>
               <Button>
                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -307,7 +316,7 @@ export default function FrotaPage() {
                 </DialogDescription>
               </DialogHeader>
               <form
-                onSubmit={handleAddMaquina}
+                onSubmit={maquinaForm.handleSubmit(handleAddMaquina)}
                 className="space-y-4 py-4"
                 aria-labelledby={ids.maqTitle}
               >
@@ -317,48 +326,50 @@ export default function FrotaPage() {
                     <Input
                       id="maq-nome"
                       placeholder="Ex: Trator JD 01"
-                      required
                       aria-required="true"
-                      value={newMaquina.nome}
-                      onChange={(e) => setNewMaquina({ ...newMaquina, nome: e.target.value })}
+                      {...maquinaForm.register('nome')}
                     />
+                    {maquinaForm.formState.errors.nome && (
+                      <p className="text-xs text-destructive">{maquinaForm.formState.errors.nome.message}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="maq-ident">Placa / Patrimônio</Label>
                     <Input
                       id="maq-ident"
                       placeholder="Ex: ABC-1234"
-                      value={newMaquina.identificacao}
-                      onChange={(e) => setNewMaquina({ ...newMaquina, identificacao: e.target.value })}
+                      {...maquinaForm.register('identificacao')}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor={ids.maqTipo}>Tipo</Label>
-                    <Select
-                      defaultValue="Trator"
-                      onValueChange={(v: any) => v && setNewMaquina({ ...newMaquina, tipo: v })}
-                    >
-                      <SelectTrigger id={ids.maqTipo}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Trator">Trator</SelectItem>
-                        <SelectItem value="Colheitadeira">Colheitadeira</SelectItem>
-                        <SelectItem value="Pulverizador">Pulverizador</SelectItem>
-                        <SelectItem value="Caminhão">Caminhão</SelectItem>
-                        <SelectItem value="Outros">Outros</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={maquinaForm.control}
+                      name="tipo"
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger id={ids.maqTipo}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Trator">Trator</SelectItem>
+                            <SelectItem value="Colheitadeira">Colheitadeira</SelectItem>
+                            <SelectItem value="Pulverizador">Pulverizador</SelectItem>
+                            <SelectItem value="Caminhão">Caminhão</SelectItem>
+                            <SelectItem value="Outros">Outros</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="maq-marca">Marca</Label>
                     <Input
                       id="maq-marca"
                       placeholder="Ex: John Deere"
-                      value={newMaquina.marca}
-                      onChange={(e) => setNewMaquina({ ...newMaquina, marca: e.target.value })}
+                      {...maquinaForm.register('marca')}
                     />
                   </div>
                 </div>
@@ -368,8 +379,7 @@ export default function FrotaPage() {
                     <Input
                       id="maq-modelo"
                       placeholder="Ex: 6125J"
-                      value={newMaquina.modelo}
-                      onChange={(e) => setNewMaquina({ ...newMaquina, modelo: e.target.value })}
+                      {...maquinaForm.register('modelo')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -377,8 +387,9 @@ export default function FrotaPage() {
                     <Input
                       id="maq-ano"
                       type="number"
-                      value={newMaquina.ano}
-                      onChange={(e) => setNewMaquina({ ...newMaquina, ano: e.target.value })}
+                      {...maquinaForm.register('ano', {
+                        setValueAs: (v) => (v === '' ? null : parseInt(v, 10)),
+                      })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -387,17 +398,15 @@ export default function FrotaPage() {
                       id="maq-cons"
                       type="number"
                       step="0.1"
-                      value={newMaquina.consumo_medio_lh}
-                      onChange={(e) =>
-                        setNewMaquina({ ...newMaquina, consumo_medio_lh: e.target.value })
-                      }
+                      {...maquinaForm.register('consumo_medio_lh', {
+                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                      })}
                     />
                   </div>
                 </div>
 
                 {/* Seção de depreciação */}
                 <div className="p-4 bg-muted/50 rounded-lg space-y-4">
-                  {/* p — não é heading de página, mas subtítulo de seção do form */}
                   <p className="text-sm font-semibold flex items-center gap-2" id={`${uid}-dep-heading`}>
                     <TrendingDown className="w-4 h-4" aria-hidden="true" />
                     Dados para Depreciação
@@ -415,10 +424,9 @@ export default function FrotaPage() {
                         id={ids.depValor}
                         type="number"
                         step="0.01"
-                        value={newMaquina.valor_aquisicao}
-                        onChange={(e) =>
-                          setNewMaquina({ ...newMaquina, valor_aquisicao: e.target.value })
-                        }
+                        {...maquinaForm.register('valor_aquisicao', {
+                          setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                        })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -428,10 +436,9 @@ export default function FrotaPage() {
                       <Input
                         id={ids.depData}
                         type="date"
-                        value={newMaquina.data_aquisicao}
-                        onChange={(e) =>
-                          setNewMaquina({ ...newMaquina, data_aquisicao: e.target.value })
-                        }
+                        {...maquinaForm.register('data_aquisicao', {
+                          setValueAs: (v) => (v === '' ? null : v),
+                        })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -441,18 +448,17 @@ export default function FrotaPage() {
                       <Input
                         id={ids.depVida}
                         type="number"
-                        value={newMaquina.vida_util_anos}
-                        onChange={(e) =>
-                          setNewMaquina({ ...newMaquina, vida_util_anos: e.target.value })
-                        }
+                        {...maquinaForm.register('vida_util_anos', {
+                          setValueAs: (v) => (v === '' ? 10 : parseInt(v, 10)),
+                        })}
                       />
                     </div>
                   </div>
                 </div>
 
                 <DialogFooter>
-                  <Button type="submit" className="w-full">
-                    Cadastrar Máquina
+                  <Button type="submit" className="w-full" disabled={maquinaForm.formState.isSubmitting}>
+                    {maquinaForm.formState.isSubmitting ? 'Cadastrando...' : 'Cadastrar Máquina'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -495,11 +501,9 @@ export default function FrotaPage() {
                         {maquina.identificacao ? ` • ${maquina.identificacao}` : ''}
                       </span>
 
-                      {/* Badge de manutenção com aria-live para anunciar mudanças */}
                       {maintenanceStatus === 'vencida' && (
                         <Badge
                           variant="destructive"
-                          // ✅ motion-safe evita piscar para quem tem prefers-reduced-motion
                           className="motion-safe:animate-pulse"
                           aria-label="Atenção: manutenção vencida"
                           role="status"
@@ -519,14 +523,12 @@ export default function FrotaPage() {
                       )}
                     </div>
 
-                    {/* Marca / Modelo / Ano — text-xs mínimo 12px */}
                     <div className="text-xs text-muted-foreground">
                       {[maquina.marca, maquina.modelo, maquina.ano].filter(Boolean).join(' ')}
                     </div>
 
                     {dep && (
                       <div className="p-3 bg-muted/30 rounded-lg space-y-2">
-                        {/* text-[10px] → text-xs para WCAG 1.4.4 */}
                         <div className="flex justify-between text-xs font-semibold uppercase text-muted-foreground">
                           <span>Valor Atual Estimado</span>
                           <span className="text-emerald-600">
@@ -540,7 +542,6 @@ export default function FrotaPage() {
                           R${' '}
                           {dep.valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </div>
-                        {/* text-[9px] → text-xs para WCAG 1.4.4 */}
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>
                             Aquisição: R${' '}
@@ -620,7 +621,6 @@ export default function FrotaPage() {
                 <CardTitle id="uso-titulo">Histórico de Uso</CardTitle>
                 <CardDescription>Registros de atividades e horas trabalhadas.</CardDescription>
               </div>
-              {/* Botão sem dialog — desabilitado para não criar armadilha de foco */}
               <Button size="sm" disabled aria-disabled="true" aria-label="Registrar uso — funcionalidade em breve">
                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                 Registrar Uso

@@ -29,10 +29,8 @@ import {
 import { toast } from 'sonner';
 import { Insumo, MovimentacaoInsumo } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { q } from '@/lib/supabase/queries-audit';
 import {
-  getInsumosByFazenda,
-  createInsumo,
-  updateInsumo,
   deleteInsumo,
   createMovimentacaoInsumo,
   getTodasMovimentacoesByFazenda,
@@ -112,46 +110,45 @@ export default function InsumosPage() {
   // ---------------------------------------------------------------------------
   // Fetch
   // ---------------------------------------------------------------------------
-  const fetchData = useCallback(async (fid: string) => {
+  const fetchData = useCallback(async () => {
     try {
       const [insumosData, movsData] = await Promise.all([
-        getInsumosByFazenda(fid),
-        getTodasMovimentacoesByFazenda(fid),
+        q.insumos.list(),
+        getTodasMovimentacoesByFazenda(fazendaId!),
       ]);
       setInsumos(insumosData);
       setMovimentacoes(movsData);
     } catch {
       toast.error('Erro ao carregar dados de insumos.');
     }
-  }, []);
+  }, [fazendaId]);
 
   useEffect(() => {
     if (authLoading) return;
     if (!fazendaId) { setLoading(false); return; }
     setLoading(true);
-    fetchData(fazendaId).finally(() => setLoading(false));
+    fetchData().finally(() => setLoading(false));
   }, [authLoading, fazendaId, fetchData]);
 
   // ---------------------------------------------------------------------------
   // Handlers — Insumo
   // ---------------------------------------------------------------------------
   const handleSaveInsumo = async (data: InsumoFormData) => {
-    if (!fazendaId) return;
     setSubmitting(true);
     try {
       if (editingInsumo) {
-        await updateInsumo(editingInsumo.id, data);
+        await q.insumos.update(editingInsumo.id, data);
         toast.success('Insumo atualizado com sucesso.');
         setEditingInsumo(null);
       } else {
-        await createInsumo({ ...data, fazenda_id: fazendaId });
+        await q.insumos.create({ ...data, fazenda_id: '' });
         toast.success('Insumo cadastrado com sucesso.');
         setIsAddInsumoOpen(false);
       }
       insumoForm.reset();
-      await fetchData(fazendaId);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Erro ao salvar insumo.');
+      await fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao salvar insumo.');
     } finally {
       setSubmitting(false);
     }
@@ -172,15 +169,15 @@ export default function InsumosPage() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deletingInsumo || !fazendaId) return;
+    if (!deletingInsumo) return;
     setSubmitting(true);
     try {
       await deleteInsumo(deletingInsumo.id);
       toast.success(`"${deletingInsumo.nome}" removido.`);
       setDeletingInsumo(null);
-      await fetchData(fazendaId);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Erro ao remover insumo.');
+      await fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao remover insumo.');
     } finally {
       setSubmitting(false);
     }
@@ -207,9 +204,9 @@ export default function InsumosPage() {
         insumo_id: '', tipo: 'Saída', quantidade: 0, valor_unitario: 0,
         destino: '', responsavel: '', data: new Date().toISOString().split('T')[0],
       });
-      if (fazendaId) await fetchData(fazendaId);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Erro ao registrar movimentação.');
+      await fetchData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao registrar movimentação.');
     } finally {
       setSubmitting(false);
     }

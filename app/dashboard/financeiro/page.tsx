@@ -35,11 +35,8 @@ import {
 import { toast } from 'sonner';
 import { Financeiro } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { q } from '@/lib/supabase/queries-audit';
 import {
-  getLancamentosByFazenda,
-  createLancamento,
-  updateLancamento,
-  deleteLancamento,
   getCategoriasByFazenda,
   calcularResumo,
   calcularFluxoMensal,
@@ -132,24 +129,25 @@ export default function FinanceiroPage() {
   // ---------------------------------------------------------------------------
   // Fetch
   // ---------------------------------------------------------------------------
-  const fetchData = useCallback(async (fid: string) => {
+  const fetchData = useCallback(async () => {
+    if (!fazendaId) return;
     try {
       const [dados, cats] = await Promise.all([
-        getLancamentosByFazenda(fid),
-        getCategoriasByFazenda(fid),
+        q.financeiro.list(),
+        getCategoriasByFazenda(fazendaId),
       ]);
       setLancamentos(dados);
       setCategorias(cats);
     } catch {
       toast.error('Erro ao carregar dados financeiros.');
     }
-  }, []);
+  }, [fazendaId]);
 
   useEffect(() => {
     if (authLoading) return;
     if (!fazendaId) { setLoading(false); return; }
     setLoading(true);
-    fetchData(fazendaId).finally(() => setLoading(false));
+    fetchData().finally(() => setLoading(false));
   }, [authLoading, fazendaId, fetchData]);
 
   // ---------------------------------------------------------------------------
@@ -196,16 +194,15 @@ export default function FinanceiroPage() {
   };
 
   const handleSave = async (data: LancamentoFormData) => {
-    if (!fazendaId) return;
     setSubmitting(true);
     try {
       if (editingLancamento) {
-        await updateLancamento(editingLancamento.id, data);
+        await q.financeiro.update(editingLancamento.id, data);
         toast.success('Lançamento atualizado.');
       } else {
-        await createLancamento({
+        await q.financeiro.create({
           ...data,
-          fazenda_id: fazendaId,
+          fazenda_id: '',
           referencia_id: null,
           referencia_tipo: data.referencia_tipo ?? null,
           forma_pagamento: data.forma_pagamento ?? null,
@@ -214,9 +211,8 @@ export default function FinanceiroPage() {
       }
       setIsFormOpen(false);
       setEditingLancamento(null);
-      await fetchData(fazendaId);
+      await fetchData();
     } catch (err: unknown) {
-      // ✅ Fix: substitui "err: any" por "err: unknown" + type guard
       const msg = err instanceof Error ? err.message : 'Erro ao salvar lançamento.';
       toast.error(msg);
     } finally {
@@ -225,15 +221,14 @@ export default function FinanceiroPage() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deletingLancamento || !fazendaId) return;
+    if (!deletingLancamento) return;
     setSubmitting(true);
     try {
-      await deleteLancamento(deletingLancamento.id);
+      await q.financeiro.remove(deletingLancamento.id);
       toast.success('Lançamento removido.');
       setDeletingLancamento(null);
-      await fetchData(fazendaId);
+      await fetchData();
     } catch (err: unknown) {
-      // ✅ Fix: substitui "err: any" por "err: unknown" + type guard
       const msg = err instanceof Error ? err.message : 'Erro ao remover lançamento.';
       toast.error(msg);
     } finally {

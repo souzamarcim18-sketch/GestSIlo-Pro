@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase, CategoriaRebanho, PeriodoConfinamento, Silo, MovimentacaoSilo } from '@/lib/supabase';
+import { type CategoriaRebanho, type PeriodoConfinamento, type Silo, type MovimentacaoSilo } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { getCategoriasRebanho, upsertCategoriaRebanho, deleteCategoriaRebanho, getPeriodosConfinamento, upsertPeriodoConfinamento, deletePeriodoConfinamento } from '@/lib/supabase/rebanho';
-import { getSilosByFazenda } from '@/lib/supabase/silos';
+import { q } from '@/lib/supabase/queries-audit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,28 +36,23 @@ export default function PlanejadorRebanhoPage() {
     if (!fazendaId) { setLoading(false); return; }
     try {
       const [cats, perds, silosData] = await Promise.all([
-        getCategoriasRebanho(fazendaId),
-        getPeriodosConfinamento(fazendaId),
-        getSilosByFazenda(fazendaId),
+        q.categoriasRebanho.list(),
+        q.periodosConfinamento.list(),
+        q.silos.list(),
       ]);
 
       const siloIds = silosData.map(s => s.id);
-      const movs = siloIds.length > 0
-        ? await supabase.from('movimentacoes_silo').select('*').in('silo_id', siloIds)
-        : { data: [] };
+      const movsData = await q.movimentacoesSilo.listBySilos(siloIds);
 
       setCategorias(cats);
       setPeriodos(perds);
       setSilos(silosData);
-      setMovimentacoes(movs.data || []);
+      setMovimentacoes(movsData);
 
       if (perds.length > 0) {
         setSelectedPeriodoId(perds[0].id);
       }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Erro ao carregar dados:', error);
-      }
+    } catch {
       toast.error('Erro ao carregar dados do planejador');
     } finally {
       setLoading(false);
@@ -116,28 +110,28 @@ export default function PlanejadorRebanhoPage() {
 
   const handleSaveCategoria = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fazendaId || !editingCategoria) return;
+    if (!editingCategoria) return;
 
     try {
-      await upsertCategoriaRebanho({ ...editingCategoria, fazenda_id: fazendaId });
+      await q.categoriasRebanho.upsert({ ...editingCategoria, fazenda_id: '' });
       toast.success('Categoria salva com sucesso');
       setIsCategoriaModalOpen(false);
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao salvar categoria');
     }
   };
 
   const handleSavePeriodo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fazendaId || !editingPeriodo) return;
+    if (!editingPeriodo) return;
 
     try {
-      await upsertPeriodoConfinamento({ ...editingPeriodo, fazenda_id: fazendaId });
+      await q.periodosConfinamento.upsert({ ...editingPeriodo, fazenda_id: '' });
       toast.success('Período salvo com sucesso');
       setIsPeriodoModalOpen(false);
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao salvar período');
     }
   };
@@ -145,10 +139,10 @@ export default function PlanejadorRebanhoPage() {
   const handleDeleteCategoria = async (id: string) => {
     if (!confirm('Deseja excluir esta categoria?')) return;
     try {
-      await deleteCategoriaRebanho(id);
+      await q.categoriasRebanho.remove(id);
       toast.success('Categoria excluída');
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao excluir categoria');
     }
   };
@@ -156,10 +150,10 @@ export default function PlanejadorRebanhoPage() {
   const handleDeletePeriodo = async (id: string) => {
     if (!confirm('Deseja excluir este período?')) return;
     try {
-      await deletePeriodoConfinamento(id);
+      await q.periodosConfinamento.remove(id);
       toast.success('Período excluído');
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao excluir período');
     }
   };

@@ -1,39 +1,8 @@
-import { supabase, Insumo, MovimentacaoInsumo } from '../supabase';
+import { supabase, type Insumo, type MovimentacaoInsumo } from '../supabase';
 
 // ---------------------------------------------------------------------------
 // Insumos
 // ---------------------------------------------------------------------------
-
-export async function getInsumosByFazenda(fazendaId: string): Promise<Insumo[]> {
-  const { data, error } = await supabase
-    .from('insumos')
-    .select('*')
-    .eq('fazenda_id', fazendaId)
-    .order('nome', { ascending: true });
-  if (error) throw error;
-  return data as Insumo[];
-}
-
-export async function createInsumo(insumo: Omit<Insumo, 'id'>): Promise<Insumo> {
-  const { data, error } = await supabase
-    .from('insumos')
-    .insert(insumo)
-    .select()
-    .single();
-  if (error) throw error;
-  return data as Insumo;
-}
-
-export async function updateInsumo(id: string, insumo: Partial<Insumo>): Promise<Insumo> {
-  const { data, error } = await supabase
-    .from('insumos')
-    .update(insumo)
-    .eq('id', id)
-    .select()
-    .single();
-  if (error) throw error;
-  return data as Insumo;
-}
 
 export async function deleteInsumo(id: string): Promise<void> {
   // Deleta movimentações vinculadas primeiro (caso ON DELETE CASCADE não esteja ativo)

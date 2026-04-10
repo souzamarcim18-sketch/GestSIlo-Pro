@@ -1,24 +1,4 @@
-import { supabase, Silo, MovimentacaoSilo, AtividadeCampo, Financeiro } from '../supabase';
-
-export async function getSilosByFazenda(fazendaId: string) {
-  const { data, error } = await supabase
-    .from('silos')
-    .select('*')
-    .eq('fazenda_id', fazendaId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data as Silo[];
-}
-
-export async function createSilo(silo: Omit<Silo, 'id'>) {
-  const { data, error } = await supabase
-    .from('silos')
-    .insert(silo)
-    .select()
-    .single();
-  if (error) throw error;
-  return data as Silo;
-}
+import { supabase, type Silo, type MovimentacaoSilo, type AtividadeCampo, type Financeiro } from '../supabase';
 
 export async function updateSilo(id: string, silo: Partial<Silo>) {
   const { data, error } = await supabase
@@ -37,31 +17,6 @@ export async function deleteSilo(id: string) {
     .delete()
     .eq('id', id);
   if (error) throw error;
-}
-
-export async function createMovimentacao(data: {
-  silo_id: string;
-  tipo: 'Entrada' | 'Saída';
-  quantidade: number;
-  responsavel: string | null;
-  observacao: string | null;
-  talhao_id?: string | null;
-}) {
-  const { data: result, error } = await supabase
-    .from('movimentacoes_silo')
-    .insert({
-      silo_id: data.silo_id,
-      tipo: data.tipo,
-      quantidade: data.quantidade,
-      responsavel: data.responsavel,
-      observacao: data.observacao,
-      talhao_id: data.talhao_id ?? null,
-      data: new Date().toISOString(),
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return result as MovimentacaoSilo;
 }
 
 export async function getCustoProducaoSilagem(siloId: string) {
