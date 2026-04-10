@@ -24,10 +24,12 @@ export default function LoginPage() {
   useEffect(() => {
     authLog('LoginPage useEffect: authLoading=', authLoading, 'user=', !!user, 'profile=', !!profile, 'profileError=', profileError);
 
-    // Se ainda está carregando, iniciar timeout de 5s
+    // Se ainda está carregando, iniciar timeout
     if (authLoading && user && !timeout) {
+      console.log(`⏳ [LOGIN-PAGE] Profile still loading, setting ${AUTH_PROFILE_FETCH_TIMEOUT_MS}ms timeout...`);
       authLog('Profile still loading, setting timeout...');
       const timeoutId = window.setTimeout(() => {
+        console.log('⏰ [LOGIN-PAGE] Profile loading timeout!');
         authLog('Profile loading timeout!');
         setTimeout(true);
       }, AUTH_PROFILE_FETCH_TIMEOUT_MS);

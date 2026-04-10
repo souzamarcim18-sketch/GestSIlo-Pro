@@ -44,43 +44,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetchingRef.current = currentUser.id;
+    let retries = 0;
+    const MAX_RETRIES = 2;
 
-    try {
-      console.log('🔐 [FETCH-PROFILE] STARTING for user:', currentUser.id);
-      authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
+    const attemptFetch = async (): Promise<any> => {
+      try {
+        console.log(`🔐 [FETCH-PROFILE] ATTEMPT ${retries + 1}/${MAX_RETRIES + 1} for user:`, currentUser.id);
+        authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-      // Timeout explícito para evitar hang
-      // Antes do warmup: 60s (cold start Supabase)
-      // Depois do warmup: 10s (servidor já está quente)
-      const timeoutMs = hasWarmedUpRef.current ? 10000 : 60000;
+        // Timeout explícito para evitar hang
+        // Antes do warmup: 60s (cold start Supabase)
+        // Depois do warmup: 10s (servidor já está quente)
+        const timeoutMs = hasWarmedUpRef.current ? 10000 : 60000;
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        console.log(`🔐 [FETCH-PROFILE] Setting ${timeoutMs}ms timeout...`);
-        setTimeout(() => {
-          const timeoutError = new Error(`Profile fetch timeout after ${timeoutMs}ms`);
-          console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
-          reject(timeoutError);
-        }, timeoutMs);
-      });
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          console.log(`🔐 [FETCH-PROFILE] Setting ${timeoutMs}ms timeout...`);
+          setTimeout(() => {
+            const timeoutError = new Error(`Profile fetch timeout after ${timeoutMs}ms`);
+            console.error('🔐 [FETCH-PROFILE] TIMEOUT TRIGGERED!', timeoutError);
+            reject(timeoutError);
+          }, timeoutMs);
+        });
 
-      console.log('🔐 [FETCH-PROFILE] Making query...');
-      const queryPromise = supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
+        console.log('🔐 [FETCH-PROFILE] Making query...');
+        const queryPromise = supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
 
-      console.log('🔐 [FETCH-PROFILE] Awaiting promise.race...');
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+        console.log('🔐 [FETCH-PROFILE] Awaiting promise.race...');
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-      console.log('🔐 [FETCH-PROFILE] Race resolved with:', { data: !!data, error: !!error });
+        if (error) {
+          console.error('🔐 [FETCH-PROFILE] Query returned error:', error);
+          throw error;
+        }
 
-      if (error) {
-        console.error('🔐 [FETCH-PROFILE] Query returned error:', error);
+        console.log('✅ [FETCH-PROFILE] SUCCESS - profile loaded:', data);
+        return { data, error: null };
+      } catch (error) {
+        // Se timeout e ainda tem retries, tenta novamente
+        if (retries < MAX_RETRIES) {
+          const isTimeout = error instanceof Error && error.message.includes('timeout');
+          if (isTimeout) {
+            console.log(`⚠️ [FETCH-PROFILE] Timeout, retrying... (${retries + 1}/${MAX_RETRIES})`);
+            retries++;
+            // Wait 2 segundos antes de retry
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return attemptFetch();
+          }
+        }
         throw error;
       }
+    };
 
-      console.log('✅ [FETCH-PROFILE] SUCCESS - profile loaded:', data);
+    try {
+      const { data, error } = await attemptFetch();
+
       authLog('[FETCH-PROFILE] SUCCESS - profile loaded:', data);
       setUser(currentUser);
       setProfile(data ?? null);
@@ -91,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const errorStatus = (error as any)?.status;
       const errorDetails = (error as any)?.details;
 
-      console.error('❌ [FETCH-PROFILE] CAUGHT ERROR:', { errorMessage, errorCode, errorStatus, errorDetails, fullError: error });
+      console.error('❌ [FETCH-PROFILE] FINAL ERROR after retries:', { errorMessage, errorCode, errorStatus, errorDetails });
       authError('[FETCH-PROFILE] ERROR:', { message: errorMessage, code: errorCode, status: errorStatus, details: errorDetails });
       setProfileError(errorMessage);
       setUser(currentUser);
