@@ -21,32 +21,29 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         setError('E-mail ou senha inválidos. Verifique suas credenciais.');
         toast.error('E-mail ou senha inválidos.');
         setLoading(false);
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('perfil')
-            .eq('id', user.id)
-            .single();
+      } else if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('perfil')
+          .eq('id', data.user.id)
+          .single();
 
-          toast.success('Login realizado com sucesso!');
+        toast.success('Login realizado com sucesso!');
 
-          if (profile?.perfil === 'Operador') {
-            router.push('/operador');
-          } else {
-            router.push('/dashboard');
-          }
+        if (profile?.perfil === 'Operador') {
+          router.push('/operador');
         } else {
-          setLoading(false);
-          toast.error('Erro ao recuperar dados do usuário.');
+          router.push('/dashboard');
         }
+      } else {
+        setLoading(false);
+        toast.error('Erro ao recuperar dados do usuário.');
       }
     } catch (err: unknown) {
       console.error('Login error:', err);
