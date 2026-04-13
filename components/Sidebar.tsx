@@ -26,21 +26,31 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-const routes = [
-  { label: 'Dashboard',     icon: LayoutDashboard, href: '/dashboard',                  color: 'text-sky-500'     },
-  { label: 'Silos',         icon: Database,        href: '/dashboard/silos',             color: 'text-amber-500'   },
-  { label: 'Planejador',    icon: Calculator,      href: '/dashboard/rebanho',           color: 'text-rose-500'    },
-  { label: 'Simulador',     icon: Sprout,          href: '/dashboard/simulador',         color: 'text-lime-600'    },
-  { label: 'Calculadoras',  icon: Beaker,          href: '/dashboard/calculadoras',      color: 'text-indigo-500'  },
-  { label: 'Talhões',       icon: Map,             href: '/dashboard/talhoes',           color: 'text-emerald-500' },
-  { label: 'Insumos',       icon: Package,         href: '/dashboard/insumos',           color: 'text-blue-500'    },
-  { label: 'Frota',         icon: Truck,           href: '/dashboard/frota',             color: 'text-orange-500'  },
-  { label: 'Financeiro',    icon: DollarSign,      href: '/dashboard/financeiro',        color: 'text-green-500'   },
-  { label: 'Relatórios',    icon: BarChart3,       href: '/dashboard/relatorios',        color: 'text-purple-500'  },
-  { label: 'Configurações', icon: Settings,        href: '/dashboard/configuracoes',                               },
+const operacionalRoutes = [
+  { label: 'Dashboard',   icon: LayoutDashboard, href: '/dashboard'                },
+  { label: 'Silos',       icon: Database,        href: '/dashboard/silos'           },
+  { label: 'Talhões',     icon: Map,             href: '/dashboard/talhoes'         },
+  { label: 'Rebanho',     icon: Sprout,          href: '/dashboard/rebanho'         },
+  { label: 'Insumos',     icon: Package,         href: '/dashboard/insumos'         },
+  { label: 'Frota',       icon: Truck,           href: '/dashboard/frota'           },
+  { label: 'Financeiro',  icon: DollarSign,      href: '/dashboard/financeiro'      },
 ];
 
-export function Sidebar() {
+const ferramentasRoutes = [
+  { label: 'Planejador',   icon: Calculator, href: '/dashboard/planejador'  },
+  { label: 'Calculadoras', icon: Beaker,     href: '/dashboard/calculadoras' },
+  { label: 'Relatórios',   icon: BarChart3,  href: '/dashboard/relatorios'   },
+];
+
+const sistemaRoutes = [
+  { label: 'Configurações', icon: Settings, href: '/dashboard/configuracoes' },
+];
+
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
+export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -74,8 +84,8 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "flex flex-col h-full border-r border-green-100 shadow-sm transition-all duration-300",
-        "bg-white dark:bg-sidebar dark:border-sidebar-border",
+        "flex flex-col h-full border-r border-border shadow-sm transition-all duration-300",
+        "bg-background dark:bg-sidebar dark:border-sidebar-border",
         collapsed ? "w-16" : "w-72"
       )}
     >
@@ -98,8 +108,8 @@ export function Sidebar() {
           />
           {!collapsed && (
             <div className="flex flex-col -space-y-1" aria-hidden="true">
-              <span className="font-black text-xl tracking-tight text-green-600 dark:text-green-400">Gest</span>
-              <span className="font-black text-xl tracking-tight text-green-700 dark:text-green-500">Silo</span>
+              <span className="font-black text-xl tracking-tight text-foreground">Gest</span>
+              <span className="font-black text-xl tracking-tight text-foreground">Silo</span>
             </div>
           )}
         </Link>
@@ -107,47 +117,144 @@ export function Sidebar() {
         {/* Navegação */}
         <ScrollArea className={cn("flex-1 min-h-0 h-full", collapsed ? "-mx-1 px-1" : "-mx-2 px-2")}>
           <nav aria-label="Navegação principal">
-            <ul className={cn("space-y-1 pb-4 list-none", collapsed && "space-y-2")}>
-              {routes.map((route) => {
-                const isActive = pathname === route.href;
-                return (
-                  <li key={route.href}>
-                    <Link
-                      href={route.href}
-                      aria-current={isActive ? 'page' : undefined}
-                      title={collapsed ? route.label : undefined}
-                      className={cn(
-                        "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
-                        collapsed ? "p-3 justify-center" : "p-3 justify-start",
-                        isActive
-                          ? "bg-white dark:bg-primary text-green-700 dark:text-sidebar shadow-sm border border-green-50 dark:border-primary"
-                          : "text-gray-600 dark:text-sidebar-foreground hover:bg-white/50 dark:hover:bg-primary/20 hover:text-green-600 dark:hover:text-primary",
-                      )}
-                    >
-                      <route.icon
-                        aria-hidden="true"
+            {/* Grupo Operacional */}
+            <div className="pb-4">
+              {!collapsed && (
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Operacional
+                </div>
+              )}
+              <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
+                {operacionalRoutes.map((route) => {
+                  const isActive = pathname === route.href;
+                  return (
+                    <li key={route.href}>
+                      <Link
+                        href={route.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={collapsed ? route.label : undefined}
                         className={cn(
-                          "h-5 w-5 transition-colors",
-                          !collapsed && "mr-3",
-                          isActive ? "text-green-600 dark:text-sidebar" : "text-gray-400 dark:text-gray-500 group-hover:text-green-500"
+                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                          isActive
+                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
                         )}
-                      />
-                      {!collapsed && route.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                      >
+                        <route.icon
+                          aria-hidden="true"
+                          className={cn(
+                            "h-5 w-5 transition-colors",
+                            !collapsed && "mr-3",
+                            isActive ? "text-primary" : "text-sidebar-foreground"
+                          )}
+                        />
+                        {!collapsed && route.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* Separador */}
+            {!collapsed && <div className="my-2 border-t border-sidebar-border" />}
+
+            {/* Grupo Ferramentas */}
+            <div className="pb-4">
+              {!collapsed && (
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Ferramentas
+                </div>
+              )}
+              <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
+                {ferramentasRoutes.map((route) => {
+                  const isActive = pathname === route.href;
+                  return (
+                    <li key={route.href}>
+                      <Link
+                        href={route.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={collapsed ? route.label : undefined}
+                        className={cn(
+                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                          isActive
+                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
+                        )}
+                      >
+                        <route.icon
+                          aria-hidden="true"
+                          className={cn(
+                            "h-5 w-5 transition-colors",
+                            !collapsed && "mr-3",
+                            isActive ? "text-primary" : "text-sidebar-foreground"
+                          )}
+                        />
+                        {!collapsed && route.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* Separador */}
+            {!collapsed && <div className="my-2 border-t border-sidebar-border" />}
+
+            {/* Grupo Sistema */}
+            <div className="pb-4">
+              {!collapsed && (
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Sistema
+                </div>
+              )}
+              <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
+                {sistemaRoutes.map((route) => {
+                  const isActive = pathname === route.href;
+                  return (
+                    <li key={route.href}>
+                      <Link
+                        href={route.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={collapsed ? route.label : undefined}
+                        className={cn(
+                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                          isActive
+                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
+                        )}
+                      >
+                        <route.icon
+                          aria-hidden="true"
+                          className={cn(
+                            "h-5 w-5 transition-colors",
+                            !collapsed && "mr-3",
+                            isActive ? "text-primary" : "text-sidebar-foreground"
+                          )}
+                        />
+                        {!collapsed && route.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </nav>
         </ScrollArea>
       </div>
 
       {/* Rodapé — Toggle + Sair */}
-      <div className={cn("p-4 border-t border-green-100 dark:border-sidebar-border bg-white/30 dark:bg-sidebar/50 space-y-2", collapsed && "px-2")}>
+      <div className={cn("p-4 border-t border-sidebar-border bg-sidebar/50 space-y-2", collapsed && "px-2")}>
         <Button
           variant="ghost"
           className={cn(
-            "rounded-xl transition-all dark:hover:bg-primary/20",
+            "rounded-xl transition-all hover:bg-muted dark:hover:bg-muted/80",
             collapsed ? "w-full flex justify-center p-3" : "w-full justify-center p-3"
           )}
           onClick={toggleCollapse}
@@ -164,7 +271,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           className={cn(
-            "text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl transition-all",
+            "text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-xl transition-all",
             collapsed ? "w-full flex justify-center p-3" : "w-full justify-start p-3"
           )}
           onClick={handleLogout}

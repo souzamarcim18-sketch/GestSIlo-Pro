@@ -16,7 +16,30 @@
       "Bash(npm test:*)",
       "Bash(git stash:*)",
       "Bash(python test_dark_mode.py)",
-      "Bash(python3 test_dark_mode.py)"
+      "Bash(python3 test_dark_mode.py)",
+      "Bash(python .claude/scripts/test_phase1.py)",
+      "Bash(npm list:*)",
+      "Bash(curl -s http://localhost:3000/dashboard -I)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(curl -s http://localhost:3000/login)",
+      "Bash(npx tsc:*)",
+      "Bash(curl -s http://localhost:3000/dashboard)",
+      "Bash(curl -s http://localhost:3010)",
+      "Bash(curl -s http://localhost:3010/dashboard)",
+      "Bash(curl -s http://localhost:3010/login)",
+      "Bash(curl -s \"http://localhost:3010/login\")",
+      "Bash(curl -s http://localhost:3005/dashboard)",
+      "Bash(curl -s http://localhost:3005/login)",
+      "Bash(pkill -f \"node.*next\")",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(grep -l \"text-green\\\\|bg-green\\\\|text-amber\\\\|bg-amber\\\\|text-red\\\\|bg-red\\\\|text-blue\\\\|bg-blue\\\\|text-yellow\\\\|bg-yellow\\\\|border-green\\\\|border-amber\\\\|border-gray\" app/dashboard/*.tsx components/*.tsx)",
+      "Bash(grep -r \"text-green\\\\|text-amber\\\\|text-red\\\\|text-blue\\\\|text-yellow\\\\|bg-green\\\\|bg-amber\\\\|bg-red\\\\|bg-blue\\\\|bg-yellow\\\\|border-green\\\\|border-amber\\\\|border-red\\\\|border-blue\" components/*.tsx app/ --include=\"*.tsx\")",
+      "Bash(cd app:*)",
+      "Bash(find . -name '*.tsx' -type f -exec sed -i -e s/text-green-600/text-primary/g -e s/text-green-700/text-primary/g -e s/text-green-500/text-primary/g -e 's/text-green-400/text-primary\\\\/80/g' -e 's/text-green-100/text-primary\\\\/20/g' -e 's/bg-green-50/bg-primary\\\\/10/g' -e 's/bg-green-100/bg-primary\\\\/20/g' -e s/bg-green-500/bg-primary/g -e s/border-green-500/border-primary/g -e 's/border-green-200/border-primary\\\\/30/g' -e 's/border-green-100/border-primary\\\\/20/g' -e s/hover:text-green-600/hover:text-primary/g -e 's/hover:text-green-700/hover:text-primary\\\\/80/g' -e 's/hover:bg-green-50/hover:bg-primary\\\\/10/g' -e 's/hover:bg-green-100/hover:bg-primary\\\\/20/g' -e s/hover:border-green-/hover:border-primary/g -e s/text-amber-600/text-secondary/g -e s/text-amber-500/text-secondary/g -e 's/bg-amber-50/bg-secondary\\\\/10/g' -e 's/bg-amber-100/bg-secondary\\\\/20/g' -e s/border-amber-500/border-secondary/g -e 's/border-amber-200/border-secondary\\\\/30/g' '{}' ';')",
+      "Bash(git push:*)"
     ]
   }
 }
