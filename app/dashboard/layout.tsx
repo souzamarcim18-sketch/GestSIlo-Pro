@@ -19,34 +19,31 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Lazy initialization: lê localStorage apenas uma vez na montagem
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sidebar-collapsed') === 'true';
+    }
+    return false;
+  });
 
   const isOnboardingPage = pathname === '/dashboard/onboarding';
 
-  // Sincronizar estado da sidebar com localStorage
+  // Escutar mudanças futuras do localStorage (abas diferentes)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'sidebar-collapsed') {
         setSidebarCollapsed(e.newValue === 'true');
       }
     };
     window.addEventListener('storage', handleStorageChange);
-
-    // Inicializar com valor armazenado
-    const stored = localStorage.getItem('sidebar-collapsed');
-    setSidebarCollapsed(stored === 'true');
-
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Timeout de 5s se loading permanecer true
   useEffect(() => {
-    if (!loading) {
-      // Loading terminou, reset timeout state
-      // (não chamar setState aqui para evitar cascading renders)
-      return;
-    }
+    if (!loading) return;
 
     authLog('DashboardLayout: auth loading started');
     const timeoutId = window.setTimeout(() => {
@@ -56,8 +53,6 @@ export default function DashboardLayout({
 
     return () => {
       clearTimeout(timeoutId);
-      // Reset timeout state apenas se ainda estamos no efeito
-      // Evita setState em efeito anterior sobrescrever este
     };
   }, [loading]);
 
@@ -65,19 +60,16 @@ export default function DashboardLayout({
   useEffect(() => {
     if (loading) return;
 
-    // Sem usuário → login
     if (!user) {
       router.replace('/login');
       return;
     }
 
-    // Precisa criar fazenda e não está na página de onboarding → redireciona
     if (needsOnboarding && !isOnboardingPage) {
       router.replace('/dashboard/onboarding');
       return;
     }
 
-    // Já tem fazenda mas está no onboarding → manda pro dashboard
     if (!needsOnboarding && isOnboardingPage) {
       router.replace('/dashboard');
       return;
