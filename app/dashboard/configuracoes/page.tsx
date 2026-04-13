@@ -135,7 +135,7 @@ export default function ConfiguracoesPage() {
         aria-live="polite"
       >
         <div
-          className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"
+          className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
           aria-hidden="true"
         />
         {/* Texto visível apenas para AT */}
@@ -391,7 +391,7 @@ export default function ConfiguracoesPage() {
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className="text-green-600 border-green-600"
+                          className="text-primary border-primary"
                         >
                           Ativo
                         </Badge>

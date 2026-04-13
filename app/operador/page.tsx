@@ -172,13 +172,13 @@ export default function ModoOperadorPage() {
     return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
         <div className="max-w-md text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <div className="text-destructive text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold mb-2">Erro ao Carregar</h1>
           <p className="text-zinc-300 mb-6">{error}</p>
           <div className="flex gap-4 justify-center">
             <Button
               onClick={() => router.push('/login')}
-              className="bg-green-600 hover:bg-green-500"
+              className="bg-primary hover:bg-primary/90"
             >
               Voltar ao Login
             </Button>
@@ -204,7 +204,7 @@ export default function ModoOperadorPage() {
         aria-label="Carregando dados do operador"
       >
         <div
-          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"
           aria-hidden="true"
         />
       </div>
@@ -218,7 +218,7 @@ export default function ModoOperadorPage() {
       {/* Header */}
       <header className="flex items-center justify-between mb-10 pb-6 border-b border-zinc-800">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-green-500">GestSiloPRO</h1>
+          <h1 className="text-2xl font-black tracking-tight text-primary">GestSiloPRO</h1>
           <p className="text-sm text-zinc-300 font-medium uppercase tracking-widest">
             {profile?.fazendas?.nome || 'Fazenda'}
           </p>
@@ -240,7 +240,7 @@ export default function ModoOperadorPage() {
             size="icon"
             onClick={handleLogout}
             aria-label="Sair da conta"
-            className="text-zinc-400 hover:text-red-500"
+            className="text-zinc-400 hover:text-destructive"
           >
             <LogOut className="w-6 h-6" aria-hidden="true" />
           </Button>
@@ -256,7 +256,7 @@ export default function ModoOperadorPage() {
           aria-label={`Operador logado: ${profile?.nome}`}
         >
           <div
-            className="w-12 h-12 rounded-full bg-green-900/30 flex items-center justify-center text-green-500"
+            className="w-12 h-12 rounded-full bg-primary/30 flex items-center justify-center text-primary"
             aria-hidden="true"
           >
             <User className="w-6 h-6" aria-hidden="true" />
@@ -276,7 +276,7 @@ export default function ModoOperadorPage() {
           <Dialog open={isRetiradaOpen} onOpenChange={setIsRetiradaOpen}>
             <DialogTrigger>
               <button
-                className="w-full h-24 bg-green-600 hover:bg-green-500 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 shadow-xl shadow-green-900/20"
+                className="w-full h-24 bg-primary hover:bg-primary/90 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 shadow-xl shadow-primary/30"
                 aria-haspopup="dialog"
               >
                 <PackageMinus className="w-10 h-10 text-white" aria-hidden="true" />
@@ -288,7 +288,7 @@ export default function ModoOperadorPage() {
 
             <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 sm:max-w-md rounded-3xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-green-500">
+                <DialogTitle className="text-2xl font-bold text-primary">
                   Registrar Retirada
                 </DialogTitle>
                 <DialogDescription className="text-zinc-300 text-base">
@@ -352,7 +352,7 @@ export default function ModoOperadorPage() {
                     type="submit"
                     disabled={submitting}
                     aria-busy={submitting}
-                    className="w-full h-16 bg-green-600 hover:bg-green-500 text-xl font-black rounded-2xl"
+                    className="w-full h-16 bg-primary hover:bg-primary/90 text-xl font-black rounded-2xl"
                   >
                     {submitting ? 'PROCESSANDO...' : 'CONFIRMAR RETIRADA'}
                   </Button>
@@ -368,7 +368,7 @@ export default function ModoOperadorPage() {
                 className="w-full h-24 bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition-all rounded-3xl flex items-center justify-center gap-4 border border-zinc-700 shadow-xl"
                 aria-haspopup="dialog"
               >
-                <AlertOctagon className="w-10 h-10 text-red-500" aria-hidden="true" />
+                <AlertOctagon className="w-10 h-10 text-destructive" aria-hidden="true" />
                 <span className="text-2xl font-black text-zinc-100 uppercase tracking-tight">
                   Registrar Perda
                 </span>
@@ -377,7 +377,7 @@ export default function ModoOperadorPage() {
 
             <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 sm:max-w-md rounded-3xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-red-500">
+                <DialogTitle className="text-2xl font-bold text-destructive">
                   Registrar Perda
                 </DialogTitle>
                 <DialogDescription className="text-zinc-300 text-base">
@@ -464,7 +464,7 @@ export default function ModoOperadorPage() {
                     type="submit"
                     disabled={submitting}
                     aria-busy={submitting}
-                    className="w-full h-16 bg-red-600 hover:bg-red-500 text-xl font-black rounded-2xl"
+                    className="w-full h-16 bg-destructive/10 hover:bg-destructive/10 text-xl font-black rounded-2xl"
                   >
                     {submitting ? 'PROCESSANDO...' : 'REGISTRAR PERDA'}
                   </Button>
@@ -481,7 +481,7 @@ export default function ModoOperadorPage() {
         <p className="text-sm font-medium">GestSiloPRO v1.0 · Modo Operador</p>
         <div className="flex items-center justify-center gap-2 mt-1">
           <div
-            className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`}
+            className={`w-2 h-2 rounded-full ${isOnline ? 'bg-primary/100' : 'bg-secondary/100 animate-pulse'}`}
             aria-hidden="true"
           />
           <p className="text-xs" role="status" aria-live="polite">

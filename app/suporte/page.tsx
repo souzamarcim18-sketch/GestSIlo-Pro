@@ -41,7 +41,7 @@ export default function SuportePage() {
             diretamente para{' '}
             <a
               href="mailto:suporte@gestsilo.com.br"
-              className="text-green-600 dark:text-primary hover:underline"
+              className="text-primary dark:text-primary hover:underline"
             >
               suporte@gestsilo.com.br
             </a>
@@ -49,7 +49,7 @@ export default function SuportePage() {
           </p>
 
           {enviado ? (
-            <div className="p-4 bg-green-50 dark:bg-primary/10 border border-green-200 dark:border-primary/30 rounded-xl text-green-700 dark:text-primary text-sm">
+            <div className="p-4 bg-primary/10 dark:bg-primary/10 border border-primary/30 dark:border-primary/30 rounded-xl text-primary dark:text-primary text-sm">
               <p className="font-semibold mb-1">Mensagem preparada!</p>
               <p>
                 Seu cliente de e-mail foi aberto com os dados preenchidos. Envie a

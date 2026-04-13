@@ -69,8 +69,8 @@ export default function OnboardingPage() {
   return (
     <Card className="w-full max-w-lg mx-4 shadow-lg dark:bg-card dark:border-border">
       <CardHeader className="text-center space-y-3">
-        <div className="mx-auto w-14 h-14 bg-green-100 dark:bg-muted rounded-full flex items-center justify-center">
-          <Landmark className="h-7 w-7 text-green-600 dark:text-primary" aria-hidden="true" />
+        <div className="mx-auto w-14 h-14 bg-primary/20 dark:bg-muted rounded-full flex items-center justify-center">
+          <Landmark className="h-7 w-7 text-primary dark:text-primary" aria-hidden="true" />
         </div>
         <CardTitle>
           <h1 className="text-2xl font-bold dark:text-foreground">Bem-vindo ao GestSilo!</h1>
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-2">
             <Label htmlFor="onb-nome">
-              Nome da Fazenda <span className="text-red-500">*</span>
+              Nome da Fazenda <span className="text-destructive">*</span>
             </Label>
             <Input
               id="onb-nome"

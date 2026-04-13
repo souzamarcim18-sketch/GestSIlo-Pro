@@ -95,7 +95,7 @@ export default function LoginPage() {
       <button
         onClick={() => router.push('/')}
         aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted hover:text-green-600 dark:hover:text-primary transition-all shadow-sm cursor-pointer"
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted hover:text-primary transition-all shadow-sm cursor-pointer"
       >
         <Home className="w-4 h-4" aria-hidden="true" />
         <span>Voltar ao Início</span>
@@ -103,7 +103,7 @@ export default function LoginPage() {
 
       {/* ===== LADO ESQUERDO — Hero ===== */}
       <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-16 overflow-hidden bg-green-50 dark:bg-background"
+        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-16 overflow-hidden bg-primary/10 dark:bg-background"
         aria-hidden="true"
       >
         {/* Padrão geométrico decorativo */}
@@ -129,8 +129,8 @@ export default function LoginPage() {
           />
           <div aria-hidden="true">
             <p className="font-black text-4xl tracking-tight">
-              <span className="text-green-600 dark:text-primary">Gest</span>
-              <span className="text-green-700 dark:text-primary">Silo</span>
+              <span className="text-primary">Gest</span>
+              <span className="text-primary">Silo</span>
             </p>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function LoginPage() {
             <p className="text-5xl xl:text-6xl font-extrabold text-gray-900 dark:text-foreground leading-tight mb-8">
               Sua fazenda<br />
               no próximo<br />
-              <span className="text-green-600 dark:text-primary">nível</span>
+              <span className="text-primary">nível</span>
             </p>
             <p className="text-gray-600 dark:text-muted-foreground text-xl leading-relaxed max-w-md">
               Controle silos, talhões, frota, insumos e financeiro em um único lugar. Do campo ao escritório.
@@ -173,8 +173,8 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <span className="font-bold text-xl text-green-600 dark:text-primary">Gest</span>
-            <span className="font-bold text-xl text-green-700 dark:text-primary">Silo</span>
+            <span className="font-bold text-xl text-primary">Gest</span>
+            <span className="font-bold text-xl text-primary">Silo</span>
           </div>
         </div>
 
@@ -238,7 +238,7 @@ export default function LoginPage() {
                 </label>
                 <a
                   href="/forgot-password"
-                  className="text-sm font-medium text-green-600 dark:text-primary hover:text-green-700 dark:hover:text-primary/80 transition-colors"
+                  className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Esqueceu a senha?
                 </a>
@@ -296,10 +296,10 @@ export default function LoginPage() {
                 id="form-error"
                 role="alert"
                 aria-live="assertive"
-                className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl"
+                className="flex items-center gap-3 p-4 bg-destructive/10 dark:bg-destructive/20 border border-destructive/30 dark:border-destructive/40 rounded-xl"
               >
                 <svg
-                  className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0"
+                  className="w-5 h-5 text-destructive flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -309,11 +309,11 @@ export default function LoginPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div className="flex-1">
-                  <p className="text-red-700 dark:text-red-400 text-sm font-medium">
+                  <p className="text-destructive text-sm font-medium">
                     {error || profileError || (timeout && 'Tempo limite ao carregar seu perfil. Tente fazer login novamente.')}
                   </p>
                   {(profileError || timeout) && (
-                    <p className="text-red-600 dark:text-red-300 text-xs mt-1">
+                    <p className="text-destructive/80 text-xs mt-1">
                       Contate o suporte se o problema persistir.
                     </p>
                   )}
@@ -372,7 +372,7 @@ export default function LoginPage() {
               Ainda não tem uma conta?{' '}
               <a
                 href="/register"
-                className="font-semibold text-green-600 dark:text-primary hover:text-green-700 dark:hover:text-primary/80 transition-colors"
+                className="font-semibold text-primary hover:text-primary/80 transition-colors"
               >
                 Solicite seu acesso →
               </a>

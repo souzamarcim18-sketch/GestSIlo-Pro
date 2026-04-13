@@ -139,10 +139,10 @@ export default function SimuladorForrageiroPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Coluna de Inputs (Controles) */}
         <div className="lg:col-span-4 space-y-6">
-          <Card className="border-green-100 dark:border-primary/20 bg-green-50/30 dark:bg-primary/5">
+          <Card className="border-primary/20 dark:border-primary/20 bg-primary/10/30 dark:bg-primary/5">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-green-600 dark:text-primary" />
+                <Calculator className="w-5 h-5 text-primary dark:text-primary" />
                 Parâmetros de Simulação
               </CardTitle>
             </CardHeader>
@@ -168,7 +168,7 @@ export default function SimuladorForrageiroPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="font-bold">Área de Plantio (ha)</Label>
-                  <span className="text-lg font-black text-green-700 dark:text-primary">{areaSimulada} ha</span>
+                  <span className="text-lg font-black text-primary dark:text-primary">{areaSimulada} ha</span>
                 </div>
                 <Slider 
                   value={[areaSimulada]} 
@@ -183,7 +183,7 @@ export default function SimuladorForrageiroPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="font-bold">Produtividade (ton MV/ha)</Label>
-                  <span className="text-lg font-black text-green-700 dark:text-primary">{produtividadeEsperada} t/ha</span>
+                  <span className="text-lg font-black text-primary dark:text-primary">{produtividadeEsperada} t/ha</span>
                 </div>
                 <Slider 
                   value={[produtividadeEsperada]} 
@@ -202,7 +202,7 @@ export default function SimuladorForrageiroPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="font-bold">Teor de MS Esperado (%)</Label>
-                  <span className="text-lg font-black text-green-700 dark:text-primary">{msEsperada}%</span>
+                  <span className="text-lg font-black text-primary dark:text-primary">{msEsperada}%</span>
                 </div>
                 <Slider 
                   value={[msEsperada]} 
@@ -233,7 +233,7 @@ export default function SimuladorForrageiroPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-black text-green-600 dark:text-primary">{resultados.producaoEstimadaMS.toFixed(1)}</span>
+                      <span className="text-3xl font-black text-primary dark:text-primary">{resultados.producaoEstimadaMS.toFixed(1)}</span>
                       <span className="text-sm font-bold text-muted-foreground">ton MS</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -249,7 +249,7 @@ export default function SimuladorForrageiroPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-black text-rose-600">{resultados.necessidadeTotalMS.toFixed(1)}</span>
+                      <span className="text-3xl font-black text-destructive">{resultados.necessidadeTotalMS.toFixed(1)}</span>
                       <span className="text-sm font-bold text-muted-foreground">ton MS</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -260,14 +260,14 @@ export default function SimuladorForrageiroPage() {
               </div>
 
               {/* Card de Saldo e Análise */}
-              <Card className={`overflow-hidden border-2 ${resultados.saldo >= 0 ? 'border-green-500 dark:border-primary' : 'border-rose-500'}`}>
-                <div className={`p-6 flex flex-col md:flex-row items-center justify-between gap-6 ${resultados.saldo >= 0 ? 'bg-green-50 dark:bg-primary/5' : 'bg-rose-50'}`}>
+              <Card className={`overflow-hidden border-2 ${resultados.saldo >= 0 ? 'border-primary dark:border-primary' : 'border-destructive'}`}>
+                <div className={`p-6 flex flex-col md:flex-row items-center justify-between gap-6 ${resultados.saldo >= 0 ? 'bg-primary/10 dark:bg-primary/5' : 'bg-destructive/10'}`}>
                   <div className="space-y-2 text-center md:text-left">
                     <h3 className="text-xl font-black flex items-center gap-2 justify-center md:justify-start">
                       {resultados.saldo >= 0 ? (
-                        <><CheckCircle2 className="text-green-600 dark:text-primary" /> Produção Suficiente</>
+                        <><CheckCircle2 className="text-primary dark:text-primary" /> Produção Suficiente</>
                       ) : (
-                        <><AlertTriangle className="text-rose-600 dark:text-destructive" /> Déficit de Produção</>
+                        <><AlertTriangle className="text-destructive dark:text-destructive" /> Déficit de Produção</>
                       )}
                     </h3>
                     <p className="text-sm font-medium text-muted-foreground">
@@ -292,14 +292,14 @@ export default function SimuladorForrageiroPage() {
                     </div>
                     <Progress
                       value={Math.min(resultados.percentualCobertura, 100)}
-                      className={`h-4 ${resultados.saldo >= 0 ? 'bg-green-100 dark:bg-primary/20' : 'bg-rose-100'}`}
+                      className={`h-4 ${resultados.saldo >= 0 ? 'bg-primary/20 dark:bg-primary/20' : 'bg-destructive/20'}`}
                     />
                   </div>
 
                   {resultados.saldo < 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                       <div className="p-4 rounded-xl bg-muted border flex items-start gap-3">
-                        <TrendingUp className="w-5 h-5 text-green-600 dark:text-primary mt-1" />
+                        <TrendingUp className="w-5 h-5 text-primary dark:text-primary mt-1" />
                         <div>
                           <p className="text-sm font-bold">Aumentar Área</p>
                           <p className="text-xs text-muted-foreground">
@@ -308,7 +308,7 @@ export default function SimuladorForrageiroPage() {
                         </div>
                       </div>
                       <div className="p-4 rounded-xl bg-muted border flex items-start gap-3">
-                        <Scale className="w-5 h-5 text-amber-600 mt-1" />
+                        <Scale className="w-5 h-5 text-secondary mt-1" />
                         <div>
                           <p className="text-sm font-bold">Comprar Silagem</p>
                           <p className="text-xs text-muted-foreground">
@@ -320,11 +320,11 @@ export default function SimuladorForrageiroPage() {
                   )}
 
                   {resultados.saldo >= 0 && (
-                    <div className="p-4 rounded-xl bg-green-50 dark:bg-primary/5 border border-green-100 dark:border-primary/30 flex items-start gap-3">
-                      <Info className="w-5 h-5 text-green-600 dark:text-primary mt-1" />
+                    <div className="p-4 rounded-xl bg-primary/10 dark:bg-primary/5 border border-primary/20 dark:border-primary/30 flex items-start gap-3">
+                      <Info className="w-5 h-5 text-primary dark:text-primary mt-1" />
                       <div>
-                        <p className="text-sm font-bold text-green-800 dark:text-primary">Dica de Gestão</p>
-                        <p className="text-xs text-green-700 dark:text-primary/90">
+                        <p className="text-sm font-bold text-primary dark:text-primary">Dica de Gestão</p>
+                        <p className="text-xs text-primary dark:text-primary/90">
                           Com um excedente de {resultados.saldo.toFixed(1)} ton MS, você tem uma margem de segurança contra quebras de safra ou pode considerar aumentar o rebanho em até {Math.floor(resultados.saldo / ((resultados.necessidadeTotalMS / categorias.reduce((a,c) => a + c.quantidade_cabecas, 0)) || 1))} cabeças.
                         </p>
                       </div>
@@ -354,7 +354,7 @@ export default function SimuladorForrageiroPage() {
                     </div>
                     <div className="flex justify-between py-2 font-bold text-lg pt-4">
                       <span>Saldo Final</span>
-                      <span className={resultados.saldo >= 0 ? 'text-green-600 dark:text-primary' : 'text-rose-600'}>
+                      <span className={resultados.saldo >= 0 ? 'text-primary dark:text-primary' : 'text-destructive'}>
                         {resultados.saldo.toFixed(1)} ton MS
                       </span>
                     </div>

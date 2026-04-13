@@ -192,9 +192,9 @@ export default function DashboardPage() {
       detail: stats?.silosDetalhe ?? '—',
       icon: Database,
       iconLabel: 'Ícone de silo',
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
-      borderColor: 'border-l-amber-500',
+      color: 'text-secondary',
+      bg: 'bg-secondary/10',
+      borderColor: 'border-l-secondary',
       href: '/dashboard/silos',
     },
     {
@@ -203,9 +203,9 @@ export default function DashboardPage() {
       detail: talhoesDetail(stats),
       icon: Map,
       iconLabel: 'Ícone de talhões',
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
-      borderColor: 'border-l-emerald-500',
+      color: 'text-[#10B981]',
+      bg: 'bg-[#10B981]/10',
+      borderColor: 'border-l-[#10B981]',
       href: '/dashboard/talhoes',
     },
     {
@@ -214,9 +214,9 @@ export default function DashboardPage() {
       detail: stats?.maquinasDetalhe ?? '—',
       icon: Truck,
       iconLabel: 'Ícone de frota',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
-      borderColor: 'border-l-blue-500',
+      color: 'text-[#0284C7]',
+      bg: 'bg-[#0284C7]/10',
+      borderColor: 'border-l-[#0284C7]',
       href: '/dashboard/frota',
     },
     {
@@ -225,9 +225,9 @@ export default function DashboardPage() {
       detail: 'Mês atual',
       icon: DollarSign,
       iconLabel: 'Ícone financeiro',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
-      borderColor: 'border-l-green-500',
+      color: 'text-primary',
+      bg: 'bg-primary/10',
+      borderColor: 'border-l-primary',
       href: '/dashboard/financeiro',
     },
   ];
@@ -239,7 +239,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-foreground tracking-tight">
-            {greeting}, <span className="text-green-700 dark:text-primary">{userName}</span>!
+            {greeting}, <span className="text-primary">{userName}</span>!
           </h1>
           <p className="text-gray-500 dark:text-muted-foreground mt-2 text-base">
             Aqui está o resumo da sua propriedade hoje.
@@ -250,7 +250,7 @@ export default function DashboardPage() {
           className="flex items-center gap-3 bg-white/80 dark:bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-2xl shadow-sm border border-gray-100 dark:border-border"
           aria-label={`Data de hoje: ${today}`}
         >
-          <Calendar className="w-5 h-5 text-green-600 dark:text-primary" aria-hidden="true" />
+          <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
           <span className="text-sm font-semibold text-gray-700">
             {today}
           </span>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
             <button
               key={stat.title}
               onClick={() => router.push(stat.href)}
-              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-sidebar rounded-2xl"
+              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-sidebar rounded-2xl"
               aria-label={`${stat.title}: ${stat.value}. Clique para ver detalhes.`}
             >
               <Card
@@ -304,7 +304,7 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between mt-1">
                         <p className="text-xs text-gray-500">{stat.detail}</p>
                         <ChevronRight
-                          className="w-4 h-4 text-gray-300 group-hover:text-green-500 group-hover:translate-x-0.5 transition-all"
+                          className="w-4 h-4 text-gray-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all"
                           aria-hidden="true"
                         />
                       </div>
@@ -330,11 +330,11 @@ export default function DashboardPage() {
               id="atividades-heading"
               className="text-xl font-bold text-gray-900 dark:text-foreground flex items-center gap-2"
             >
-              <TrendingUp className="w-5 h-5 text-green-600 dark:text-primary" aria-hidden="true" />
+              <TrendingUp className="w-5 h-5 text-primary" aria-hidden="true" />
               Atividades Recentes
             </h2>
             <button
-              className="text-sm font-semibold text-green-600 dark:text-primary hover:text-green-700 dark:hover:text-primary/90 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:focus-visible:ring-primary rounded px-2 py-1 transition-colors"
+              className="text-sm font-semibold text-primary hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1 transition-colors"
               aria-label="Ver todas as atividades recentes"
             >
               Ver tudo
@@ -360,7 +360,7 @@ export default function DashboardPage() {
             id="alertas-heading"
             className="text-xl font-bold text-gray-900 dark:text-foreground flex items-center gap-2"
           >
-            <AlertTriangle className="w-5 h-5 text-amber-500" aria-hidden="true" />
+            <AlertTriangle className="w-5 h-5 text-secondary" aria-hidden="true" />
             Alertas Críticos
           </h2>
 
@@ -371,10 +371,10 @@ export default function DashboardPage() {
               aria-label="Nenhum alerta crítico: tudo em ordem"
             >
               <div
-                className="w-14 h-14 bg-green-50 dark:bg-muted rounded-full flex items-center justify-center mb-4"
+                className="w-14 h-14 bg-primary/10 dark:bg-muted rounded-full flex items-center justify-center mb-4"
                 aria-hidden="true"
               >
-                <CheckCircle2 className="w-7 h-7 text-green-600 dark:text-primary" aria-hidden="true" />
+                <CheckCircle2 className="w-7 h-7 text-primary" aria-hidden="true" />
               </div>
               <p className="font-bold text-gray-900 dark:text-foreground mb-1">Tudo em ordem!</p>
               <p className="text-xs text-gray-500 dark:text-muted-foreground leading-relaxed">

@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
@@ -18,8 +19,26 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const isOnboardingPage = pathname === '/dashboard/onboarding';
+
+  // Sincronizar estado da sidebar com localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'sidebar-collapsed') {
+        setSidebarCollapsed(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Inicializar com valor armazenado
+    const stored = localStorage.getItem('sidebar-collapsed');
+    setSidebarCollapsed(stored === 'true');
+
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Timeout de 5s se loading permanecer true
   useEffect(() => {
@@ -70,16 +89,16 @@ export default function DashboardLayout({
     return (
       <div className="h-screen flex items-center justify-center" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 dark:border-primary" aria-hidden="true" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true" />
           <span className="sr-only">Carregando...</span>
           {loadingTimeout && (
             <div className="text-center">
-              <p className="text-red-600 dark:text-red-400 text-sm font-medium mb-2">
+              <p className="text-destructive text-sm font-medium mb-2">
                 Tempo limite ao carregar. Verifique sua conexão.
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="text-sm text-green-600 dark:text-primary hover:underline font-medium"
+                className="text-sm text-primary hover:underline font-medium"
               >
                 Voltar ao login
               </button>
@@ -104,12 +123,17 @@ export default function DashboardLayout({
     <div className="h-screen relative overflow-hidden">
       <nav
         aria-label="Menu principal"
-        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80 border-r border-green-100 dark:border-sidebar-border transition-all duration-300 ease-in-out"
+        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80 border-r border-border dark:border-sidebar-border transition-all duration-300 ease-in-out"
       >
         <Sidebar />
       </nav>
 
-      <main className="md:pl-72 h-full overflow-y-auto flex flex-col">
+      <main
+        className={cn(
+          "h-full overflow-y-auto flex flex-col transition-all duration-300 ease-in-out",
+          sidebarCollapsed ? "md:pl-16" : "md:pl-72"
+        )}
+      >
         <header role="banner">
           <Header />
         </header>

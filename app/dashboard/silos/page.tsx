@@ -550,7 +550,7 @@ export default function SilosPage() {
                           }
                           className={
                             diasRestantes < 60 && diasRestantes >= 30
-                              ? 'bg-amber-500 text-white border-none'
+                              ? 'bg-secondary/100 text-white border-none'
                               : ''
                           }
                           aria-label={`Estoque suficiente para ${diasRestantes} dias`}
@@ -567,11 +567,11 @@ export default function SilosPage() {
 
                     {custos[silo.id] && (
                       <div className="flex items-center justify-between pt-2 border-t">
-                        <div className="flex items-center gap-1 text-xs font-bold text-green-700 dark:text-primary">
+                        <div className="flex items-center gap-1 text-xs font-bold text-primary dark:text-primary">
                           <DollarSign className="w-3 h-3" aria-hidden="true" />
                           Custo Produção:
                         </div>
-                        <span className="text-xs font-black text-green-700 dark:text-primary">
+                        <span className="text-xs font-black text-primary dark:text-primary">
                           R${' '}
                           {custos[silo.id]?.custoPorTonelada.toLocaleString('pt-BR', {
                             minimumFractionDigits: 2,
@@ -642,20 +642,20 @@ export default function SilosPage() {
                     <div className="flex items-center gap-2">
                       {mov.tipo === 'Entrada' ? (
                         <ArrowDownRight
-                          className="h-4 w-4 text-green-500 dark:text-primary"
+                          className="h-4 w-4 text-primary dark:text-primary"
                           aria-hidden="true"
                         />
                       ) : (
                         <ArrowUpRight
-                          className="h-4 w-4 text-amber-500 dark:text-amber-400"
+                          className="h-4 w-4 text-secondary dark:text-secondary"
                           aria-hidden="true"
                         />
                       )}
                       <span
                         className={
                           mov.tipo === 'Entrada'
-                            ? 'text-green-600 dark:text-primary font-medium'
-                            : 'text-amber-600 dark:text-amber-400 font-medium'
+                            ? 'text-primary dark:text-primary font-medium'
+                            : 'text-secondary dark:text-secondary font-medium'
                         }
                       >
                         {mov.tipo}

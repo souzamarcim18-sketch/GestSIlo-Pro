@@ -20,10 +20,10 @@ export function SyncStatusBar() {
         exit={{ y: 50, opacity: 0 }}
         className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-md
           ${!isOnline
-            ? 'bg-red-500/90 border-white/20 text-white'
+            ? 'bg-destructive/90 border-white/20 text-white'
             : isSyncing
-              ? 'bg-amber-500/90 border-white/20 text-white'
-              : 'bg-green-500/90 border-white/20 text-white'
+              ? 'bg-secondary/90 border-white/20 text-white'
+              : 'bg-primary/90 border-white/20 text-white'
           }
         `}
       >

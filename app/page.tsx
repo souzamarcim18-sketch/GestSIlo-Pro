@@ -46,16 +46,16 @@ export default function LandingPage() {
           </div>
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-muted-foreground">
-            <a href="#funcionalidades" className="hover:text-green-600 dark:hover:text-primary transition-colors">Funcionalidades</a>
-            <a href="#beneficios" className="hover:text-green-600 dark:hover:text-primary transition-colors">Benefícios</a>
-            <a href="#depoimentos" className="hover:text-green-600 dark:hover:text-primary transition-colors">Depoimentos</a>
-            <a href="#planos" className="hover:text-green-600 dark:hover:text-primary transition-colors">Planos</a>
+            <a href="#funcionalidades" className="hover:text-primary transition-colors">Funcionalidades</a>
+            <a href="#beneficios" className="hover:text-primary transition-colors">Benefícios</a>
+            <a href="#depoimentos" className="hover:text-primary transition-colors">Depoimentos</a>
+            <a href="#planos" className="hover:text-primary transition-colors">Planos</a>
           </nav>
 
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => router.push('/login')}
-              className="hidden md:block text-sm font-semibold text-gray-600 dark:text-muted-foreground hover:text-green-600 dark:hover:text-primary transition-colors"
+              className="hidden md:block text-sm font-semibold text-gray-600 dark:text-muted-foreground hover:text-primary transition-colors"
             >
               Entrar
             </button>
@@ -231,7 +231,7 @@ export default function LandingPage() {
       >
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-green-600 mb-4 block">
+            <span className="text-xs font-bold uppercase tracking-widest text-primary mb-4 block">
               Por que o GestSilo?
             </span>
             <h2 className="text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
@@ -273,14 +273,14 @@ export default function LandingPage() {
                   { label: 'Economia gerada', value: 'R$ 120k', unit: 'este ano' },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-white bg-opacity-15 rounded-2xl p-4 backdrop-blur-sm">
-                    <p className="text-green-100 text-xs font-medium mb-1">{stat.label}</p>
+                    <p className="text-primary/20 text-xs font-medium mb-1">{stat.label}</p>
                     <p className="text-white text-2xl font-extrabold">{stat.value}</p>
-                    <p className="text-green-200 text-xs">{stat.unit}</p>
+                    <p className="text-white/80 text-xs">{stat.unit}</p>
                   </div>
                 ))}
               </div>
               <div className="mt-6 bg-white bg-opacity-10 rounded-2xl p-4">
-                <p className="text-green-100 text-xs font-medium mb-2">Produtividade do mês</p>
+                <p className="text-primary/20 text-xs font-medium mb-2">Produtividade do mês</p>
                 <div className="flex items-end gap-1 h-12">
                   {[40, 65, 55, 80, 70, 90, 85].map((h, i) => (
                     <div
@@ -292,7 +292,7 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-4 py-2 rounded-full shadow-lg">
+            <div className="absolute -top-4 -right-4 bg-[--status-warning]/10 text-[--status-warning] text-xs font-bold px-4 py-2 rounded-full shadow-lg">
               🏆 #1 no agro
             </div>
           </div>
@@ -330,7 +330,7 @@ export default function LandingPage() {
               <div key={dep.name} className="bg-gray-50 dark:bg-muted rounded-2xl p-6 border border-gray-100 dark:border-border hover:shadow-md transition-shadow">
                 <div className="flex gap-1 mb-4">
                   {[1,2,3,4,5].map((i) => (
-                    <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={i} className="w-4 h-4 text-[--status-warning]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   ))}
@@ -399,31 +399,31 @@ export default function LandingPage() {
                 key={plan.name}
                 className={`rounded-2xl p-8 border-2 relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl dark:bg-card dark:border-border ${
                   plan.highlight
-                    ? 'border-green-500 shadow-2xl scale-105 dark:border-primary'
+                    ? 'border-primary shadow-2xl scale-105 dark:border-primary'
                     : 'border-gray-100 bg-white'
                 }`}
                 style={plan.highlight ? { background: 'linear-gradient(145deg, #00A651, #00843D)', color: 'white' } : {}}
               >
                 {plan.highlight && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-4 py-1.5 rounded-full shadow">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[--status-warning]/10 text-[--status-warning] text-xs font-bold px-4 py-1.5 rounded-full shadow">
                     ⭐ Mais popular
                   </div>
                 )}
                 <h3 className={`font-bold text-xl mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-foreground'}`}>{plan.name}</h3>
-                <p className={`text-sm mb-4 ${plan.highlight ? 'text-green-100' : 'text-gray-400 dark:text-muted-foreground'}`}>{plan.desc}</p>
+                <p className={`text-sm mb-4 ${plan.highlight ? 'text-primary/20' : 'text-gray-400 dark:text-muted-foreground'}`}>{plan.desc}</p>
                 <div className="mb-6">
                   <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-foreground'}`}>{plan.price}</span>
                   {plan.period && (
-                    <span className={`text-sm ml-1 ${plan.highlight ? 'text-green-200' : 'text-gray-400 dark:text-muted-foreground'}`}>{plan.period}</span>
+                    <span className={`text-sm ml-1 ${plan.highlight ? 'text-white/80' : 'text-gray-400 dark:text-muted-foreground'}`}>{plan.period}</span>
                   )}
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-sm">
-                      <svg className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-green-200' : 'text-green-500 dark:text-primary'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-white/80' : 'text-primary dark:text-primary'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
                       </svg>
-                      <span className={plan.highlight ? 'text-green-50' : 'text-gray-600 dark:text-muted-foreground'}>{f}</span>
+                      <span className={plan.highlight ? 'text-white/80' : 'text-gray-600 dark:text-muted-foreground'}>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -431,7 +431,7 @@ export default function LandingPage() {
                   onClick={() => router.push('/register')}
                   className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 ${
                     plan.highlight
-                      ? 'bg-white text-green-700 hover:bg-green-50'
+                      ? 'bg-white text-primary hover:bg-white/80'
                       : 'text-white hover:opacity-90'
                   }`}
                   style={!plan.highlight ? { background: 'linear-gradient(135deg, #00A651, #00843D)' } : {}}
@@ -453,7 +453,7 @@ export default function LandingPage() {
           <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
             Pronto para transformar<br />sua gestão agrícola?
           </h2>
-          <p className="text-green-100 text-lg mb-10">
+          <p className="text-primary/20 text-lg mb-10">
             Junte-se a mais de 500 produtores que já gerenciam suas fazendas com mais eficiência e controle.
           </p>
           <button
@@ -463,7 +463,7 @@ export default function LandingPage() {
           >
             Começar agora — é grátis →
           </button>
-          <p className="text-green-200 text-sm mt-4">Sem cartão de crédito. Sem compromisso.</p>
+          <p className="text-white/80 text-sm mt-4">Sem cartão de crédito. Sem compromisso.</p>
         </div>
       </section>
 
