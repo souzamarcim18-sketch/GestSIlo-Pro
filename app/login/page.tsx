@@ -95,7 +95,7 @@ export default function LoginPage() {
       <button
         onClick={() => router.push('/')}
         aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm cursor-pointer"
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted hover:text-green-600 dark:hover:text-primary transition-all shadow-sm cursor-pointer"
       >
         <Home className="w-4 h-4" aria-hidden="true" />
         <span>Voltar ao Início</span>
@@ -103,8 +103,7 @@ export default function LoginPage() {
 
       {/* ===== LADO ESQUERDO — Hero ===== */}
       <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-16 overflow-hidden"
-        style={{ background: '#e8f5e9' }}
+        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-16 overflow-hidden bg-green-50 dark:bg-background"
         aria-hidden="true"
       >
         {/* Padrão geométrico decorativo */}
@@ -130,27 +129,27 @@ export default function LoginPage() {
           />
           <div aria-hidden="true">
             <p className="font-black text-4xl tracking-tight">
-              <span style={{ color: '#00A651' }}>Gest</span>
-              <span style={{ color: '#6B8E23' }}>Silo</span>
+              <span className="text-green-600 dark:text-primary">Gest</span>
+              <span className="text-green-700 dark:text-primary">Silo</span>
             </p>
           </div>
         </div>
 
         <div className="relative z-10 flex-1 flex flex-col justify-center py-16">
           <div className="mb-8">
-            <p className="text-5xl xl:text-6xl font-extrabold text-gray-900 leading-tight mb-8">
+            <p className="text-5xl xl:text-6xl font-extrabold text-gray-900 dark:text-foreground leading-tight mb-8">
               Sua fazenda<br />
               no próximo<br />
-              <span style={{ color: '#00A651' }}>nível</span>
+              <span className="text-green-600 dark:text-primary">nível</span>
             </p>
-            <p className="text-gray-600 text-xl leading-relaxed max-w-md">
+            <p className="text-gray-600 dark:text-muted-foreground text-xl leading-relaxed max-w-md">
               Controle silos, talhões, frota, insumos e financeiro em um único lugar. Do campo ao escritório.
             </p>
           </div>
         </div>
 
         <div className="relative z-10">
-          <p className="text-gray-500 text-sm font-medium">
+          <p className="text-gray-500 dark:text-muted-foreground text-sm font-medium">
             © 2026 GestSilo · Tecnologia para o produtor brasileiro
           </p>
         </div>
@@ -159,11 +158,11 @@ export default function LoginPage() {
       {/* ===== LADO DIREITO — Formulário ===== */}
       <main
         id="main-content"
-        className="w-full lg:w-1/2 flex flex-col items-center justify-center px-8 sm:px-16 xl:px-24 bg-gray-50 min-h-screen"
+        className="w-full lg:w-1/2 flex flex-col items-center justify-center px-8 sm:px-16 xl:px-24 bg-gray-50 dark:bg-background min-h-screen"
       >
         {/* Logo mobile */}
         <div className="lg:hidden flex items-center gap-3 mb-10" aria-hidden="true">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg p-2 bg-white">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg p-2 bg-white dark:bg-card">
             <Image
               src="/logo.png?v=2"
               alt=""
@@ -174,17 +173,17 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <span className="font-bold text-xl" style={{ color: '#00A651' }}>Gest</span>
-            <span className="font-bold text-xl" style={{ color: '#6B8E23' }}>Silo</span>
+            <span className="font-bold text-xl text-green-600 dark:text-primary">Gest</span>
+            <span className="font-bold text-xl text-green-700 dark:text-primary">Silo</span>
           </div>
         </div>
 
         <div className="w-full max-w-md">
           <div className="mb-10">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-2">
               Bem-vindo de volta 👋
             </h1>
-            <p className="text-gray-600 text-base">
+            <p className="text-gray-600 dark:text-muted-foreground text-base">
               Acesse sua conta para gerenciar sua propriedade
             </p>
           </div>
@@ -195,14 +194,14 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-semibold text-gray-700 mb-2"
+                className="block text-sm font-semibold text-gray-700 dark:text-foreground mb-2"
               >
                 E-mail
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-gray-400 dark:text-muted-foreground"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -221,7 +220,7 @@ export default function LoginPage() {
                   required
                   autoComplete="email"
                   aria-describedby={error ? 'form-error' : undefined}
-                  className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all text-base shadow-sm"
+                  className="w-full pl-12 pr-4 py-4 bg-white dark:bg-muted/30 border border-gray-200 dark:border-border rounded-xl text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-muted-foreground focus:outline-none transition-all text-base shadow-sm"
                   onFocus={(e) => (e.target.style.boxShadow = '0 0 0 3px rgba(0,166,81,0.15)')}
                   onBlur={(e) => (e.target.style.boxShadow = '')}
                 />
@@ -233,16 +232,13 @@ export default function LoginPage() {
               <div className="flex items-center justify-between mb-2">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-semibold text-gray-700"
+                  className="block text-sm font-semibold text-gray-700 dark:text-foreground"
                 >
                   Senha
                 </label>
                 <a
                   href="/forgot-password"
-                  className="text-sm font-medium transition-colors"
-                  style={{ color: '#00A651' }}
-                  onMouseOver={(e) => (e.currentTarget.style.color = '#00843D')}
-                  onMouseOut={(e) => (e.currentTarget.style.color = '#00A651')}
+                  className="text-sm font-medium text-green-600 dark:text-primary hover:text-green-700 dark:hover:text-primary/80 transition-colors"
                 >
                   Esqueceu a senha?
                 </a>
@@ -250,7 +246,7 @@ export default function LoginPage() {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-gray-400 dark:text-muted-foreground"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -269,7 +265,7 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   aria-describedby={error ? 'form-error' : undefined}
-                  className="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all text-base shadow-sm"
+                  className="w-full pl-12 pr-12 py-4 bg-white dark:bg-muted/30 border border-gray-200 dark:border-border rounded-xl text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-muted-foreground focus:outline-none transition-all text-base shadow-sm"
                   onFocus={(e) => (e.target.style.boxShadow = '0 0 0 3px rgba(0,166,81,0.15)')}
                   onBlur={(e) => (e.target.style.boxShadow = '')}
                 />
@@ -278,7 +274,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   aria-pressed={showPassword}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 dark:text-muted-foreground hover:text-gray-600 dark:hover:text-foreground transition-colors"
                 >
                   {showPassword ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -300,10 +296,10 @@ export default function LoginPage() {
                 id="form-error"
                 role="alert"
                 aria-live="assertive"
-                className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl"
+                className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl"
               >
                 <svg
-                  className="w-5 h-5 text-red-500 flex-shrink-0"
+                  className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -313,11 +309,11 @@ export default function LoginPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div className="flex-1">
-                  <p className="text-red-700 text-sm font-medium">
+                  <p className="text-red-700 dark:text-red-400 text-sm font-medium">
                     {error || profileError || (timeout && 'Tempo limite ao carregar seu perfil. Tente fazer login novamente.')}
                   </p>
                   {(profileError || timeout) && (
-                    <p className="text-red-600 text-xs mt-1">
+                    <p className="text-red-600 dark:text-red-300 text-xs mt-1">
                       Contate o suporte se o problema persistir.
                     </p>
                   )}
@@ -365,21 +361,18 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-8" aria-hidden="true">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-gray-500 text-sm">ou</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-px bg-gray-200 dark:bg-border/50" />
+            <span className="text-gray-500 dark:text-muted-foreground text-sm">ou</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-border/50" />
           </div>
 
           {/* Cadastro */}
           <div className="text-center">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 dark:text-muted-foreground text-sm">
               Ainda não tem uma conta?{' '}
               <a
                 href="/register"
-                className="font-semibold transition-colors"
-                style={{ color: '#00A651' }}
-                onMouseOver={(e) => (e.currentTarget.style.color = '#00843D')}
-                onMouseOut={(e) => (e.currentTarget.style.color = '#00A651')}
+                className="font-semibold text-green-600 dark:text-primary hover:text-green-700 dark:hover:text-primary/80 transition-colors"
               >
                 Solicite seu acesso →
               </a>
@@ -388,13 +381,13 @@ export default function LoginPage() {
 
           {/* Footer */}
           <footer className="mt-12 text-center">
-            <p className="text-gray-500 text-xs">© 2026 GestSilo · Todos os direitos reservados</p>
+            <p className="text-gray-500 dark:text-muted-foreground text-xs">© 2026 GestSilo · Todos os direitos reservados</p>
             <nav aria-label="Links institucionais" className="flex items-center justify-center gap-4 mt-2">
-              <a href="/privacidade" className="text-gray-500 text-xs hover:text-gray-700 transition-colors">Privacidade</a>
-              <span aria-hidden="true" className="text-gray-300">·</span>
-              <a href="/termos" className="text-gray-500 text-xs hover:text-gray-700 transition-colors">Termos de uso</a>
-              <span aria-hidden="true" className="text-gray-300">·</span>
-              <a href="/suporte" className="text-gray-500 text-xs hover:text-gray-700 transition-colors">Suporte</a>
+              <a href="/privacidade" className="text-gray-500 dark:text-muted-foreground text-xs hover:text-gray-700 dark:hover:text-foreground transition-colors">Privacidade</a>
+              <span aria-hidden="true" className="text-gray-300 dark:text-border">·</span>
+              <a href="/termos" className="text-gray-500 dark:text-muted-foreground text-xs hover:text-gray-700 dark:hover:text-foreground transition-colors">Termos de uso</a>
+              <span aria-hidden="true" className="text-gray-300 dark:text-border">·</span>
+              <a href="/suporte" className="text-gray-500 dark:text-muted-foreground text-xs hover:text-gray-700 dark:hover:text-foreground transition-colors">Suporte</a>
             </nav>
           </footer>
 

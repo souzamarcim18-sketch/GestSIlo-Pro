@@ -94,8 +94,7 @@ export default function RegisterPage() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen p-4 relative"
-      style={{ background: '#e8f5e9' }}
+      className="flex items-center justify-center min-h-screen p-4 relative bg-green-50 dark:bg-background"
     >
       {/* Padrão geométrico decorativo */}
       <div
@@ -122,7 +121,7 @@ export default function RegisterPage() {
       <button
         onClick={() => router.push('/')}
         aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm cursor-pointer"
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted hover:text-green-600 dark:hover:text-primary transition-all shadow-sm cursor-pointer"
       >
         <Home className="w-4 h-4" aria-hidden="true" />
         <span>Voltar ao Início</span>
@@ -146,18 +145,18 @@ export default function RegisterPage() {
             />
             <div>
               <p className="font-black text-3xl tracking-tight">
-                <span style={{ color: '#00A651' }}>Gest</span>
-                <span style={{ color: '#6B8E23' }}>Silo</span>
+                <span className="text-green-600 dark:text-primary">Gest</span>
+                <span className="text-green-700 dark:text-primary">Silo</span>
               </p>
             </div>
           </div>
         </div>
 
-        <Card>
+        <Card className="dark:bg-card dark:border-border">
           <CardHeader>
             {/* h1 único da página — CardTitle renderiza como h3 por padrão no shadcn */}
-            <h1 className="text-2xl font-bold text-gray-900">Criar Conta</h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-foreground">Criar Conta</h1>
+            <p className="text-sm text-gray-600 dark:text-muted-foreground mt-1">
               Cadastre-se para começar a gerenciar sua fazenda.
             </p>
           </CardHeader>
@@ -226,7 +225,7 @@ export default function RegisterPage() {
                     <SelectItem value="Operador">Operador</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                   Administrador: acesso completo ao dashboard.
                   Operador: acesso restrito à tela de operações.
                 </p>
@@ -244,11 +243,11 @@ export default function RegisterPage() {
                 {loading ? 'Cadastrando...' : 'Cadastrar'}
               </Button>
 
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-gray-600 dark:text-muted-foreground">
                 Já tem uma conta?{' '}
                 <Link
                   href="/login"
-                  className="text-primary hover:underline font-medium"
+                  className="text-primary dark:text-primary hover:underline font-medium"
                 >
                   Entre aqui
                 </Link>

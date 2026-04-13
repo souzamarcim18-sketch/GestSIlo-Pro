@@ -311,14 +311,14 @@ export default function PlanejadorRebanhoPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Status do Estoque
-                {calculos.saldo < 0 ? <AlertTriangle className="text-red-500" /> : <CheckCircle2 className="text-green-500" />}
+                {calculos.saldo < 0 ? <AlertTriangle className="text-red-500 dark:text-destructive" /> : <CheckCircle2 className="text-green-500 dark:text-primary" />}
               </CardTitle>
               <CardDescription>Análise para o período {selectedPeriodo?.nome}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center py-4">
                 <p className="text-sm text-muted-foreground uppercase font-bold">Saldo de Matéria Seca</p>
-                <p className={`text-4xl font-black ${calculos.saldo < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                <p className={`text-4xl font-black ${calculos.saldo < 0 ? 'text-red-500' : 'text-green-600 dark:text-primary'}`}>
                   {calculos.saldo.toFixed(1)} ton MS
                 </p>
               </div>

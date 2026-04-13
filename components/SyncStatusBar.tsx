@@ -18,16 +18,14 @@ export function SyncStatusBar() {
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 50, opacity: 0 }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-md"
-        style={{
-          backgroundColor: !isOnline 
-            ? 'rgba(239, 68, 68, 0.9)' // Vermelho (Offline)
-            : isSyncing 
-              ? 'rgba(245, 158, 11, 0.9)' // Amarelo (Sincronizando)
-              : 'rgba(16, 185, 129, 0.9)', // Verde (Pendente mas Online)
-          borderColor: 'rgba(255, 255, 255, 0.2)',
-          color: 'white',
-        }}
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-md
+          ${!isOnline
+            ? 'bg-red-500/90 border-white/20 text-white'
+            : isSyncing
+              ? 'bg-amber-500/90 border-white/20 text-white'
+              : 'bg-green-500/90 border-white/20 text-white'
+          }
+        `}
       >
         {!isOnline ? (
           <>

@@ -32,39 +32,39 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background px-4">
       <button
         onClick={() => router.push('/')}
         aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm"
+        className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl text-sm font-medium text-gray-600 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted hover:text-green-600 dark:hover:text-primary transition-all shadow-sm"
       >
         <Home className="w-4 h-4" aria-hidden="true" />
         <span>Voltar ao Início</span>
       </button>
 
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border p-8">
 
           {/* Back to login */}
           <button
             onClick={() => router.push('/login')}
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+            className="flex items-center gap-2 text-sm text-gray-500 dark:text-muted-foreground hover:text-gray-700 dark:hover:text-foreground mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" aria-hidden="true" />
             Voltar ao login
           </button>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-foreground mb-2">
               Recuperar senha
             </h1>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 dark:text-muted-foreground text-sm">
               Informe seu e-mail e enviaremos um link para redefinir sua senha.
             </p>
           </div>
 
           {sent ? (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+            <div className="p-4 bg-green-50 dark:bg-muted border border-green-200 dark:border-border rounded-xl text-green-700 dark:text-foreground text-sm">
               <p className="font-semibold mb-1">E-mail enviado!</p>
               <p>
                 Verifique sua caixa de entrada em <strong>{email}</strong> e siga
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-sm font-semibold text-gray-700 dark:text-foreground mb-2"
                 >
                   E-mail
                 </label>
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
                   placeholder="seu@email.com"
                   required
                   autoComplete="email"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-base shadow-sm"
+                  className="w-full px-4 py-3 bg-white dark:bg-muted/30 border border-gray-200 dark:border-border rounded-xl text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-muted-foreground focus:outline-none text-base shadow-sm"
                   onFocus={(e) =>
                     (e.target.style.boxShadow = '0 0 0 3px rgba(0,166,81,0.15)')
                   }
@@ -100,16 +100,9 @@ export default function ForgotPasswordPage() {
                 type="submit"
                 disabled={loading || !email.trim()}
                 aria-busy={loading}
-                className="w-full py-3 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                className="w-full py-3 px-6 text-white dark:text-sidebar font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 bg-green-600 dark:bg-primary hover:bg-green-700 dark:hover:bg-primary/90"
                 style={{
-                  background:
-                    loading || !email.trim()
-                      ? '#9CA3AF'
-                      : 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
-                  boxShadow:
-                    loading || !email.trim()
-                      ? 'none'
-                      : '0 4px 20px rgba(0,166,81,0.35)',
+                  opacity: loading || !email.trim() ? 0.6 : 1,
                 }}
               >
                 {loading ? (

@@ -32,10 +32,10 @@ export default function LandingPage() {
   }, [checkAuth]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-sidebar flex flex-col">
 
       {/* ===== NAVBAR ===== */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 dark:bg-sidebar/95 backdrop-blur-md border-b border-gray-100 dark:border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image src="/logo.png?v=2" alt="GestSilo" width={40} height={40} className="rounded-xl shadow-md object-contain" unoptimized />
@@ -45,17 +45,17 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-600">
-            <a href="#funcionalidades" className="hover:text-green-600 transition-colors">Funcionalidades</a>
-            <a href="#beneficios" className="hover:text-green-600 transition-colors">Benefícios</a>
-            <a href="#depoimentos" className="hover:text-green-600 transition-colors">Depoimentos</a>
-            <a href="#planos" className="hover:text-green-600 transition-colors">Planos</a>
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-muted-foreground">
+            <a href="#funcionalidades" className="hover:text-green-600 dark:hover:text-primary transition-colors">Funcionalidades</a>
+            <a href="#beneficios" className="hover:text-green-600 dark:hover:text-primary transition-colors">Benefícios</a>
+            <a href="#depoimentos" className="hover:text-green-600 dark:hover:text-primary transition-colors">Depoimentos</a>
+            <a href="#planos" className="hover:text-green-600 dark:hover:text-primary transition-colors">Planos</a>
           </nav>
 
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => router.push('/login')}
-              className="hidden md:block text-sm font-semibold text-gray-600 hover:text-green-600 transition-colors"
+              className="hidden md:block text-sm font-semibold text-gray-600 dark:text-muted-foreground hover:text-green-600 dark:hover:text-primary transition-colors"
             >
               Entrar
             </button>
@@ -97,7 +97,7 @@ export default function LandingPage() {
               </div>
 
               {/* Título */}
-              <h1 className="text-5xl xl:text-6xl font-extrabold text-gray-900 leading-[1.1] mb-6">
+              <h1 className="text-5xl xl:text-6xl font-extrabold text-gray-900 dark:text-foreground leading-[1.1] mb-6">
                 Planeje, gerencie e<br />
                 maximize a{' '}
                 <span className="relative inline-block" style={{ color: '#00A651' }}>
@@ -121,11 +121,11 @@ export default function LandingPage() {
                   </svg>
                 </span>
                 <br />
-                <span className="text-gray-700">da sua propriedade</span>
+                <span className="text-gray-700 dark:text-foreground/80">da sua propriedade</span>
               </h1>
 
               {/* Subtítulo */}
-              <p className="text-base md:text-[17px] text-gray-500 leading-relaxed mb-8 max-w-xl">
+              <p className="text-base md:text-[17px] text-gray-500 dark:text-muted-foreground leading-relaxed mb-8 max-w-xl">
                 Sua propriedade merece mais do que cadernos e planilhas. Adotar tecnologia nunca foi tão simples.
                 Controle sua silagem, suas lavouras, sua frota e seus insumos em uma plataforma feita para o
                 produtor brasileiro — do campo à gestão, com poucos cliques.
@@ -169,11 +169,11 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FUNCIONALIDADES ===== */}
-      <section id="funcionalidades" className="py-24 bg-white px-6">
+      <section id="funcionalidades" className="py-24 bg-white dark:bg-sidebar px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Tudo que sua fazenda precisa</h2>
-            <p className="text-lg text-gray-500 max-w-xl mx-auto">
+            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-foreground mb-4">Tudo que sua fazenda precisa</h2>
+            <p className="text-lg text-gray-500 dark:text-muted-foreground max-w-xl mx-auto">
               Uma plataforma completa para gestão do campo à administração.
             </p>
           </div>
@@ -211,12 +211,12 @@ export default function LandingPage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="rounded-2xl p-6 border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-default"
+                className="rounded-2xl p-6 border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-default dark:bg-muted dark:border-border"
                 style={{ background: item.color, borderColor: item.border }}
               >
                 <div className="text-4xl mb-4">{item.icon}</div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="font-bold text-gray-900 dark:text-foreground text-lg mb-2">{item.title}</h3>
+                <p className="text-gray-500 dark:text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -300,11 +300,11 @@ export default function LandingPage() {
       </section>
 
       {/* ===== DEPOIMENTOS ===== */}
-      <section id="depoimentos" className="py-24 bg-white px-6">
+      <section id="depoimentos" className="py-24 bg-white dark:bg-sidebar px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4">O que dizem nossos produtores</h2>
-            <p className="text-gray-500">Resultados reais de quem já usa o GestSilo Pro</p>
+            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-foreground mb-4">O que dizem nossos produtores</h2>
+            <p className="text-gray-500 dark:text-muted-foreground">Resultados reais de quem já usa o GestSilo Pro</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -327,7 +327,7 @@ export default function LandingPage() {
                 avatar: 'RF',
               },
             ].map((dep) => (
-              <div key={dep.name} className="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
+              <div key={dep.name} className="bg-gray-50 dark:bg-muted rounded-2xl p-6 border border-gray-100 dark:border-border hover:shadow-md transition-shadow">
                 <div className="flex gap-1 mb-4">
                   {[1,2,3,4,5].map((i) => (
                     <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -335,7 +335,7 @@ export default function LandingPage() {
                     </svg>
                   ))}
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6">&quot;{dep.text}&quot;</p>
+                <p className="text-gray-600 dark:text-muted-foreground text-sm leading-relaxed mb-6">&quot;{dep.text}&quot;</p>
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
@@ -344,8 +344,8 @@ export default function LandingPage() {
                     {dep.avatar}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900 text-sm">{dep.name}</p>
-                    <p className="text-gray-400 text-xs">{dep.role}</p>
+                    <p className="font-bold text-gray-900 dark:text-foreground text-sm">{dep.name}</p>
+                    <p className="text-gray-400 dark:text-muted-foreground/80 text-xs">{dep.role}</p>
                   </div>
                 </div>
               </div>
@@ -362,8 +362,8 @@ export default function LandingPage() {
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Planos para todo tamanho de fazenda</h2>
-            <p className="text-gray-500">Comece grátis e escale conforme crescer</p>
+            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-foreground mb-4">Planos para todo tamanho de fazenda</h2>
+            <p className="text-gray-500 dark:text-muted-foreground">Comece grátis e escale conforme crescer</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -397,9 +397,9 @@ export default function LandingPage() {
             ].map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-2xl p-8 border-2 relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+                className={`rounded-2xl p-8 border-2 relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl dark:bg-card dark:border-border ${
                   plan.highlight
-                    ? 'border-green-500 shadow-2xl scale-105'
+                    ? 'border-green-500 shadow-2xl scale-105 dark:border-primary'
                     : 'border-gray-100 bg-white'
                 }`}
                 style={plan.highlight ? { background: 'linear-gradient(145deg, #00A651, #00843D)', color: 'white' } : {}}
@@ -409,21 +409,21 @@ export default function LandingPage() {
                     ⭐ Mais popular
                   </div>
                 )}
-                <h3 className={`font-bold text-xl mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
-                <p className={`text-sm mb-4 ${plan.highlight ? 'text-green-100' : 'text-gray-400'}`}>{plan.desc}</p>
+                <h3 className={`font-bold text-xl mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-foreground'}`}>{plan.name}</h3>
+                <p className={`text-sm mb-4 ${plan.highlight ? 'text-green-100' : 'text-gray-400 dark:text-muted-foreground'}`}>{plan.desc}</p>
                 <div className="mb-6">
-                  <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>{plan.price}</span>
+                  <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-foreground'}`}>{plan.price}</span>
                   {plan.period && (
-                    <span className={`text-sm ml-1 ${plan.highlight ? 'text-green-200' : 'text-gray-400'}`}>{plan.period}</span>
+                    <span className={`text-sm ml-1 ${plan.highlight ? 'text-green-200' : 'text-gray-400 dark:text-muted-foreground'}`}>{plan.period}</span>
                   )}
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-sm">
-                      <svg className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-green-200' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-green-200' : 'text-green-500 dark:text-primary'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
                       </svg>
-                      <span className={plan.highlight ? 'text-green-50' : 'text-gray-600'}>{f}</span>
+                      <span className={plan.highlight ? 'text-green-50' : 'text-gray-600 dark:text-muted-foreground'}>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -468,17 +468,17 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-gray-900 text-gray-400 py-12 px-6">
+      <footer className="bg-gray-900 dark:bg-background text-gray-400 dark:text-muted-foreground py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <span className="font-bold" style={{ color: '#00A651' }}>Gest</span>
             <span className="font-bold" style={{ color: '#6B8E23' }}>Silo</span>
-            <span className="text-gray-600 ml-2 text-sm">© 2026 · Todos os direitos reservados</span>
+            <span className="text-gray-600 dark:text-muted-foreground/60 ml-2 text-sm">© 2026 · Todos os direitos reservados</span>
           </div>
           <div className="flex items-center gap-6 text-sm">
-            <a href="#" className="hover:text-white transition-colors">Privacidade</a>
-            <a href="#" className="hover:text-white transition-colors">Termos de uso</a>
-            <a href="#" className="hover:text-white transition-colors">Suporte</a>
+            <a href="#" className="hover:text-white dark:hover:text-foreground transition-colors">Privacidade</a>
+            <a href="#" className="hover:text-white dark:hover:text-foreground transition-colors">Termos de uso</a>
+            <a href="#" className="hover:text-white dark:hover:text-foreground transition-colors">Suporte</a>
           </div>
         </div>
       </footer>

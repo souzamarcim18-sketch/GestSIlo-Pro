@@ -101,14 +101,14 @@ export function Header() {
   // ── Render ──────────────────────────────────────────────────────────
   return (
     <header
-      className="flex items-center p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-green-100 dark:border-green-900 sticky top-0 z-40"
+      className="flex items-center p-4 bg-white/80 dark:bg-sidebar/95 backdrop-blur-md border-b border-green-100 dark:border-border sticky top-0 z-40"
       role="toolbar"
       aria-label="Barra superior"
     >
       {/* Menu mobile */}
       <Sheet>
         <SheetTrigger
-          className="inline-flex items-center justify-center rounded-md p-2 md:hidden text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+          className="inline-flex items-center justify-center rounded-md p-2 md:hidden text-gray-600 dark:text-muted-foreground hover:bg-green-50 dark:hover:bg-muted transition-colors"
           aria-label="Abrir menu de navegação"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
@@ -124,7 +124,7 @@ export function Header() {
         {/* Toggle de tema */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-gray-600 dark:text-muted-foreground hover:bg-green-50 dark:hover:bg-muted transition-colors"
             aria-label="Alternar tema"
           >
             {currentIcon}
@@ -136,7 +136,7 @@ export function Header() {
                 onClick={() => setTheme(opt.value)}
                 className={`flex items-center gap-2 rounded-lg cursor-pointer ${
                   theme === opt.value
-                    ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
+                    ? 'bg-green-50 text-green-700 dark:bg-primary/20 dark:text-primary'
                     : ''
                 }`}
               >
@@ -162,19 +162,19 @@ export function Header() {
         {/* Menu do usuário */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+            className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 dark:hover:bg-muted transition-colors"
             aria-label={`Menu do usuário: ${displayName}`}
           >
-            <Avatar className="h-10 w-10 rounded-2xl border-2 border-white dark:border-gray-700 shadow-sm">
+            <Avatar className="h-10 w-10 rounded-2xl border-2 border-green-100 dark:border-sidebar shadow-sm">
               <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt="" />
-              <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 font-bold rounded-2xl text-sm">
+              <AvatarFallback className="bg-green-100 dark:bg-muted text-green-700 dark:text-primary font-bold rounded-2xl text-sm">
                 {initials}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            className="w-64 mt-2 p-2 rounded-2xl border-green-50 dark:border-green-900 shadow-xl"
+            className="w-64 mt-2 p-2 rounded-2xl border-green-50 dark:border-border shadow-xl"
             align="end"
           >
             <DropdownMenuGroup>
@@ -195,29 +195,29 @@ export function Header() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator className="bg-gray-50 dark:bg-gray-800" />
+            <DropdownMenuSeparator className="bg-gray-50 dark:bg-border/50" />
 
             <div className="p-1">
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-green-950 dark:focus:text-green-400 p-3 cursor-pointer"
+                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-muted dark:focus:text-primary p-3 cursor-pointer"
               >
                 Perfil do Usuário
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-green-950 dark:focus:text-green-400 p-3 cursor-pointer"
+                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-muted dark:focus:text-primary p-3 cursor-pointer"
               >
                 Configurações
               </DropdownMenuItem>
             </div>
 
-            <DropdownMenuSeparator className="bg-gray-50 dark:bg-gray-800" />
+            <DropdownMenuSeparator className="bg-gray-50 dark:bg-border/50" />
 
             <div className="p-1">
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="rounded-xl focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950 dark:focus:text-red-400 p-3 cursor-pointer text-red-500 dark:text-red-400"
+                className="rounded-xl focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950 dark:focus:text-red-300 p-3 cursor-pointer text-red-500 dark:text-red-400"
               >
                 Sair da conta
               </DropdownMenuItem>

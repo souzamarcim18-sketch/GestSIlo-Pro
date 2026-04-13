@@ -155,18 +155,18 @@ export default function CalculadorasPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="text-center">
-                    <p className="text-sm text-green-700 font-bold uppercase">Necessidade de Calagem</p>
-                    <p className="text-4xl font-black text-green-900">
+                    <p className="text-sm text-green-700 dark:text-primary font-bold uppercase">Necessidade de Calagem</p>
+                    <p className="text-4xl font-black text-green-900 dark:text-primary">
                       {resultadoCalagem?.nc.toFixed(2) || '0.00'} <span className="text-lg">t/ha</span>
                     </p>
                   </div>
-                  <div className="bg-white/50 p-4 rounded-xl border border-green-100 text-center">
-                    <p className="text-xs text-green-700 font-bold uppercase">Total para a Área</p>
-                    <p className="text-2xl font-black text-green-900">
+                  <div className="bg-white/50 dark:bg-muted/20 p-4 rounded-xl border border-green-100 dark:border-primary/30 text-center">
+                    <p className="text-xs text-green-700 dark:text-primary font-bold uppercase">Total para a Área</p>
+                    <p className="text-2xl font-black text-green-900 dark:text-primary">
                       {resultadoCalagem?.total.toFixed(1) || '0.0'} <span className="text-sm">toneladas</span>
                     </p>
                   </div>
-                  <Button className="w-full bg-green-700 hover:bg-green-800">
+                  <Button className="w-full bg-green-700 dark:bg-primary hover:bg-green-800 dark:hover:bg-primary/90">
                     <Download className="w-4 h-4 mr-2" />
                     Exportar Laudo PDF
                   </Button>
@@ -253,7 +253,7 @@ export default function CalculadorasPage() {
                       {resultadoNPK?.dosePorHa.toFixed(0) || '0'} <span className="text-lg">kg/ha</span>
                     </p>
                   </div>
-                  <div className="bg-white/50 p-4 rounded-xl border border-blue-100 text-center">
+                  <div className="bg-white/50 dark:bg-muted/20 p-4 rounded-xl border border-blue-100 dark:border-blue-500/30 text-center">
                     <p className="text-xs text-blue-700 font-bold uppercase">Total para a Área</p>
                     <p className="text-2xl font-black text-blue-900">
                       {resultadoNPK?.total.toFixed(2) || '0.00'} <span className="text-sm">toneladas</span>

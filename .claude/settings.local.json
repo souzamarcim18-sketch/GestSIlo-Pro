@@ -13,7 +13,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm install:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(git stash:*)",
+      "Bash(python test_dark_mode.py)",
+      "Bash(python3 test_dark_mode.py)"
     ]
   }
 }

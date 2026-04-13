@@ -70,16 +70,16 @@ export default function DashboardLayout({
     return (
       <div className="h-screen flex items-center justify-center" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" aria-hidden="true" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 dark:border-primary" aria-hidden="true" />
           <span className="sr-only">Carregando...</span>
           {loadingTimeout && (
             <div className="text-center">
-              <p className="text-red-600 text-sm font-medium mb-2">
+              <p className="text-red-600 dark:text-red-400 text-sm font-medium mb-2">
                 Tempo limite ao carregar. Verifique sua conexão.
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="text-sm text-green-600 hover:underline font-medium"
+                className="text-sm text-green-600 dark:text-primary hover:underline font-medium"
               >
                 Voltar ao login
               </button>
@@ -93,7 +93,7 @@ export default function DashboardLayout({
   // Onboarding: layout limpo, sem sidebar/header
   if (needsOnboarding && isOnboardingPage) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-sidebar">
         {children}
       </div>
     );
@@ -104,7 +104,7 @@ export default function DashboardLayout({
     <div className="h-screen relative overflow-hidden">
       <nav
         aria-label="Menu principal"
-        className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-80 border-r border-green-100"
+        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80 border-r border-green-100 dark:border-sidebar-border transition-all duration-300 ease-in-out"
       >
         <Sidebar />
       </nav>

@@ -208,9 +208,9 @@ export default function TalhoesPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Plantado': return <Badge className="bg-green-500 hover:bg-green-600"><Sprout className="w-3 h-3 mr-1" /> Plantado</Badge>;
-      case 'Em preparo': return <Badge className="bg-amber-500 hover:bg-amber-600"><Tractor className="w-3 h-3 mr-1" /> Em preparo</Badge>;
-      case 'Colhido': return <Badge className="bg-blue-500 hover:bg-blue-600"><CheckCircle2 className="w-3 h-3 mr-1" /> Colhido</Badge>;
+      case 'Plantado': return <Badge className="bg-green-500 hover:bg-green-600 dark:bg-primary dark:hover:bg-primary/90"><Sprout className="w-3 h-3 mr-1" /> Plantado</Badge>;
+      case 'Em preparo': return <Badge className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-900/30 dark:hover:bg-amber-900/40 dark:text-amber-400"><Tractor className="w-3 h-3 mr-1" /> Em preparo</Badge>;
+      case 'Colhido': return <Badge className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-900/40 dark:text-blue-400"><CheckCircle2 className="w-3 h-3 mr-1" /> Colhido</Badge>;
       case 'Em pousio': return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" /> Em pousio</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
@@ -224,7 +224,7 @@ export default function TalhoesPage() {
           <Dialog open={isAddAtividadeOpen} onOpenChange={setIsAddAtividadeOpen}>
             <DialogTrigger
               render={
-                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50 dark:border-primary dark:text-primary dark:hover:bg-primary/10">
                   <ClipboardList className="mr-2 h-4 w-4" />
                   Registrar Atividade
                 </Button>
@@ -528,7 +528,7 @@ export default function TalhoesPage() {
         <Card className="col-span-full lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-600" />
+              <DollarSign className="w-5 h-5 text-green-600 dark:text-primary" />
               Custo por Período
             </CardTitle>
             <CardDescription>Calcule os custos vinculados a um talhão.</CardDescription>
@@ -564,9 +564,9 @@ export default function TalhoesPage() {
               )}
             </Button>
             {calculatedCost !== null && (
-              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-100 text-center">
-                <div className="text-xs text-green-700 font-medium uppercase tracking-wider">Custo Total no Período</div>
-                <div className="text-2xl font-bold text-green-900">R$ {calculatedCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <div className="mt-4 p-4 bg-green-50 dark:bg-primary/10 rounded-lg border border-green-100 dark:border-primary/30 text-center">
+                <div className="text-xs text-green-700 dark:text-primary font-medium uppercase tracking-wider">Custo Total no Período</div>
+                <div className="text-2xl font-bold text-green-900 dark:text-primary">R$ {calculatedCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
               </div>
             )}
           </CardContent>
@@ -590,7 +590,7 @@ export default function TalhoesPage() {
                   </div>
                   {talhao.status === 'Plantado' && (
                     <div className="pt-2 border-t">
-                      <div className="flex items-center gap-2 text-xs font-medium text-green-600">
+                      <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-primary">
                         <Sprout className="w-3 h-3" />
                         {ciclos.find(c => c.talhao_id === talhao.id && !c.data_colheita_real)?.cultura} em desenvolvimento
                       </div>
@@ -697,9 +697,9 @@ export default function TalhoesPage() {
                   </TableCell>
                   <TableCell>
                     {ciclo.data_colheita_real ? (
-                      <Badge variant="outline" className="text-green-600 border-green-600">Concluído</Badge>
+                      <Badge variant="outline" className="text-green-600 border-green-600 dark:text-primary dark:border-primary">Concluído</Badge>
                     ) : (
-                      <Badge variant="outline" className="text-amber-600 border-amber-600">Em curso</Badge>
+                      <Badge variant="outline" className="text-amber-600 border-amber-600 dark:text-amber-400 dark:border-amber-400">Em curso</Badge>
                     )}
                   </TableCell>
                 </TableRow>

@@ -233,24 +233,24 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="p-6 md:p-8 space-y-8 min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50/30">
+    <div className="p-6 md:p-8 space-y-8 min-h-screen bg-white dark:bg-gradient-to-br dark:from-sidebar dark:via-sidebar/80 dark:to-muted/30">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-            {greeting}, <span className="text-green-700">{userName}</span>!
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-foreground tracking-tight">
+            {greeting}, <span className="text-green-700 dark:text-primary">{userName}</span>!
           </h1>
-          <p className="text-gray-500 mt-2 text-base">
+          <p className="text-gray-500 dark:text-muted-foreground mt-2 text-base">
             Aqui está o resumo da sua propriedade hoje.
           </p>
         </div>
 
         <div
-          className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-4 py-2.5 rounded-2xl shadow-sm border border-gray-100"
+          className="flex items-center gap-3 bg-white/80 dark:bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-2xl shadow-sm border border-gray-100 dark:border-border"
           aria-label={`Data de hoje: ${today}`}
         >
-          <Calendar className="w-5 h-5 text-green-600" aria-hidden="true" />
+          <Calendar className="w-5 h-5 text-green-600 dark:text-primary" aria-hidden="true" />
           <span className="text-sm font-semibold text-gray-700">
             {today}
           </span>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
             <button
               key={stat.title}
               onClick={() => router.push(stat.href)}
-              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 rounded-2xl"
+              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-sidebar rounded-2xl"
               aria-label={`${stat.title}: ${stat.value}. Clique para ver detalhes.`}
             >
               <Card
@@ -278,10 +278,11 @@ export default function DashboardPage() {
                   transition-all duration-200 ease-out
                   group-hover:shadow-lg group-hover:scale-[1.02] group-hover:-translate-y-0.5
                   cursor-pointer h-full
+                  dark:bg-card dark:border-l-primary/60
                 `}
               >
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <h3 className="text-sm font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground group-hover:text-gray-700 dark:group-hover:text-foreground transition-colors">
                     {stat.title}
                   </h3>
                   <div className={`p-2 rounded-xl ${stat.bg}`} aria-hidden="true">
@@ -297,7 +298,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-foreground">
                         {stat.value}
                       </div>
                       <div className="flex items-center justify-between mt-1">
@@ -327,23 +328,23 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <h2
               id="atividades-heading"
-              className="text-xl font-bold text-gray-900 flex items-center gap-2"
+              className="text-xl font-bold text-gray-900 dark:text-foreground flex items-center gap-2"
             >
-              <TrendingUp className="w-5 h-5 text-green-600" aria-hidden="true" />
+              <TrendingUp className="w-5 h-5 text-green-600 dark:text-primary" aria-hidden="true" />
               Atividades Recentes
             </h2>
             <button
-              className="text-sm font-semibold text-green-600 hover:text-green-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded px-2 py-1 transition-colors"
+              className="text-sm font-semibold text-green-600 dark:text-primary hover:text-green-700 dark:hover:text-primary/90 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:focus-visible:ring-primary rounded px-2 py-1 transition-colors"
               aria-label="Ver todas as atividades recentes"
             >
               Ver tudo
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-10 text-center text-gray-400" role="status" aria-live="polite">
-              <TrendingUp className="w-10 h-10 mx-auto mb-3 text-gray-200" aria-hidden="true" />
-              <p className="text-sm font-medium text-gray-500">
+          <div className="bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border overflow-hidden">
+            <div className="p-10 text-center text-gray-400 dark:text-muted-foreground" role="status" aria-live="polite">
+              <TrendingUp className="w-10 h-10 mx-auto mb-3 text-gray-200 dark:text-border" aria-hidden="true" />
+              <p className="text-sm font-medium text-gray-500 dark:text-muted-foreground">
                 Nenhuma atividade registrada recentemente.
               </p>
               <p className="text-xs text-gray-400 mt-1">
@@ -357,7 +358,7 @@ export default function DashboardPage() {
         <section className="space-y-5" aria-labelledby="alertas-heading">
           <h2
             id="alertas-heading"
-            className="text-xl font-bold text-gray-900 flex items-center gap-2"
+            className="text-xl font-bold text-gray-900 dark:text-foreground flex items-center gap-2"
           >
             <AlertTriangle className="w-5 h-5 text-amber-500" aria-hidden="true" />
             Alertas Críticos
@@ -365,18 +366,18 @@ export default function DashboardPage() {
 
           <div className="space-y-4">
             <div
-              className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center text-center"
+              className="p-6 bg-white dark:bg-card rounded-2xl border border-gray-100 dark:border-border shadow-sm flex flex-col items-center text-center"
               role="status"
               aria-label="Nenhum alerta crítico: tudo em ordem"
             >
               <div
-                className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mb-4"
+                className="w-14 h-14 bg-green-50 dark:bg-muted rounded-full flex items-center justify-center mb-4"
                 aria-hidden="true"
               >
-                <CheckCircle2 className="w-7 h-7 text-green-600" aria-hidden="true" />
+                <CheckCircle2 className="w-7 h-7 text-green-600 dark:text-primary" aria-hidden="true" />
               </div>
-              <p className="font-bold text-gray-900 mb-1">Tudo em ordem!</p>
-              <p className="text-xs text-gray-500 leading-relaxed">
+              <p className="font-bold text-gray-900 dark:text-foreground mb-1">Tudo em ordem!</p>
+              <p className="text-xs text-gray-500 dark:text-muted-foreground leading-relaxed">
                 Não há alertas críticos ou manutenções pendentes para hoje.
               </p>
             </div>
