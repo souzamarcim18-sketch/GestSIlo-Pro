@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/Sidebar';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
@@ -120,8 +121,13 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
+      {/* Breadcrumbs — inline no header, só desktop */}
+      <div className="flex-1 ml-4 hidden md:flex items-center overflow-hidden">
+        <Breadcrumbs />
+      </div>
+
       {/* Área direita */}
-      <div className="flex w-full justify-end items-center gap-x-4">
+      <div className="flex justify-end items-center gap-x-4">
 
         {/* Toggle de tema */}
         <DropdownMenu>
