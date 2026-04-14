@@ -102,7 +102,11 @@ export function MovimentacaoDialog({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger id="mov-silo">
-                      <SelectValue placeholder="Selecione o silo" />
+                      <SelectValue
+                        placeholder="Selecione o silo"
+                      >
+                        {field.value ? silos.find((s) => s.id === field.value)?.nome || field.value : 'Selecione o silo'}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {silos.map((s) => (
