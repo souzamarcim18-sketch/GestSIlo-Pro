@@ -39,7 +39,7 @@ export function VisaoGeralTab({
     <div className="space-y-6">
       {/* Alerta de Silo Legado */}
       {isLegacy && (
-        <Card className="border-amber-200 bg-amber-50">
+        <Card className="rounded-2xl bg-amber-50 shadow-sm border-amber-200">
           <CardContent className="pt-6 flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
@@ -53,7 +53,7 @@ export function VisaoGeralTab({
       )}
 
       {/* 1. Dados do Silo */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <div>
             <CardTitle>Dados do Silo</CardTitle>
@@ -97,7 +97,7 @@ export function VisaoGeralTab({
       </Card>
 
       {/* 2. Rastreabilidade & Custo */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle>Rastreabilidade & Custo</CardTitle>
           <CardDescription>Informações de produção e economia</CardDescription>
@@ -129,7 +129,7 @@ export function VisaoGeralTab({
       </Card>
 
       {/* 3. Datas */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle>Datas Importantes</CardTitle>
           <CardDescription>Ciclos de armazenamento</CardDescription>
@@ -151,7 +151,7 @@ export function VisaoGeralTab({
       </Card>
 
       {/* 4. Insumos */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle>Insumos Utilizados</CardTitle>
           <CardDescription>Materiais consumidos no processo de silagem</CardDescription>
@@ -169,7 +169,7 @@ export function VisaoGeralTab({
       </Card>
 
       {/* 5. Observações */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle>Observações</CardTitle>
           <CardDescription>Anotações e detalhes adicionais</CardDescription>

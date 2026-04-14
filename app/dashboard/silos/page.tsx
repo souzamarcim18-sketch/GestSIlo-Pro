@@ -56,10 +56,11 @@ export default function SilosPage() {
   }, [authLoading, fetchData]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Gestão de Silos</h1>
+    <div className="p-6 md:p-8">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Gestão de Silos</h1>
         <Button onClick={() => setIsAddSiloOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Silo
@@ -91,15 +92,16 @@ export default function SilosPage() {
       </section>
 
 
-      {/* Dialogs */}
-      <SiloForm
-        open={isAddSiloOpen}
-        onOpenChange={setIsAddSiloOpen}
-        mode="create"
-        talhoes={talhoes}
-        insumos={insumos}
-        onSuccess={fetchData}
-      />
+        {/* Dialogs */}
+        <SiloForm
+          open={isAddSiloOpen}
+          onOpenChange={setIsAddSiloOpen}
+          mode="create"
+          talhoes={talhoes}
+          insumos={insumos}
+          onSuccess={fetchData}
+        />
+      </div>
     </div>
   );
 }

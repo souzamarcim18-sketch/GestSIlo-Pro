@@ -468,11 +468,12 @@ export default function FinanceiroPage() {
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <div className="space-y-6">
+    <div className="p-6 md:p-8">
+      <div className="space-y-6">
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Gestão Financeira</h1>
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Gestão Financeira</h1>
 
         <div className="flex flex-wrap gap-2 items-center">
 
@@ -537,7 +538,7 @@ export default function FinanceiroPage() {
         <h2 id="resumo-heading" className="sr-only">Resumo financeiro</h2>
         <div className="grid gap-4 md:grid-cols-3">
 
-          <Card>
+          <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium" id="card-receitas">Total Receitas</CardTitle>
               <TrendingUp className="h-4 w-4 text-primary dark:text-primary" aria-hidden="true" />
@@ -552,7 +553,7 @@ export default function FinanceiroPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium" id="card-despesas">Total Despesas</CardTitle>
               <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />
@@ -567,7 +568,7 @@ export default function FinanceiroPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium" id="card-saldo">Saldo Líquido</CardTitle>
               <Wallet className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -588,7 +589,7 @@ export default function FinanceiroPage() {
       </section>
 
       {/* ── Gráfico ────────────────────────────────────────────────────── */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle id="grafico-titulo">Fluxo de Caixa Mensal</CardTitle>
           <CardDescription>Comparativo de receitas e despesas nos últimos 6 meses.</CardDescription>
@@ -633,7 +634,7 @@ export default function FinanceiroPage() {
       </Card>
 
       {/* ── Tabela de lançamentos ──────────────────────────────────────── */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle id="lancamentos-titulo">Lançamentos</CardTitle>
           <CardDescription aria-live="polite">
@@ -668,7 +669,8 @@ export default function FinanceiroPage() {
 
               return (
                 <TabsContent key={aba} value={aba}>
-                  <Table aria-label={labelMap[aba]}>
+                  <div className="w-full overflow-x-auto">
+                    <Table aria-label={labelMap[aba]}>
                     <TableHeader>
                       <TableRow>
                         <TableHead scope="col">Data</TableHead>
@@ -688,7 +690,8 @@ export default function FinanceiroPage() {
                         : lista.map((l) => <LancamentoRow key={l.id} l={l} />)
                       }
                     </TableBody>
-                  </Table>
+                    </Table>
+                  </div>
                 </TabsContent>
               );
             })}
@@ -725,6 +728,7 @@ export default function FinanceiroPage() {
         </DialogContent>
       </Dialog>
 
+      </div>
     </div>
   );
 }

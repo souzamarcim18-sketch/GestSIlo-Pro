@@ -112,13 +112,15 @@ export default function SiloDetailPage() {
 
   if (!silo) {
     return (
-      <Card className="p-8 flex items-center gap-4">
-        <AlertTriangle className="h-8 w-8 text-destructive" />
-        <div>
-          <h2 className="text-lg font-semibold">Silo não encontrado</h2>
-          <p className="text-sm text-muted-foreground">O silo que você procura não existe.</p>
-        </div>
-      </Card>
+      <div className="p-6 md:p-8">
+          <Card className="rounded-2xl bg-card shadow-sm p-8 flex items-center gap-4">
+          <AlertTriangle className="h-8 w-8 text-destructive" />
+          <div>
+            <h2 className="text-lg font-semibold">Silo não encontrado</h2>
+            <p className="text-sm text-muted-foreground">O silo que você procura não existe.</p>
+          </div>
+        </Card>
+      </div>
     );
   }
 
@@ -133,9 +135,10 @@ export default function SiloDetailPage() {
       : null;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+    <div className="p-6 md:p-8">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <SiloDetailHeader
             silo={silo}
@@ -229,35 +232,36 @@ export default function SiloDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialogs */}
-      <SiloForm
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        mode="edit"
-        silo={silo}
-        talhoes={talhoes}
-        insumos={[]}
-        onSuccess={fetchData}
-      />
-      <MovimentacaoDialog
-        open={isMovOpen}
-        onOpenChange={setIsMovOpen}
-        silos={[silo]}
-        siloId={siloId}
-        onSuccess={fetchData}
-      />
-      <AvaliacaoBromatologicaDialog
-        open={isBromOpen}
-        onOpenChange={setIsBromOpen}
-        siloId={siloId}
-        onSuccess={fetchData}
-      />
-      <AvaliacaoPspsDialog
-        open={isPspsOpen}
-        onOpenChange={setIsPspsOpen}
-        siloId={siloId}
-        onSuccess={fetchData}
-      />
+        {/* Dialogs */}
+        <SiloForm
+          open={isEditOpen}
+          onOpenChange={setIsEditOpen}
+          mode="edit"
+          silo={silo}
+          talhoes={talhoes}
+          insumos={[]}
+          onSuccess={fetchData}
+        />
+        <MovimentacaoDialog
+          open={isMovOpen}
+          onOpenChange={setIsMovOpen}
+          silos={[silo]}
+          siloId={siloId}
+          onSuccess={fetchData}
+        />
+        <AvaliacaoBromatologicaDialog
+          open={isBromOpen}
+          onOpenChange={setIsBromOpen}
+          siloId={siloId}
+          onSuccess={fetchData}
+        />
+        <AvaliacaoPspsDialog
+          open={isPspsOpen}
+          onOpenChange={setIsPspsOpen}
+          siloId={siloId}
+          onSuccess={fetchData}
+        />
+      </div>
     </div>
   );
 }

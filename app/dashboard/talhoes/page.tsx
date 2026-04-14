@@ -217,9 +217,10 @@ export default function TalhoesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Gestão de Talhões</h2>
+    <div className="p-6 md:p-8">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold tracking-tight">Gestão de Talhões</h2>
         <div className="flex gap-2">
           <Dialog open={isAddAtividadeOpen} onOpenChange={setIsAddAtividadeOpen}>
             <DialogTrigger
@@ -525,7 +526,7 @@ export default function TalhoesPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="col-span-full lg:col-span-1">
+        <Card className="col-span-full lg:col-span-1 rounded-2xl bg-card shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-primary dark:text-primary" />
@@ -574,7 +575,7 @@ export default function TalhoesPage() {
 
         <div className="col-span-full lg:col-span-2 grid gap-6 md:grid-cols-2">
           {talhoes.map((talhao) => (
-            <Card key={talhao.id}>
+            <Card key={talhao.id} className="rounded-2xl bg-card shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">{talhao.nome}</CardTitle>
                 <Map className="h-5 w-5 text-muted-foreground" />
@@ -601,7 +602,7 @@ export default function TalhoesPage() {
             </Card>
           ))}
           {talhoes.length === 0 && !loading && (
-            <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
+            <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed rounded-2xl bg-card shadow-sm">
               <Map className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
               <CardTitle className="text-muted-foreground">Nenhum talhão cadastrado</CardTitle>
               <CardDescription>Clique em &quot;Novo Talhão&quot; para começar a gerenciar suas áreas de cultivo.</CardDescription>
@@ -610,7 +611,7 @@ export default function TalhoesPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Histórico de Atividades de Campo</CardTitle>
@@ -622,16 +623,17 @@ export default function TalhoesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Talhão</TableHead>
-                <TableHead>Atividade</TableHead>
-                <TableHead>Custo</TableHead>
-                <TableHead>Observações</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="w-full overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Talhão</TableHead>
+                  <TableHead>Atividade</TableHead>
+                  <TableHead>Custo</TableHead>
+                  <TableHead>Observações</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {atividades.slice(0, 10).map((atv) => (
                 <TableRow key={atv.id}>
@@ -660,28 +662,30 @@ export default function TalhoesPage() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle>Ciclos Agrícolas e Produtividade</CardTitle>
           <CardDescription>Histórico de plantio e colheita por talhão.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Talhão</TableHead>
-                <TableHead>Cultura</TableHead>
-                <TableHead>Plantio</TableHead>
-                <TableHead>Colheita Prevista</TableHead>
-                <TableHead>Colheita Real</TableHead>
-                <TableHead>Produtividade</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="w-full overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Talhão</TableHead>
+                  <TableHead>Cultura</TableHead>
+                  <TableHead>Plantio</TableHead>
+                  <TableHead>Colheita Prevista</TableHead>
+                  <TableHead>Colheita Real</TableHead>
+                  <TableHead>Produtividade</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {ciclos.map((ciclo) => (
                 <TableRow key={ciclo.id}>
@@ -712,9 +716,11 @@ export default function TalhoesPage() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

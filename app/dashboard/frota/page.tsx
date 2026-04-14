@@ -200,11 +200,12 @@ export default function FrotaPage() {
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <div className="space-y-6">
+    <div className="p-6 md:p-8">
+      <div className="space-y-6">
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Frota e Máquinas</h1>
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Frota e Máquinas</h1>
         <div className="flex gap-2">
 
           {/* Dialog: Registrar Manutenção */}
@@ -486,7 +487,7 @@ export default function FrotaPage() {
               .reduce((acc: number, u: UsoMaquina) => acc + (u.km || 0), 0);
 
             return (
-              <Card key={maquina.id} aria-label={`Máquina: ${maquina.nome}`}>
+              <Card key={maquina.id} aria-label={`Máquina: ${maquina.nome}`} className="rounded-2xl bg-card shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xl font-bold">
                     {maquina.nome}
@@ -528,7 +529,7 @@ export default function FrotaPage() {
                     </div>
 
                     {dep && (
-                      <div className="p-3 bg-muted/30 rounded-lg space-y-2">
+                      <div className="p-4 bg-muted/30 rounded-lg space-y-2">
                         <div className="flex justify-between text-xs font-semibold uppercase text-muted-foreground">
                           <span>Valor Atual Estimado</span>
                           <span className="text-[#10B981] dark:text-[#10B981]">
@@ -586,7 +587,7 @@ export default function FrotaPage() {
           {/* Estado vazio */}
           {maquinas.length === 0 && !loading && (
             <Card
-              className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed"
+              className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed rounded-2xl bg-card shadow-sm"
               role="status"
               aria-label="Nenhuma máquina cadastrada"
             >
@@ -615,7 +616,7 @@ export default function FrotaPage() {
 
         {/* Aba: Uso Diário */}
         <TabsContent value="uso" className="mt-4">
-          <Card>
+          <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle id="uso-titulo">Histórico de Uso</CardTitle>
@@ -627,7 +628,8 @@ export default function FrotaPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table aria-labelledby="uso-titulo">
+              <div className="w-full overflow-x-auto">
+                <Table aria-labelledby="uso-titulo">
                 <TableHeader>
                   <TableRow>
                     <TableHead scope="col">Data</TableHead>
@@ -666,21 +668,23 @@ export default function FrotaPage() {
                     </TableRow>
                   )}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Aba: Manutenções */}
         <TabsContent value="manutencao" className="mt-4">
-          <Card>
+          <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader>
               <CardTitle id="man-hist-titulo">Histórico de Manutenções</CardTitle>
               <CardDescription>Serviços realizados e próximos agendamentos.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table aria-labelledby="man-hist-titulo">
-                <TableHeader>
+              <div className="w-full overflow-x-auto">
+                <Table aria-labelledby="man-hist-titulo">
+                  <TableHeader>
                   <TableRow>
                     <TableHead scope="col">Data</TableHead>
                     <TableHead scope="col">Máquina</TableHead>
@@ -728,14 +732,15 @@ export default function FrotaPage() {
                     </TableRow>
                   )}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Aba: Abastecimentos */}
         <TabsContent value="abastecimento" className="mt-4">
-          <Card>
+          <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle id="abast-titulo">Histórico de Abastecimentos</CardTitle>
@@ -747,8 +752,9 @@ export default function FrotaPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table aria-labelledby="abast-titulo">
-                <TableHeader>
+              <div className="w-full overflow-x-auto">
+                <Table aria-labelledby="abast-titulo">
+                  <TableHeader>
                   <TableRow>
                     <TableHead scope="col">Data</TableHead>
                     <TableHead scope="col">Máquina</TableHead>
@@ -786,12 +792,14 @@ export default function FrotaPage() {
                     </TableRow>
                   )}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
+      </div>
     </div>
   );
 }

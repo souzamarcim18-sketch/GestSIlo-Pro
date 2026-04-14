@@ -66,7 +66,7 @@ export function SiloCard({
   return (
     <Card
       onClick={onClick}
-      className={onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}
+      className={`rounded-2xl bg-card shadow-sm !p-6 ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
       role="article"
       aria-label={`Silo ${silo.nome}, ${statusInfo.label}`}
     >

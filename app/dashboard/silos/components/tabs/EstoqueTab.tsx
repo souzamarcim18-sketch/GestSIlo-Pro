@@ -62,9 +62,9 @@ export function EstoqueTab({
   return (
     <div className="space-y-6">
       {/* Resumo de Estoque */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Card: Entradas */}
-        <Card>
+        <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Entradas Totais
@@ -81,7 +81,7 @@ export function EstoqueTab({
         </Card>
 
         {/* Card: Saídas */}
-        <Card>
+        <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Saídas Totais
@@ -98,7 +98,7 @@ export function EstoqueTab({
         </Card>
 
         {/* Card: Estoque Atual */}
-        <Card>
+        <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Estoque Atual
@@ -115,7 +115,7 @@ export function EstoqueTab({
         </Card>
 
         {/* Card: Dias Restantes */}
-        <Card>
+        <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Dias Restantes
@@ -140,7 +140,7 @@ export function EstoqueTab({
 
       {/* Card: Saídas por Tipo (apenas para exemplo) */}
       {Object.keys(saidasPorTipo).length > 0 && (
-        <Card>
+        <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Distribuição de Saídas</CardTitle>
           </CardHeader>
@@ -170,7 +170,7 @@ export function EstoqueTab({
       </div>
 
       {/* Tabela de Histórico de Movimentações */}
-      <Card>
+      <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle>Histórico de Movimentações</CardTitle>
           <CardDescription>

@@ -77,7 +77,7 @@ export function SiloDetailHeader({
           {talhaoNome ? (
             <p>Talhão: <span className="font-medium text-foreground">{talhaoNome}</span></p>
           ) : (
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-md">
               <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-amber-700">
                 <strong>⚠️ Silo legado</strong> — Edite os dados para vincular a um talhão
