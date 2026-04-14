@@ -3,20 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, History, Database, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { Plus, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { type Silo, type MovimentacaoSilo, type Talhao, type Insumo } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
 import { SiloCard } from './components/SiloCard';
 import { SiloForm } from './components/dialogs/SiloForm';
-import { MovimentacaoDialog } from './components/dialogs/MovimentacaoDialog';
 import { calcularDadosSilos, type SiloCardData } from './helpers';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 export default function SilosPage() {
   const router = useRouter();
@@ -28,15 +23,14 @@ export default function SilosPage() {
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
-  const [isAddMovOpen, setIsAddMovOpen] = useState(false);
 
-  // BATCH: Fetch silos + movimentações em 2 chamadas, calcular em memória
+  // BATCH: Fetch apenas silos + talhões + insumos (sem movimentações desnecessárias)
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [silosData, movsData, talhoesData, insumosData] = await Promise.all([
-        q.silos.list(),
-        q.movimentacoesSilo.listBySilos((await q.silos.list()).map((s) => s.id)),
+      const silosData = await q.silos.list();
+      const [movsData, talhoesData, insumosData] = await Promise.all([
+        q.movimentacoesSilo.listBySilos(silosData.map((s) => s.id)),
         q.talhoes.list(),
         q.insumos.list(),
       ]);
@@ -61,24 +55,15 @@ export default function SilosPage() {
     fetchData();
   }, [authLoading, fetchData]);
 
-  // Últimas 20 movimentações
-  const ultimasMovs = movimentacoes.slice(0, 20);
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Gestão de Silos</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsAddMovOpen(true)}>
-            <History className="mr-2 h-4 w-4" />
-            Registrar Movimentação
-          </Button>
-          <Button onClick={() => setIsAddSiloOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Silo
-          </Button>
-        </div>
+        <Button onClick={() => setIsAddSiloOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Silo
+        </Button>
       </div>
 
       {/* Grid de Cards */}
@@ -105,73 +90,6 @@ export default function SilosPage() {
         </div>
       </section>
 
-      {/* Tabela de Movimentações */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Movimentações</CardTitle>
-          <CardDescription>Últimas 20 movimentações</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Silo</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Observação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ultimasMovs.length > 0 ? (
-                  ultimasMovs.map((mov) => (
-                    <TableRow key={mov.id}>
-                      <TableCell className="text-sm">
-                        {format(new Date(mov.data), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {silos.find((s) => s.id === mov.silo_id)?.nome || 'Removido'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {mov.tipo === 'Entrada' ? (
-                            <ArrowDownRight className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <ArrowUpRight className="h-4 w-4 text-amber-500" />
-                          )}
-                          <Badge
-                            variant={mov.tipo === 'Entrada' ? 'secondary' : 'outline'}
-                            className={
-                              mov.tipo === 'Entrada'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-amber-100 text-amber-700'
-                            }
-                          >
-                            {mov.tipo}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-bold">{mov.quantidade.toFixed(1)} t</TableCell>
-                      <TableCell className="text-sm">{mov.responsavel || '-'}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                        {mov.observacao || '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Nenhuma movimentação registrada
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Dialogs */}
       <SiloForm
@@ -180,12 +98,6 @@ export default function SilosPage() {
         mode="create"
         talhoes={talhoes}
         insumos={insumos}
-        onSuccess={fetchData}
-      />
-      <MovimentacaoDialog
-        open={isAddMovOpen}
-        onOpenChange={setIsAddMovOpen}
-        silos={silos}
         onSuccess={fetchData}
       />
     </div>

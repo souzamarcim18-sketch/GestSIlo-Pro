@@ -9,6 +9,7 @@ import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
 import { SiloDetailHeader } from '../components/SiloDetailHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { VisaoGeralTab } from '../components/tabs/VisaoGeralTab';
 import { EstoqueTab } from '../components/tabs/EstoqueTab';
 import { QualidadeTab } from '../components/tabs/QualidadeTab';
@@ -18,7 +19,15 @@ import { AvaliacaoBromatologicaDialog } from '../components/dialogs/AvaliacaoBro
 import { AvaliacaoPspsDialog } from '../components/dialogs/AvaliacaoPspsDialog';
 import { calcularDadosSilos } from '../helpers';
 import { toast } from 'sonner';
-import { AlertTriangle, Loader } from 'lucide-react';
+import { AlertTriangle, Loader, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function SiloDetailPage() {
   const router = useRouter();
@@ -34,6 +43,8 @@ export default function SiloDetailPage() {
   const [isMovOpen, setIsMovOpen] = useState(false);
   const [isBromOpen, setIsBromOpen] = useState(false);
   const [isPspsOpen, setIsPspsOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
 
   // Fetch dados
@@ -70,6 +81,21 @@ export default function SiloDetailPage() {
       setLoading(false);
     }
   }, [siloId, router]);
+
+  const handleDeleteSilo = async () => {
+    if (!silo) return;
+    setIsDeleting(true);
+    try {
+      await q.silos.remove(silo.id);
+      toast.success('Silo deletado com sucesso!');
+      setIsDeleteOpen(false);
+      router.push('/dashboard/silos');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao deletar silo');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -109,13 +135,27 @@ export default function SiloDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <SiloDetailHeader
-        silo={silo}
-        status={status}
-        onBack={() => router.back()}
-        onEdit={() => setIsEditOpen(true)}
-        talhaoNome={talhao?.nome}
-      />
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <SiloDetailHeader
+            silo={silo}
+            status={status}
+            onBack={() => router.back()}
+            onEdit={() => setIsEditOpen(true)}
+            talhaoNome={talhao?.nome}
+          />
+        </div>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setIsDeleteOpen(true)}
+          className="gap-2"
+          aria-label="Deletar silo"
+        >
+          <Trash2 className="h-4 w-4" />
+          Deletar
+        </Button>
+      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="visao-geral">
@@ -159,6 +199,35 @@ export default function SiloDetailPage() {
           />
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deletar Silo</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja deletar o silo <strong>{silo?.nome}</strong>? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDeleteOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteSilo}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deletando...' : 'Deletar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialogs */}
       <SiloForm
