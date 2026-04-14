@@ -60,15 +60,14 @@ import { ptBR } from 'date-fns/locale';
 // ---------------------------------------------------------------------------
 // Schemas Zod
 // ---------------------------------------------------------------------------
-const TIPOS_SILO = ['Bolsa', 'Bunker', 'Convencional'] as const;
+const TIPOS_SILO = ['Superfície', 'Trincheira', 'Bag', 'Outros'] as const;
 
 const siloSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
-  tipo: z.enum(TIPOS_SILO),
-  capacidade: z.number().positive('Capacidade deve ser positiva'),
-  localizacao: z.string().optional(),
+  tipo: z.enum(['Superfície', 'Trincheira', 'Bag', 'Outros'] as const),
+  talhao_id: z.string().nullable().optional(),
   materia_seca_percent: z.number().min(0).max(100).nullable().optional(),
-  consumo_medio_diario_ton: z.number().min(0).nullable().optional(),
+  volume_ensilado_ton_mv: z.number().min(0).nullable().optional(),
   insumo_lona_id: z.string().nullable().optional(),
   insumo_inoculante_id: z.string().nullable().optional(),
 });
@@ -77,6 +76,7 @@ type SiloFormData = z.infer<typeof siloSchema>;
 const movSchema = z.object({
   silo_id: z.string().min(1, 'Selecione um silo'),
   tipo: z.enum(['Entrada', 'Saída'] as const),
+  subtipo: z.string().nullable().optional(),
   quantidade: z.number().positive('Quantidade deve ser positiva'),
   responsavel: z.string().min(1, 'Informe o responsável'),
   observacao: z.string().optional(),
@@ -97,10 +97,10 @@ export default function SilosPage() {
     resolver: zodResolver(siloSchema),
     defaultValues: {
       nome: '',
-      tipo: 'Bunker',
-      localizacao: '',
+      tipo: 'Trincheira',
+      talhao_id: null,
       materia_seca_percent: null,
-      consumo_medio_diario_ton: null,
+      volume_ensilado_ton_mv: null,
       insumo_lona_id: null,
       insumo_inoculante_id: null,
     },
@@ -152,11 +152,18 @@ export default function SilosPage() {
       await q.silos.create({
         nome: data.nome,
         tipo: data.tipo,
-        capacidade: data.capacidade,
-        localizacao: data.localizacao || null,
+        talhao_id: data.talhao_id || null,
+        cultura_ensilada: null,
+        data_fechamento: null,
+        data_abertura_prevista: null,
+        data_abertura_real: null,
+        observacoes_gerais: null,
+        volume_ensilado_ton_mv: data.volume_ensilado_ton_mv ?? null,
         fazenda_id: '',
         materia_seca_percent: data.materia_seca_percent ?? null,
-        consumo_medio_diario_ton: data.consumo_medio_diario_ton ?? null,
+        comprimento_m: null,
+        largura_m: null,
+        altura_m: null,
         insumo_lona_id: data.insumo_lona_id || null,
         insumo_inoculante_id: data.insumo_inoculante_id || null,
       });
@@ -174,6 +181,7 @@ export default function SilosPage() {
       const nova = await q.movimentacoesSilo.create({
         silo_id: data.silo_id,
         tipo: data.tipo,
+        subtipo: data.subtipo || null,
         quantidade: data.quantidade,
         responsavel: data.responsavel || null,
         observacao: data.observacao || null,
@@ -361,24 +369,28 @@ export default function SilosPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Bolsa">Bolsa</SelectItem>
-                            <SelectItem value="Bunker">Bunker</SelectItem>
-                            <SelectItem value="Convencional">Convencional</SelectItem>
+                            <SelectItem value="Superfície">Superfície</SelectItem>
+                            <SelectItem value="Trincheira">Trincheira</SelectItem>
+                            <SelectItem value="Bag">Bag</SelectItem>
+                            <SelectItem value="Outros">Outros</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="silo-cap">Capacidade (toneladas)</Label>
+                    <Label htmlFor="silo-vol">Volume Ensilado (toneladas)</Label>
                     <Input
-                      id="silo-cap"
+                      id="silo-vol"
                       type="number"
-                      aria-required="true"
-                      {...siloForm.register('capacidade', { valueAsNumber: true })}
+                      step="0.01"
+                      placeholder="Ex: 500.5"
+                      {...siloForm.register('volume_ensilado_ton_mv', {
+                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                      })}
                     />
-                    {siloForm.formState.errors.capacidade && (
-                      <p className="text-xs text-destructive">{siloForm.formState.errors.capacidade.message}</p>
+                    {siloForm.formState.errors.volume_ensilado_ton_mv && (
+                      <p className="text-xs text-destructive">{siloForm.formState.errors.volume_ensilado_ton_mv?.message}</p>
                     )}
                   </div>
                 </div>
@@ -391,18 +403,6 @@ export default function SilosPage() {
                       step="0.1"
                       placeholder="Ex: 32.5"
                       {...siloForm.register('materia_seca_percent', {
-                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                      })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="silo-cons">Consumo Diário (ton)</Label>
-                    <Input
-                      id="silo-cons"
-                      type="number"
-                      step="0.01"
-                      placeholder="Ex: 1.5"
-                      {...siloForm.register('consumo_medio_diario_ton', {
                         setValueAs: (v) => (v === '' ? null : parseFloat(v)),
                       })}
                     />
@@ -458,14 +458,6 @@ export default function SilosPage() {
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="silo-loc">Localização</Label>
-                  <Input
-                    id="silo-loc"
-                    placeholder="Descrição ou coordenadas"
-                    {...siloForm.register('localizacao')}
-                  />
-                </div>
                 <DialogFooter>
                   <Button type="submit" disabled={siloForm.formState.isSubmitting}>
                     {siloForm.formState.isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
@@ -486,12 +478,10 @@ export default function SilosPage() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {silos.map((silo) => {
-            const { total, percentage } = calculateOccupancy(silo.id, silo.capacidade);
-            const diasRestantes = silo.consumo_medio_diario_ton
-              ? Math.floor(total / silo.consumo_medio_diario_ton)
-              : null;
+            const { total, percentage } = calculateOccupancy(silo.id, silo.volume_ensilado_ton_mv || 0);
+            const diasRestantes = null;
 
-            const progressLabel = `${silo.nome}: ${percentage}% de ocupação — ${total.toFixed(1)} de ${silo.capacidade} toneladas`;
+            const progressLabel = `${silo.nome}: ${silo.tipo} — Volume: ${silo.volume_ensilado_ton_mv ?? 'N/A'} ton`;
 
             return (
               <Card key={silo.id} aria-label={`Silo ${silo.nome}`}>
@@ -522,7 +512,7 @@ export default function SilosPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs" aria-hidden="true">
                         <span>{total.toFixed(1)} ton</span>
-                        <span>{silo.capacidade} ton</span>
+                        <span>{silo.volume_ensilado_ton_mv || 'N/A'} ton</span>
                       </div>
                       <Progress
                         value={percentage}
@@ -534,35 +524,9 @@ export default function SilosPage() {
                       />
                     </div>
 
-                    {diasRestantes !== null && (
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center gap-1 text-xs font-medium">
-                          <Calendar className="w-3 h-3" aria-hidden="true" />
-                          Estoque para:
-                        </div>
-                        <Badge
-                          variant={
-                            diasRestantes < 30
-                              ? 'destructive'
-                              : diasRestantes < 60
-                              ? 'secondary'
-                              : 'outline'
-                          }
-                          className={
-                            diasRestantes < 60 && diasRestantes >= 30
-                              ? 'bg-secondary/100 text-white border-none'
-                              : ''
-                          }
-                          aria-label={`Estoque suficiente para ${diasRestantes} dias`}
-                        >
-                          {diasRestantes} dias
-                        </Badge>
-                      </div>
-                    )}
-
                     <div className="pt-2 border-t grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                       <div>MS: {silo.materia_seca_percent || '-'}%</div>
-                      <div>Consumo: {silo.consumo_medio_diario_ton || '-'} t/dia</div>
+                      <div>Volume: {silo.volume_ensilado_ton_mv || '-'} t</div>
                     </div>
 
                     {custos[silo.id] && (
@@ -582,9 +546,6 @@ export default function SilosPage() {
                       </div>
                     )}
 
-                    <div className="text-xs text-muted-foreground">
-                      Localização: {silo.localizacao || 'Não informada'}
-                    </div>
                   </div>
                 </CardContent>
               </Card>

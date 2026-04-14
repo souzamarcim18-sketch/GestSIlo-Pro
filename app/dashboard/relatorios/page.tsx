@@ -67,10 +67,8 @@ async function exportSilos() {
     silos.map((s) => ({
       Nome: s.nome,
       Tipo: s.tipo,
-      'Capacidade (t)': s.capacidade,
-      Localização: s.localizacao ?? '',
+      'Volume Ensilado (t)': s.volume_ensilado_ton_mv ?? '',
       'MS (%)': s.materia_seca_percent ?? '',
-      'Consumo Médio (t/dia)': s.consumo_medio_diario_ton ?? '',
     }))
   );
 

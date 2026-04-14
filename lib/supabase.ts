@@ -44,20 +44,68 @@ export type Fazenda = {
 export type Silo = {
   id: string;
   nome: string;
-  tipo: 'Bolsa' | 'Bunker' | 'Convencional';
-  capacidade: number;
-  localizacao: string | null;
+  tipo: 'Superfície' | 'Trincheira' | 'Bag' | 'Outros';
+  talhao_id: string | null;
+  cultura_ensilada: string | null;
   fazenda_id: string;
+  data_fechamento: string | null;
+  data_abertura_prevista: string | null;
+  data_abertura_real: string | null;
+  observacoes_gerais: string | null;
+  volume_ensilado_ton_mv: number | null;
   materia_seca_percent: number | null;
-  consumo_medio_diario_ton: number | null;
+  comprimento_m: number | null;
+  largura_m: number | null;
+  altura_m: number | null;
   insumo_lona_id: string | null;
   insumo_inoculante_id: string | null;
+};
+
+export type AvaliacaoBromatologica = {
+  id: string;
+  silo_id: string;
+  data: string;
+  momento: 'Fechamento' | 'Abertura' | 'Monitoramento';
+  ms: number | null;
+  pb: number | null;
+  fdn: number | null;
+  fda: number | null;
+  ee: number | null;
+  mm: number | null;
+  amido: number | null;
+  ndt: number | null;
+  ph: number | null;
+  avaliador: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AvaliacaoPsps = {
+  id: string;
+  silo_id: string;
+  data: string;
+  momento: 'Fechamento' | 'Abertura' | 'Monitoramento';
+  peneira_19mm: number;
+  peneira_8_19mm: number;
+  peneira_4_8mm: number;
+  peneira_fundo_4mm: number;
+  tamanho_teorico_corte_mm: number | null;
+  kernel_processor: boolean;
+  avaliador: string | null;
+  tmp_mm: number;
+  status_peneira_19mm: 'ok' | 'fora';
+  status_peneira_8_19mm: 'ok' | 'fora';
+  status_peneira_4_8mm: 'ok' | 'fora';
+  status_peneira_fundo_4mm: 'ok' | 'fora';
+  created_at: string;
+  updated_at: string;
 };
 
 export type MovimentacaoSilo = {
   id: string;
   silo_id: string;
   tipo: 'Entrada' | 'Saída';
+  subtipo: string | null;
   quantidade: number;
   data: string;
   talhao_id: string | null;
