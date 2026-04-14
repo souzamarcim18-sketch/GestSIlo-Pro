@@ -16,7 +16,10 @@
       "Bash(npm test:*)",
       "Bash(npx tsc:*)",
       "Bash(echo \"Servidor iniciado com PID: $!\" sleep 2 curl -s http://localhost:3000/dashboard/silos)",
-      "Bash(pkill -f \"npm run dev\")"
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(git push:*)",
+      "Bash(git restore:*)",
+      "Bash(grep -E \"\\\\.\\(ts|css\\)$\")"
     ]
   }
 }

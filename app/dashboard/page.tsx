@@ -9,12 +9,11 @@ import {
   DollarSign,
   TrendingUp,
   AlertTriangle,
-  Calendar,
   CheckCircle2,
-  ChevronRight,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -53,11 +52,6 @@ export default function DashboardPage() {
     user?.user_metadata?.full_name?.split(' ')[0] ||
     'Produtor';
 
-  const today = new Date().toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
 
   // ── Fetch de dados ─────────────────────────────────────────────────
   useEffect(() => {
@@ -194,7 +188,6 @@ export default function DashboardPage() {
       iconLabel: 'Ícone de silo',
       color: 'text-secondary',
       bg: 'bg-secondary/10',
-      borderColor: 'border-l-secondary',
       href: '/dashboard/silos',
     },
     {
@@ -205,7 +198,6 @@ export default function DashboardPage() {
       iconLabel: 'Ícone de talhões',
       color: 'text-secondary',
       bg: 'bg-secondary/10',
-      borderColor: 'border-l-secondary',
       href: '/dashboard/talhoes',
     },
     {
@@ -216,7 +208,6 @@ export default function DashboardPage() {
       iconLabel: 'Ícone de frota',
       color: 'text-status-info',
       bg: 'bg-status-info/10',
-      borderColor: 'border-l-status-info',
       href: '/dashboard/frota',
     },
     {
@@ -227,34 +218,21 @@ export default function DashboardPage() {
       iconLabel: 'Ícone financeiro',
       color: 'text-primary',
       bg: 'bg-primary/10',
-      borderColor: 'border-l-primary',
       href: '/dashboard/financeiro',
     },
   ];
 
   return (
-    <div className="p-6 md:p-8 space-y-8 min-h-screen bg-white dark:bg-gradient-to-br dark:from-sidebar dark:via-sidebar/80 dark:to-muted/30">
+    <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-foreground tracking-tight">
-            {greeting}, <span className="text-primary">{userName}</span>!
-          </h1>
-          <p className="text-gray-500 dark:text-muted-foreground mt-2 text-base">
-            Aqui está o resumo da sua propriedade hoje.
-          </p>
-        </div>
-
-        <div
-          className="flex items-center gap-3 bg-white/80 dark:bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-2xl shadow-sm border border-gray-100 dark:border-border"
-          aria-label={`Data de hoje: ${today}`}
-        >
-          <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
-          <span className="text-sm font-semibold text-gray-700">
-            {today}
-          </span>
-        </div>
+      {/* ── Saudação ────────────────────────────────────────────────────── */}
+      <div className="space-y-1 mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+          {greeting}, {userName}!
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Resumo da sua propriedade
+        </p>
       </div>
 
       {/* ── Stats Grid (Clicáveis) ─────────────────────────────────────── */}
@@ -263,74 +241,86 @@ export default function DashboardPage() {
           Indicadores gerais da propriedade
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {statCards.map((stat) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {statCards.map((stat, index) => (
             <button
               key={stat.title}
               onClick={() => router.push(stat.href)}
               className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-sidebar rounded-2xl"
               aria-label={`${stat.title}: ${stat.value}. Clique para ver detalhes.`}
             >
-              <Card
-                className={`
-                  border-none border-l-4 ${stat.borderColor}
-                  shadow-sm rounded-2xl
-                  transition-all duration-200 ease-out
-                  group-hover:shadow-lg group-hover:scale-[1.02] group-hover:-translate-y-0.5
-                  cursor-pointer h-full
-                  dark:bg-card dark:border-l-primary/60
-                `}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground group-hover:text-gray-700 dark:group-hover:text-foreground transition-colors">
-                    {stat.title}
-                  </h3>
-                  <div className={`p-2 rounded-xl ${stat.bg}`} aria-hidden="true">
-                    <stat.icon className={`w-5 h-5 ${stat.color}`} aria-hidden="true" />
+              {index === 0 ? (
+                // ── Card destaque (verde) ────────────────────────────────
+                <Card className="bg-primary rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow h-full">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-primary-foreground/70 uppercase tracking-wider">
+                      {stat.title}
+                    </p>
+                    {loading ? (
+                      <div className="space-y-2">
+                        <Skeleton className="h-12 w-28 bg-primary-foreground/20" />
+                        <Skeleton className="h-4 w-32 bg-primary-foreground/20" />
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
+                          {stat.value}
+                        </p>
+                        <p className="text-sm text-primary-foreground/80">
+                          {stat.detail}
+                        </p>
+                      </>
+                    )}
                   </div>
-                </CardHeader>
-
-                <CardContent>
-                  {loading ? (
+                </Card>
+              ) : (
+                // ── Card informativo (branco) ────────────────────────────
+                <Card className="bg-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow h-full">
+                  <div className="flex items-start justify-between">
                     <div className="space-y-2">
-                      <Skeleton className="h-8 w-24" />
-                      <Skeleton className="h-4 w-32" />
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        {stat.title}
+                      </p>
+                      {loading ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-10 w-24" />
+                          <Skeleton className="h-4 w-32" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-3xl md:text-4xl font-bold text-foreground">
+                            {stat.value}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {stat.detail}
+                          </p>
+                        </>
+                      )}
                     </div>
-                  ) : (
-                    <>
-                      <div className="text-2xl font-bold text-gray-900 dark:text-foreground">
-                        {stat.value}
-                      </div>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-xs text-gray-500">{stat.detail}</p>
-                        <ChevronRight
-                          className="w-4 h-4 text-gray-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all"
-                          aria-hidden="true"
-                        />
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+                    <div className={cn("p-3 rounded-xl", stat.bg)}>
+                      <stat.icon
+                        className={cn("h-5 w-5", stat.color)}
+                        aria-label={stat.iconLabel}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              )}
             </button>
           ))}
         </div>
       </section>
 
       {/* ── Main Content ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
 
         {/* Atividades Recentes */}
-        <section
-          className="lg:col-span-2 space-y-5"
-          aria-labelledby="atividades-heading"
-        >
-          <div className="flex items-center justify-between">
+        <Card className="bg-card rounded-2xl p-6 shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
             <h2
               id="atividades-heading"
-              className="text-xl font-bold text-gray-900 dark:text-foreground flex items-center gap-2"
+              className="text-lg font-semibold text-foreground"
             >
-              <TrendingUp className="w-5 h-5 text-primary" aria-hidden="true" />
               Atividades Recentes
             </h2>
             <button
@@ -341,48 +331,43 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div className="bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border overflow-hidden">
-            <div className="p-10 text-center text-gray-400 dark:text-muted-foreground" role="status" aria-live="polite">
-              <TrendingUp className="w-10 h-10 mx-auto mb-3 text-gray-200 dark:text-border" aria-hidden="true" />
-              <p className="text-sm font-medium text-gray-500 dark:text-muted-foreground">
-                Nenhuma atividade registrada recentemente.
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Suas últimas movimentações aparecerão aqui.
-              </p>
-            </div>
+          <div className="p-10 text-center text-muted-foreground" role="status" aria-live="polite">
+            <TrendingUp className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" aria-hidden="true" />
+            <p className="text-sm font-medium text-muted-foreground">
+              Nenhuma atividade registrada recentemente.
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Suas últimas movimentações aparecerão aqui.
+            </p>
           </div>
-        </section>
+        </Card>
 
         {/* Alertas Críticos */}
-        <section className="space-y-5" aria-labelledby="alertas-heading">
+        <Card className="bg-card rounded-2xl p-6 shadow-sm">
           <h2
             id="alertas-heading"
-            className="text-xl font-bold text-gray-900 dark:text-foreground flex items-center gap-2"
+            className="text-lg font-semibold text-foreground mb-4"
           >
-            <AlertTriangle className="w-5 h-5 text-secondary" aria-hidden="true" />
             Alertas Críticos
           </h2>
 
-          <div className="space-y-4">
+          <div
+            className="flex flex-col items-center text-center"
+            role="status"
+            aria-label="Nenhum alerta crítico: tudo em ordem"
+          >
             <div
-              className="p-6 bg-white dark:bg-card rounded-2xl border border-gray-100 dark:border-border shadow-sm flex flex-col items-center text-center"
-              role="status"
-              aria-label="Nenhum alerta crítico: tudo em ordem"
+              className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4"
+              aria-hidden="true"
             >
-              <div
-                className="w-14 h-14 bg-primary/10 dark:bg-muted rounded-full flex items-center justify-center mb-4"
-                aria-hidden="true"
-              >
-                <CheckCircle2 className="w-7 h-7 text-primary" aria-hidden="true" />
-              </div>
-              <p className="font-bold text-gray-900 dark:text-foreground mb-1">Tudo em ordem!</p>
-              <p className="text-xs text-gray-500 dark:text-muted-foreground leading-relaxed">
-                Não há alertas críticos ou manutenções pendentes para hoje.
-              </p>
+              <CheckCircle2 className="w-7 h-7 text-primary" aria-hidden="true" />
             </div>
+            <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Não há alertas críticos ou manutenções pendentes para hoje.
+            </p>
           </div>
-        </section>
+        </Card>
       </div>
     </div>
   );
