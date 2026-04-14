@@ -27,32 +27,32 @@ export const siloSchema = z.object({
   tipo: z.enum(TIPOS_SILO),
   talhao_id: z.string().uuid('ID do talhão inválido').nullable(),
   cultura_ensilada: z.string().max(100).nullable().optional(),
-  data_fechamento: z.coerce.date().nullable().optional(),
-  data_abertura_prevista: z.coerce.date().nullable().optional(),
-  data_abertura_real: z.coerce.date().nullable().optional(),
+  data_fechamento: z.string().nullable().optional(),
+  data_abertura_prevista: z.string().nullable().optional(),
+  data_abertura_real: z.string().nullable().optional(),
   observacoes_gerais: z.string().max(500).nullable().optional(),
-  volume_ensilado_ton_mv: z.coerce
+  volume_ensilado_ton_mv: z
     .number()
     .positive('Volume deve ser maior que 0')
     .nullable()
     .optional(),
-  materia_seca_percent: z.coerce
+  materia_seca_percent: z
     .number()
     .min(0, 'Matéria seca não pode ser negativa')
     .max(100, 'Matéria seca não pode exceder 100%')
     .nullable()
     .optional(),
-  comprimento_m: z.coerce
+  comprimento_m: z
     .number()
     .positive('Comprimento deve ser maior que 0')
     .nullable()
     .optional(),
-  largura_m: z.coerce
+  largura_m: z
     .number()
     .positive('Largura deve ser maior que 0')
     .nullable()
     .optional(),
-  altura_m: z.coerce
+  altura_m: z
     .number()
     .positive('Altura deve ser maior que 0')
     .nullable()
@@ -78,8 +78,8 @@ export const movimentacaoSiloSchema = z
     silo_id: z.string().uuid('ID do silo inválido'),
     tipo: z.enum(['Entrada', 'Saída']),
     subtipo: z.enum(SUBTIPOS_MOVIMENTACAO).nullable().optional(),
-    quantidade: z.coerce.number().positive('Quantidade deve ser maior que 0'),
-    data: z.coerce.date(),
+    quantidade: z.number().positive('Quantidade deve ser maior que 0'),
+    data: z.string(),
     talhao_id: z.string().uuid('ID do talhão inválido').nullable().optional(),
     responsavel: z.string().max(100).nullable().optional(),
     observacao: z.string().max(500).nullable().optional(),
@@ -107,33 +107,17 @@ export type MovimentacaoSiloInput = z.infer<typeof movimentacaoSiloSchema>;
  */
 export const avaliacaoBromatologicaSchema = z.object({
   silo_id: z.string().uuid('ID do silo inválido'),
-  data: z.coerce.date(),
+  data: z.string(),
   momento: z.enum(MOMENTOS_AVALIACAO),
-  ms: z.coerce.number().min(0, 'MS não pode ser negativa').nullable().optional(),
-  pb: z.coerce.number().min(0, 'PB não pode ser negativa').nullable().optional(),
-  fdn: z.coerce
-    .number()
-    .min(0, 'FDN não pode ser negativa')
-    .nullable()
-    .optional(),
-  fda: z.coerce
-    .number()
-    .min(0, 'FDA não pode ser negativa')
-    .nullable()
-    .optional(),
-  ee: z.coerce.number().min(0, 'EE não pode ser negativa').nullable().optional(),
-  mm: z.coerce.number().min(0, 'MM não pode ser negativa').nullable().optional(),
-  amido: z.coerce
-    .number()
-    .min(0, 'Amido não pode ser negativo')
-    .nullable()
-    .optional(),
-  ndt: z.coerce
-    .number()
-    .min(0, 'NDT não pode ser negativo')
-    .nullable()
-    .optional(),
-  ph: z.coerce
+  ms: z.number().min(0, 'MS não pode ser negativa').nullable().optional(),
+  pb: z.number().min(0, 'PB não pode ser negativa').nullable().optional(),
+  fdn: z.number().min(0, 'FDN não pode ser negativa').nullable().optional(),
+  fda: z.number().min(0, 'FDA não pode ser negativa').nullable().optional(),
+  ee: z.number().min(0, 'EE não pode ser negativa').nullable().optional(),
+  mm: z.number().min(0, 'MM não pode ser negativa').nullable().optional(),
+  amido: z.number().min(0, 'Amido não pode ser negativo').nullable().optional(),
+  ndt: z.number().min(0, 'NDT não pode ser negativo').nullable().optional(),
+  ph: z
     .number()
     .min(0, 'pH não pode ser negativo')
     .max(14, 'pH não pode exceder 14')
@@ -154,30 +138,30 @@ export type AvaliacaoBromatologicaInput = z.infer<
 export const avaliacaoPspsSchema = z
   .object({
     silo_id: z.string().uuid('ID do silo inválido'),
-    data: z.coerce.date(),
+    data: z.string(),
     momento: z.enum(MOMENTOS_AVALIACAO),
-    peneira_19mm: z.coerce
+    peneira_19mm: z
       .number()
       .min(0, 'Peneira 19mm não pode ser negativa')
       .max(100, 'Peneira 19mm não pode exceder 100%'),
-    peneira_8_19mm: z.coerce
+    peneira_8_19mm: z
       .number()
       .min(0, 'Peneira 8-19mm não pode ser negativa')
       .max(100, 'Peneira 8-19mm não pode exceder 100%'),
-    peneira_4_8mm: z.coerce
+    peneira_4_8mm: z
       .number()
       .min(0, 'Peneira 4-8mm não pode ser negativa')
       .max(100, 'Peneira 4-8mm não pode exceder 100%'),
-    peneira_fundo_4mm: z.coerce
+    peneira_fundo_4mm: z
       .number()
       .min(0, 'Peneira fundo 4mm não pode ser negativa')
       .max(100, 'Peneira fundo 4mm não pode exceder 100%'),
-    tamanho_teorico_corte_mm: z.coerce
+    tamanho_teorico_corte_mm: z
       .number()
       .positive('Tamanho teórico deve ser maior que 0')
       .nullable()
       .optional(),
-    kernel_processor: z.boolean().default(false),
+    kernel_processor: z.boolean(),
     avaliador: z.string().max(100).nullable().optional(),
   })
   .refine(

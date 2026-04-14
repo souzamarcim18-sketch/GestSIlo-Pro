@@ -32,6 +32,8 @@ import {
   type AtividadeCampo,
   type CategoriaRebanho,
   type PeriodoConfinamento,
+  type AvaliacaoBromatologica,
+  type AvaliacaoPsps,
 } from '../supabase';
 
 // ---------------------------------------------------------------------------
@@ -80,6 +82,18 @@ const silos = {
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data as Silo[];
+  },
+
+  async getById(id: string): Promise<Silo> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('silos')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return data as Silo;
   },
 
   async create(payload: Omit<Silo, 'id'>): Promise<Silo> {
@@ -190,6 +204,18 @@ const talhoes = {
       .order('nome', { ascending: true });
     if (error) throw error;
     return data as Talhao[];
+  },
+
+  async getById(id: string): Promise<Talhao> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('talhoes')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return data as Talhao;
   },
 
   async create(payload: Omit<Talhao, 'id'>): Promise<Talhao> {
@@ -856,6 +882,112 @@ const periodosConfinamento = {
 };
 
 // ---------------------------------------------------------------------------
+// AVALIAÇÕES BROMATOLÓGICAS
+// ---------------------------------------------------------------------------
+const avaliacoesBromatologicas = {
+  async listBySilo(siloId: string): Promise<AvaliacaoBromatologica[]> {
+    await getFazendaId(); // Garantir sessão ativa
+    const { data, error } = await supabase
+      .from('avaliacoes_bromatologicas')
+      .select('*')
+      .eq('silo_id', siloId)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as AvaliacaoBromatologica[];
+  },
+
+  async create(
+    payload: Omit<AvaliacaoBromatologica, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<AvaliacaoBromatologica> {
+    const fazendaId = await getFazendaId();
+    // Verificar que o silo pertence à fazenda
+    const { count, error: checkError } = await supabase
+      .from('silos')
+      .select('id', { count: 'exact', head: true })
+      .eq('id', payload.silo_id)
+      .eq('fazenda_id', fazendaId);
+    if (checkError || count === 0) {
+      throw new Error('Silo não encontrado ou não pertence a esta fazenda.');
+    }
+
+    const { data, error } = await supabase
+      .from('avaliacoes_bromatologicas')
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AvaliacaoBromatologica;
+  },
+
+  async remove(id: string): Promise<void> {
+    await getFazendaId(); // Garantir sessão ativa
+    const { error } = await supabase
+      .from('avaliacoes_bromatologicas')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// AVALIAÇÕES PSPS
+// ---------------------------------------------------------------------------
+const avaliacoesPsps = {
+  async listBySilo(siloId: string): Promise<AvaliacaoPsps[]> {
+    await getFazendaId(); // Garantir sessão ativa
+    const { data, error } = await supabase
+      .from('avaliacoes_psps')
+      .select('*')
+      .eq('silo_id', siloId)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as AvaliacaoPsps[];
+  },
+
+  async create(
+    payload: Omit<AvaliacaoPsps, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<AvaliacaoPsps> {
+    const fazendaId = await getFazendaId();
+    // Verificar que o silo pertence à fazenda
+    const { count, error: checkError } = await supabase
+      .from('silos')
+      .select('id', { count: 'exact', head: true })
+      .eq('id', payload.silo_id)
+      .eq('fazenda_id', fazendaId);
+    if (checkError || count === 0) {
+      throw new Error('Silo não encontrado ou não pertence a esta fazenda.');
+    }
+
+    // Validar que soma das peneiras = 100%
+    const soma =
+      payload.peneira_19mm +
+      payload.peneira_8_19mm +
+      payload.peneira_4_8mm +
+      payload.peneira_fundo_4mm;
+    if (Math.abs(soma - 100) > 0.01) {
+      throw new Error('A soma das peneiras deve ser igual a 100%');
+    }
+
+    const { data, error } = await supabase
+      .from('avaliacoes_psps')
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AvaliacaoPsps;
+  },
+
+  async remove(id: string): Promise<void> {
+    await getFazendaId(); // Garantir sessão ativa
+    const { error } = await supabase
+      .from('avaliacoes_psps')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+};
+
+// ---------------------------------------------------------------------------
 // EXPORT PRINCIPAL — use `q.<tabela>.<operação>()`
 // ---------------------------------------------------------------------------
 export const q = {
@@ -873,4 +1005,6 @@ export const q = {
   atividadesCampo,
   categoriasRebanho,
   periodosConfinamento,
+  avaliacoesBromatologicas,
+  avaliacoesPsps,
 };
