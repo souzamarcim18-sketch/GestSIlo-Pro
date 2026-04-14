@@ -315,7 +315,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
 
         {/* Atividades Recentes */}
-        <Card className="bg-card rounded-2xl p-6 shadow-sm lg:col-span-2">
+        <Card className="bg-card rounded-2xl p-6 shadow-sm lg:col-span-2 transition-shadow duration-200 hover:shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h2
               id="atividades-heading"
@@ -343,7 +343,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Alertas Críticos */}
-        <Card className="bg-card rounded-2xl p-6 shadow-sm">
+        <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
           <h2
             id="alertas-heading"
             className="text-lg font-semibold text-foreground mb-4"

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -127,31 +128,45 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
               <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
                 {operacionalRoutes.map((route) => {
                   const isActive = pathname === route.href;
+                  const linkContent = (
+                    <Link
+                      href={route.href}
+                      onClick={onNavigate}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn(
+                        "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                        collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                        isActive
+                          ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                          : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
+                      )}
+                    >
+                      <route.icon
+                        aria-hidden="true"
+                        className={cn(
+                          "h-5 w-5 transition-colors",
+                          !collapsed && "mr-3",
+                          isActive ? "text-primary" : "text-sidebar-foreground"
+                        )}
+                      />
+                      {!collapsed && route.label}
+                    </Link>
+                  );
+
                   return (
                     <li key={route.href}>
-                      <Link
-                        href={route.href}
-                        onClick={onNavigate}
-                        aria-current={isActive ? 'page' : undefined}
-                        title={collapsed ? route.label : undefined}
-                        className={cn(
-                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
-                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
-                          isActive
-                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
-                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
-                        )}
-                      >
-                        <route.icon
-                          aria-hidden="true"
-                          className={cn(
-                            "h-5 w-5 transition-colors",
-                            !collapsed && "mr-3",
-                            isActive ? "text-primary" : "text-sidebar-foreground"
-                          )}
-                        />
-                        {!collapsed && route.label}
-                      </Link>
+                      {collapsed ? (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            {linkContent}
+                            <TooltipContent side="right">
+                              {route.label}
+                            </TooltipContent>
+                          </TooltipTrigger>
+                        </Tooltip>
+                      ) : (
+                        linkContent
+                      )}
                     </li>
                   );
                 })}
@@ -171,31 +186,45 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
               <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
                 {ferramentasRoutes.map((route) => {
                   const isActive = pathname === route.href;
+                  const linkContent = (
+                    <Link
+                      href={route.href}
+                      onClick={onNavigate}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn(
+                        "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                        collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                        isActive
+                          ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                          : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
+                      )}
+                    >
+                      <route.icon
+                        aria-hidden="true"
+                        className={cn(
+                          "h-5 w-5 transition-colors",
+                          !collapsed && "mr-3",
+                          isActive ? "text-primary" : "text-sidebar-foreground"
+                        )}
+                      />
+                      {!collapsed && route.label}
+                    </Link>
+                  );
+
                   return (
                     <li key={route.href}>
-                      <Link
-                        href={route.href}
-                        onClick={onNavigate}
-                        aria-current={isActive ? 'page' : undefined}
-                        title={collapsed ? route.label : undefined}
-                        className={cn(
-                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
-                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
-                          isActive
-                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
-                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
-                        )}
-                      >
-                        <route.icon
-                          aria-hidden="true"
-                          className={cn(
-                            "h-5 w-5 transition-colors",
-                            !collapsed && "mr-3",
-                            isActive ? "text-primary" : "text-sidebar-foreground"
-                          )}
-                        />
-                        {!collapsed && route.label}
-                      </Link>
+                      {collapsed ? (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            {linkContent}
+                            <TooltipContent side="right">
+                              {route.label}
+                            </TooltipContent>
+                          </TooltipTrigger>
+                        </Tooltip>
+                      ) : (
+                        linkContent
+                      )}
                     </li>
                   );
                 })}
@@ -215,31 +244,45 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
               <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
                 {sistemaRoutes.map((route) => {
                   const isActive = pathname === route.href;
+                  const linkContent = (
+                    <Link
+                      href={route.href}
+                      onClick={onNavigate}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn(
+                        "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                        collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                        isActive
+                          ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                          : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
+                      )}
+                    >
+                      <route.icon
+                        aria-hidden="true"
+                        className={cn(
+                          "h-5 w-5 transition-colors",
+                          !collapsed && "mr-3",
+                          isActive ? "text-primary" : "text-sidebar-foreground"
+                        )}
+                      />
+                      {!collapsed && route.label}
+                    </Link>
+                  );
+
                   return (
                     <li key={route.href}>
-                      <Link
-                        href={route.href}
-                        onClick={onNavigate}
-                        aria-current={isActive ? 'page' : undefined}
-                        title={collapsed ? route.label : undefined}
-                        className={cn(
-                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
-                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
-                          isActive
-                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
-                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
-                        )}
-                      >
-                        <route.icon
-                          aria-hidden="true"
-                          className={cn(
-                            "h-5 w-5 transition-colors",
-                            !collapsed && "mr-3",
-                            isActive ? "text-primary" : "text-sidebar-foreground"
-                          )}
-                        />
-                        {!collapsed && route.label}
-                      </Link>
+                      {collapsed ? (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            {linkContent}
+                            <TooltipContent side="right">
+                              {route.label}
+                            </TooltipContent>
+                          </TooltipTrigger>
+                        </Tooltip>
+                      ) : (
+                        linkContent
+                      )}
                     </li>
                   );
                 })}
