@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
@@ -57,71 +55,7 @@
 }
 
 :root {
-  /* Light mode: Colors */
-  --background: oklch(0.99 0.01 75);
-  --foreground: oklch(0.15 0.02 80);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 80);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 80);
-  --primary: oklch(0.50 0.12 145);
-  --primary-foreground: oklch(0.98 0.01 145);
-  --secondary: oklch(0.65 0.12 70);
-  --secondary-foreground: oklch(0.20 0.02 70);
-  --muted: oklch(0.92 0.03 85);
-  --muted-foreground: oklch(0.45 0.05 85);
-  --accent: oklch(0.65 0.12 70);
-  --accent-foreground: oklch(0.20 0.02 70);
-  --destructive: oklch(0.55 0.15 25);
-  --destructive-foreground: oklch(0.98 0.01 25);
-  --border: oklch(0.88 0.02 80);
-  --input: oklch(0.95 0.01 80);
-  --ring: oklch(0.50 0.12 145);
-
-  /* Light mode: Status tokens */
-  --status-success: oklch(0.50 0.15 150);
-  --status-success-fg: oklch(0.98 0.01 150);
-  --status-warning: oklch(0.65 0.12 70);
-  --status-warning-fg: oklch(0.20 0.02 70);
-  --status-danger: oklch(0.55 0.15 25);
-  --status-danger-fg: oklch(0.98 0.01 25);
-  --status-info: oklch(0.50 0.12 280);
-  --status-info-fg: oklch(0.98 0.01 280);
-
-  /* Charts */
-  --chart-1: oklch(0.50 0.12 145);
-  --chart-2: oklch(0.55 0.10 120);
-  --chart-3: oklch(0.65 0.12 70);
-  --chart-4: oklch(0.65 0.12 280);
-  --chart-5: oklch(0.55 0.15 25);
-
-  /* Sidebar light */
-  --sidebar: oklch(0.96 0.01 80);
-  --sidebar-foreground: oklch(0.15 0.02 80);
-  --sidebar-primary: oklch(0.50 0.12 145);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.88 0.02 80);
-  --sidebar-accent-foreground: oklch(0.15 0.02 80);
-  --sidebar-border: oklch(0.88 0.02 80);
-  --sidebar-ring: oklch(0.50 0.12 145);
-
-  /* Spacing and radius */
-  --radius: 0.625rem;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-
-  /* Blur effects */
-  --blur-sm: blur(4px);
-  --blur-md: blur(8px);
-  --blur-lg: blur(12px);
-}
-
-.dark {
-  /* Dark mode: Colors */
+  /* Dark mode (only theme): Colors */
   --background: oklch(0.08 0.015 145);
   --foreground: oklch(0.95 0.01 80);
   --card: oklch(0.15 0.02 145);
@@ -142,7 +76,7 @@
   --input: oklch(0.20 0.02 145);
   --ring: oklch(0.65 0.25 150);
 
-  /* Dark mode: Status tokens */
+  /* Status tokens */
   --status-success: oklch(0.65 0.20 150);
   --status-success-fg: oklch(0.95 0.01 150);
   --status-warning: oklch(0.70 0.15 70);
@@ -159,7 +93,7 @@
   --chart-4: oklch(0.65 0.20 280);
   --chart-5: oklch(0.65 0.20 25);
 
-  /* Sidebar dark */
+  /* Sidebar */
   --sidebar: oklch(0.12 0.02 145);
   --sidebar-foreground: oklch(0.95 0.01 80);
   --sidebar-primary: oklch(0.65 0.25 150);
@@ -168,6 +102,9 @@
   --sidebar-accent-foreground: oklch(0.95 0.01 80);
   --sidebar-border: oklch(0.22 0.02 145);
   --sidebar-ring: oklch(0.65 0.25 150);
+
+  /* Spacing and radius */
+  --radius: 0.625rem;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Sun, Moon, Monitor, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -19,7 +19,6 @@ import { Sidebar } from '@/components/Sidebar';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from 'next-themes';
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function capitalizeName(name: string): string {
@@ -49,21 +48,8 @@ function getInitials(name: string): string {
 export function Header() {
   const { user, fazendaId } = useAuth();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const [fazendaNome, setFazendaNome] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // ── Tema ─────────────────────────────────────────────────────────────
-  const themeOptions = [
-    { value: 'light',  label: 'Claro',   icon: <Sun className="h-4 w-4" /> },
-    { value: 'dark',   label: 'Escuro',  icon: <Moon className="h-4 w-4" /> },
-    { value: 'system', label: 'Sistema', icon: <Monitor className="h-4 w-4" /> },
-  ];
-
-  const currentIcon =
-    theme === 'dark'  ? <Moon className="h-4 w-4" /> :
-    theme === 'light' ? <Sun className="h-4 w-4" /> :
-    <Monitor className="h-4 w-4" />;
 
   // ── Buscar nome da fazenda ───────────────────────────────────────────
   useEffect(() => {
@@ -128,31 +114,6 @@ export function Header() {
 
       {/* Área direita */}
       <div className="flex justify-end items-center gap-x-4">
-
-        {/* Toggle de tema */}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-foreground hover:bg-muted dark:hover:bg-muted/80 transition-colors"
-            aria-label="Alternar tema"
-          >
-            {currentIcon}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36 rounded-xl">
-            {themeOptions.map((opt) => (
-              <DropdownMenuItem
-                key={opt.value}
-                onClick={() => setTheme(opt.value)}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg cursor-pointer focus:bg-muted",
-                  theme === opt.value ? "bg-muted text-primary" : ""
-                )}
-              >
-                {opt.icon}
-                {opt.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
 
         {/* Nome + Fazenda — desktop */}
         <div className="hidden md:flex flex-col items-end" aria-hidden="true">

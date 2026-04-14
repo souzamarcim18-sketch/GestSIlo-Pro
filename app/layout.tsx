@@ -24,9 +24,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="pt-BR" className={cn("font-sans h-full", geist.variable)} suppressHydrationWarning>
+    <html lang="pt-BR" className={cn("font-sans h-full dark", geist.variable)} suppressHydrationWarning>
       <body suppressHydrationWarning className="h-full">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+        <ThemeProvider attribute="class" forcedTheme="dark">
           <AuthProvider>
             {children}
             <Toaster position="top-right" />
