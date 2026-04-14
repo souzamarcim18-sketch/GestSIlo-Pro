@@ -44,15 +44,21 @@ export type Fazenda = {
 export type Silo = {
   id: string;
   nome: string;
-  tipo: 'Bolsa' | 'Bunker' | 'Convencional';
-  capacidade: number;
-  localizacao: string | null;
+  tipo: 'Superfície' | 'Trincheira' | 'Bag' | 'Outros';
   fazenda_id: string;
   talhao_id: string | null;
   materia_seca_percent: number | null;
-  consumo_medio_diario_ton: number | null;
   insumo_lona_id: string | null;
   insumo_inoculante_id: string | null;
+  cultura_ensilada: string | null;
+  data_fechamento: string | null;
+  data_abertura_prevista: string | null;
+  data_abertura_real: string | null;
+  volume_ensilado_ton_mv: number | null;
+  comprimento_m: number | null;
+  largura_m: number | null;
+  altura_m: number | null;
+  observacoes_gerais: string | null;
 };
 
 export type MovimentacaoSilo = {

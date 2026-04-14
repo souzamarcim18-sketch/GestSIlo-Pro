@@ -1,3 +1,4 @@
+// app/dashboard/silos/helpers.ts
 import { type Silo, type MovimentacaoSilo } from '@/lib/supabase';
 
 /**
@@ -11,10 +12,27 @@ export function calcularEstoque(movimentacoes: MovimentacaoSilo[]): number {
 }
 
 /**
- * Calcula o consumo diário médio do silo
+ * Calcula o consumo diário médio baseado nas saídas desde a abertura.
+ * Retorna null se o silo não estiver aberto.
  */
-export function calcularConsumoDiario(silo: Silo): number | null {
-  return silo.consumo_medio_diario_ton || null;
+export function calcularConsumoDiario(
+  silo: Silo,
+  movimentacoes: MovimentacaoSilo[]
+): number | null {
+  if (!silo.data_abertura_real) return null;
+
+  const dataAbertura = new Date(silo.data_abertura_real);
+  const hoje = new Date();
+  const diasAberto = Math.max(
+    1,
+    Math.floor((hoje.getTime() - dataAbertura.getTime()) / (1000 * 60 * 60 * 24))
+  );
+
+  const totalSaidas = movimentacoes
+    .filter((m) => m.tipo === 'Saída')
+    .reduce((acc, m) => acc + m.quantidade, 0);
+
+  return totalSaidas > 0 ? totalSaidas / diasAberto : null;
 }
 
 /**
@@ -29,31 +47,35 @@ export function calcularEstoqueParaDias(
 }
 
 /**
- * Determina o status do silo baseado em estoque, capacidade, datas, etc.
- * Retorna: 'Enchendo', 'Fechado', 'Aberto', 'Vazio', 'Atenção'
+ * Determina o status do silo baseado em estoque, datas e volume ensilado.
  */
 export function calcularStatusSilo(
   silo: Silo,
   estoque: number,
-  dataFechamento?: string | null,
-  dataAbertura?: string | null
-): 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Atenção' {
-  const percentualOcupacao = (estoque / silo.capacidade) * 100;
+  movimentacoes: MovimentacaoSilo[]
+): 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado' {
+  const temEntradas = movimentacoes.some((m) => m.tipo === 'Entrada');
 
-  // Se vazio
-  if (estoque === 0) return 'Vazio';
+  // Sem nenhuma movimentação de entrada
+  if (!temEntradas) return 'Vazio';
 
-  // Se está alertando (ocupação muito alta ou baixa)
-  if (percentualOcupacao > 90 || percentualOcupacao < 5) return 'Atenção';
+  // Tem entradas mas ainda não fechou
+  if (temEntradas && !silo.data_fechamento) return 'Enchendo';
 
-  // Se fechado (tem data de fechamento e não tem data de abertura)
-  if (dataFechamento && !dataAbertura) return 'Fechado';
+  // Fechado — tem data de fechamento mas não abriu ainda
+  if (silo.data_fechamento && !silo.data_abertura_real) return 'Fechado';
 
-  // Se aberto (tem data de abertura)
-  if (dataAbertura) return 'Aberto';
+  // Esgotado — já abriu e estoque zerou
+  if (silo.data_abertura_real && estoque <= 0) return 'Esgotado';
 
-  // Se enchendo (está com ocupação razoável e não foi fechado ainda)
-  if (percentualOcupacao > 10 && percentualOcupacao < 90) return 'Enchendo';
+  // Crítico — aberto e estoque abaixo de 10% do volume ensilado
+  if (silo.data_abertura_real && silo.volume_ensilado_ton_mv) {
+    const percentual = (estoque / silo.volume_ensilado_ton_mv) * 100;
+    if (percentual <= 10) return 'Crítico';
+  }
+
+  // Aberto — tem data de abertura e ainda tem estoque
+  if (silo.data_abertura_real && estoque > 0) return 'Aberto';
 
   return 'Fechado';
 }
@@ -67,9 +89,7 @@ export interface SiloCardData {
   msAtual: number | null;
   consumoDiario: number | null;
   estoquePara: number | null;
-  status: 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Atenção';
-  dataFechamento?: string | null;
-  dataAbertura?: string | null;
+  status: 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
 }
 
 /**
@@ -80,20 +100,15 @@ export function calcularDadosSilos(
   movimentacoes: MovimentacaoSilo[]
 ): SiloCardData[] {
   return silos.map((silo) => {
-    // Filtrar movimentações do silo
     const movsDoSilo = movimentacoes.filter((m) => m.silo_id === silo.id);
 
-    // Calcular estoque
     const estoque = calcularEstoque(movsDoSilo);
 
-    // Consumo diário
-    const consumoDiario = calcularConsumoDiario(silo);
+    const consumoDiario = calcularConsumoDiario(silo, movsDoSilo);
 
-    // Dias restantes
     const estoquePara = calcularEstoqueParaDias(estoque, consumoDiario);
 
-    // Status
-    const status = calcularStatusSilo(silo, estoque);
+    const status = calcularStatusSilo(silo, estoque, movsDoSilo);
 
     return {
       silo,
@@ -102,8 +117,6 @@ export function calcularDadosSilos(
       consumoDiario,
       estoquePara,
       status,
-      dataFechamento: null, // TODO: vir do banco se existir
-      dataAbertura: null, // TODO: vir do banco se existir
     };
   });
 }
