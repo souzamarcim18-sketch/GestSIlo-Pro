@@ -204,3 +204,11 @@ export type PeriodoConfinamento = {
   data_fim: string;
   created_at: string;
 };
+
+export type AvaliacaoBromatologica = {
+  id: string;
+  silo_id: string;
+  data: string;
+  ms: number | null;
+  created_at: string;
+};

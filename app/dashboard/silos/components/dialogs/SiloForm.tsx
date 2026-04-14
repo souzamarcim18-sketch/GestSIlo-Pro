@@ -25,15 +25,17 @@ import { type Silo, type Talhao, type Insumo } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
 
-const TIPOS_SILO = ['Bolsa', 'Bunker', 'Convencional'] as const;
+const TIPOS_SILO = ['Superfície', 'Trincheira', 'Bag', 'Outros'] as const;
 
 const siloSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
   tipo: z.enum(TIPOS_SILO),
-  capacidade: z.number().positive('Capacidade deve ser positiva'),
-  localizacao: z.string().optional(),
+  volume_ensilado_ton_mv: z.number().positive('Volume deve ser positivo').nullable().optional(),
+  comprimento_m: z.number().positive('Comprimento deve ser positivo').nullable().optional(),
+  largura_m: z.number().positive('Largura deve ser positiva').nullable().optional(),
+  altura_m: z.number().positive('Altura deve ser positiva').nullable().optional(),
+  cultura_ensilada: z.string().optional(),
   materia_seca_percent: z.number().min(0).max(100).nullable().optional(),
-  consumo_medio_diario_ton: z.number().min(0).nullable().optional(),
   talhao_id: z.string().nullable().optional(),
   insumo_lona_id: z.string().nullable().optional(),
   insumo_inoculante_id: z.string().nullable().optional(),
@@ -66,21 +68,25 @@ export function SiloForm({
       ? {
           nome: silo.nome,
           tipo: silo.tipo as typeof TIPOS_SILO[number],
-          capacidade: silo.capacidade,
-          localizacao: silo.localizacao || '',
+          volume_ensilado_ton_mv: silo.volume_ensilado_ton_mv || undefined,
+          comprimento_m: silo.comprimento_m || undefined,
+          largura_m: silo.largura_m || undefined,
+          altura_m: silo.altura_m || undefined,
+          cultura_ensilada: silo.cultura_ensilada || '',
           materia_seca_percent: silo.materia_seca_percent,
-          consumo_medio_diario_ton: silo.consumo_medio_diario_ton,
           talhao_id: silo.talhao_id,
           insumo_lona_id: silo.insumo_lona_id,
           insumo_inoculante_id: silo.insumo_inoculante_id,
         }
       : {
           nome: '',
-          tipo: 'Bunker',
-          capacidade: 0,
-          localizacao: '',
+          tipo: 'Trincheira',
+          volume_ensilado_ton_mv: undefined,
+          comprimento_m: undefined,
+          largura_m: undefined,
+          altura_m: undefined,
+          cultura_ensilada: '',
           materia_seca_percent: null,
-          consumo_medio_diario_ton: null,
           talhao_id: null,
           insumo_lona_id: null,
           insumo_inoculante_id: null,
@@ -89,32 +95,32 @@ export function SiloForm({
 
   const handleSubmit = async (data: SiloFormData) => {
     try {
+      const payload = {
+        nome: data.nome,
+        tipo: data.tipo,
+        volume_ensilado_ton_mv: data.volume_ensilado_ton_mv ?? null,
+        comprimento_m: data.comprimento_m ?? null,
+        largura_m: data.largura_m ?? null,
+        altura_m: data.altura_m ?? null,
+        cultura_ensilada: data.cultura_ensilada || null,
+        materia_seca_percent: data.materia_seca_percent ?? null,
+        talhao_id: data.talhao_id || null,
+        insumo_lona_id: data.insumo_lona_id || null,
+        insumo_inoculante_id: data.insumo_inoculante_id || null,
+        data_fechamento: null,
+        data_abertura_prevista: null,
+        data_abertura_real: null,
+        observacoes_gerais: null,
+      };
+
       if (mode === 'create') {
         await q.silos.create({
-          nome: data.nome,
-          tipo: data.tipo,
-          capacidade: data.capacidade,
-          localizacao: data.localizacao || null,
+          ...payload,
           fazenda_id: '',
-          materia_seca_percent: data.materia_seca_percent ?? null,
-          consumo_medio_diario_ton: data.consumo_medio_diario_ton ?? null,
-          talhao_id: data.talhao_id || null,
-          insumo_lona_id: data.insumo_lona_id || null,
-          insumo_inoculante_id: data.insumo_inoculante_id || null,
         });
         toast.success('Silo criado com sucesso!');
       } else if (silo) {
-        await q.silos.update(silo.id, {
-          nome: data.nome,
-          tipo: data.tipo,
-          capacidade: data.capacidade,
-          localizacao: data.localizacao || null,
-          materia_seca_percent: data.materia_seca_percent ?? null,
-          consumo_medio_diario_ton: data.consumo_medio_diario_ton ?? null,
-          talhao_id: data.talhao_id || null,
-          insumo_lona_id: data.insumo_lona_id || null,
-          insumo_inoculante_id: data.insumo_inoculante_id || null,
-        });
+        await q.silos.update(silo.id, payload);
         toast.success('Silo atualizado com sucesso!');
       }
       form.reset();
@@ -154,39 +160,95 @@ export function SiloForm({
             )}
           </div>
 
-          {/* Tipo e Capacidade */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="silo-tipo">Tipo de Estrutura</Label>
-              <Controller
-                control={form.control}
-                name="tipo"
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger id="silo-tipo">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Bolsa">Bolsa</SelectItem>
-                      <SelectItem value="Bunker">Bunker</SelectItem>
-                      <SelectItem value="Convencional">Convencional</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="silo-cap">Capacidade (ton)</Label>
-              <Input
-                id="silo-cap"
-                type="number"
-                step="0.1"
-                aria-required="true"
-                {...form.register('capacidade', { valueAsNumber: true })}
-              />
-              {form.formState.errors.capacidade && (
-                <p className="text-xs text-destructive">{form.formState.errors.capacidade.message}</p>
+          {/* Tipo de Estrutura */}
+          <div className="space-y-2">
+            <Label htmlFor="silo-tipo">Tipo de Estrutura</Label>
+            <Controller
+              control={form.control}
+              name="tipo"
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger id="silo-tipo">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Superfície">Superfície</SelectItem>
+                    <SelectItem value="Trincheira">Trincheira</SelectItem>
+                    <SelectItem value="Bag">Bag (Bolsa)</SelectItem>
+                    <SelectItem value="Outros">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
+            />
+          </div>
+
+          {/* Cultura Ensilada */}
+          <div className="space-y-2">
+            <Label htmlFor="silo-cultura">Cultura Ensilada</Label>
+            <Input
+              id="silo-cultura"
+              placeholder="Ex: Milho, Sorgo"
+              {...form.register('cultura_ensilada')}
+            />
+          </div>
+
+          {/* Volume Ensilado */}
+          <div className="space-y-2">
+            <Label htmlFor="silo-volume">Volume Ensilado (ton MV)</Label>
+            <Input
+              id="silo-volume"
+              type="number"
+              step="0.1"
+              placeholder="Ex: 150.5"
+              {...form.register('volume_ensilado_ton_mv', {
+                setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+              })}
+            />
+            {form.formState.errors.volume_ensilado_ton_mv && (
+              <p className="text-xs text-destructive">{form.formState.errors.volume_ensilado_ton_mv.message}</p>
+            )}
+          </div>
+
+          {/* Dimensões */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Dimensões (opcional)</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="silo-comp">Comprimento (m)</Label>
+                <Input
+                  id="silo-comp"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 10.5"
+                  {...form.register('comprimento_m', {
+                    setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                  })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="silo-larg">Largura (m)</Label>
+                <Input
+                  id="silo-larg"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 5.0"
+                  {...form.register('largura_m', {
+                    setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                  })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="silo-alt">Altura (m)</Label>
+                <Input
+                  id="silo-alt"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 3.0"
+                  {...form.register('altura_m', {
+                    setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                  })}
+                />
+              </div>
             </div>
           </div>
 
@@ -214,32 +276,18 @@ export function SiloForm({
             />
           </div>
 
-          {/* MS e Consumo */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
-              <Input
-                id="silo-ms"
-                type="number"
-                step="0.1"
-                placeholder="Ex: 32.5"
-                {...form.register('materia_seca_percent', {
-                  setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="silo-cons">Consumo Diário (ton)</Label>
-              <Input
-                id="silo-cons"
-                type="number"
-                step="0.01"
-                placeholder="Ex: 1.5"
-                {...form.register('consumo_medio_diario_ton', {
-                  setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                })}
-              />
-            </div>
+          {/* Matéria Seca */}
+          <div className="space-y-2">
+            <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
+            <Input
+              id="silo-ms"
+              type="number"
+              step="0.1"
+              placeholder="Ex: 32.5"
+              {...form.register('materia_seca_percent', {
+                setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+              })}
+            />
           </div>
 
           {/* Insumos */}
@@ -290,15 +338,6 @@ export function SiloForm({
             </div>
           </div>
 
-          {/* Localização */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-loc">Localização</Label>
-            <Input
-              id="silo-loc"
-              placeholder="Descrição ou coordenadas"
-              {...form.register('localizacao')}
-            />
-          </div>
 
           <DialogFooter>
             <Button

@@ -115,6 +115,18 @@ const silos = {
       .eq('fazenda_id', fazendaId);
     if (error) throw error;
   },
+
+  async getById(id: string): Promise<Silo> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('silos')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return data as Silo;
+  },
 };
 
 // ---------------------------------------------------------------------------

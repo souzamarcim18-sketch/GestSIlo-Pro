@@ -80,22 +80,18 @@ export function VisaoGeralTab({
             <Badge variant="secondary">{silo.tipo}</Badge>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Capacidade</p>
-            <p className="font-semibold text-lg">{silo.capacidade} toneladas</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Localização</p>
-            <p className="font-medium">{silo.localizacao || 'Não informada'}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Matéria Seca</p>
-            <p className="font-semibold text-lg">{silo.materia_seca_percent || '-'}%</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Consumo Médio Diário</p>
+            <p className="text-sm text-muted-foreground">Volume Ensilado</p>
             <p className="font-semibold text-lg">
-              {silo.consumo_medio_diario_ton || '-'} ton/dia
+              {silo.volume_ensilado_ton_mv ? `${silo.volume_ensilado_ton_mv} ton` : '-'}
             </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Cultura Ensilada</p>
+            <p className="font-medium">{silo.cultura_ensilada || 'Não informada'}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Matéria Seca Original</p>
+            <p className="font-semibold text-lg">{silo.materia_seca_percent || '-'}%</p>
           </div>
         </CardContent>
       </Card>
