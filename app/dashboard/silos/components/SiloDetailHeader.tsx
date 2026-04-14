@@ -1,3 +1,4 @@
+// components/silos/SiloDetailHeader.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -5,20 +6,23 @@ import { Badge } from '@/components/ui/badge';
 import { type Silo } from '@/lib/supabase';
 import { ArrowLeft, Edit2, AlertTriangle } from 'lucide-react';
 
+type SiloStatus = 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
+
 interface SiloDetailHeaderProps {
   silo: Silo;
-  status: 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Atenção';
+  status: SiloStatus;
   onBack: () => void;
   onEdit: () => void;
   talhaoNome?: string | null;
 }
 
-const statusConfig: Record<string, { emoji: string; color: string; label: string }> = {
+const statusConfig: Record<SiloStatus, { emoji: string; color: string; label: string }> = {
   Enchendo: { emoji: '🔵', color: 'bg-blue-500', label: 'Enchendo' },
   Fechado: { emoji: '🟡', color: 'bg-yellow-500', label: 'Fechado' },
   Aberto: { emoji: '🟢', color: 'bg-green-500', label: 'Aberto' },
   Vazio: { emoji: '⚫', color: 'bg-gray-500', label: 'Vazio' },
-  Atenção: { emoji: '🔴', color: 'bg-red-500', label: 'Atenção' },
+  Crítico: { emoji: '🔴', color: 'bg-red-500', label: 'Crítico' },
+  Esgotado: { emoji: '⚫', color: 'bg-gray-800', label: 'Esgotado' },
 };
 
 export function SiloDetailHeader({
@@ -28,8 +32,7 @@ export function SiloDetailHeader({
   onEdit,
   talhaoNome,
 }: SiloDetailHeaderProps) {
-  const statusInfo = statusConfig[status] || statusConfig.Vazio;
-  const isLegacy = !talhaoNome || talhaoNome === null;
+  const statusInfo = statusConfig[status];
 
   return (
     <div className="space-y-4 mb-6">
@@ -72,9 +75,7 @@ export function SiloDetailHeader({
         {/* Informações de talhão e cultura */}
         <div className="text-sm text-muted-foreground space-y-1">
           {talhaoNome ? (
-            <>
-              <p>Talhão: <span className="font-medium text-foreground">{talhaoNome}</span></p>
-            </>
+            <p>Talhão: <span className="font-medium text-foreground">{talhaoNome}</span></p>
           ) : (
             <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
               <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />

@@ -1,3 +1,4 @@
+// app/dashboard/silos/[id]/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,7 +16,7 @@ import { SiloForm } from '../components/dialogs/SiloForm';
 import { MovimentacaoDialog } from '../components/dialogs/MovimentacaoDialog';
 import { AvaliacaoBromatologicaDialog } from '../components/dialogs/AvaliacaoBromatologicaDialog';
 import { AvaliacaoPspsDialog } from '../components/dialogs/AvaliacaoPspsDialog';
-import { calcularDadosSilos, calcularEstoque, calcularConsumoDiario, calcularEstoqueParaDias } from '../helpers';
+import { calcularDadosSilos } from '../helpers';
 import { toast } from 'sonner';
 import { AlertTriangle, Loader } from 'lucide-react';
 
@@ -97,10 +98,13 @@ export default function SiloDetailPage() {
 
   // Calcular dados em memória
   const cardData = calcularDadosSilos([silo], movimentacoes)[0];
-  const estoque = cardData.estoque;
-  const consumoDiario = cardData.consumoDiario;
-  const estoquePara = cardData.estoquePara;
-  const status = cardData.status;
+  const { estoque, consumoDiario, estoquePara, status } = cardData;
+
+  // Volume total calculado pelas dimensões do silo
+  const volumeTotal =
+    silo.comprimento_m && silo.largura_m && silo.altura_m
+      ? silo.comprimento_m * silo.largura_m * silo.altura_m
+      : null;
 
   return (
     <div className="space-y-6">
@@ -125,10 +129,10 @@ export default function SiloDetailPage() {
           <VisaoGeralTab
             silo={silo}
             talhao={talhao}
-            custo={null} // TODO: buscar custo de produção
-            densidade={null} // TODO: calcular ou buscar
-            insumoLona={null} // TODO: buscar nome do insumo
-            insumoInoculante={null} // TODO: buscar nome do insumo
+            custo={null}
+            densidade={null}
+            insumoLona={null}
+            insumoInoculante={null}
             onEdit={() => setIsEditOpen(true)}
           />
         </TabsContent>
@@ -136,7 +140,7 @@ export default function SiloDetailPage() {
         <TabsContent value="estoque" className="mt-6">
           <EstoqueTab
             siloId={siloId}
-            volumeTotal={silo.capacidade}
+            volumeTotal={volumeTotal ?? 0}
             movimentacoes={movimentacoes}
             estoque={estoque}
             consumoDiario={consumoDiario}
@@ -148,8 +152,8 @@ export default function SiloDetailPage() {
         <TabsContent value="qualidade" className="mt-6">
           <QualidadeTab
             siloId={siloId}
-            avaliacoesBromatologicas={[]} // TODO: buscar do banco
-            avaliacoesPsps={[]} // TODO: buscar do banco
+            avaliacoesBromatologicas={[]}
+            avaliacoesPsps={[]}
             onNovaBromatologica={() => setIsBromOpen(true)}
             onNovaPsps={() => setIsPspsOpen(true)}
           />
@@ -163,7 +167,7 @@ export default function SiloDetailPage() {
         mode="edit"
         silo={silo}
         talhoes={talhoes}
-        insumos={[]} // TODO: buscar insumos
+        insumos={[]}
         onSuccess={fetchData}
       />
       <MovimentacaoDialog
