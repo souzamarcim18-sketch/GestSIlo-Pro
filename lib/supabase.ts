@@ -48,6 +48,7 @@ export type Silo = {
   capacidade: number;
   localizacao: string | null;
   fazenda_id: string;
+  talhao_id: string | null;
   materia_seca_percent: number | null;
   consumo_medio_diario_ton: number | null;
   insumo_lona_id: string | null;

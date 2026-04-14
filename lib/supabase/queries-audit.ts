@@ -192,6 +192,18 @@ const talhoes = {
     return data as Talhao[];
   },
 
+  async getById(id: string): Promise<Talhao | null> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('talhoes')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return (data as Talhao) || null;
+  },
+
   async create(payload: Omit<Talhao, 'id'>): Promise<Talhao> {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
