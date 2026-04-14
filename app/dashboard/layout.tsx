@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { useAuth } from '@/hooks/useAuth';
 import { AUTH_PROFILE_FETCH_TIMEOUT_MS } from '@/lib/auth/constants';
 import { authLog } from '@/lib/auth/logger';
@@ -122,7 +121,7 @@ export default function DashboardLayout({
 
       <main
         className={cn(
-          "h-full overflow-y-auto flex flex-col transition-all duration-300 ease-in-out",
+          "h-full overflow-y-auto flex flex-col transition-all duration-300 ease-in-out bg-muted/30",
           sidebarCollapsed ? "md:pl-16" : "md:pl-72"
         )}
       >
@@ -131,9 +130,6 @@ export default function DashboardLayout({
         </header>
 
         <div className="flex-1">
-          <div className="px-6 pt-4">
-            <Breadcrumbs />
-          </div>
           {children}
         </div>
       </main>
