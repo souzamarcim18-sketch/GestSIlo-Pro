@@ -146,27 +146,27 @@ export default function CalculadorasPage() {
             </Card>
 
             <div className="space-y-6">
-              <Card className="bg-green-50 border-green-200">
+              <Card className="bg-primary/10 border-primary/30">
                 <CardHeader>
-                  <CardTitle className="text-green-800 flex items-center gap-2">
+                  <CardTitle className="text-primary flex items-center gap-2">
                     <Calculator className="w-5 h-5" />
                     Resultado (NC)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="text-center">
-                    <p className="text-sm text-green-700 font-bold uppercase">Necessidade de Calagem</p>
-                    <p className="text-4xl font-black text-green-900">
+                    <p className="text-sm text-primary dark:text-primary font-bold uppercase">Necessidade de Calagem</p>
+                    <p className="text-4xl font-black text-primary dark:text-primary">
                       {resultadoCalagem?.nc.toFixed(2) || '0.00'} <span className="text-lg">t/ha</span>
                     </p>
                   </div>
-                  <div className="bg-white/50 p-4 rounded-xl border border-green-100 text-center">
-                    <p className="text-xs text-green-700 font-bold uppercase">Total para a Área</p>
-                    <p className="text-2xl font-black text-green-900">
+                  <div className="bg-white/50 dark:bg-muted/20 p-4 rounded-xl border border-primary/20 dark:border-primary/30 text-center">
+                    <p className="text-xs text-primary dark:text-primary font-bold uppercase">Total para a Área</p>
+                    <p className="text-2xl font-black text-primary dark:text-primary">
                       {resultadoCalagem?.total.toFixed(1) || '0.0'} <span className="text-sm">toneladas</span>
                     </p>
                   </div>
-                  <Button className="w-full bg-green-700 hover:bg-green-800">
+                  <Button className="w-full bg-primary dark:bg-primary hover:bg-primary dark:hover:bg-primary/90">
                     <Download className="w-4 h-4 mr-2" />
                     Exportar Laudo PDF
                   </Button>
@@ -176,7 +176,7 @@ export default function CalculadorasPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Info className="w-4 h-4 text-blue-500" />
+                    <Info className="w-4 h-4 text-[--status-info]" />
                     Dica Agronômica
                   </CardTitle>
                 </CardHeader>
@@ -239,27 +239,27 @@ export default function CalculadorasPage() {
             </Card>
 
             <div className="space-y-6">
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-[--status-info]/10 border-[--status-info]">
                 <CardHeader>
-                  <CardTitle className="text-blue-800 flex items-center gap-2">
+                  <CardTitle className="text-[--status-info] flex items-center gap-2">
                     <Calculator className="w-5 h-5" />
                     Recomendação
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="text-center">
-                    <p className="text-sm text-blue-700 font-bold uppercase">Dose de {resultadoNPK?.fertNome || 'Fertilizante'}</p>
-                    <p className="text-4xl font-black text-blue-900">
+                    <p className="text-sm text-[--status-info] font-bold uppercase">Dose de {resultadoNPK?.fertNome || 'Fertilizante'}</p>
+                    <p className="text-4xl font-black text-[--status-info]">
                       {resultadoNPK?.dosePorHa.toFixed(0) || '0'} <span className="text-lg">kg/ha</span>
                     </p>
                   </div>
-                  <div className="bg-white/50 p-4 rounded-xl border border-blue-100 text-center">
-                    <p className="text-xs text-blue-700 font-bold uppercase">Total para a Área</p>
-                    <p className="text-2xl font-black text-blue-900">
+                  <div className="bg-white/50 dark:bg-muted/20 p-4 rounded-xl border border-[--status-info] dark:border-[--status-info]/30 text-center">
+                    <p className="text-xs text-[--status-info] font-bold uppercase">Total para a Área</p>
+                    <p className="text-2xl font-black text-[--status-info]">
                       {resultadoNPK?.total.toFixed(2) || '0.00'} <span className="text-sm">toneladas</span>
                     </p>
                   </div>
-                  <Button className="w-full bg-blue-700 hover:bg-blue-800">
+                  <Button className="w-full bg-[--status-info]/10 hover:bg-[--status-info]/10">
                     <Download className="w-4 h-4 mr-2" />
                     Exportar Recomendação
                   </Button>
@@ -269,7 +269,7 @@ export default function CalculadorasPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                    <AlertCircle className="w-4 h-4 text-secondary" />
                     Aviso de Nutrientes
                   </CardTitle>
                 </CardHeader>

@@ -6,22 +6,22 @@ export const metadata = {
 
 export default function TermosPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-background">
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="mb-8">
           <Link
             href="/login"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm text-gray-500 dark:text-muted-foreground hover:text-gray-700 dark:hover:text-foreground transition-colors"
           >
             ← Voltar ao login
           </Link>
         </div>
 
-        <article className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 prose prose-gray max-w-none">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <article className="bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border p-10 prose dark:prose-invert prose-gray max-w-none">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-2">
             Termos de Uso
           </h1>
-          <p className="text-gray-500 text-sm mb-8">
+          <p className="text-gray-500 dark:text-muted-foreground text-sm mb-8">
             Última atualização: abril de 2026
           </p>
 

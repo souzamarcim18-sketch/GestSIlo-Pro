@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Sun, Moon, Monitor, Menu } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +50,7 @@ export function Header() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [fazendaNome, setFazendaNome] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ── Tema ─────────────────────────────────────────────────────────────
   const themeOptions = [
@@ -101,20 +103,20 @@ export function Header() {
   // ── Render ──────────────────────────────────────────────────────────
   return (
     <header
-      className="flex items-center p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-green-100 dark:border-green-900 sticky top-0 z-40"
+      className="flex items-center p-4 bg-background/80 dark:bg-sidebar/95 backdrop-blur-md border-b border-border sticky top-0 z-40"
       role="toolbar"
       aria-label="Barra superior"
     >
       {/* Menu mobile */}
-      <Sheet>
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetTrigger
-          className="inline-flex items-center justify-center rounded-md p-2 md:hidden text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+          className="inline-flex items-center justify-center rounded-md p-2 md:hidden text-foreground hover:bg-muted dark:hover:bg-muted/80 transition-colors"
           aria-label="Abrir menu de navegação"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-72 border-r-0">
-          <Sidebar />
+          <Sidebar onNavigate={() => setMobileMenuOpen(false)} />
         </SheetContent>
       </Sheet>
 
@@ -124,7 +126,7 @@ export function Header() {
         {/* Toggle de tema */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-foreground hover:bg-muted dark:hover:bg-muted/80 transition-colors"
             aria-label="Alternar tema"
           >
             {currentIcon}
@@ -134,11 +136,10 @@ export function Header() {
               <DropdownMenuItem
                 key={opt.value}
                 onClick={() => setTheme(opt.value)}
-                className={`flex items-center gap-2 rounded-lg cursor-pointer ${
-                  theme === opt.value
-                    ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
-                    : ''
-                }`}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg cursor-pointer focus:bg-muted",
+                  theme === opt.value ? "bg-muted text-primary" : ""
+                )}
               >
                 {opt.icon}
                 {opt.label}
@@ -149,11 +150,11 @@ export function Header() {
 
         {/* Nome + Fazenda — desktop */}
         <div className="hidden md:flex flex-col items-end" aria-hidden="true">
-          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">
+          <p className="text-sm font-bold text-foreground leading-tight">
             {displayName}
           </p>
           {fazendaNome && (
-            <p className="text-xs text-green-600 dark:text-green-400 font-medium leading-tight mt-0.5">
+            <p className="text-xs text-primary font-medium leading-tight mt-0.5">
               {fazendaNome}
             </p>
           )}
@@ -162,32 +163,32 @@ export function Header() {
         {/* Menu do usuário */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="relative h-10 w-10 rounded-2xl p-0 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+            className="relative h-10 w-10 rounded-2xl p-0 hover:bg-muted dark:hover:bg-muted/80 transition-colors"
             aria-label={`Menu do usuário: ${displayName}`}
           >
-            <Avatar className="h-10 w-10 rounded-2xl border-2 border-white dark:border-gray-700 shadow-sm">
+            <Avatar className="h-10 w-10 rounded-2xl border-2 border-primary/20 shadow-sm">
               <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt="" />
-              <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 font-bold rounded-2xl text-sm">
+              <AvatarFallback className="bg-muted text-primary font-bold rounded-2xl text-sm">
                 {initials}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            className="w-64 mt-2 p-2 rounded-2xl border-green-50 dark:border-green-900 shadow-xl"
+            className="w-64 mt-2 p-2 rounded-2xl border-border shadow-xl"
             align="end"
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="font-normal p-3">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">
+                  <p className="text-sm font-bold text-foreground leading-none">
                     {displayName}
                   </p>
-                  <p className="text-xs leading-none text-gray-400 mt-1">
+                  <p className="text-xs leading-none text-muted-foreground mt-1">
                     {user?.email}
                   </p>
                   {fazendaNome && (
-                    <p className="text-xs leading-none text-green-600 dark:text-green-400 font-medium mt-1.5">
+                    <p className="text-xs leading-none text-primary font-medium mt-1.5">
                       🌱 {fazendaNome}
                     </p>
                   )}
@@ -195,29 +196,29 @@ export function Header() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator className="bg-gray-50 dark:bg-gray-800" />
+            <DropdownMenuSeparator className="bg-border/50" />
 
             <div className="p-1">
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-green-950 dark:focus:text-green-400 p-3 cursor-pointer"
+                className="rounded-xl focus:bg-muted p-3 cursor-pointer"
               >
                 Perfil do Usuário
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-green-50 focus:text-green-700 dark:focus:bg-green-950 dark:focus:text-green-400 p-3 cursor-pointer"
+                className="rounded-xl focus:bg-muted p-3 cursor-pointer"
               >
                 Configurações
               </DropdownMenuItem>
             </div>
 
-            <DropdownMenuSeparator className="bg-gray-50 dark:bg-gray-800" />
+            <DropdownMenuSeparator className="bg-border/50" />
 
             <div className="p-1">
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="rounded-xl focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950 dark:focus:text-red-400 p-3 cursor-pointer text-red-500 dark:text-red-400"
+                className="rounded-xl focus:bg-destructive/10 p-3 cursor-pointer text-destructive focus:text-destructive"
               >
                 Sair da conta
               </DropdownMenuItem>

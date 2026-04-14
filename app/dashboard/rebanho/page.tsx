@@ -295,7 +295,7 @@ export default function PlanejadorRebanhoPage() {
           ))}
         </select>
         {selectedPeriodo && (
-          <Button variant="ghost" size="icon" onClick={() => handleDeletePeriodo(selectedPeriodo.id)} className="text-red-500">
+          <Button variant="ghost" size="icon" onClick={() => handleDeletePeriodo(selectedPeriodo.id)} className="text-destructive">
             <Trash2 className="w-4 h-4" />
           </Button>
         )}
@@ -311,14 +311,14 @@ export default function PlanejadorRebanhoPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Status do Estoque
-                {calculos.saldo < 0 ? <AlertTriangle className="text-red-500" /> : <CheckCircle2 className="text-green-500" />}
+                {calculos.saldo < 0 ? <AlertTriangle className="text-destructive dark:text-destructive" /> : <CheckCircle2 className="text-primary dark:text-primary" />}
               </CardTitle>
               <CardDescription>Análise para o período {selectedPeriodo?.nome}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center py-4">
                 <p className="text-sm text-muted-foreground uppercase font-bold">Saldo de Matéria Seca</p>
-                <p className={`text-4xl font-black ${calculos.saldo < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                <p className={`text-4xl font-black ${calculos.saldo < 0 ? 'text-destructive' : 'text-primary dark:text-primary'}`}>
                   {calculos.saldo.toFixed(1)} ton MS
                 </p>
               </div>
@@ -357,7 +357,7 @@ export default function PlanejadorRebanhoPage() {
               </div>
 
               {calculos.saldo < 0 && (
-                <div className="bg-red-50 border border-red-200 p-4 rounded-xl text-red-800 text-sm">
+                <div className="bg-destructive/10 border border-destructive p-4 rounded-xl text-destructive text-sm">
                   <p className="font-bold flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
                     Atenção: Déficit Detectado
@@ -421,7 +421,7 @@ export default function PlanejadorRebanhoPage() {
                           {((cat.quantidade_cabecas * cat.consumo_ms_kg_cab_dia) / 1000).toFixed(2)}
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteCategoria(cat.id)} className="text-red-500">
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteCategoria(cat.id)} className="text-destructive">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </TableCell>

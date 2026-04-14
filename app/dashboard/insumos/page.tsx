@@ -558,11 +558,11 @@ export default function InsumosPage() {
                   <TableCell>
                     <div className="flex items-center gap-1.5">
                       {mov.tipo === 'Entrada' ? (
-                        <ArrowDownRight className="h-4 w-4 text-green-500" />
+                        <ArrowDownRight className="h-4 w-4 text-primary dark:text-primary" />
                       ) : (
-                        <ArrowUpRight className="h-4 w-4 text-amber-500" />
+                        <ArrowUpRight className="h-4 w-4 text-secondary dark:text-secondary" />
                       )}
-                      <span className={mov.tipo === 'Entrada' ? 'text-green-600 font-medium' : 'text-amber-600 font-medium'}>
+                      <span className={mov.tipo === 'Entrada' ? 'text-primary dark:text-primary font-medium' : 'text-secondary dark:text-secondary font-medium'}>
                         {mov.tipo}
                       </span>
                     </div>

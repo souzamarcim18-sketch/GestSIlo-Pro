@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
@@ -19,15 +20,30 @@ export default function DashboardLayout({
   const router = useRouter();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
+  // Lazy initialization: lê localStorage apenas uma vez na montagem
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sidebar-collapsed') === 'true';
+    }
+    return false;
+  });
+
   const isOnboardingPage = pathname === '/dashboard/onboarding';
+
+  // Escutar mudanças futuras do localStorage (abas diferentes)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'sidebar-collapsed') {
+        setSidebarCollapsed(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Timeout de 5s se loading permanecer true
   useEffect(() => {
-    if (!loading) {
-      // Loading terminou, reset timeout state
-      // (não chamar setState aqui para evitar cascading renders)
-      return;
-    }
+    if (!loading) return;
 
     authLog('DashboardLayout: auth loading started');
     const timeoutId = window.setTimeout(() => {
@@ -37,8 +53,6 @@ export default function DashboardLayout({
 
     return () => {
       clearTimeout(timeoutId);
-      // Reset timeout state apenas se ainda estamos no efeito
-      // Evita setState em efeito anterior sobrescrever este
     };
   }, [loading]);
 
@@ -46,19 +60,16 @@ export default function DashboardLayout({
   useEffect(() => {
     if (loading) return;
 
-    // Sem usuário → login
     if (!user) {
       router.replace('/login');
       return;
     }
 
-    // Precisa criar fazenda e não está na página de onboarding → redireciona
     if (needsOnboarding && !isOnboardingPage) {
       router.replace('/dashboard/onboarding');
       return;
     }
 
-    // Já tem fazenda mas está no onboarding → manda pro dashboard
     if (!needsOnboarding && isOnboardingPage) {
       router.replace('/dashboard');
       return;
@@ -70,16 +81,16 @@ export default function DashboardLayout({
     return (
       <div className="h-screen flex items-center justify-center" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" aria-hidden="true" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true" />
           <span className="sr-only">Carregando...</span>
           {loadingTimeout && (
             <div className="text-center">
-              <p className="text-red-600 text-sm font-medium mb-2">
+              <p className="text-destructive text-sm font-medium mb-2">
                 Tempo limite ao carregar. Verifique sua conexão.
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="text-sm text-green-600 hover:underline font-medium"
+                className="text-sm text-primary hover:underline font-medium"
               >
                 Voltar ao login
               </button>
@@ -93,7 +104,7 @@ export default function DashboardLayout({
   // Onboarding: layout limpo, sem sidebar/header
   if (needsOnboarding && isOnboardingPage) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-sidebar">
         {children}
       </div>
     );
@@ -104,12 +115,17 @@ export default function DashboardLayout({
     <div className="h-screen relative overflow-hidden">
       <nav
         aria-label="Menu principal"
-        className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-80 border-r border-green-100"
+        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80 border-r border-border dark:border-sidebar-border transition-all duration-300 ease-in-out"
       >
         <Sidebar />
       </nav>
 
-      <main className="md:pl-72 h-full overflow-y-auto flex flex-col">
+      <main
+        className={cn(
+          "h-full overflow-y-auto flex flex-col transition-all duration-300 ease-in-out",
+          sidebarCollapsed ? "md:pl-16" : "md:pl-72"
+        )}
+      >
         <header role="banner">
           <Header />
         </header>

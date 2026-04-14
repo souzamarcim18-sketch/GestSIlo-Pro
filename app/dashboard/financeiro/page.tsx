@@ -419,7 +419,7 @@ export default function FinanceiroPage() {
           : <span className="text-muted-foreground" aria-hidden="true">—</span>}
       </TableCell>
       <TableCell
-        className={`font-bold tabular-nums ${l.tipo === 'Receita' ? 'text-green-600' : 'text-destructive'}`}
+        className={`font-bold tabular-nums ${l.tipo === 'Receita' ? 'text-primary dark:text-primary' : 'text-destructive'}`}
         aria-label={`${l.tipo === 'Receita' ? 'Receita' : 'Despesa'} de ${brl(l.valor)}`}
       >
         {l.tipo === 'Receita' ? '+' : '−'} {brl(l.valor)}
@@ -540,10 +540,10 @@ export default function FinanceiroPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium" id="card-receitas">Total Receitas</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" aria-hidden="true" />
+              <TrendingUp className="h-4 w-4 text-primary dark:text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600" aria-labelledby="card-receitas" aria-live="polite">
+              <div className="text-2xl font-bold text-primary dark:text-primary" aria-labelledby="card-receitas" aria-live="polite">
                 {loading ? '—' : brl(resumo.totalReceitas)}
               </div>
               <p className="text-xs text-muted-foreground">

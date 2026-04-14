@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -15,7 +16,9 @@ import {
   LogOut,
   Sprout,
   Calculator,
-  Beaker
+  Beaker,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,23 +26,55 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-const routes = [
-  { label: 'Dashboard',     icon: LayoutDashboard, href: '/dashboard',                  color: 'text-sky-500'     },
-  { label: 'Silos',         icon: Database,        href: '/dashboard/silos',             color: 'text-amber-500'   },
-  { label: 'Planejador',    icon: Calculator,      href: '/dashboard/rebanho',           color: 'text-rose-500'    },
-  { label: 'Simulador',     icon: Sprout,          href: '/dashboard/simulador',         color: 'text-lime-600'    },
-  { label: 'Calculadoras',  icon: Beaker,          href: '/dashboard/calculadoras',      color: 'text-indigo-500'  },
-  { label: 'Talhões',       icon: Map,             href: '/dashboard/talhoes',           color: 'text-emerald-500' },
-  { label: 'Insumos',       icon: Package,         href: '/dashboard/insumos',           color: 'text-blue-500'    },
-  { label: 'Frota',         icon: Truck,           href: '/dashboard/frota',             color: 'text-orange-500'  },
-  { label: 'Financeiro',    icon: DollarSign,      href: '/dashboard/financeiro',        color: 'text-green-500'   },
-  { label: 'Relatórios',    icon: BarChart3,       href: '/dashboard/relatorios',        color: 'text-purple-500'  },
-  { label: 'Configurações', icon: Settings,        href: '/dashboard/configuracoes',                               },
+const operacionalRoutes = [
+  { label: 'Dashboard',   icon: LayoutDashboard, href: '/dashboard'                },
+  { label: 'Silos',       icon: Database,        href: '/dashboard/silos'           },
+  { label: 'Talhões',     icon: Map,             href: '/dashboard/talhoes'         },
+  { label: 'Rebanho',     icon: Sprout,          href: '/dashboard/rebanho'         },
+  { label: 'Insumos',     icon: Package,         href: '/dashboard/insumos'         },
+  { label: 'Frota',       icon: Truck,           href: '/dashboard/frota'           },
+  { label: 'Financeiro',  icon: DollarSign,      href: '/dashboard/financeiro'      },
 ];
 
-export function Sidebar() {
+const ferramentasRoutes = [
+  { label: 'Planejador',   icon: Calculator, href: '/dashboard/planejador'  },
+  { label: 'Calculadoras', icon: Beaker,     href: '/dashboard/calculadoras' },
+  { label: 'Relatórios',   icon: BarChart3,  href: '/dashboard/relatorios'   },
+];
+
+const sistemaRoutes = [
+  { label: 'Configurações', icon: Settings, href: '/dashboard/configuracoes' },
+];
+
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
+export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('sidebar-collapsed') === 'true';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'sidebar-collapsed') {
+        setCollapsed(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const toggleCollapse = () => {
+    const newState = !collapsed;
+    setCollapsed(newState);
+    localStorage.setItem('sidebar-collapsed', String(newState));
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -48,15 +83,18 @@ export function Sidebar() {
 
   return (
     <div
-      className="flex flex-col h-full border-r border-green-100 shadow-sm"
-      style={{ background: '#e8f5e9' }}
+      className={cn(
+        "flex flex-col h-full border-r border-border shadow-sm transition-all duration-300",
+        "bg-background dark:bg-sidebar dark:border-sidebar-border",
+        collapsed ? "w-16" : "w-72"
+      )}
     >
-      <div className="px-6 py-8 flex-1 flex flex-col min-h-0">
+      <div className={cn("py-8 flex-1 flex flex-col min-h-0", collapsed ? "px-3" : "px-6")}>
 
         {/* Logo */}
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 mb-10 group transition-all"
+          className={cn("flex items-center gap-3 mb-10 group transition-all", collapsed && "justify-center")}
           aria-label="GestSilo — ir para o Dashboard"
         >
           <Image
@@ -68,57 +106,179 @@ export function Sidebar() {
             unoptimized
             aria-hidden="true"
           />
-          <div className="flex flex-col -space-y-1" aria-hidden="true">
-            <span className="font-black text-xl tracking-tight" style={{ color: '#00A651' }}>Gest</span>
-            <span className="font-black text-xl tracking-tight" style={{ color: '#6B8E23' }}>Silo</span>
-          </div>
+          {!collapsed && (
+            <div className="flex flex-col -space-y-1" aria-hidden="true">
+              <span className="font-black text-xl tracking-tight text-foreground">Gest</span>
+              <span className="font-black text-xl tracking-tight text-foreground">Silo</span>
+            </div>
+          )}
         </Link>
 
         {/* Navegação */}
-        <ScrollArea className="flex-1 -mx-2 px-2 min-h-0 h-full">
+        <ScrollArea className={cn("flex-1 min-h-0 h-full", collapsed ? "-mx-1 px-1" : "-mx-2 px-2")}>
           <nav aria-label="Navegação principal">
-            <ul className="space-y-1 pb-4 list-none">
-              {routes.map((route) => {
-                const isActive = pathname === route.href;
-                return (
-                  <li key={route.href}>
-                    <Link
-                      href={route.href}
-                      aria-current={isActive ? 'page' : undefined}
-                      className={cn(
-                        "text-sm group flex p-3 w-full justify-start font-semibold cursor-pointer rounded-xl transition-all duration-200",
-                        isActive
-                          ? "bg-white text-green-700 shadow-sm border border-green-50"
-                          : "text-gray-600 hover:bg-white/50 hover:text-green-600",
-                      )}
-                    >
-                      <route.icon
-                        aria-hidden="true"
+            {/* Grupo Operacional */}
+            <div className="pb-4">
+              {!collapsed && (
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Operacional
+                </div>
+              )}
+              <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
+                {operacionalRoutes.map((route) => {
+                  const isActive = pathname === route.href;
+                  return (
+                    <li key={route.href}>
+                      <Link
+                        href={route.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={collapsed ? route.label : undefined}
                         className={cn(
-                          "h-5 w-5 mr-3 transition-colors",
-                          isActive ? "text-green-600" : "text-gray-400 group-hover:text-green-500"
+                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                          isActive
+                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
                         )}
-                      />
-                      {route.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                      >
+                        <route.icon
+                          aria-hidden="true"
+                          className={cn(
+                            "h-5 w-5 transition-colors",
+                            !collapsed && "mr-3",
+                            isActive ? "text-primary" : "text-sidebar-foreground"
+                          )}
+                        />
+                        {!collapsed && route.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* Separador */}
+            {!collapsed && <div className="my-2 border-t border-sidebar-border" />}
+
+            {/* Grupo Ferramentas */}
+            <div className="pb-4">
+              {!collapsed && (
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Ferramentas
+                </div>
+              )}
+              <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
+                {ferramentasRoutes.map((route) => {
+                  const isActive = pathname === route.href;
+                  return (
+                    <li key={route.href}>
+                      <Link
+                        href={route.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={collapsed ? route.label : undefined}
+                        className={cn(
+                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                          isActive
+                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
+                        )}
+                      >
+                        <route.icon
+                          aria-hidden="true"
+                          className={cn(
+                            "h-5 w-5 transition-colors",
+                            !collapsed && "mr-3",
+                            isActive ? "text-primary" : "text-sidebar-foreground"
+                          )}
+                        />
+                        {!collapsed && route.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* Separador */}
+            {!collapsed && <div className="my-2 border-t border-sidebar-border" />}
+
+            {/* Grupo Sistema */}
+            <div className="pb-4">
+              {!collapsed && (
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Sistema
+                </div>
+              )}
+              <ul className={cn("space-y-1 list-none", collapsed && "space-y-2")}>
+                {sistemaRoutes.map((route) => {
+                  const isActive = pathname === route.href;
+                  return (
+                    <li key={route.href}>
+                      <Link
+                        href={route.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={collapsed ? route.label : undefined}
+                        className={cn(
+                          "text-sm group flex font-semibold cursor-pointer rounded-xl transition-all duration-200",
+                          collapsed ? "p-3 justify-center" : "p-3 justify-start",
+                          isActive
+                            ? "bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40"
+                            : "text-muted-foreground hover:bg-muted dark:hover:bg-muted/80",
+                        )}
+                      >
+                        <route.icon
+                          aria-hidden="true"
+                          className={cn(
+                            "h-5 w-5 transition-colors",
+                            !collapsed && "mr-3",
+                            isActive ? "text-primary" : "text-sidebar-foreground"
+                          )}
+                        />
+                        {!collapsed && route.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </nav>
         </ScrollArea>
       </div>
 
-      {/* Rodapé — Sair */}
-      <div className="p-4 border-t border-green-100 bg-white/30">
+      {/* Rodapé — Toggle + Sair */}
+      <div className={cn("p-4 border-t border-sidebar-border bg-sidebar/50 space-y-2", collapsed && "px-2")}>
         <Button
           variant="ghost"
-          className="w-full justify-start text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+          className={cn(
+            "rounded-xl transition-all hover:bg-muted dark:hover:bg-muted/80",
+            collapsed ? "w-full flex justify-center p-3" : "w-full justify-center p-3"
+          )}
+          onClick={toggleCollapse}
+          title={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
+          aria-label={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-5 w-5" aria-hidden="true" />
+          ) : (
+            <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+          )}
+        </Button>
+
+        <Button
+          variant="ghost"
+          className={cn(
+            "text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-xl transition-all",
+            collapsed ? "w-full flex justify-center p-3" : "w-full justify-start p-3"
+          )}
           onClick={handleLogout}
           aria-label="Sair da conta"
         >
-          <LogOut className="h-5 w-5 mr-3" aria-hidden="true" />
-          Sair da conta
+          <LogOut className={cn("h-5 w-5", !collapsed && "mr-3")} aria-hidden="true" />
+          {!collapsed && "Sair da conta"}
         </Button>
       </div>
     </div>

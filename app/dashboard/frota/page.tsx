@@ -514,7 +514,7 @@ export default function FrotaPage() {
                       {maintenanceStatus === 'proxima' && (
                         <Badge
                           variant="secondary"
-                          className="bg-amber-500 text-white"
+                          className="bg-secondary/100 text-white dark:bg-secondary/30 dark:text-secondary"
                           aria-label="Próxima manutenção em menos de 7 dias"
                           role="status"
                         >
@@ -531,7 +531,7 @@ export default function FrotaPage() {
                       <div className="p-3 bg-muted/30 rounded-lg space-y-2">
                         <div className="flex justify-between text-xs font-semibold uppercase text-muted-foreground">
                           <span>Valor Atual Estimado</span>
-                          <span className="text-emerald-600">
+                          <span className="text-[#10B981] dark:text-[#10B981]">
                             -{(100 - dep.percentualRestante).toFixed(1)}%
                           </span>
                         </div>
@@ -554,14 +554,14 @@ export default function FrotaPage() {
 
                     <div className="flex gap-4 pt-2 border-t">
                       <div
-                        className="flex items-center gap-1 text-xs font-medium text-blue-600"
+                        className="flex items-center gap-1 text-xs font-medium text-[--status-info] dark:text-[--status-info]"
                         aria-label={`Horas trabalhadas: ${horasTotais} horas`}
                       >
                         <Clock className="w-3 h-3" aria-hidden="true" />
                         {horasTotais}h
                       </div>
                       <div
-                        className="flex items-center gap-1 text-xs font-medium text-emerald-600"
+                        className="flex items-center gap-1 text-xs font-medium text-[#10B981] dark:text-[#10B981]"
                         aria-label={`Quilometragem: ${kmTotais} km`}
                       >
                         <Gauge className="w-3 h-3" aria-hidden="true" />
@@ -569,7 +569,7 @@ export default function FrotaPage() {
                       </div>
                       {maquina.consumo_medio_lh && (
                         <div
-                          className="flex items-center gap-1 text-xs font-medium text-amber-600"
+                          className="flex items-center gap-1 text-xs font-medium text-secondary dark:text-secondary"
                           aria-label={`Consumo médio: ${maquina.consumo_medio_lh} litros por hora`}
                         >
                           <Fuel className="w-3 h-3" aria-hidden="true" />
