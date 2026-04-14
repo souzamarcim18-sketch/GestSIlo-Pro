@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,26 +18,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
-  // Lazy initialization: lê localStorage apenas uma vez na montagem
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('sidebar-collapsed') === 'true';
-    }
-    return false;
-  });
-
   const isOnboardingPage = pathname === '/dashboard/onboarding';
-
-  // Escutar mudanças futuras do localStorage (abas diferentes)
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'sidebar-collapsed') {
-        setSidebarCollapsed(e.newValue === 'true');
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
 
   // Timeout de 5s se loading permanecer true
   useEffect(() => {
@@ -119,12 +99,7 @@ export default function DashboardLayout({
         <Sidebar />
       </nav>
 
-      <main
-        className={cn(
-          "h-full overflow-y-auto flex flex-col transition-all duration-300 ease-in-out bg-muted/30",
-          sidebarCollapsed ? "md:pl-16" : "md:pl-72"
-        )}
-      >
+      <main className="h-full overflow-y-auto flex flex-col bg-muted/30 md:pl-60">
         <header role="banner">
           <Header />
         </header>
