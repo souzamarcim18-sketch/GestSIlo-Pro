@@ -2,6 +2,11 @@
 import { type Silo, type MovimentacaoSilo } from '@/lib/supabase';
 
 /**
+ * Status possíveis de um silo
+ */
+export type SiloStatus = 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
+
+/**
  * Calcula o estoque atual de um silo baseado em suas movimentações.
  * Entrada = +, Saída = -
  */
@@ -53,7 +58,7 @@ export function calcularStatusSilo(
   silo: Silo,
   estoque: number,
   movimentacoes: MovimentacaoSilo[]
-): 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado' {
+): SiloStatus {
   const temEntradas = movimentacoes.some((m) => m.tipo === 'Entrada');
 
   // Sem nenhuma movimentação de entrada
@@ -89,7 +94,7 @@ export interface SiloCardData {
   msAtual: number | null;
   consumoDiario: number | null;
   estoquePara: number | null;
-  status: 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
+  status: SiloStatus;
 }
 
 /**
@@ -103,11 +108,8 @@ export function calcularDadosSilos(
     const movsDoSilo = movimentacoes.filter((m) => m.silo_id === silo.id);
 
     const estoque = calcularEstoque(movsDoSilo);
-
     const consumoDiario = calcularConsumoDiario(silo, movsDoSilo);
-
     const estoquePara = calcularEstoqueParaDias(estoque, consumoDiario);
-
     const status = calcularStatusSilo(silo, estoque, movsDoSilo);
 
     return {
