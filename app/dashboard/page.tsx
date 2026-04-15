@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useFazendaCoordinates } from '@/hooks/useFazendaCoordinates';
-import { WeatherWidget, QuotesWidget } from '@/components/widgets';
+import { WeatherWidget } from '@/components/widgets';
 import { toast } from 'sonner';
 
 interface DashboardStats {
@@ -357,16 +357,8 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Sidebar Direita: Quotes + Alertas */}
+        {/* Sidebar Direita: Alertas */}
         <div className="flex flex-col gap-6">
-          {/* Cotações de Mercado */}
-          <section aria-labelledby="quotes-heading">
-            <h2 id="quotes-heading" className="sr-only">
-              Cotações de mercado
-            </h2>
-            <QuotesWidget />
-          </section>
-
           {/* Alertas Críticos */}
           <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
             <h2
