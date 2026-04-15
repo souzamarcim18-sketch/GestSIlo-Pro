@@ -753,11 +753,21 @@ const atividadesCampo = {
   },
 
   async listByTalhao(talhaoId: string): Promise<AtividadeCampo[]> {
+    // Validar que o talhão pertence à fazenda do usuário
     const fazendaId = await getFazendaId();
+    const { count, error: checkError } = await supabase
+      .from('talhoes')
+      .select('id', { count: 'exact', head: true })
+      .eq('id', talhaoId)
+      .eq('fazenda_id', fazendaId);
+    if (checkError || count === 0) {
+      throw new Error('Talhão não encontrado ou não pertence a esta fazenda.');
+    }
+
+    // Buscar atividades (RLS garante isolamento, tabela não tem fazenda_id)
     const { data, error } = await supabase
       .from('atividades_campo')
       .select('*')
-      .eq('fazenda_id', fazendaId) // filtro explícito além do talhao_id
       .eq('talhao_id', talhaoId)
       .order('data', { ascending: false });
     if (error) throw error;
