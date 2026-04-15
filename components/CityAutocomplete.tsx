@@ -110,7 +110,7 @@ export function CityAutocomplete({
             onChange={handleInputChange}
             onFocus={() => inputValue.length >= 3 && setIsOpen(true)}
             placeholder={placeholder}
-            disabled={disabled || loading}
+            disabled={disabled}
             className="pl-10 pr-10"
             autoComplete="off"
           />

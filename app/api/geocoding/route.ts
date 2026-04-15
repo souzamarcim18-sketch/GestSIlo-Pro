@@ -24,6 +24,7 @@ interface NominatimResult {
     city?: string;
     town?: string;
     village?: string;
+    municipality?: string;
     state?: string;
     country?: string;
   };
@@ -63,10 +64,10 @@ export async function GET(req: NextRequest) {
       q: query,                  // Query limpa (ex: "Belo", "Ribeirão")
       format: 'json',
       addressdetails: '1',       // OBRIGATÓRIO para ter address.city, address.state
-      countrycodes: 'br',        // Apenas Brasil (key fix!)
-      limit: '10',               // Aumentar limite para melhor cobertura
+      countrycodes: 'br',        // Apenas Brasil
+      limit: '20',               // Aumentar limite para cobrir mais cidades
       dedupe: '1',
-      type: 'city',              // Apenas resultados do tipo city
+      // NÃO usar type=city pois é muito restritivo e perde muitas cidades legítimas
     });
 
     const controller = new AbortController();
@@ -116,8 +117,13 @@ export async function GET(req: NextRequest) {
           return false;
         }
 
-        // Ter um nome de cidade válido
-        const cityName = item.address?.city || item.address?.town || item.address?.village || '';
+        // Ter um nome de cidade/localidade válido (aceitar city, town, village, municipality)
+        const cityName =
+          item.address?.city ||
+          item.address?.town ||
+          item.address?.village ||
+          item.address?.municipality ||
+          '';
         if (!cityName || cityName.trim() === '') {
           return false;
         }
@@ -150,7 +156,7 @@ export async function GET(req: NextRequest) {
         );
         return exists ? acc : [...acc, city];
       }, [])
-      .slice(0, 8); // Máximo 8 resultados
+      .slice(0, 10); // Máximo 10 resultados para melhor cobertura
 
     console.log(`[geocoding/route] ${cities.length} cidades retornadas após filtragem`);
 
