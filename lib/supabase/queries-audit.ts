@@ -33,6 +33,7 @@ import {
   type CategoriaRebanho,
   type PeriodoConfinamento,
 } from '../supabase';
+import type { EventoDAP } from '@/lib/types/talhoes';
 
 // ---------------------------------------------------------------------------
 // Helper interno — nunca exportar diretamente
@@ -804,6 +805,47 @@ const atividadesCampo = {
 };
 
 // ---------------------------------------------------------------------------
+// TALHÕES — Eventos DAP (Days After Planting)
+// ---------------------------------------------------------------------------
+const eventosDAP = {
+  async listByCiclo(cicloId: string): Promise<EventoDAP[]> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('eventos_dap')
+      .select('*')
+      .eq('ciclo_id', cicloId)
+      .eq(
+        'talhao_id',
+        `(SELECT id FROM talhoes WHERE fazenda_id = '${fazendaId}')`
+      )
+      .order('dias_apos_plantio', { ascending: true });
+    if (error) throw error;
+    return data as EventoDAP[];
+  },
+
+  async create(payload: Omit<EventoDAP, 'id' | 'created_at' | 'updated_at'>): Promise<EventoDAP> {
+    const { data, error } = await supabase
+      .from('eventos_dap')
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as EventoDAP;
+  },
+
+  async update(id: string, payload: Partial<EventoDAP>): Promise<EventoDAP> {
+    const { data, error } = await supabase
+      .from('eventos_dap')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as EventoDAP;
+  },
+};
+
+// ---------------------------------------------------------------------------
 // REBANHO — Categorias
 // ---------------------------------------------------------------------------
 const categoriasRebanho = {
@@ -887,6 +929,8 @@ export const q = {
   movimentacoesSilo,
   talhoes,
   ciclosAgricolas,
+  atividadesCampo,
+  eventosDAP,
   insumos,
   movimentacoesInsumo,
   maquinas,
@@ -894,7 +938,6 @@ export const q = {
   manutencoes,
   abastecimentos,
   financeiro,
-  atividadesCampo,
   categoriasRebanho,
   periodosConfinamento,
 };
