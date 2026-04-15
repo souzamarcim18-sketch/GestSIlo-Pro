@@ -52,7 +52,6 @@ interface OpenWeatherCurrent {
     temp: number;
     feels_like: number;
     humidity: number;
-    visibility: number;
   };
   wind: {
     speed: number;
@@ -61,6 +60,7 @@ interface OpenWeatherCurrent {
   clouds: {
     all: number;
   };
+  visibility: number;
   rain?: {
     '1h': number;
   };
@@ -114,7 +114,7 @@ function transformOpenWeatherMap(
     precipitationMm: current.rain?.['1h'] ?? 0,
     description: current.weather[0]?.description ?? 'Desconhecido',
     icon: getWeatherIcon(current.weather[0]?.icon ?? ''),
-    visibility: current.main.visibility,
+    visibility: current.visibility,
   };
 
   // Agrupar forecast por dia (API retorna a cada 3h)

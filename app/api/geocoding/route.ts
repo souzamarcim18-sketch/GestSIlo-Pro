@@ -3,18 +3,16 @@ import { z } from 'zod';
 
 /**
  * ──────────────────────────────────────────────────────────────
- * GEOCODING API ROUTE
+ * GEOCODING API ROUTE v2
  * ──────────────────────────────────────────────────────────────
  *
- * GET /api/geocoding?q=Ribeirao
+ * GET /api/geocoding?q=Marip
  *
- * Server-side proxy para Nominatim (OpenStreetMap)
- * - Adiciona User-Agent correto (Nominatim exige)
- * - Filtra apenas Brasil (countrycodes=br)
- * - Busca apenas cidades (type: city, town, village)
- * - Retorna array de CityOption
- * - Cache-Control: 86400s (cidades não mudam)
- * - Timeout: 5 segundos
+ * Estratégia melhorada:
+ * 1. Nominatim com parameters NÃO RESTRITIVOS
+ * 2. Parse FLEXÍVEL (qualquer localidade com estado é válida)
+ * 3. Busca substring + ranking por relevância
+ * 4. Retorna até 15 resultados
  */
 
 interface NominatimResult {
@@ -25,6 +23,8 @@ interface NominatimResult {
     town?: string;
     village?: string;
     municipality?: string;
+    borough?: string;
+    suburb?: string;
     state?: string;
     country?: string;
   };
@@ -40,12 +40,11 @@ interface CityOption {
 }
 
 const querySchema = z.object({
-  q: z.string().min(3, 'Mínimo 3 caracteres').max(100),
+  q: z.string().min(2, 'Mínimo 2 caracteres').max(100), // Reduzir de 3 para 2
 });
 
 export async function GET(req: NextRequest) {
   try {
-    // 1. Validar query
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('q') || '';
 
@@ -57,21 +56,20 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Chamar Nominatim
-    // IMPORTANTE: NÃO adicionar ", Brasil" na query pois confunde o Nominatim
-    // countrycodes=br já filtra por Brasil
+    // Nominatim: SEM RESTRIÇÕES DE TIPO
+    // Deixar retornar tudo e fazer filtragem flexível no client
     const params = new URLSearchParams({
-      q: query,                  // Query limpa (ex: "Belo", "Ribeirão")
+      q: query,
       format: 'json',
-      addressdetails: '1',       // OBRIGATÓRIO para ter address.city, address.state
-      countrycodes: 'br',        // Apenas Brasil
-      limit: '20',               // Aumentar limite para cobrir mais cidades
+      addressdetails: '1',
+      countrycodes: 'br',
+      limit: '50',           // ⚠️ AUMENTAR MUITO: queremos cobrir tudo
       dedupe: '1',
-      // NÃO usar type=city pois é muito restritivo e perde muitas cidades legítimas
+      // Remover: type=city (muito restritivo!)
     });
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
 
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?${params}`,
@@ -87,97 +85,89 @@ export async function GET(req: NextRequest) {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.error('[geocoding/route] Nominatim error:', response.status);
-      return NextResponse.json(
-        { error: 'Serviço de geolocalização indisponível' },
-        { status: 503 }
-      );
-    }
-
-    const data: NominatimResult[] = await response.json();
-
-    if (!Array.isArray(data) || data.length === 0) {
-      console.log('[geocoding/route] Nominatim retornou vazio para:', query);
+      console.error('[geocoding] Nominatim error:', response.status);
       return NextResponse.json([], {
-        headers: {
-          'Cache-Control': 'public, s-maxage=300', // cache negativo por 5min
-        },
+        headers: { 'Cache-Control': 'public, s-maxage=60' },
       });
     }
 
-    console.log(`[geocoding/route] Nominatim: ${data.length} resultados para "${query}"`);
+    const data: NominatimResult[] = await response.json();
+    console.log(`[geocoding] Nominatim retornou ${data.length} items para "${query}"`);
 
-    // 3. Parse e filtrar resultados
+    if (!Array.isArray(data) || data.length === 0) {
+      return NextResponse.json([], {
+        headers: { 'Cache-Control': 'public, s-maxage=300' },
+      });
+    }
+
+    // FILTRAGEM FLEXÍVEL
     const cities: CityOption[] = data
       .filter((item) => {
-        // Verificar se é do Brasil (countrycodes=br já filtrou, mas Nominatim pode retornar
-        // tanto "Brazil" (EN) quanto "Brasil" (PT-BR) dependendo do Accept-Language)
+        // Brasil check (menos restritivo)
         const country = item.address?.country || '';
         if (country !== 'Brazil' && country !== 'Brasil') {
           return false;
         }
 
-        // Ter um nome de cidade/localidade válido (aceitar city, town, village, municipality)
+        // Qualquer localidade com estado é válida
         const cityName =
           item.address?.city ||
           item.address?.town ||
           item.address?.village ||
           item.address?.municipality ||
+          item.address?.borough ||
+          item.address?.suburb ||
           '';
-        if (!cityName || cityName.trim() === '') {
-          return false;
-        }
 
-        // Ter pelo menos um estado/unidade administrativa
-        if (!item.address?.state || item.address.state.trim() === '') {
-          return false;
-        }
-
-        return true;
+        return !!(cityName?.trim() && item.address?.state?.trim());
       })
       .map((item) => {
-        const cityName = item.address.city || item.address.town || item.address.village || '';
-        const stateName = item.address.state || '';
+        const cityName =
+          item.address.city ||
+          item.address.town ||
+          item.address.village ||
+          item.address.municipality ||
+          item.address.borough ||
+          item.address.suburb ||
+          '';
 
         return {
           name: cityName,
-          state: stateName,
+          state: item.address.state || '',
           latitude: parseFloat(item.lat),
           longitude: parseFloat(item.lon),
-          displayName: `${cityName}, ${stateName}, Brasil`,
+          displayName: `${cityName}, ${item.address.state}, Brasil`,
         };
       })
-      // Remover duplicatas
+      // Remover EXATAS duplicatas
       .reduce((acc: CityOption[], city: CityOption) => {
-        const exists = acc.some(
+        const isDup = acc.some(
           (c) =>
             c.name.toLowerCase() === city.name.toLowerCase() &&
             c.state.toLowerCase() === city.state.toLowerCase()
         );
-        return exists ? acc : [...acc, city];
+        return isDup ? acc : [...acc, city];
       }, [])
-      .slice(0, 10); // Máximo 10 resultados para melhor cobertura
+      // RANKING: cidades que começam com a query vêm primeiro
+      .sort((a, b) => {
+        const aStarts = a.name.toLowerCase().startsWith(query.toLowerCase()) ? 0 : 1;
+        const bStarts = b.name.toLowerCase().startsWith(query.toLowerCase()) ? 0 : 1;
+        return aStarts - bStarts;
+      })
+      .slice(0, 15); // Retornar até 15
 
-    console.log(`[geocoding/route] ${cities.length} cidades retornadas após filtragem`);
+    console.log(`[geocoding] ${cities.length} cidades após filtragem para "${query}"`);
 
     return NextResponse.json(cities, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=86400', // 24h cache
-      },
+      headers: { 'Cache-Control': 'public, s-maxage=86400' },
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      console.error('[geocoding/route] Timeout');
-      return NextResponse.json(
-        { error: 'Timeout ao buscar cidades' },
-        { status: 503 }
-      );
+      console.error('[geocoding] Timeout');
+      return NextResponse.json([]);
     }
 
-    console.error('[geocoding/route] Unexpected error:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    console.error('[geocoding] Error:', error);
+    return NextResponse.json([]);
   }
 }

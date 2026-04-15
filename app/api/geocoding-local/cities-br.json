@@ -1,0 +1,116 @@
+[
+  {
+    "name": "Maripá",
+    "state": "Paraná",
+    "latitude": -24.8667,
+    "longitude": -54.8333
+  },
+  {
+    "name": "Mariano de Abreu",
+    "state": "Minas Gerais",
+    "latitude": -21.2667,
+    "longitude": -45.3667
+  },
+  {
+    "name": "Marilia",
+    "state": "São Paulo",
+    "latitude": -22.2175,
+    "longitude": -49.5583
+  },
+  {
+    "name": "Marinópolis",
+    "state": "São Paulo",
+    "latitude": -21.5833,
+    "longitude": -49.7333
+  },
+  {
+    "name": "Belo Horizonte",
+    "state": "Minas Gerais",
+    "latitude": -19.9281,
+    "longitude": -43.9352
+  },
+  {
+    "name": "São Paulo",
+    "state": "São Paulo",
+    "latitude": -23.5505,
+    "longitude": -46.6333
+  },
+  {
+    "name": "Rio de Janeiro",
+    "state": "Rio de Janeiro",
+    "latitude": -22.9068,
+    "longitude": -43.1729
+  },
+  {
+    "name": "Brasília",
+    "state": "Distrito Federal",
+    "latitude": -15.8267,
+    "longitude": -47.8711
+  },
+  {
+    "name": "Ribeirão Preto",
+    "state": "São Paulo",
+    "latitude": -21.1925,
+    "longitude": -47.8060
+  },
+  {
+    "name": "Piracicaba",
+    "state": "São Paulo",
+    "latitude": -22.7296,
+    "longitude": -47.6484
+  },
+  {
+    "name": "Santos",
+    "state": "São Paulo",
+    "latitude": -23.9608,
+    "longitude": -46.3333
+  },
+  {
+    "name": "Campinas",
+    "state": "São Paulo",
+    "latitude": -22.8952,
+    "longitude": -47.0581
+  },
+  {
+    "name": "Curitiba",
+    "state": "Paraná",
+    "latitude": -25.4284,
+    "longitude": -49.2733
+  },
+  {
+    "name": "Porto Alegre",
+    "state": "Rio Grande do Sul",
+    "latitude": -30.0327,
+    "longitude": -51.2005
+  },
+  {
+    "name": "Salvador",
+    "state": "Bahia",
+    "latitude": -12.9714,
+    "longitude": -38.5014
+  },
+  {
+    "name": "Fortaleza",
+    "state": "Ceará",
+    "latitude": -3.7319,
+    "longitude": -38.5267
+  },
+  {
+    "name": "Recife",
+    "state": "Pernambuco",
+    "latitude": -8.0476,
+    "longitude": -34.8770
+  },
+  {
+    "name": "Manaus",
+    "state": "Amazonas",
+    "latitude": -3.1190,
+    "longitude": -60.0217
+  },
+  {
+    "name": "Belém",
+    "state": "Pará",
+    "latitude": -1.4558,
+    "longitude": -48.4944
+  }
+]
