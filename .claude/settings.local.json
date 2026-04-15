@@ -58,7 +58,8 @@
       "Bash(curl -s \"http://localhost:3002/api/weather?lat=-19.9281&lon=-43.9352\")",
       "Bash(curl -s \"http://localhost:3002/api/weather?latitude=-19.9281&longitude=-43.9352&location=Belo%20Horizonte\")",
       "Bash(curl -s \"https://api.openweathermap.org/data/2.5/forecast?lat=-19.9281&lon=-43.9352&appid=70aa08b07c53c026b597654940751146&units=metric\")",
-      "Bash(curl -s \"https://api.openweathermap.org/data/2.5/weather?lat=-19.9281&lon=-43.9352&appid=70aa08b07c53c026b597654940751146&units=metric&lang=pt_br\")"
+      "Bash(curl -s \"https://api.openweathermap.org/data/2.5/weather?lat=-19.9281&lon=-43.9352&appid=70aa08b07c53c026b597654940751146&units=metric&lang=pt_br\")",
+      "Bash(curl -s \"http://localhost:3002/api/weather?latitude=-23.5505&longitude=-46.6333&location=Sao%20Paulo\")"
     ],
     "additionalDirectories": [
       "\\tmp"
