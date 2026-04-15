@@ -411,3 +411,43 @@ export async function getProximasOperacoes(fazendaId: string): Promise<ProximaOp
     return [];
   }
 }
+
+export async function generateEventosRebrota(
+  cicloId: string,
+  cultura: string,
+  dataColheitaReal: string
+): Promise<void> {
+  try {
+    // Importar as funções de helpers
+    const { gerarEventosRebrota } = await import('@/app/dashboard/talhoes/helpers');
+
+    // Gerar eventos de rebrota
+    const eventosRebrota = gerarEventosRebrota(cultura, dataColheitaReal);
+
+    if (eventosRebrota.length === 0) return;
+
+    // Buscar talhao_id do ciclo
+    const { data: cicloData, error: cicloError } = await supabase
+      .from('ciclos_agricolas')
+      .select('talhao_id')
+      .eq('id', cicloId)
+      .single();
+
+    if (cicloError) throw cicloError;
+    const talhaoId = (cicloData as any).talhao_id;
+
+    // Inserir eventos na tabela
+    const { error } = await supabase.from('eventos_dap').insert(
+      eventosRebrota.map((evt) => ({
+        ...evt,
+        ciclo_id: cicloId,
+        talhao_id: talhaoId,
+      }))
+    );
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Erro ao gerar eventos de rebrota:', error);
+    throw error;
+  }
+}

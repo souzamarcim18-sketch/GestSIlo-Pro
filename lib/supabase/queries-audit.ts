@@ -767,6 +767,9 @@ const atividadesCampo = {
   async create(
     payload: Omit<AtividadeCampo, 'id' | 'created_at'>
   ): Promise<AtividadeCampo> {
+    // TODO [Bloco Frota/Insumos]: Integrar custo_hora da tabela maquinas
+    // e preco_unitario da tabela insumos para cálculo automático de custo_total.
+    // Atualmente, custo é calculado client-side e passado aqui como payload.
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('atividades_campo')
@@ -842,6 +845,61 @@ const eventosDAP = {
       .single();
     if (error) throw error;
     return data as EventoDAP;
+  },
+
+  async generate(cicloId: string, cultura: string, dataplantio: string): Promise<number> {
+    const { gerarEventosDAP } = await import('@/app/dashboard/talhoes/helpers');
+    const { data: cicloData, error: cicloError } = await supabase
+      .from('ciclos_agricolas')
+      .select('talhao_id, data_colheita_prevista')
+      .eq('id', cicloId)
+      .single();
+
+    if (cicloError) throw cicloError;
+    const { talhao_id, data_colheita_prevista } = cicloData;
+
+    const eventos = gerarEventosDAP(cultura, dataplantio, data_colheita_prevista);
+
+    if (eventos.length === 0) return 0;
+
+    const { error: insertError } = await supabase.from('eventos_dap').insert(
+      eventos.map((evt) => ({
+        ...evt,
+        ciclo_id: cicloId,
+        talhao_id,
+      }))
+    );
+
+    if (insertError) throw insertError;
+    return eventos.length;
+  },
+
+  async generateRebrota(cicloId: string, cultura: string, dataColheitaReal: string): Promise<number> {
+    const { gerarEventosRebrota } = await import('@/app/dashboard/talhoes/helpers');
+
+    const eventosRebrota = gerarEventosRebrota(cultura, dataColheitaReal);
+
+    if (eventosRebrota.length === 0) return 0;
+
+    const { data: cicloData, error: cicloError } = await supabase
+      .from('ciclos_agricolas')
+      .select('talhao_id')
+      .eq('id', cicloId)
+      .single();
+
+    if (cicloError) throw cicloError;
+    const talhaoId = (cicloData as any).talhao_id;
+
+    const { error: insertError } = await supabase.from('eventos_dap').insert(
+      eventosRebrota.map((evt) => ({
+        ...evt,
+        ciclo_id: cicloId,
+        talhao_id: talhaoId,
+      }))
+    );
+
+    if (insertError) throw insertError;
+    return eventosRebrota.length;
   },
 };
 

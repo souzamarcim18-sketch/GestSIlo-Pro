@@ -15,7 +15,8 @@ import {
   LogOut,
   Sprout,
   Calculator,
-  Beaker
+  Beaker,
+  Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,6 +28,7 @@ const operacionalRoutes = [
   { label: 'Dashboard',   icon: LayoutDashboard, href: '/dashboard'                },
   { label: 'Silos',       icon: Database,        href: '/dashboard/silos'           },
   { label: 'Talhões',     icon: Map,             href: '/dashboard/talhoes'         },
+  { label: 'Calendário',  icon: Calendar,        href: '/dashboard/calendario'      },
   { label: 'Rebanho',     icon: Sprout,          href: '/dashboard/rebanho'         },
   { label: 'Insumos',     icon: Package,         href: '/dashboard/insumos'         },
   { label: 'Frota',       icon: Truck,           href: '/dashboard/frota'           },

@@ -230,7 +230,34 @@ export function AtividadeDialog({
       };
 
       await q.atividadesCampo.create(payload);
-      toast.success('Atividade registrada com sucesso!');
+
+      // Gerar eventos DAP automaticamente ao registrar Plantio
+      if (data.tipo_operacao === 'Plantio') {
+        try {
+          const eventosCount = await q.eventosDAP.generate(
+            cicloAtivo.id,
+            cicloAtivo.cultura,
+            cicloAtivo.data_plantio
+          );
+          toast.success(`Atividade registrada. ${eventosCount} eventos DAP gerados para o calendário.`);
+        } catch (error) {
+          console.error('Erro ao gerar eventos DAP:', error);
+          toast.success('Atividade registrada.');
+        }
+      } else {
+        toast.success('Atividade registrada com sucesso!');
+      }
+
+      // Gerar eventos de rebrota ao registrar Colheita de Sorgo Silagem
+      if (data.tipo_operacao === 'Colheita' && cicloAtivo.cultura === 'Sorgo Silagem' && data.permite_rebrota) {
+        try {
+          await q.eventosDAP.generateRebrota(cicloAtivo.id, cicloAtivo.cultura, data.data);
+          toast.success('Colheita registrada. Eventos de rebrota gerados.');
+        } catch (error) {
+          console.error('Erro ao gerar eventos de rebrota:', error);
+        }
+      }
+
       onOpenChange(false);
       reset();
       onSuccess?.();
