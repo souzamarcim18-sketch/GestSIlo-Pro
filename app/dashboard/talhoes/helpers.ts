@@ -1,14 +1,9 @@
 import { type CicloAgricola, type AtividadeCampo } from '@/lib/types/talhoes';
 
 const TIPOS_SOLO = [
-  'Latossolo',
-  'Argissolo',
-  'Neossolo',
-  'Cambissolo',
-  'Gleissolo',
-  'Nitossolo',
-  'Chernossolos',
-  'Outro',
+  'Argiloso',
+  'Arenoso',
+  'Siltoso',
 ];
 
 const CULTURAS_SUPORTADAS = [

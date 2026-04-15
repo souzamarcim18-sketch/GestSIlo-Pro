@@ -44,14 +44,14 @@ export default function TalhaoDetailPage() {
       const [talhaoData, ciclosData, atividadesData] = await Promise.all([
         q.talhoes.getById(talhaoId),
         q.ciclosAgricolas.listByTalhoes([talhaoId]),
-        q.atividadesCampo.list(),
+        q.atividadesCampo.listByTalhao(talhaoId),
       ]);
 
       setTalhao((talhaoData as any) || null);
       setCiclos(ciclosData as any);
-      setAtividades((atividadesData as any).filter((a: any) => a.talhao_id === talhaoId));
+      setAtividades(atividadesData as any);
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      console.error('Erro ao carregar talhão:', error);
       toast.error('Erro ao carregar talhão');
       router.back();
     } finally {

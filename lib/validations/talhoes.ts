@@ -20,14 +20,9 @@ export const CULTURAS_SUPORTADAS = [
 ] as const;
 
 export const TIPOS_SOLO = [
-  'Latossolo',
-  'Argissolo',
-  'Neossolo',
-  'Cambissolo',
-  'Gleissolo',
-  'Nitossolo',
-  'Chernossolos',
-  'Outro',
+  'Argiloso',
+  'Arenoso',
+  'Siltoso',
 ] as const;
 
 // ========== SCHEMAS ==========
