@@ -93,6 +93,7 @@ export async function GET(req: NextRequest) {
     const data: NominatimResult[] = await response.json();
 
     if (!Array.isArray(data) || data.length === 0) {
+      console.log('[geocoding/route] Nominatim retornou vazio para:', query);
       return NextResponse.json([], {
         headers: {
           'Cache-Control': 'public, s-maxage=300', // cache negativo por 5min
@@ -100,22 +101,26 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    console.log(`[geocoding/route] Nominatim: ${data.length} resultados para "${query}"`);
+
     // 3. Parse e filtrar resultados
     const cities: CityOption[] = data
       .filter((item) => {
-        // Verificar se é do Brasil
-        if (item.address?.country !== 'Brazil') {
+        // Verificar se é do Brasil (countrycodes=br já filtrou, mas Nominatim pode retornar
+        // tanto "Brazil" (EN) quanto "Brasil" (PT-BR) dependendo do Accept-Language)
+        const country = item.address?.country || '';
+        if (country !== 'Brazil' && country !== 'Brasil') {
           return false;
         }
 
-        // Verificar se é cidade/town/village (não bairro ou rua)
-        const validTypes = ['city', 'town', 'village'];
-        if (item.type && !validTypes.includes(item.type)) {
+        // Ter um nome de cidade válido
+        const cityName = item.address?.city || item.address?.town || item.address?.village || '';
+        if (!cityName || cityName.trim() === '') {
           return false;
         }
 
-        // Ter pelo menos uma unidade administrativa (state)
-        if (!item.address?.state) {
+        // Ter pelo menos um estado/unidade administrativa
+        if (!item.address?.state || item.address.state.trim() === '') {
           return false;
         }
 
@@ -143,6 +148,8 @@ export async function GET(req: NextRequest) {
         return exists ? acc : [...acc, city];
       }, [])
       .slice(0, 8); // Máximo 8 resultados
+
+    console.log(`[geocoding/route] ${cities.length} cidades retornadas após filtragem`);
 
     return NextResponse.json(cities, {
       headers: {
