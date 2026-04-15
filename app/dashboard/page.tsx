@@ -10,15 +10,20 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
+  Calendar,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useFazendaCoordinates } from '@/hooks/useFazendaCoordinates';
 import { WeatherWidget } from '@/components/widgets';
 import { toast } from 'sonner';
+import { getProximasOperacoes } from '@/lib/supabase/talhoes';
+import type { ProximaOperacao, CicloAgricola } from '@/lib/types/talhoes';
+import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 
 interface DashboardStats {
   silosOcupacao: string;
@@ -27,6 +32,10 @@ interface DashboardStats {
   maquinasTotal: string;
   maquinasDetalhe: string;
   saldoMes: string;
+}
+
+interface ProximaOperacaoComBadge extends ProximaOperacao {
+  janelaColheita?: { ativo: boolean; diasRestantes: number };
 }
 
 function formatBRL(value: number): string {
@@ -39,6 +48,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [proximasOperacoes, setProximasOperacoes] = useState<ProximaOperacaoComBadge[]>([]);
+  const [loadingOperacoes, setLoadingOperacoes] = useState(true);
 
   // ── Saudação dinâmica ──────────────────────────────────────────────
   const hour = new Date().getHours();
@@ -180,6 +191,74 @@ export default function DashboardPage() {
     };
     init();
   }, [authLoading, fazendaId]);
+
+  // ── Fetch de próximas operações e alerta de silagem ──────────────────
+  useEffect(() => {
+    if (!fazendaId) {
+      setProximasOperacoes([]);
+      setLoadingOperacoes(false);
+      return;
+    }
+
+    const loadProximasOperacoes = async () => {
+      setLoadingOperacoes(true);
+      try {
+        // Buscar próximas operações
+        const operacoes = await getProximasOperacoes(fazendaId);
+
+        // Buscar ciclos ativos para verificar alerta de silagem
+        const { data: ciclosData, error: ciclosError } = await supabase
+          .from('ciclos_agricolas')
+          .select('id, cultura, data_colheita_prevista, data_colheita_real')
+          .eq('ativo', true);
+
+        if (ciclosError) throw ciclosError;
+
+        // Verificar alerta de silagem e enriquecer operações
+        let alertaSilagemAtivo = false;
+        const operacoesEnriquecidas: ProximaOperacaoComBadge[] = operacoes.map((op) => {
+          // Verificar se há ciclo correspondente com alerta
+          const cicloCorrespondente = (ciclosData || []).find(
+            (c: any) =>
+              c.data_colheita_prevista === op.data_esperada &&
+              c.cultura.includes('Silagem')
+          );
+
+          let janelaColheita: { ativo: boolean; diasRestantes: number } | undefined;
+          if (cicloCorrespondente) {
+            const alerta = verificarAlertaSilagem(cicloCorrespondente as CicloAgricola);
+            if (alerta && alerta.ativo && op.tipo_operacao.toLowerCase().includes('colheita')) {
+              janelaColheita = alerta;
+              alertaSilagemAtivo = true;
+            }
+          }
+
+          return { ...op, janelaColheita };
+        });
+
+        // Exibir toast de alerta uma vez por sessão
+        if (alertaSilagemAtivo && !sessionStorage.getItem('alerta_silagem_exibido')) {
+          const proximoEvento = operacoesEnriquecidas.find(op => op.janelaColheita?.ativo);
+          if (proximoEvento && proximoEvento.janelaColheita) {
+            toast.warning(
+              `⚠️ Atenção: janela de colheita de ${proximoEvento.cultura} no ${proximoEvento.talhao_nome} se aproxima em ${proximoEvento.janelaColheita.diasRestantes} dias`
+            );
+            sessionStorage.setItem('alerta_silagem_exibido', 'true');
+          }
+        }
+
+        // Limitar a 10 itens
+        setProximasOperacoes(operacoesEnriquecidas.slice(0, 10));
+      } catch (error) {
+        console.error('Erro ao carregar próximas operações:', error);
+        setProximasOperacoes([]);
+      } finally {
+        setLoadingOperacoes(false);
+      }
+    };
+
+    loadProximasOperacoes();
+  }, [fazendaId]);
 
   // ── Cards com navegação ────────────────────────────────────────────
   const statCards = [
@@ -327,7 +406,72 @@ export default function DashboardPage() {
       </section>
 
       {/* ── Main Content ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+      <div className="space-y-6 mt-8">
+
+        {/* Próximas Operações */}
+        <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 id="operacoes-heading" className="text-lg font-semibold text-foreground">
+                  Próximas Operações
+                </h2>
+                <p className="text-xs text-muted-foreground">Próximos 5 dias</p>
+              </div>
+            </div>
+          </div>
+
+          {loadingOperacoes ? (
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : proximasOperacoes.length > 0 ? (
+            <div className="space-y-2">
+              {proximasOperacoes.map((op) => (
+                <div
+                  key={op.id}
+                  className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors flex items-center justify-between text-sm"
+                >
+                  <div className="flex-1 flex items-center gap-3">
+                    <span className="font-medium text-foreground min-w-14">
+                      {formatarData(op.data_esperada)}
+                    </span>
+                    <span className="text-muted-foreground">{op.tipo_operacao}</span>
+                    <span className="text-muted-foreground">—</span>
+                    <span className="font-medium text-foreground">{op.talhao_nome}</span>
+                    <span className="text-muted-foreground">({op.cultura})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {op.janelaColheita?.ativo && (
+                      <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                        ⚠️ Janela de colheita
+                      </Badge>
+                    )}
+                    <Badge className={getStatusBadgeColor(op.status)}>
+                      {op.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">
+              <Calendar className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" aria-hidden="true" />
+              <p className="text-sm font-medium">Nenhuma operação nos próximos dias</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                Operações planejadas aparecem aqui.
+              </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Grid de Atividades Recentes + Alertas */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Atividades Recentes */}
         <Card className="bg-card rounded-2xl p-6 shadow-sm lg:col-span-2 transition-shadow duration-200 hover:shadow-md">
@@ -386,6 +530,7 @@ export default function DashboardPage() {
             </div>
           </Card>
         </div>
+        </div>
       </div>
     </div>
   );
@@ -394,4 +539,22 @@ export default function DashboardPage() {
 function talhoesDetail(stats: DashboardStats | null): string {
   if (!stats || stats.talhaoArea === '—') return 'Nenhuma cultura ativa';
   return 'Área total cadastrada';
+}
+
+function getStatusBadgeColor(status: string): string {
+  switch (status?.toLowerCase()) {
+    case 'planejado':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    case 'realizado':
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    case 'atrasado':
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  }
+}
+
+function formatarData(data: string): string {
+  const d = new Date(data);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
