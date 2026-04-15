@@ -54,8 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Timeout explícito para evitar hang
         // Antes do warmup: 60s (cold start Supabase)
-        // Depois do warmup: 10s (servidor já está quente)
-        const timeoutMs = hasWarmedUpRef.current ? 10000 : 60000;
+        // Depois do warmup: 30s (servidor já está quente, mas RLS pode ser lento)
+        const timeoutMs = hasWarmedUpRef.current ? 30000 : 60000;
 
         const timeoutPromise = new Promise<never>((_, reject) => {
           console.log(`🔐 [FETCH-PROFILE] Setting ${timeoutMs}ms timeout...`);

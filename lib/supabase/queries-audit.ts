@@ -759,7 +759,7 @@ const atividadesCampo = {
       .select('*')
       .eq('fazenda_id', fazendaId) // filtro explícito além do talhao_id
       .eq('talhao_id', talhaoId)
-      .order('data_atividade', { ascending: false });
+      .order('data', { ascending: false });
     if (error) throw error;
     return data as AtividadeCampo[];
   },
