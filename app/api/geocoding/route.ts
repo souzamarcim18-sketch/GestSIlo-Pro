@@ -57,13 +57,16 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Chamar Nominatim
+    // IMPORTANTE: NÃO adicionar ", Brasil" na query pois confunde o Nominatim
+    // countrycodes=br já filtra por Brasil
     const params = new URLSearchParams({
-      q: `${query}, Brasil`,
+      q: query,                  // Query limpa (ex: "Belo", "Ribeirão")
       format: 'json',
-      addressdetails: '1',      // OBRIGATÓRIO para ter address.city, address.state
-      countrycodes: 'br',        // Apenas Brasil
-      limit: '8',
+      addressdetails: '1',       // OBRIGATÓRIO para ter address.city, address.state
+      countrycodes: 'br',        // Apenas Brasil (key fix!)
+      limit: '10',               // Aumentar limite para melhor cobertura
       dedupe: '1',
+      type: 'city',              // Apenas resultados do tipo city
     });
 
     const controller = new AbortController();
