@@ -36,7 +36,13 @@ export async function getFazenda(fazendaId: string): Promise<Fazenda> {
 
 export async function updateFazenda(
   fazendaId: string,
-  data: { nome?: string; localizacao?: string | null; area_total?: number | null }
+  data: {
+    nome?: string;
+    localizacao?: string | null;
+    area_total?: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
+  }
 ): Promise<Fazenda> {
   const { data: updated, error } = await supabase
     .from('fazendas')

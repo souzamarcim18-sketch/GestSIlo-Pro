@@ -5,6 +5,8 @@ export interface CreateFazendaInput {
   nome: string;
   localizacao?: string | null;
   area_total?: number | null;
+  latitude?: number | null;    // Nova: coordenada geográfica
+  longitude?: number | null;   // Nova: coordenada geográfica
 }
 
 /**
@@ -21,6 +23,8 @@ export async function createFazenda(
       nome: input.nome,
       localizacao: input.localizacao ?? null,
       area_total: input.area_total ?? null,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
       owner_id: userId, // <-- vincula ao usuário logado
     })
     .select()

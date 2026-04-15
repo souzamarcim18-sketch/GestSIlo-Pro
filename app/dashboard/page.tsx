@@ -16,6 +16,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useFazendaCoordinates } from '@/hooks/useFazendaCoordinates';
+import { WeatherWidget, QuotesWidget } from '@/components/widgets';
 import { toast } from 'sonner';
 
 interface DashboardStats {
@@ -33,6 +35,7 @@ function formatBRL(value: number): string {
 
 export default function DashboardPage() {
   const { fazendaId, loading: authLoading, user } = useAuth();
+  const { latitude, longitude, location } = useFazendaCoordinates(fazendaId);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -235,6 +238,18 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* ── Weather Widget (Full-width) ─────────────────────────────────── */}
+      <section aria-labelledby="weather-heading">
+        <h2 id="weather-heading" className="sr-only">
+          Previsão do tempo
+        </h2>
+        <WeatherWidget
+          latitude={latitude}
+          longitude={longitude}
+          location={location || 'Sua fazenda'}
+        />
+      </section>
+
       {/* ── Stats Grid (Clicáveis) ─────────────────────────────────────── */}
       <section aria-labelledby="stats-heading">
         <h2 id="stats-heading" className="sr-only">
@@ -342,32 +357,43 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Alertas Críticos */}
-        <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-          <h2
-            id="alertas-heading"
-            className="text-lg font-semibold text-foreground mb-4"
-          >
-            Alertas Críticos
-          </h2>
+        {/* Sidebar Direita: Quotes + Alertas */}
+        <div className="flex flex-col gap-6">
+          {/* Cotações de Mercado */}
+          <section aria-labelledby="quotes-heading">
+            <h2 id="quotes-heading" className="sr-only">
+              Cotações de mercado
+            </h2>
+            <QuotesWidget />
+          </section>
 
-          <div
-            className="flex flex-col items-center text-center"
-            role="status"
-            aria-label="Nenhum alerta crítico: tudo em ordem"
-          >
-            <div
-              className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4"
-              aria-hidden="true"
+          {/* Alertas Críticos */}
+          <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <h2
+              id="alertas-heading"
+              className="text-lg font-semibold text-foreground mb-4"
             >
-              <CheckCircle2 className="w-7 h-7 text-primary" aria-hidden="true" />
+              Alertas Críticos
+            </h2>
+
+            <div
+              className="flex flex-col items-center text-center"
+              role="status"
+              aria-label="Nenhum alerta crítico: tudo em ordem"
+            >
+              <div
+                className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4"
+                aria-hidden="true"
+              >
+                <CheckCircle2 className="w-7 h-7 text-primary" aria-hidden="true" />
+              </div>
+              <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Não há alertas críticos ou manutenções pendentes para hoje.
+              </p>
             </div>
-            <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Não há alertas críticos ou manutenções pendentes para hoje.
-            </p>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );

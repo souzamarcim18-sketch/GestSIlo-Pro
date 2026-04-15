@@ -15,15 +15,17 @@ import { Label } from '@/components/ui/label';
 import { Landmark, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { CityAutocomplete } from '@/components/CityAutocomplete';
 import { createFazenda } from '@/lib/supabase/fazenda';
+import type { CityOption } from '@/hooks/useGeocoding';
 
 export default function OnboardingPage() {
   const { user, refreshProfile } = useAuth();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
 
   const nomeRef = useRef<HTMLInputElement>(null);
-  const locRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,14 +43,21 @@ export default function OnboardingPage() {
       return;
     }
 
+    if (!selectedCity) {
+      toast.error('Selecione uma cidade para localizar sua fazenda.');
+      return;
+    }
+
     setSaving(true);
     try {
       await createFazenda(user.id, {
         nome,
-        localizacao: locRef.current?.value?.trim() || null,
+        localizacao: selectedCity.displayName,
         area_total: areaRef.current?.value
           ? parseFloat(areaRef.current.value)
           : null,
+        latitude: selectedCity.latitude,
+        longitude: selectedCity.longitude,
       });
 
       toast.success('Fazenda criada com sucesso! 🎉');
@@ -95,15 +104,11 @@ export default function OnboardingPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="onb-loc">Localização / Endereço</Label>
-            <Input
-              id="onb-loc"
-              ref={locRef}
-              placeholder="Ex: Ribeirão Preto - SP"
-              autoComplete="street-address"
-            />
-          </div>
+          <CityAutocomplete
+            label="Localização (Cidade) *"
+            placeholder="Digite a cidade (ex: Ribeirão Preto)"
+            onSelect={setSelectedCity}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="onb-area">Área Total (ha)</Label>

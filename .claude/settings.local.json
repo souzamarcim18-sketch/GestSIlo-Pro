@@ -19,7 +19,26 @@
       "Bash(pkill -f \"npm run dev\")",
       "Bash(git push:*)",
       "Bash(git restore:*)",
-      "Bash(grep -E \"\\\\.\\(ts|css\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|css\\)$\")",
+      "WebFetch(domain:dribbble.com)",
+      "Bash(curl -s http://localhost:3001/dashboard -w \"\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(rm -rf .next)",
+      "Bash(find c:\\\\\\\\Projetos\\\\\\\\GestSilo\\\\\\\\GestSIlo-Pro -name \"*.ts*\" -type f)",
+      "mcp__paper__get_guide",
+      "mcp__paper__get_basic_info",
+      "mcp__paper__create_artboard",
+      "mcp__paper__write_html",
+      "mcp__paper__get_screenshot",
+      "mcp__paper__delete_nodes",
+      "mcp__paper__finish_working_on_nodes",
+      "Bash(ls -la c:/Projetos/GestSilo/GestSIlo-Pro/docs/migration-*)",
+      "Bash(ls -la c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/20260415*)",
+      "Bash(wc -l c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/20260415*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

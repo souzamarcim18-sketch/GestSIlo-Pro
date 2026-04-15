@@ -39,6 +39,8 @@ export type Fazenda = {
   nome: string;
   localizacao: string | null;
   area_total: number | null;
+  latitude?: number | null;  // Adicionado para Weather Widget (via migration)
+  longitude?: number | null; // Adicionado para Weather Widget (via migration)
 };
 
 export type Silo = {

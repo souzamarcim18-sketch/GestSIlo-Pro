@@ -25,6 +25,7 @@ import { Save, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Profile, Fazenda } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { CityAutocomplete } from '@/components/CityAutocomplete';
 import {
   getProfile,
   updateProfile,
@@ -32,6 +33,7 @@ import {
   updateFazenda,
   getUsersByFazenda,
 } from '@/lib/supabase/configuracoes';
+import type { CityOption } from '@/hooks/useGeocoding';
 
 export default function ConfiguracoesPage() {
   const { user, fazendaId, loading: authLoading } = useAuth();
@@ -41,10 +43,10 @@ export default function ConfiguracoesPage() {
   const [loading, setLoading]  = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingFazenda, setSavingFazenda] = useState(false);
+  const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
 
   const profileNomeRef = useRef<HTMLInputElement>(null);
   const fazendaNomeRef = useRef<HTMLInputElement>(null);
-  const fazendaLocRef  = useRef<HTMLInputElement>(null);
   const fazendaAreaRef = useRef<HTMLInputElement>(null);
 
   // IDs estáveis para associação label ↔ controle e aria-describedby
@@ -107,12 +109,24 @@ export default function ConfiguracoesPage() {
     setSavingFazenda(true);
     try {
       const nome        = fazendaNomeRef.current?.value ?? fazenda?.nome ?? '';
-      const localizacao = fazendaLocRef.current?.value ?? fazenda?.localizacao ?? null;
       const area_total  = fazendaAreaRef.current?.value
         ? parseFloat(fazendaAreaRef.current.value)
         : fazenda?.area_total ?? null;
-      const updated = await updateFazenda(fazendaId, { nome, localizacao, area_total });
+
+      // Usar cidade selecionada ou manter valor existente
+      const localizacao = selectedCity?.displayName ?? fazenda?.localizacao ?? null;
+      const latitude = selectedCity?.latitude ?? fazenda?.latitude ?? null;
+      const longitude = selectedCity?.longitude ?? fazenda?.longitude ?? null;
+
+      const updated = await updateFazenda(fazendaId, {
+        nome,
+        localizacao,
+        area_total,
+        latitude,
+        longitude,
+      });
       setFazenda(updated);
+      setSelectedCity(null); // Limpar seleção após salvar
       toast.success('Dados da fazenda atualizados!');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao salvar dados da fazenda';
@@ -291,16 +305,12 @@ export default function ConfiguracoesPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="faz-loc">Localização / Endereço</Label>
-                  <Input
-                    id="faz-loc"
-                    ref={fazendaLocRef}
-                    key={`loc-${fazenda?.localizacao}`}
-                    defaultValue={fazenda?.localizacao || ''}
-                    autoComplete="street-address"
-                  />
-                </div>
+                <CityAutocomplete
+                  label="Localização (Cidade)"
+                  placeholder="Digite a cidade para buscar coordenadas"
+                  value={selectedCity?.displayName || fazenda?.localizacao || ''}
+                  onSelect={setSelectedCity}
+                />
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
@@ -315,15 +325,37 @@ export default function ConfiguracoesPage() {
                       defaultValue={fazenda?.area_total || 0}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="faz-prop">Proprietário</Label>
-                    <Input
-                      id="faz-prop"
-                      placeholder="Nome do proprietário"
-                      autoComplete="name"
-                    />
-                  </div>
                 </div>
+
+                {/* Coordenadas (read-only) */}
+                {(selectedCity || fazenda?.latitude) && (
+                  <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
+                    <div className="space-y-2">
+                      <Label htmlFor="faz-lat">Latitude</Label>
+                      <Input
+                        id="faz-lat"
+                        type="text"
+                        disabled
+                        value={
+                          selectedCity?.latitude ?? fazenda?.latitude ?? '—'
+                        }
+                        className="bg-muted text-muted-foreground"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="faz-lon">Longitude</Label>
+                      <Input
+                        id="faz-lon"
+                        type="text"
+                        disabled
+                        value={
+                          selectedCity?.longitude ?? fazenda?.longitude ?? '—'
+                        }
+                        className="bg-muted text-muted-foreground"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <Button type="submit" disabled={savingFazenda}>
                   <Save className="mr-2 h-4 w-4" aria-hidden="true" />
