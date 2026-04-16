@@ -1055,7 +1055,119 @@ const planejamentosSilagem = {
 };
 
 // ---------------------------------------------------------------------------
-// EXPORT PRINCIPAL — use `q.<tabela>.<operação>()`
+// SERVER-SIDE QUERIES — Para uso em Server Actions e Server Components
+// ---------------------------------------------------------------------------
+
+/**
+ * Busca o fazenda_id do usuário logado usando Server Client SSR-safe.
+ * Use em Server Actions/Components. Para Client Components, use getFazendaId().
+ */
+async function getFazendaIdServer(): Promise<string> {
+  const { createSupabaseServerClient } = await import('./server');
+  const supabaseServer = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabaseServer.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error('Usuário não autenticado. Faça login novamente.');
+  }
+
+  const { data: profile, error: profileError } = await supabaseServer
+    .from('profiles')
+    .select('fazenda_id')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile?.fazenda_id) {
+    throw new Error(
+      'Perfil sem fazenda associada. Conclua o cadastro antes de continuar.'
+    );
+  }
+
+  return profile.fazenda_id as string;
+}
+
+/**
+ * Queries server-side para uso em Server Actions.
+ * Usa Server Client com acesso a cookies HTTP.
+ * Importação dinâmica evita carregar next/headers em Client Components.
+ */
+const planejamentosSilagemServer = {
+  async list(): Promise<PlanejamentoSilagem[]> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('planejamentos_silagem')
+      .select('*')
+      .eq('fazenda_id', fazendaId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as PlanejamentoSilagem[];
+  },
+
+  async create(
+    payload: Omit<PlanejamentoSilagem, 'id' | 'created_at'>
+  ): Promise<PlanejamentoSilagem> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('planejamentos_silagem')
+      .insert({ ...payload, fazenda_id: fazendaId })
+      .select()
+      .single();
+    if (error) throw error;
+    return data as PlanejamentoSilagem;
+  },
+
+  async getById(id: string): Promise<PlanejamentoSilagem> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('planejamentos_silagem')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return data as PlanejamentoSilagem;
+  },
+
+  async delete(id: string): Promise<void> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { error } = await supabaseServer
+      .from('planejamentos_silagem')
+      .delete()
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId);
+    if (error) throw error;
+  },
+
+  async updateNome(id: string, nome: string): Promise<PlanejamentoSilagem> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('planejamentos_silagem')
+      .update({ nome })
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as PlanejamentoSilagem;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// EXPORT PRINCIPAL — use `q.<tabela>.<operação>()` para Client
 // ---------------------------------------------------------------------------
 export const q = {
   silos,
@@ -1074,4 +1186,11 @@ export const q = {
   categoriasRebanho,
   periodosConfinamento,
   planejamentosSilagem,
+};
+
+// ---------------------------------------------------------------------------
+// EXPORT SERVER — use `qServer.<tabela>.<operação>()` em Server Actions
+// ---------------------------------------------------------------------------
+export const qServer = {
+  planejamentosSilagem: planejamentosSilagemServer,
 };

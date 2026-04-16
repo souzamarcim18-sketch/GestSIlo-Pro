@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { q } from '@/lib/supabase/queries-audit';
+import { qServer } from '@/lib/supabase/queries-audit';
 import type { PlanejamentoSilagem } from '@/lib/types/planejamento-silagem';
 
 /**
@@ -11,7 +11,7 @@ export async function savePlanejamentoAction(
   payload: Omit<PlanejamentoSilagem, 'id' | 'created_at' | 'fazenda_id'>
 ): Promise<{ success: boolean; data?: PlanejamentoSilagem; error?: string }> {
   try {
-    const result = await q.planejamentosSilagem.create(payload as any);
+    const result = await qServer.planejamentosSilagem.create(payload as any);
     revalidatePath('/dashboard/planejamento-silagem/historico');
     return {
       success: true,
@@ -36,7 +36,7 @@ export async function listPlanejamentosAction(): Promise<{
   error?: string;
 }> {
   try {
-    const result = await q.planejamentosSilagem.list();
+    const result = await qServer.planejamentosSilagem.list();
     return {
       success: true,
       data: result,
@@ -63,7 +63,7 @@ export async function getPlanejamentoAction(id: string): Promise<{
     if (!id || typeof id !== 'string') {
       throw new Error('ID inválido');
     }
-    const result = await q.planejamentosSilagem.getById(id);
+    const result = await qServer.planejamentosSilagem.getById(id);
     return {
       success: true,
       data: result,
@@ -89,7 +89,7 @@ export async function deletePlanejamentoAction(id: string): Promise<{
     if (!id || typeof id !== 'string') {
       throw new Error('ID inválido');
     }
-    await q.planejamentosSilagem.delete(id);
+    await qServer.planejamentosSilagem.delete(id);
     revalidatePath('/dashboard/planejamento-silagem/historico');
     return {
       success: true,
@@ -122,7 +122,7 @@ export async function updatePlanejamentoNomeAction(
     if (!nome || typeof nome !== 'string' || !nome.trim()) {
       throw new Error('Nome inválido');
     }
-    const result = await q.planejamentosSilagem.updateNome(id, nome.trim());
+    const result = await qServer.planejamentosSilagem.updateNome(id, nome.trim());
     revalidatePath('/dashboard/planejamento-silagem/historico');
     return {
       success: true,

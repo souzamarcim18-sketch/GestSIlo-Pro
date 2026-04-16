@@ -2,7 +2,8 @@
 
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { WizardState, ResultadosPlanejamento, AlertaPlanejamento } from '@/lib/types/planejamento-silagem';
+import { WizardState, ResultadosPlanejamento, AlertaPlanejamento, PlanejamentoSilagem } from '@/lib/types/planejamento-silagem';
+import { CATEGORIAS_LEITE, CATEGORIAS_CORTE } from '@/lib/constants/planejamento-silagem';
 import { AlertasDinamicos } from './AlertasDinamicos';
 import { TabelaDetalhamento } from './TabelaDetalhamento';
 import { GraficoParticipacao } from './GraficoParticipacao';
@@ -19,6 +20,7 @@ interface Etapa4ResultadosProps {
   onBack: () => void;
   onSave: (nome: string) => Promise<void>;
   isSaving: boolean;
+  nomeFazenda?: string;
 }
 
 export function Etapa4Resultados({
@@ -28,6 +30,7 @@ export function Etapa4Resultados({
   onBack,
   onSave,
   isSaving,
+  nomeFazenda = 'Propriedade Rural',
 }: Etapa4ResultadosProps) {
   if (!wizard.sistema || !wizard.parametros) {
     return <div className="text-center text-muted-foreground">Dados incompletos</div>;
@@ -41,6 +44,24 @@ export function Etapa4Resultados({
       participacao: cat.participacao_pct,
     }))
     .sort((a, b) => b.participacao - a.participacao);
+
+  // Montar planejamento para export (sem id/fazenda_id, que serão adicionados no servidor)
+  const categorias = wizard.sistema.tipo_rebanho === 'Leite' ? CATEGORIAS_LEITE : CATEGORIAS_CORTE;
+  const planejamentoParaExportar: Omit<PlanejamentoSilagem, 'id' | 'fazenda_id'> & { id: string; fazenda_id: string } = {
+    id: 'temp-preview',
+    fazenda_id: 'temp-preview',
+    nome: 'Planejamento',
+    sistema: wizard.sistema,
+    rebanho: categorias
+      .map((cat) => ({
+        ...cat,
+        quantidade_cabecas: wizard.rebanho[cat.id] || 0,
+      }))
+      .filter((cat) => cat.quantidade_cabecas > 0),
+    parametros: wizard.parametros,
+    resultados,
+    created_at: new Date().toISOString(),
+  };
 
   return (
     <div className="space-y-6">
@@ -72,7 +93,12 @@ export function Etapa4Resultados({
       )}
 
       {/* Seção Salvar */}
-      <SecaoSalvar onSave={onSave} isSaving={isSaving} />
+      <SecaoSalvar
+        onSave={onSave}
+        isSaving={isSaving}
+        planejamentoParaExportar={planejamentoParaExportar}
+        nomeFazenda={nomeFazenda}
+      />
 
       {/* Botão Voltar */}
       <div className="flex justify-start pt-4">
