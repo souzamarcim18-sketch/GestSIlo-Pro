@@ -18,6 +18,7 @@ import { calcularCalagem, type CalagemInput, type MetodoCalagemType } from '@/li
 import { calagemInputSchema } from '@/validators/calculadoras';
 import { tabelaCaDesejadoUFLA } from '@/lib/calculadoras/smp-tabela';
 import { ResultCard } from './ResultCard';
+import { ExportPDFDialog } from '../dialogs';
 import { AlertCircle, ChevronDown, Download, Lightbulb } from 'lucide-react';
 
 interface CalagemCalculatorProps {
@@ -43,6 +44,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
   });
   const [erros, setErros] = useState<Record<string, string>>({});
   const [showDetalhes, setShowDetalhes] = useState(false);
+  const [openExportDialog, setOpenExportDialog] = useState(false);
 
   const resultado = useMemo(() => {
     try {
@@ -411,10 +413,22 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
             </CardContent>
           </Card>
 
-          <Button variant="outline" className="w-full" disabled>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setOpenExportDialog(true)}
+            disabled={!resultado}
+          >
             <Download className="h-4 w-4 mr-2" />
-            Exportar PDF (em breve)
+            Exportar PDF
           </Button>
+
+          <ExportPDFDialog
+            open={openExportDialog}
+            onOpenChange={setOpenExportDialog}
+            calculadora="calagem"
+            dadosCalagem={resultado ? { input: { ...formData, metodo }, resultado } : undefined}
+          />
         </div>
       )}
     </div>

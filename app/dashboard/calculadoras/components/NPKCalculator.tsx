@@ -27,6 +27,7 @@ import {
 import { npkInputSchema } from '@/validators/calculadoras';
 import { ResultCard } from './ResultCard';
 import { FertilizantesManager } from './FertilizantesManager';
+import { ExportPDFDialog } from '../dialogs';
 import { AlertCircle, Download, Info, Zap } from 'lucide-react';
 
 interface NPKCalculatorProps {
@@ -48,6 +49,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedFerts, setSelectedFerts] = useState<string[]>([]);
   const [allFerts, setAllFerts] = useState<Fertilizante[]>([]);
+  const [openExportDialog, setOpenExportDialog] = useState(false);
 
   useEffect(() => {
     if (initialFerts) {
@@ -377,10 +379,22 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
             </AlertDescription>
           </Alert>
 
-          <Button variant="outline" className="w-full" disabled>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setOpenExportDialog(true)}
+            disabled={!resultado}
+          >
             <Download className="h-4 w-4 mr-2" />
-            Exportar Relatório PDF (em breve)
+            Exportar Relatório PDF
           </Button>
+
+          <ExportPDFDialog
+            open={openExportDialog}
+            onOpenChange={setOpenExportDialog}
+            calculadora="npk"
+            dadosNPK={resultado ? { input: formData, resultado } : undefined}
+          />
         </div>
       )}
 
