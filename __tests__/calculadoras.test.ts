@@ -345,3 +345,132 @@ describe('interpolarTabelaSMP', () => {
     expect(result).toBeCloseTo(1.5, 1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Edge Cases (Fase 4 - Polimento)
+// ---------------------------------------------------------------------------
+describe('Edge Cases - Calagem', () => {
+  it('PRNT=100% não causa divisão por zero', () => {
+    const result = calcularCalagem({
+      metodo: 'saturacao',
+      v1: '40',
+      v2: '60',
+      ctc: '5',
+      prnt: '100',
+      area: '10',
+    });
+    expect(result).not.toBeNull();
+    expect(result!.nc).toBeCloseTo(1.0, 2);
+    expect(Number.isFinite(result!.nc)).toBe(true);
+  });
+
+  it('Área fracionária 0.5 ha é calculada corretamente', () => {
+    const result = calcularCalagem({
+      metodo: 'saturacao',
+      v1: '40',
+      v2: '60',
+      ctc: '5',
+      prnt: '80',
+      area: '0.5',
+    });
+    expect(result).not.toBeNull();
+    expect(result!.total).toBeCloseTo(0.625, 3);
+  });
+
+  it('Método al_ca_mg com PRNT=100%', () => {
+    const result = calcularCalagem({
+      metodo: 'al_ca_mg',
+      al: '1',
+      ca: '0.5',
+      mg: '0.5',
+      prnt: '100',
+      area: '5',
+    });
+    expect(result).not.toBeNull();
+    expect(result!.nc).toBeCloseTo(3.0, 2);
+  });
+
+  it('Método mg_manual com todos nutrientes comuns', () => {
+    const result = calcularCalagem({
+      metodo: 'mg_manual',
+      al: '0.5',
+      ca: '2',
+      mg: '1',
+      prnt: '100',
+      area: '20',
+    });
+    expect(result).not.toBeNull();
+    expect(result!.total).toBeGreaterThan(0);
+  });
+});
+
+describe('Edge Cases - NPK', () => {
+  it('NPK otimizado com Área=0.5 ha', () => {
+    const result = otimizarNPK({
+      n_nec: '45',
+      p_nec: '30',
+      k_nec: '30',
+      area: '0.5',
+      modo: 'otimizado',
+    });
+    expect(result).not.toBeNull();
+    if (result) {
+      expect(result.top5.length).toBeGreaterThan(0);
+      const firstOpt = result.top5[0];
+      expect(Number.isFinite(firstOpt.custoTotal_r_ha)).toBe(true);
+    }
+  });
+
+  it('Sacos calculados com Math.ceil (sempre arredonda pra cima)', () => {
+    const result = otimizarNPK({
+      n_nec: '100',
+      p_nec: '0',
+      k_nec: '0',
+      area: '2',
+      modo: 'otimizado',
+      fertilizantes_selecionados: ['ureia'],
+    });
+    if (result && result.top5.length > 0) {
+      const fert = result.top5[0].fertilizantes[0];
+      const expectedSacos = Math.ceil(fert.dose_kg_ha / 50);
+      expect(fert.sacos_por_ha).toBe(expectedSacos);
+      // Verificar que nunca arredonda para baixo
+      expect(fert.sacos_por_ha * 50).toBeGreaterThanOrEqual(fert.dose_kg_ha);
+    }
+  });
+
+  it('Custos são sempre positivos ou zero', () => {
+    const result = otimizarNPK({
+      n_nec: '80',
+      p_nec: '60',
+      k_nec: '40',
+      area: '5',
+      modo: 'otimizado',
+    });
+    if (result) {
+      result.top5.forEach((opcao) => {
+        expect(opcao.custoTotal_r_ha).toBeGreaterThanOrEqual(0);
+        opcao.fertilizantes.forEach((f) => {
+          expect(f.custo_por_ha).toBeGreaterThanOrEqual(0);
+        });
+      });
+    }
+  });
+
+  it('Margem de erro nunca vai abaixo de 0% (validação crítica)', () => {
+    const result = otimizarNPK({
+      n_nec: '100',
+      p_nec: '80',
+      k_nec: '60',
+      area: '10',
+      modo: 'otimizado',
+    });
+    if (result) {
+      result.top5.forEach((opcao) => {
+        expect(opcao.margemErro.n_percent).toBeGreaterThanOrEqual(0);
+        expect(opcao.margemErro.p_percent).toBeGreaterThanOrEqual(0);
+        expect(opcao.margemErro.k_percent).toBeGreaterThanOrEqual(0);
+      });
+    }
+  });
+});

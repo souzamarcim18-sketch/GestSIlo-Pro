@@ -13,13 +13,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { calcularCalagem, type CalagemInput, type MetodoCalagemType } from '@/lib/calculadoras';
 import { calagemInputSchema } from '@/validators/calculadoras';
 import { tabelaCaDesejadoUFLA } from '@/lib/calculadoras/smp-tabela';
 import { ResultCard } from './ResultCard';
 import { ExportPDFDialog } from '../dialogs';
-import { AlertCircle, ChevronDown, Download, Lightbulb } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ChevronDown, Download, HelpCircle, Lightbulb } from 'lucide-react';
 
 interface CalagemCalculatorProps {
   initialMethod?: MetodoCalagemType;
@@ -45,6 +46,26 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
   const [erros, setErros] = useState<Record<string, string>>({});
   const [showDetalhes, setShowDetalhes] = useState(false);
   const [openExportDialog, setOpenExportDialog] = useState(false);
+
+  function handleMethodChange(newMethod: MetodoCalagemType) {
+    setMetodo(newMethod);
+    // Resetar resultado ao trocar de método, mantendo Área e PRNT (comuns)
+    setFormData(prev => ({
+      ...prev,
+      metodo: newMethod,
+      al: '',
+      ca: '',
+      mg: '',
+      ctc: '',
+      v1: '',
+      v2: '60',
+      ph_smp: '',
+      textura: 'media',
+      cultura: 'milho',
+    }));
+    setShowDetalhes(false);
+    setErros({});
+  }
 
   const resultado = useMemo(() => {
     try {
@@ -101,7 +122,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
           {/* SELEÇÃO DE MÉTODO */}
           <div className="space-y-3">
             <Label>Método de Cálculo</Label>
-            <Tabs value={metodo} onValueChange={v => setMetodo(v as MetodoCalagemType)}>
+            <Tabs value={metodo} onValueChange={v => handleMethodChange(v as MetodoCalagemType)}>
               <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
                 <TabsTrigger value="saturacao" className="text-xs">
                   Saturação V%
@@ -124,7 +145,17 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
               <div className="space-y-4 mt-6 pb-6 border-b">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="area">Área do Talhão (ha) *</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="area">Área do Talhão (ha) *</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Tamanho da área a ser calada, em hectares
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="area"
                       type="number"
@@ -132,20 +163,30 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                       min="0"
                       value={formData.area}
                       onChange={e => handleInputChange('area', e.target.value)}
-                      placeholder="Ex: 10"
+                      placeholder="Ex: 10 ou 5.5"
                       className={erros.area ? 'border-destructive' : ''}
                     />
                     {erros.area && <p className="text-xs text-destructive">{erros.area}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="prnt">PRNT do Calcário (%) *</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="prnt">PRNT do Calcário (%) *</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Poder Relativo de Neutralização Total - eficácia do calcário
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="prnt"
                       type="number"
                       step="0.1"
                       value={formData.prnt}
                       onChange={e => handleInputChange('prnt', e.target.value)}
-                      placeholder="Ex: 80"
+                      placeholder="Ex: 80 (típico)"
                       className={erros.prnt ? 'border-destructive' : ''}
                     />
                     {erros.prnt && <p className="text-xs text-destructive">{erros.prnt}</p>}
@@ -157,33 +198,66 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
               <TabsContent value="saturacao" className="space-y-4 mt-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="v1">V1 Atual (%)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="v1">V1 Atual (%)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Saturação de bases atual, obtida da análise de solo
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="v1"
                       type="number"
                       step="0.1"
                       value={formData.v1}
                       onChange={e => handleInputChange('v1', e.target.value)}
+                      placeholder="Ex: 40"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="v2">V2 Desejado (%)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="v2">V2 Desejado (%)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Saturação de bases alvo após calagem (típico: 60-70%)
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="v2"
                       type="number"
                       step="0.1"
                       value={formData.v2}
                       onChange={e => handleInputChange('v2', e.target.value)}
+                      placeholder="Ex: 60"
                     />
                   </div>
                   <div className="space-y-2 col-span-2">
-                    <Label htmlFor="ctc">CTC(T) (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="ctc">CTC(T) (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Capacidade de Troca Catiônica Total do solo
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="ctc"
                       type="number"
                       step="0.01"
                       value={formData.ctc}
                       onChange={e => handleInputChange('ctc', e.target.value)}
+                      placeholder="Ex: 5.5"
                     />
                   </div>
                 </div>
@@ -192,33 +266,66 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
               <TabsContent value="al_ca_mg" className="space-y-4 mt-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="al">Al³⁺ (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="al">Al³⁺ (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Alumínio trocável — quanto maior, mais calagem necessária
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="al"
                       type="number"
                       step="0.01"
                       value={formData.al}
                       onChange={e => handleInputChange('al', e.target.value)}
+                      placeholder="Ex: 0.5"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="ca">Ca²⁺ (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="ca">Ca²⁺ (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Cálcio trocável presente no solo
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="ca"
                       type="number"
                       step="0.01"
                       value={formData.ca}
                       onChange={e => handleInputChange('ca', e.target.value)}
+                      placeholder="Ex: 1.5"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="mg">Mg²⁺ (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="mg">Mg²⁺ (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Magnésio trocável presente no solo
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="mg"
                       type="number"
                       step="0.01"
                       value={formData.mg}
                       onChange={e => handleInputChange('mg', e.target.value)}
+                      placeholder="Ex: 0.8"
                     />
                   </div>
                 </div>
@@ -227,33 +334,66 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
               <TabsContent value="mg_manual" className="space-y-4 mt-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="al">Al³⁺ (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="al">Al³⁺ (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Alumínio trocável — ponderado por 3x neste método
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="al"
                       type="number"
                       step="0.01"
                       value={formData.al}
                       onChange={e => handleInputChange('al', e.target.value)}
+                      placeholder="Ex: 0.5"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="ca">Ca²⁺ (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="ca">Ca²⁺ (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Cálcio trocável presente no solo
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="ca"
                       type="number"
                       step="0.01"
                       value={formData.ca}
                       onChange={e => handleInputChange('ca', e.target.value)}
+                      placeholder="Ex: 1.5"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="mg">Mg²⁺ (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="mg">Mg²⁺ (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Magnésio trocável presente no solo
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="mg"
                       type="number"
                       step="0.01"
                       value={formData.mg}
                       onChange={e => handleInputChange('mg', e.target.value)}
+                      placeholder="Ex: 0.8"
                     />
                   </div>
                 </div>
@@ -262,7 +402,17 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
               <TabsContent value="smp" className="space-y-4 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="ph_smp">pH SMP</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="ph_smp">pH SMP</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          pH medido em solução tampon SMP (EMBRAPA)
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="ph_smp"
                       type="number"
@@ -271,10 +421,21 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                       max="8"
                       value={formData.ph_smp}
                       onChange={e => handleInputChange('ph_smp', e.target.value)}
+                      placeholder="Ex: 5.5"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="textura">Textura do Solo</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="textura">Textura do Solo</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Classificação de textura afeta a interpolação na tabela SMP
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Select
                       value={formData.textura || 'media'}
                       onValueChange={v => handleInputChange('textura', v)}
@@ -295,17 +456,38 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
               <TabsContent value="ufla" className="space-y-4 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="ca">Ca²⁺ Atual (cmolc/dm³)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="ca">Ca²⁺ Atual (cmolc/dm³)</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Cálcio trocável presente no solo
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="ca"
                       type="number"
                       step="0.01"
                       value={formData.ca}
                       onChange={e => handleInputChange('ca', e.target.value)}
+                      placeholder="Ex: 2.0"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="cultura">Cultura</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="cultura">Cultura</Label>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Cultura define o Ca desejado na tabela UFLA
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Select
                       value={formData.cultura || 'milho'}
                       onValueChange={v => handleInputChange('cultura', v)}
@@ -377,7 +559,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
 
       {/* RESULTADO */}
       {resultado && (
-        <div className="space-y-4">
+        <div className="space-y-4" role="region" aria-live="polite" aria-label="Resultado do cálculo de calagem">
           <ResultCard
             title="Necessidade de Calagem"
             value={resultado.nc}
@@ -431,6 +613,16 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
           />
         </div>
       )}
+
+      {/* DISCLAIMER PERMANENTE */}
+      <div className="lg:col-span-2">
+        <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+          <AlertDescription className="text-sm text-amber-800 dark:text-amber-200">
+            Resultados indicativos para apoio à decisão. A recomendação final deve ser feita por um engenheiro agrônomo com base na análise de solo completa.
+          </AlertDescription>
+        </Alert>
+      </div>
     </div>
   );
 }

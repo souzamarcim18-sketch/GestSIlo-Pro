@@ -28,7 +28,7 @@ import { npkInputSchema } from '@/validators/calculadoras';
 import { ResultCard } from './ResultCard';
 import { FertilizantesManager } from './FertilizantesManager';
 import { ExportPDFDialog } from '../dialogs';
-import { AlertCircle, Download, Info, Zap } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Download, HelpCircle, Info, Zap } from 'lucide-react';
 
 interface NPKCalculatorProps {
   fertilizantes?: Fertilizante[];
@@ -65,6 +65,10 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
   function handleInputChange(field: string, value: string | number) {
     setFormData(prev => ({ ...prev, [field]: value }));
     setErros(prev => ({ ...prev, [field]: '' }));
+    // Limpar resultado ao alterar inputs para evitar confusão
+    if (['n_nec', 'p_nec', 'k_nec', 'area'].includes(field)) {
+      setResultado(null);
+    }
   }
 
   async function handleOtimizar() {
@@ -132,40 +136,70 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
           {/* INPUTS NECESSIDADE */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="n">N (kg/ha) *</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="n">N (kg/ha) *</Label>
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Nitrogênio necessário obtido da análise de solo
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Input
                 id="n"
                 type="number"
                 step="1"
                 value={formData.n_nec}
                 onChange={e => handleInputChange('n_nec', e.target.value)}
-                placeholder="Ex: 90"
+                placeholder="Ex: 90 (típico)"
                 className={erros.n_nec ? 'border-destructive' : ''}
               />
               {erros.n_nec && <p className="text-xs text-destructive">{erros.n_nec}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="p">P₂O₅ (kg/ha) *</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="p">P₂O₅ (kg/ha) *</Label>
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Pentóxido de fósforo necessário (fórmula agronômica)
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Input
                 id="p"
                 type="number"
                 step="1"
                 value={formData.p_nec}
                 onChange={e => handleInputChange('p_nec', e.target.value)}
-                placeholder="Ex: 60"
+                placeholder="Ex: 60 (típico)"
                 className={erros.p_nec ? 'border-destructive' : ''}
               />
               {erros.p_nec && <p className="text-xs text-destructive">{erros.p_nec}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="k">K₂O (kg/ha) *</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="k">K₂O (kg/ha) *</Label>
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Óxido de potássio necessário (fórmula agronômica)
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Input
                 id="k"
                 type="number"
                 step="1"
                 value={formData.k_nec}
                 onChange={e => handleInputChange('k_nec', e.target.value)}
-                placeholder="Ex: 60"
+                placeholder="Ex: 60 (típico)"
                 className={erros.k_nec ? 'border-destructive' : ''}
               />
               {erros.k_nec && <p className="text-xs text-destructive">{erros.k_nec}</p>}
@@ -174,14 +208,24 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
 
           {/* ÁREA */}
           <div className="space-y-2">
-            <Label htmlFor="area">Área do Talhão (ha) *</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="area">Área do Talhão (ha) *</Label>
+              <Tooltip>
+                <TooltipTrigger className="cursor-help">
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  Tamanho da área a ser adubada, em hectares
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <Input
               id="area"
               type="number"
               step="0.1"
               value={formData.area}
               onChange={e => handleInputChange('area', e.target.value)}
-              placeholder="Ex: 10"
+              placeholder="Ex: 10 ou 5.5"
               className={erros.area ? 'border-destructive' : ''}
             />
             {erros.area && <p className="text-xs text-destructive">{erros.area}</p>}
@@ -206,7 +250,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
 
       {/* RESULTADO - MELHOR OPÇÃO */}
       {resultado && resultado.melhorOpcao && (
-        <div className="space-y-6">
+        <div className="space-y-6" role="region" aria-live="polite" aria-label="Resultado do cálculo NPK">
           <ResultCard
             title="Melhor Opção (Menor Custo)"
             value={resultado.melhorOpcao.custoTotal_r_ha}
@@ -320,7 +364,8 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
+                {/* TABELA PARA DESKTOP */}
+                <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="text-xs">
@@ -366,6 +411,41 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* CARDS PARA MOBILE */}
+                <div className="md:hidden space-y-3">
+                  {resultado.top5.map((opcao: any, idx: number) => (
+                    <div key={idx} className={`rounded-lg border p-4 space-y-2 ${idx === 0 ? 'border-primary bg-primary/5' : ''}`}>
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="text-lg font-bold text-primary">#{idx + 1}</span>
+                        <Badge className="bg-primary">
+                          R$ {opcao.custoTotal_r_ha.toFixed(2)}/ha
+                        </Badge>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <p className="text-xs text-muted-foreground font-semibold">Fertilizante(s)</p>
+                          <p className="font-medium">{opcao.fertilizantes.map((f: any) => f.fertilizante.nome).join(' + ')}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Dose</p>
+                            <p className="font-semibold">{opcao.fertilizantes.map((f: any) => f.dose_kg_ha.toFixed(0)).join(' + ')} kg/ha</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Sacos/ha</p>
+                            <p className="font-semibold">{opcao.fertilizantes.reduce((acc: number, f: any) => acc + f.sacos_por_ha, 0)}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 pt-2">
+                          <Badge variant="outline" className="text-xs">N: {opcao.margemErro.n_percent.toFixed(0)}%</Badge>
+                          <Badge variant="outline" className="text-xs">P: {opcao.margemErro.p_percent.toFixed(0)}%</Badge>
+                          <Badge variant="outline" className="text-xs">K: {opcao.margemErro.k_percent.toFixed(0)}%</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -407,6 +487,14 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
           </AlertDescription>
         </Alert>
       )}
+
+      {/* DISCLAIMER PERMANENTE */}
+      <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900">
+        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+        <AlertDescription className="text-sm text-amber-800 dark:text-amber-200">
+          Resultados indicativos para apoio à decisão. A recomendação final deve ser feita por um engenheiro agrônomo com base em análise completa do solo e da cultura.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
