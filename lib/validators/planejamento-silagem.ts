@@ -16,6 +16,7 @@ export const Etapa1SistemaSchema = z.object({
 export const Etapa2RebanhoSchema = z
   .object({
     rebanho: z.record(
+      z.string(),
       z.number().int().min(0, 'Quantidade deve ser ≥ 0')
     ),
   })
