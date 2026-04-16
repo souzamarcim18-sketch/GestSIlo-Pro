@@ -193,6 +193,9 @@ export function WizardContainer() {
 
     setIsSaving(true);
     try {
+      // Importar a Server Action
+      const { savePlanejamentoAction } = await import('../actions');
+
       // Montar payload
       const categorias = wizard.sistema.tipo_rebanho === 'Leite'
         ? CATEGORIAS_LEITE
@@ -213,9 +216,13 @@ export function WizardContainer() {
         resultados,
       };
 
-      // Chamada ao servidor seria aqui
-      // Por enquanto, apenas simular sucesso
-      console.log('Saving planejamento:', payload);
+      // Chamar Server Action para salvar
+      const response = await savePlanejamentoAction(payload);
+
+      if (!response.success) {
+        toast.error(response.error || 'Erro ao salvar. Tente novamente.');
+        return;
+      }
 
       toast.success('Planejamento salvo com sucesso!');
 
