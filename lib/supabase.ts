@@ -1,5 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { PlanejamentoSilagem } from './types/planejamento-silagem';
 
 let _client: SupabaseClient | null = null;
 
@@ -214,3 +215,6 @@ export type AvaliacaoBromatologica = {
   ms: number | null;
   created_at: string;
 };
+
+// Re-export de planejamento-silagem
+export type { PlanejamentoSilagem };
