@@ -35,7 +35,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white dark:bg-sidebar flex flex-col">
 
       {/* ===== NAVBAR ===== */}
-<header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 dark:bg-gradient-to-r dark:from-[#1a2e1a]/95 dark:to-[#2d3a2d]/95 backdrop-blur-md border-b border-gray-100 dark:border-border shadow-sm">
+<header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 dark:bg-gradient-to-r dark:from-[#243d24]/95 dark:to-[#3a4f3a]/95 backdrop-blur-md border-b border-gray-100 dark:border-white/10 shadow-sm">
   <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <Image
@@ -43,7 +43,7 @@ export default function LandingPage() {
         alt="GestSilo"
         width={160}
         height={40}
-        className="object-contain brightness-110"
+        className="object-contain brightness-130"
         priority
       />
     </div>
