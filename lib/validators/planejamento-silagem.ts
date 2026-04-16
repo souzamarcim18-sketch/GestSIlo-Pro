@@ -5,10 +5,10 @@ import { z } from 'zod';
 // Etapa 1: Sistema de Produção
 export const Etapa1SistemaSchema = z.object({
   tipo_rebanho: z.enum(['Leite', 'Corte'], {
-    errorMap: () => ({ message: 'Selecione um tipo de rebanho' }),
+    message: 'Selecione um tipo de rebanho',
   }),
   sistema_producao: z.enum(['pasto', 'semiconfinado', 'confinado'], {
-    errorMap: () => ({ message: 'Selecione um sistema de produção' }),
+    message: 'Selecione um sistema de produção',
   }),
 });
 
