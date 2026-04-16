@@ -43,7 +43,7 @@ export default function LandingPage() {
         alt="GestSilo"
         width={160}
         height={40}
-        className="object-contain"
+        className="object-contain brightness-110"
         priority
       />
     </div>
@@ -100,12 +100,12 @@ export default function LandingPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm"
             style={{ backgroundColor: 'rgba(0,166,81,0.1)', color: '#00A651', border: '1px solid rgba(0,166,81,0.2)' }}
           >
-            🌾 Plataforma feita para o produtor brasileiro
+            Plataforma feita para o produtor brasileiro
           </span>
         </div>
 
         {/* Título — cores forçadas para garantir contraste */}
-        <h1 className="text-5xl xl:text-7xl font-extrabold leading-[1.08] tracking-tight mb-8">
+        <h1 className="text-5xl xl:text-6xl font-extrabold leading-[1.08] tracking-tight mb-8">
           <span style={{ color: '#1a1a1a' }}>
             Planeje, gerencie e<br />maximize a{' '}
           </span>
