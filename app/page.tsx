@@ -35,7 +35,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white dark:bg-sidebar flex flex-col">
 
       {/* ===== NAVBAR ===== */}
-<header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 dark:bg-sidebar/95 backdrop-blur-md border-b border-gray-100 dark:border-border shadow-sm">
+<header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 dark:bg-gradient-to-r dark:from-[#1a2e1a]/95 dark:to-[#2d3a2d]/95 backdrop-blur-md border-b border-gray-100 dark:border-border shadow-sm">
   <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <Image
@@ -74,102 +74,111 @@ export default function LandingPage() {
       </header>
 
       {/* ===== HERO ===== */}
-      <section className="relative min-h-[80vh] flex items-center overflow-hidden pt-20" style={{ background: '#e8f5e9' }}>
+<section className="relative min-h-[80vh] flex items-center overflow-hidden pt-20 bg-gradient-to-br from-[#f0f7f0] via-[#e8f5e9] to-[#dcedc8]">
 
-        {/* Grid pattern */}
-        <div className="absolute left-0 top-0 h-full w-full z-0 opacity-15">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="hero-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00A651" strokeWidth="0.4"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#hero-grid)" />
-          </svg>
+  {/* Grid pattern */}
+  <div className="absolute left-0 top-0 h-full w-full z-0 opacity-10">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="hero-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00A651" strokeWidth="0.4"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hero-grid)" />
+    </svg>
+  </div>
+
+  <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[70vh] py-12">
+
+      {/* ===== COLUNA ESQUERDA — Texto ===== */}
+      <div className="flex flex-col justify-center">
+
+        {/* Badge no lugar da logo solta */}
+        <div className="mb-8">
+          <span
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm"
+            style={{ backgroundColor: 'rgba(0,166,81,0.1)', color: '#00A651', border: '1px solid rgba(0,166,81,0.2)' }}
+          >
+            🌾 Plataforma feita para o produtor brasileiro
+          </span>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[70vh] py-12">
+        {/* Título — cores forçadas para garantir contraste */}
+        <h1 className="text-5xl xl:text-7xl font-extrabold leading-[1.08] tracking-tight mb-8">
+          <span style={{ color: '#1a1a1a' }}>
+            Planeje, gerencie e<br />maximize a{' '}
+          </span>
+          <span className="relative inline-block" style={{ color: '#00A651' }}>
+            produção
+            <svg
+              className="absolute -bottom-2 left-0 w-full"
+              height="6"
+              viewBox="0 0 200 6"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0 5 Q50 0 100 4 Q150 8 200 3"
+                stroke="#00A651"
+                strokeWidth="3"
+                strokeLinecap="round"
+                fill="none"
+                opacity="0.5"
+              />
+            </svg>
+          </span>
+          <br />
+          <span style={{ color: '#2d2d2d' }}>da sua propriedade</span>
+        </h1>
 
-            {/* ===== COLUNA ESQUERDA — Texto ===== */}
-            <div className="flex flex-col justify-center">
+        {/* Subtítulo — cor forçada */}
+        <p
+          className="text-lg md:text-xl leading-relaxed mb-10 max-w-2xl"
+          style={{ color: '#4a4a4a' }}
+        >
+          Sua propriedade merece mais do que cadernos e planilhas.
+          Controle sua silagem, suas lavouras, sua frota e seus insumos em uma plataforma feita para o
+          produtor brasileiro — do campo à gestão, com poucos cliques.
+        </p>
 
-              {/* Logo no Hero */}
-              <div className="mb-10">
-                <Image src="/logo.png?v=2" alt="GestSilo" width={100} height={100} className="rounded-2xl shadow-xl object-contain" unoptimized />
-              </div>
+      </div>
 
-              {/* Título */}
-              <h1 className="text-5xl xl:text-7xl font-extrabold text-gray-950 dark:text-foreground leading-[1.08] tracking-tight mb-8">
-                Planeje, gerencie e<br />
-                maximize a{' '}
-                <span className="relative inline-block" style={{ color: '#00A651' }}>
-                  produção
-                  <svg
-                    className="absolute -bottom-2 left-0 w-full"
-                    height="6"
-                    viewBox="0 0 200 6"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    preserveAspectRatio="none"
-                  >
-                    <path
-                      d="M0 5 Q50 0 100 4 Q150 8 200 3"
-                      stroke="#00A651"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      fill="none"
-                      opacity="0.5"
-                    />
-                  </svg>
-                </span>
-                <br />
-                <span className="text-gray-950 dark:text-foreground/80">da sua propriedade</span>
-              </h1>
+      {/* ===== COLUNA DIREITA — Imagem ===== */}
+      <div className="relative hidden lg:flex items-center justify-end">
+        <div className="relative w-full max-w-md">
 
-              {/* Subtítulo */}
-              <p className="text-lg md:text-xl text-gray-500 dark:text-muted-foreground leading-relaxed mb-10 max-w-2xl">
-                Sua propriedade merece mais do que cadernos e planilhas.
-                Controle sua silagem, suas lavouras, sua frota e seus insumos em uma plataforma feita para o
-                produtor brasileiro — do campo à gestão, com poucos cliques.
-              </p>
+          {/* Blob decorativo */}
+          <div
+            className="absolute -inset-4 rounded-[40px] rotate-3 opacity-20 z-0"
+            style={{ background: 'linear-gradient(135deg, #36875d, #205b0d)' }}
+          />
 
-            </div>
-
-            {/* ===== COLUNA DIREITA — Imagem ===== */}
-            <div className="relative hidden lg:flex items-center justify-end">
-              <div className="relative w-full max-w-md">
-
-                {/* Blob decorativo atrás da imagem */}
-                <div
-                  className="absolute -inset-4 rounded-[40px] rotate-3 opacity-20 z-0"
-                  style={{ background: 'linear-gradient(135deg, #36875d, #205b0d)' }}
-                />
-
-                {/* Imagem principal */}
-                <div className="relative z-10 rounded-[32px] overflow-hidden shadow-2xl w-full max-w-md" style={{ aspectRatio: '4/3' }}>
-                  <Image
-                    src="/imagem-hero.webp?v=1"
-                    alt="Gestão agrícola com GestSilo"
-                    fill
-                    className="object-cover"
-                    priority
-                    unoptimized
-                  />
-                  {/* Overlay verde no rodapé da imagem */}
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-1/3 z-10"
-                    style={{ background: 'linear-gradient(to top, rgba(0,132,61,0.35), transparent)' }}
-                  />
-                </div>
-
-              </div>
-            </div>
-
+          {/* Imagem principal */}
+          <div className="relative z-10 rounded-[32px] overflow-hidden shadow-2xl w-full max-w-md" style={{ aspectRatio: '4/3' }}>
+            <Image
+              src="/imagem-hero.webp?v=1"
+              alt="Gestão agrícola com GestSilo"
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+            <div
+              className="absolute bottom-0 left-0 right-0 h-1/3 z-10"
+              style={{ background: 'linear-gradient(to top, rgba(0,132,61,0.35), transparent)' }}
+            />
           </div>
-        </div>
 
-      </section>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
 
       {/* ===== FUNCIONALIDADES ===== */}
       <section id="funcionalidades" className="py-24 bg-white dark:bg-sidebar px-6">
