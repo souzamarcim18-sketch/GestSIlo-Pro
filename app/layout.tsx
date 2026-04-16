@@ -10,7 +10,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: 'GestSilo-Pro | Gestão Agrícola Inteligente',
+  title: 'GestSilo | Gestão Agrícola Inteligente',
   description: 'Sistema completo de gestão agrícola para silos, talhões, insumos, frota e financeiro.',
   manifest: '/manifest.json',
   themeColor: '#16a34a',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'GestSilo PRO',
+    title: 'GestSilo',
   },
 };
 

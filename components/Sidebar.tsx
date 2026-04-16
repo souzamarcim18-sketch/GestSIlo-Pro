@@ -71,8 +71,8 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
           <Image
             src="/logo_degrad-hor.png"
             alt="GestSilo"
-            width={140}
-            height={35}
+            width={170}
+            height={43}
             className="object-contain group-hover:opacity-90 transition-opacity"
             priority
             aria-hidden="true"

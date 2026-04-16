@@ -1,6 +1,6 @@
 {
-  "name": "GestSilo PRO",
-  "short_name": "GestSiloPRO",
+  "name": "GestSilo",
+  "short_name": "GestSilo",
   "description": "Gestão integrada de silagem e pecuária",
   "start_url": "/",
   "display": "standalone",

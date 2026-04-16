@@ -92,12 +92,12 @@ export default function LandingPage() {
             <div className="flex flex-col justify-center">
 
               {/* Logo no Hero */}
-              <div className="mb-8">
-                <Image src="/logo.png?v=2" alt="GestSilo" width={80} height={80} className="rounded-2xl shadow-xl object-contain" unoptimized />
+              <div className="mb-10">
+                <Image src="/logo.png?v=2" alt="GestSilo" width={100} height={100} className="rounded-2xl shadow-xl object-contain" unoptimized />
               </div>
 
               {/* Título */}
-              <h1 className="text-5xl xl:text-6xl font-extrabold text-gray-900 dark:text-foreground leading-[1.1] mb-6">
+              <h1 className="text-5xl xl:text-7xl font-extrabold text-gray-950 dark:text-foreground leading-[1.08] tracking-tight mb-8">
                 Planeje, gerencie e<br />
                 maximize a{' '}
                 <span className="relative inline-block" style={{ color: '#00A651' }}>
@@ -121,12 +121,12 @@ export default function LandingPage() {
                   </svg>
                 </span>
                 <br />
-                <span className="text-gray-700 dark:text-foreground/80">da sua propriedade</span>
+                <span className="text-gray-950 dark:text-foreground/80">da sua propriedade</span>
               </h1>
 
               {/* Subtítulo */}
-              <p className="text-base md:text-[17px] text-gray-500 dark:text-muted-foreground leading-relaxed mb-8 max-w-xl">
-                Sua propriedade merece mais do que cadernos e planilhas. Adotar tecnologia nunca foi tão simples.
+              <p className="text-lg md:text-xl text-gray-500 dark:text-muted-foreground leading-relaxed mb-10 max-w-2xl">
+                Sua propriedade merece mais do que cadernos e planilhas.
                 Controle sua silagem, suas lavouras, sua frota e seus insumos em uma plataforma feita para o
                 produtor brasileiro — do campo à gestão, com poucos cliques.
               </p>
@@ -140,7 +140,7 @@ export default function LandingPage() {
                 {/* Blob decorativo atrás da imagem */}
                 <div
                   className="absolute -inset-4 rounded-[40px] rotate-3 opacity-20 z-0"
-                  style={{ background: 'linear-gradient(135deg, #00A651, #6B8E23)' }}
+                  style={{ background: 'linear-gradient(135deg, #36875d, #205b0d)' }}
                 />
 
                 {/* Imagem principal */}
