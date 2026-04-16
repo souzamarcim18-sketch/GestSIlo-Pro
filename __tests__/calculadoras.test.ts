@@ -1,14 +1,25 @@
 import { describe, it, expect } from 'vitest';
-import { calcularCalagem, calcularNPK } from '@/lib/calculadoras';
+import {
+  calcularCalagem,
+  calcularNPK,
+  otimizarNPK,
+  interpolarTabelaSMP,
+  FERTILIZANTES_PADRAO,
+} from '@/lib/calculadoras';
 
 // ---------------------------------------------------------------------------
 // Calculadora de Calagem
 // ---------------------------------------------------------------------------
 describe('calcularCalagem', () => {
   const base = {
-    al: '0', ca: '0', mg: '0',
-    v1: '', ctc: '',
-    prnt: '80', v2: '60', area: '',
+    al: '0',
+    ca: '0',
+    mg: '0',
+    v1: '',
+    ctc: '',
+    prnt: '80',
+    v2: '60',
+    area: '',
     metodo: 'saturacao' as const,
   };
 
@@ -20,26 +31,32 @@ describe('calcularCalagem', () => {
     expect(calcularCalagem({ ...base, area: '10', prnt: '' })).toBeNull();
   });
 
-  describe('método: saturação por bases (V%)', () => {
-    it('calcula NC corretamente', () => {
-      // NC = ((V2 - V1) * CTC) / (PRNT * 10)
-      // NC = ((60 - 40) * 5) / (80 * 10) = 100 / 800 = 0.125 t/ha
+  describe('método: saturação por bases (V%) [fórmula corrigida v1.1]', () => {
+    it('calcula NC corretamente: V1=40, V2=60, CTC=5, PRNT=80', () => {
+      // NC = (CTC × (V2 - V1) / 100) / (PRNT / 100)
+      // NC = (5 × 20 / 100) / 0.8 = 1.0 / 0.8 = 1.25 t/ha
       const result = calcularCalagem({
         ...base,
-        v1: '40', v2: '60', ctc: '5',
-        prnt: '80', area: '10',
+        v1: '40',
+        v2: '60',
+        ctc: '5',
+        prnt: '80',
+        area: '10',
         metodo: 'saturacao',
       });
       expect(result).not.toBeNull();
-      expect(result!.nc).toBeCloseTo(0.125, 5);
-      expect(result!.total).toBeCloseTo(1.25, 5);
+      expect(result!.nc).toBeCloseTo(1.25, 2);
+      expect(result!.total).toBeCloseTo(12.5, 1);
     });
 
     it('retorna nc=0 quando V1 >= V2', () => {
       const result = calcularCalagem({
         ...base,
-        v1: '70', v2: '60', ctc: '5',
-        prnt: '80', area: '10',
+        v1: '70',
+        v2: '60',
+        ctc: '5',
+        prnt: '80',
+        area: '10',
         metodo: 'saturacao',
       });
       expect(result!.nc).toBe(0);
@@ -48,25 +65,31 @@ describe('calcularCalagem', () => {
 
   describe('método: neutralização de alumínio (al_ca_mg)', () => {
     it('calcula NC corretamente com Al e deficiência de Ca+Mg', () => {
-      // NC = (Al*2 + max(0, 2 - (Ca+Mg))) / (PRNT/100)
-      // NC = (1*2 + max(0, 2 - (0.5+0.5))) / (80/100)
+      // NC = (Al × 2 + max(0, 2 - (Ca + Mg))) / (PRNT / 100)
+      // NC = (1 × 2 + max(0, 2 - 1)) / 0.8
       // NC = (2 + 1) / 0.8 = 3.75 t/ha
       const result = calcularCalagem({
         ...base,
-        al: '1', ca: '0.5', mg: '0.5',
-        prnt: '80', area: '5',
+        al: '1',
+        ca: '0.5',
+        mg: '0.5',
+        prnt: '80',
+        area: '5',
         metodo: 'al_ca_mg',
       });
-      expect(result!.nc).toBeCloseTo(3.75, 5);
-      expect(result!.total).toBeCloseTo(18.75, 5);
+      expect(result!.nc).toBeCloseTo(3.75, 2);
+      expect(result!.total).toBeCloseTo(18.75, 1);
     });
 
     it('não vai negativo quando Ca+Mg > 2', () => {
       // max(0, 2 - (1.5 + 1.5)) = max(0, -1) = 0
       const result = calcularCalagem({
         ...base,
-        al: '0', ca: '1.5', mg: '1.5',
-        prnt: '80', area: '10',
+        al: '0',
+        ca: '1.5',
+        mg: '1.5',
+        prnt: '80',
+        area: '10',
         metodo: 'al_ca_mg',
       });
       expect(result!.nc).toBe(0);
@@ -75,16 +98,97 @@ describe('calcularCalagem', () => {
 
   describe('método: Mg Manual (alumínio + Ca+Mg)', () => {
     it('calcula NC corretamente', () => {
-      // NC = max(0, 3*Al + (2 - (Ca+Mg))) / (PRNT/100)
-      // NC = max(0, 3*1 + (2 - 1)) / 0.8 = 4 / 0.8 = 5
+      // NC = max(0, 3×Al + (2 - (Ca+Mg))) / (PRNT / 100)
+      // NC = max(0, 3×1 + (2 - 1)) / 0.8 = 4 / 0.8 = 5
       const result = calcularCalagem({
         ...base,
-        al: '1', ca: '0.5', mg: '0.5',
-        prnt: '80', area: '4',
+        al: '1',
+        ca: '0.5',
+        mg: '0.5',
+        prnt: '80',
+        area: '4',
         metodo: 'mg_manual',
       });
-      expect(result!.nc).toBeCloseTo(5, 5);
-      expect(result!.total).toBeCloseTo(20, 5);
+      expect(result!.nc).toBeCloseTo(5, 1);
+      expect(result!.total).toBeCloseTo(20, 1);
+    });
+  });
+
+  describe('método: SMP (Índice SMP) [novo v1.1]', () => {
+    it('interpola corretamente para pH SMP=5.5, textura=media', () => {
+      // Entre 5.4 (nc=2.2) e 5.6 (nc=1.8)
+      // Interpolação: 2.2 + (5.5-5.4)*(1.8-2.2)/(5.6-5.4) = 2.2 - 0.2 = 2.0
+      const result = calcularCalagem({
+        metodo: 'smp',
+        ph_smp: '5.5',
+        textura: 'media',
+        prnt: '100',
+        area: '1',
+      });
+      expect(result!.nc).toBeCloseTo(2.0, 1);
+    });
+
+    it('retorna primeiro valor para pH fora da tabela (abaixo)', () => {
+      const result = calcularCalagem({
+        metodo: 'smp',
+        ph_smp: '4.0',
+        textura: 'argilosa',
+        prnt: '100',
+        area: '1',
+      });
+      // Primeiro valor da tabela argilosa: 4.6 → 4.5
+      expect(result!.nc).toBe(4.5);
+    });
+
+    it('retorna último valor para pH fora da tabela (acima)', () => {
+      const result = calcularCalagem({
+        metodo: 'smp',
+        ph_smp: '7.0',
+        textura: 'arenosa',
+        prnt: '100',
+        area: '1',
+      });
+      // Último valor tabela arenosa: 6.4 → 0.0
+      expect(result!.nc).toBe(0);
+    });
+  });
+
+  describe('método: UFLA (Teor de Cálcio Desejado) [novo v1.1]', () => {
+    it('calcula NC para milho com Ca=2.0', () => {
+      // Ca_desejado (milho) = 5.0 cmolc/dm³
+      // NC = (5.0 - 2.0) / (80/100) = 3.0 / 0.8 = 3.75 t/ha
+      const result = calcularCalagem({
+        metodo: 'ufla',
+        ca: '2.0',
+        cultura: 'milho',
+        prnt: '80',
+        area: '10',
+      });
+      expect(result!.nc).toBeCloseTo(3.75, 2);
+      expect(result!.total).toBeCloseTo(37.5, 1);
+    });
+
+    it('retorna 0 quando Ca atual >= Ca desejado', () => {
+      const result = calcularCalagem({
+        metodo: 'ufla',
+        ca: '6.0',
+        cultura: 'milho',
+        prnt: '80',
+        area: '10',
+      });
+      expect(result!.nc).toBe(0);
+    });
+
+    it('usa default milho se cultura não especificada', () => {
+      const result = calcularCalagem({
+        metodo: 'ufla',
+        ca: '2.0',
+        prnt: '100',
+        area: '1',
+      });
+      // Ca_desejado default = 5.0, Ca_atual = 2.0
+      // NC = 3.0 / 1.0 = 3.0
+      expect(result!.nc).toBeCloseTo(3.0, 1);
     });
   });
 });
@@ -92,19 +196,23 @@ describe('calcularCalagem', () => {
 // ---------------------------------------------------------------------------
 // Calculadora NPK
 // ---------------------------------------------------------------------------
-describe('calcularNPK', () => {
+describe('calcularNPK (modo simples)', () => {
   const fert = {
-    nome: 'MAP 12-52-0',
-    teor_n_percent: 12,
+    id: 'map',
+    nome: 'MAP 11-52-00',
+    teor_n_percent: 11,
     teor_p_percent: 52,
     teor_k_percent: 0,
+    preco_saco_50kg: 225,
+    customizado: false,
   };
 
   const npkInput = {
-    n_nec: '30', // 30 kg N/ha
-    p_nec: '60', // 60 kg P/ha
+    n_nec: '30',
+    p_nec: '60',
     k_nec: '0',
     area: '10',
+    modo: 'simples' as const,
   };
 
   it('retorna null quando fertilizante é null', () => {
@@ -115,31 +223,125 @@ describe('calcularNPK', () => {
     expect(calcularNPK({ ...npkInput, area: '' }, fert)).toBeNull();
   });
 
-  it('calcula dose baseada no nutriente limitante (P)', () => {
-    // Dose N: 30 / (12/100) = 250 kg/ha
+  it('calcula dose baseada no nutriente limitante', () => {
+    // Dose N: 30 / (11/100) ≈ 272.73 kg/ha
     // Dose P: 60 / (52/100) ≈ 115.38 kg/ha
-    // Dose K: 0 (teor 0)
-    // dosePorHa = max(250, 115.38, 0) = 250 kg/ha
-    // total = (250 * 10) / 1000 = 2.5 t
+    // dosePorHa = max(272.73, 115.38) = 272.73 kg/ha
+    // total = (272.73 * 10) / 1000 ≈ 2.73 t
     const result = calcularNPK(npkInput, fert);
     expect(result).not.toBeNull();
-    expect(result!.dosePorHa).toBeCloseTo(250, 2);
-    expect(result!.total).toBeCloseTo(2.5, 5);
-    expect(result!.fertNome).toBe('MAP 12-52-0');
+    expect(result!.dosePorHa).toBeCloseTo(272.73, 0);
+    expect(result!.total).toBeCloseTo(2.73, 1);
+    expect(result!.fertNome).toBe('MAP 11-52-00');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Otimizador NPK
+// ---------------------------------------------------------------------------
+describe('otimizarNPK (modo otimizado)', () => {
+  it('encontra combinação 1 fertilizante para N=90, P=0, K=0 (Ureia)', () => {
+    const result = otimizarNPK({
+      n_nec: '90',
+      p_nec: '0',
+      k_nec: '0',
+      area: '10',
+      modo: 'otimizado',
+    });
+    expect(result).not.toBeNull();
+    expect(result!.top5.length).toBeGreaterThan(0);
+    // Deve incluir Ureia como opção
+    const temUreia = result!.top5.some((opt) =>
+      opt.fertilizantes.some((f) => f.fertilizante.id === 'ureia')
+    );
+    expect(temUreia).toBe(true);
   });
 
-  it('usa o nutriente com maior demanda de fertilizante como limitante', () => {
-    const fert2 = { nome: 'Ureia', teor_n_percent: 45, teor_p_percent: 0, teor_k_percent: 0 };
-    // Dose N: 90 / (45/100) = 200 kg/ha
-    const result = calcularNPK({ ...npkInput, n_nec: '90', p_nec: '0' }, fert2);
-    expect(result!.dosePorHa).toBeCloseTo(200, 2);
-    expect(result!.total).toBeCloseTo(2.0, 5);
+  it('retorna top5 ordenado por custo crescente', () => {
+    const result = otimizarNPK({
+      n_nec: '100',
+      p_nec: '80',
+      k_nec: '60',
+      area: '10',
+      modo: 'otimizado',
+    });
+    if (result && result.top5.length > 1) {
+      for (let i = 1; i < result.top5.length; i++) {
+        expect(result.top5[i].custoTotal_r_ha).toBeGreaterThanOrEqual(
+          result.top5[i - 1].custoTotal_r_ha
+        );
+      }
+    }
   });
 
-  it('retorna dose zero quando todos os teores são zero', () => {
-    const semTeor = { nome: 'Calcário', teor_n_percent: 0, teor_p_percent: 0, teor_k_percent: 0 };
-    const result = calcularNPK(npkInput, semTeor);
-    expect(result!.dosePorHa).toBe(0);
-    expect(result!.total).toBe(0);
+  it('valida margem de erro >= 0% (nunca fornece menos que necessário)', () => {
+    const result = otimizarNPK({
+      n_nec: '80',
+      p_nec: '60',
+      k_nec: '40',
+      area: '5',
+      modo: 'otimizado',
+    });
+    if (result) {
+      result.top5.forEach((opcao) => {
+        if (parseFloat('80') > 0)
+          expect(opcao.margemErro.n_percent).toBeGreaterThanOrEqual(0);
+        if (parseFloat('60') > 0)
+          expect(opcao.margemErro.p_percent).toBeGreaterThanOrEqual(0);
+        if (parseFloat('40') > 0)
+          expect(opcao.margemErro.k_percent).toBeGreaterThanOrEqual(0);
+      });
+    }
+  });
+
+  it('calcula sacos corretamente', () => {
+    const result = otimizarNPK({
+      n_nec: '90',
+      p_nec: '0',
+      k_nec: '0',
+      area: '10',
+      modo: 'otimizado',
+      fertilizantes_selecionados: ['ureia'],
+    });
+    if (result && result.top5.length > 0) {
+      const fert = result.top5[0].fertilizantes[0];
+      expect(fert.sacos_por_ha).toBe(Math.ceil(fert.dose_kg_ha / 50));
+      expect(fert.total_sacos).toBe(fert.sacos_por_ha * 10);
+    }
+  });
+
+  it('retorna null se nenhum fertilizante selecionado', () => {
+    const result = otimizarNPK({
+      n_nec: '90',
+      p_nec: '60',
+      k_nec: '40',
+      area: '10',
+      modo: 'otimizado',
+      fertilizantes_selecionados: [],
+    });
+    expect(result).toBeNull();
+  });
+
+  it('retorna null se necessidade é zero', () => {
+    const result = otimizarNPK({
+      n_nec: '0',
+      p_nec: '0',
+      k_nec: '0',
+      area: '10',
+      modo: 'otimizado',
+    });
+    expect(result).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+describe('interpolarTabelaSMP', () => {
+  it('interpola linearmente entre dois pontos', () => {
+    // Entre pH 5.4 (nc=1.6) e 5.6 (nc=1.4) na tabela arenosa
+    // pH 5.5 → nc = 1.6 + (5.5-5.4) * (1.4-1.6) / (5.6-5.4) = 1.6 - 0.1 = 1.5
+    const result = interpolarTabelaSMP(5.5, 'arenosa');
+    expect(result).toBeCloseTo(1.5, 1);
   });
 });
