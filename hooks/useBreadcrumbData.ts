@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { formatBreadcrumbLabel } from '@/lib/breadcrumb-formatter';
 
 /**
  * Tipagem para dados de breadcrumb
@@ -73,7 +72,7 @@ export function useBreadcrumbData(): BreadcrumbSegment[] {
           });
         } else {
           // É um módulo (silos, talhoes, frota, etc.)
-          const formattedLabel = formatBreadcrumbLabel(part);
+          const formattedLabel = formatModuleLabel(part);
           breadcrumbs.push({
             label: formattedLabel,
             href: currentPath,
@@ -112,7 +111,6 @@ async function fetchNameForId(
       silos: { table: 'silos', nameField: 'nome' },
       talhoes: { table: 'talhoes', nameField: 'nome' },
       frota: { table: 'maquinas', nameField: 'nome' },
-      rebanho: { table: 'rebanho', nameField: 'nome' },
       insumos: { table: 'insumos', nameField: 'nome' },
       financeiro: { table: 'financeiro', nameField: 'descricao' },
       maquinas: { table: 'maquinas', nameField: 'nome' },
@@ -148,4 +146,25 @@ async function fetchNameForId(
     console.error('[Breadcrumb] Erro ao buscar nome:', err);
     return null;
   }
+}
+
+/**
+ * Formata labels de slugs
+ */
+function formatModuleLabel(slug: string): string {
+  const slugMap: Record<string, string> = {
+    silos: 'Silos',
+    talhoes: 'Talhões',
+    frota: 'Frota',
+    financeiro: 'Financeiro',
+    insumos: 'Insumos',
+    calculadoras: 'Calculadoras',
+    relatorios: 'Relatórios',
+    'planejamento-silagem': 'Planejamento Silagem',
+    historico: 'Histórico',
+    configuracoes: 'Configurações',
+    calendario: 'Calendário',
+    onboarding: 'Onboarding',
+  };
+  return slugMap[slug] || slug.charAt(0).toUpperCase() + slug.slice(1);
 }

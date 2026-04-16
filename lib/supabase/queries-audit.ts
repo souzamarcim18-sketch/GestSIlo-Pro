@@ -1018,6 +1018,18 @@ const planejamentosSilagem = {
     return data as PlanejamentoSilagem;
   },
 
+  async getById(id: string): Promise<PlanejamentoSilagem> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('planejamentos_silagem')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return data as PlanejamentoSilagem;
+  },
+
   async delete(id: string): Promise<void> {
     const fazendaId = await getFazendaId();
     const { error } = await supabase
@@ -1026,6 +1038,19 @@ const planejamentosSilagem = {
       .eq('id', id)
       .eq('fazenda_id', fazendaId);
     if (error) throw error;
+  },
+
+  async updateNome(id: string, nome: string): Promise<PlanejamentoSilagem> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('planejamentos_silagem')
+      .update({ nome })
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as PlanejamentoSilagem;
   },
 };
 

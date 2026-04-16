@@ -16,10 +16,10 @@ const rotasProtegidas = [
   '/dashboard/financeiro',
   '/dashboard/frota',
   '/dashboard/insumos',
-  '/dashboard/rebanho',
+  '/dashboard/planejamento-silagem',
+  '/dashboard/planejamento-silagem/historico',
   '/dashboard/relatorios',
   '/dashboard/silos',
-  '/dashboard/simulador',
   '/dashboard/talhoes',
 ];
 

@@ -13,10 +13,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Sprout,
   Calculator,
   Beaker,
   Calendar,
+  History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -29,16 +29,16 @@ const operacionalRoutes = [
   { label: 'Silos',       icon: Database,        href: '/dashboard/silos'           },
   { label: 'Talhões',     icon: Map,             href: '/dashboard/talhoes'         },
   { label: 'Calendário',  icon: Calendar,        href: '/dashboard/calendario'      },
-  { label: 'Rebanho',     icon: Sprout,          href: '/dashboard/rebanho'         },
   { label: 'Insumos',     icon: Package,         href: '/dashboard/insumos'         },
   { label: 'Frota',       icon: Truck,           href: '/dashboard/frota'           },
   { label: 'Financeiro',  icon: DollarSign,      href: '/dashboard/financeiro'      },
 ];
 
 const ferramentasRoutes = [
-  { label: 'Planejador',   icon: Calculator, href: '/dashboard/planejador'  },
-  { label: 'Calculadoras', icon: Beaker,     href: '/dashboard/calculadoras' },
-  { label: 'Relatórios',   icon: BarChart3,  href: '/dashboard/relatorios'   },
+  { label: 'Plan. Silagem', icon: Calculator,     href: '/dashboard/planejamento-silagem'            },
+  { label: 'Histórico',     icon: History,        href: '/dashboard/planejamento-silagem/historico'  },
+  { label: 'Calculadoras',  icon: Beaker,        href: '/dashboard/calculadoras'                    },
+  { label: 'Relatórios',    icon: BarChart3,     href: '/dashboard/relatorios'                      },
 ];
 
 const sistemaRoutes = [
