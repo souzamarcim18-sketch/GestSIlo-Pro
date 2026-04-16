@@ -1,284 +1,42 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { type Insumo, type Talhao } from '@/lib/supabase';
-import { useAuth } from '@/hooks/useAuth';
-import { calcularCalagem, calcularNPK, type CalagemInput } from '@/lib/calculadoras';
-import { q } from '@/lib/supabase/queries-audit';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { Calculator, Beaker, Sprout, Download, Info, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CalagemCalculator, NPKCalculator } from './components';
+import { Beaker, Sprout } from 'lucide-react';
 
 export default function CalculadorasPage() {
-  const { fazendaId, loading: authLoading } = useAuth();
-  const [insumos, setInsumos] = useState<Insumo[]>([]);
-  const [talhoes, setTalhoes] = useState<Talhao[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // --- Estados Calculadora de Calagem ---
-  const [calagemData, setCalagemData] = useState<CalagemInput>({
-    al: '', ca: '', mg: '', v1: '', ctc: '', prnt: '80', v2: '60', area: '', metodo: 'saturacao'
-  });
-
-  // --- Estados Calculadora NPK ---
-  const [npkData, setNpkData] = useState({
-    n_nec: '', p_nec: '', k_nec: '', area: '', fertilizante_id: ''
-  });
-
-  useEffect(() => {
-    if (authLoading) return;
-    const loadData = async () => {
-      try {
-        if (!fazendaId) { setLoading(false); return; }
-        const [insumosData, talhoesData] = await Promise.all([
-          q.insumos.list(),
-          q.talhoes.list(),
-        ]);
-        setInsumos(insumosData);
-        setTalhoes(talhoesData);
-      } catch {
-        toast.error('Erro ao carregar dados');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [authLoading, fazendaId]);
-
-  // --- Lógica Calagem ---
-  const resultadoCalagem = useMemo(() => calcularCalagem(calagemData), [calagemData]);
-
-  // --- Lógica NPK ---
-  const resultadoNPK = useMemo(() => {
-    const fert = insumos.find(i => i.id === npkData.fertilizante_id) ?? null;
-    return calcularNPK(npkData, fert);
-  }, [npkData, insumos]);
-
-  if (loading) return <div className="p-8 text-center">Carregando calculadoras...</div>;
-
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+      {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Calculadoras Agronômicas</h1>
-        <p className="text-muted-foreground">Ferramentas de precisão para otimizar sua produção.</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          Calculadoras Agronômicas
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Ferramentas para cálculo de calagem e adubação NPK.
+          Resultados indicativos — consulte seu agrônomo.
+        </p>
       </div>
 
-      <Tabs defaultValue="calagem" className="space-y-6">
+      {/* CALCULADORAS */}
+      <Tabs defaultValue="calagem" className="w-full">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="calagem" className="flex items-center gap-2">
-            <Beaker className="w-4 h-4" />
-            Calagem (NC)
+            <Beaker className="h-4 w-4" />
+            Calagem
           </TabsTrigger>
           <TabsTrigger value="npk" className="flex items-center gap-2">
-            <Sprout className="w-4 h-4" />
-            Adubação (NPK)
+            <Sprout className="h-4 w-4" />
+            Adubação NPK
           </TabsTrigger>
         </TabsList>
 
-        {/* --- ABA CALAGEM --- */}
-        <TabsContent value="calagem" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Dados da Análise de Solo</CardTitle>
-                <CardDescription>Insira os valores da sua análise laboratorial.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Método de Cálculo</Label>
-                    <Select value={calagemData.metodo} onValueChange={(v: string | null) => v && setCalagemData({...calagemData, metodo: v as CalagemInput['metodo']})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="saturacao">Saturação por Bases (V%)</SelectItem>
-                        <SelectItem value="al_ca_mg">Neutralização de Alumínio</SelectItem>
-                        <SelectItem value="mg_manual">Método MG (Alumínio + Ca+Mg)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Área do Talhão (ha)</Label>
-                    <Input type="number" step="0.1" value={calagemData.area} onChange={e => setCalagemData({...calagemData, area: e.target.value})} placeholder="Ex: 10" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>PRNT do Calcário (%)</Label>
-                    <Input type="number" value={calagemData.prnt} onChange={e => setCalagemData({...calagemData, prnt: e.target.value})} placeholder="Ex: 80" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-                  <div className="space-y-2">
-                    <Label>Al³⁺ (cmolc/dm³)</Label>
-                    <Input type="number" step="0.01" value={calagemData.al} onChange={e => setCalagemData({...calagemData, al: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Ca²⁺ (cmolc/dm³)</Label>
-                    <Input type="number" step="0.01" value={calagemData.ca} onChange={e => setCalagemData({...calagemData, ca: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Mg²⁺ (cmolc/dm³)</Label>
-                    <Input type="number" step="0.01" value={calagemData.mg} onChange={e => setCalagemData({...calagemData, mg: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>CTC (T) (cmolc/dm³)</Label>
-                    <Input type="number" step="0.01" value={calagemData.ctc} onChange={e => setCalagemData({...calagemData, ctc: e.target.value})} />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>V% Atual (V1)</Label>
-                    <Input type="number" step="0.1" value={calagemData.v1} onChange={e => setCalagemData({...calagemData, v1: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>V% Desejado (V2)</Label>
-                    <Input type="number" step="0.1" value={calagemData.v2} onChange={e => setCalagemData({...calagemData, v2: e.target.value})} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <Card className="bg-primary/10 border-primary/30">
-                <CardHeader>
-                  <CardTitle className="text-primary flex items-center gap-2">
-                    <Calculator className="w-5 h-5" />
-                    Resultado (NC)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="text-center">
-                    <p className="text-sm text-primary dark:text-primary font-bold uppercase">Necessidade de Calagem</p>
-                    <p className="text-4xl font-black text-primary dark:text-primary">
-                      {resultadoCalagem?.nc.toFixed(2) || '0.00'} <span className="text-lg">t/ha</span>
-                    </p>
-                  </div>
-                  <div className="bg-white/50 dark:bg-muted/20 p-4 rounded-xl border border-primary/20 dark:border-primary/30 text-center">
-                    <p className="text-xs text-primary dark:text-primary font-bold uppercase">Total para a Área</p>
-                    <p className="text-2xl font-black text-primary dark:text-primary">
-                      {resultadoCalagem?.total.toFixed(1) || '0.0'} <span className="text-sm">toneladas</span>
-                    </p>
-                  </div>
-                  <Button className="w-full bg-primary dark:bg-primary hover:bg-primary dark:hover:bg-primary/90">
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar Laudo PDF
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Info className="w-4 h-4 text-[--status-info]" />
-                    Dica Agronômica
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-xs text-muted-foreground space-y-2">
-                  <p>• Realize a calagem pelo menos 60 a 90 dias antes do plantio.</p>
-                  <p>• A incorporação deve ser feita o mais profundamente possível para corrigir o perfil do solo.</p>
-                  <p>• Verifique a necessidade de gessagem se houver alumínio em profundidade.</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        <TabsContent value="calagem" className="mt-6">
+          <CalagemCalculator />
         </TabsContent>
 
-        {/* --- ABA NPK --- */}
-        <TabsContent value="npk" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Planejamento de Adubação</CardTitle>
-                <CardDescription>Calcule a dose de fertilizante com base na necessidade da cultura.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Área do Talhão (ha)</Label>
-                    <Input type="number" step="0.1" value={npkData.area} onChange={e => setNpkData({...npkData, area: e.target.value})} placeholder="Ex: 10" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Fertilizante Disponível</Label>
-                    <Select value={npkData.fertilizante_id} onValueChange={(v: string | null) => v && setNpkData({...npkData, fertilizante_id: v})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o insumo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {insumos.filter(i => i.tipo === 'Fertilizante').map(i => (
-                          <SelectItem key={i.id} value={i.id}>
-                            {i.nome} ({i.teor_n_percent}-{i.teor_p_percent}-{i.teor_k_percent})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                  <div className="space-y-2">
-                    <Label>N (kg/ha)</Label>
-                    <Input type="number" value={npkData.n_nec} onChange={e => setNpkData({...npkData, n_nec: e.target.value})} placeholder="Dose N" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>P₂O₅ (kg/ha)</Label>
-                    <Input type="number" value={npkData.p_nec} onChange={e => setNpkData({...npkData, p_nec: e.target.value})} placeholder="Dose P" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>K₂O (kg/ha)</Label>
-                    <Input type="number" value={npkData.k_nec} onChange={e => setNpkData({...npkData, k_nec: e.target.value})} placeholder="Dose K" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <Card className="bg-[--status-info]/10 border-[--status-info]">
-                <CardHeader>
-                  <CardTitle className="text-[--status-info] flex items-center gap-2">
-                    <Calculator className="w-5 h-5" />
-                    Recomendação
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="text-center">
-                    <p className="text-sm text-[--status-info] font-bold uppercase">Dose de {resultadoNPK?.fertNome || 'Fertilizante'}</p>
-                    <p className="text-4xl font-black text-[--status-info]">
-                      {resultadoNPK?.dosePorHa.toFixed(0) || '0'} <span className="text-lg">kg/ha</span>
-                    </p>
-                  </div>
-                  <div className="bg-white/50 dark:bg-muted/20 p-4 rounded-xl border border-[--status-info] dark:border-[--status-info]/30 text-center">
-                    <p className="text-xs text-[--status-info] font-bold uppercase">Total para a Área</p>
-                    <p className="text-2xl font-black text-[--status-info]">
-                      {resultadoNPK?.total.toFixed(2) || '0.00'} <span className="text-sm">toneladas</span>
-                    </p>
-                  </div>
-                  <Button className="w-full bg-[--status-info]/10 hover:bg-[--status-info]/10">
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar Recomendação
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-secondary" />
-                    Aviso de Nutrientes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-xs text-muted-foreground">
-                  O cálculo baseia-se no nutriente limitante para garantir a dose mínima necessária. Verifique se haverá excesso de outros nutrientes com a formulação escolhida.
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        <TabsContent value="npk" className="mt-6">
+          <NPKCalculator />
         </TabsContent>
       </Tabs>
     </div>
