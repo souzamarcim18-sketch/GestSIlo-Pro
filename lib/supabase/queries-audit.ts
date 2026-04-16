@@ -34,6 +34,7 @@ import {
   type PeriodoConfinamento,
 } from '../supabase';
 import type { EventoDAP } from '@/lib/types/talhoes';
+import type { PlanejamentoSilagem } from '@/lib/types/planejamento-silagem';
 
 // ---------------------------------------------------------------------------
 // Helper interno — nunca exportar diretamente
@@ -990,6 +991,45 @@ const periodosConfinamento = {
 };
 
 // ---------------------------------------------------------------------------
+// PLANEJAMENTOS DE SILAGEM
+// ---------------------------------------------------------------------------
+const planejamentosSilagem = {
+  async list(): Promise<PlanejamentoSilagem[]> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('planejamentos_silagem')
+      .select('*')
+      .eq('fazenda_id', fazendaId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as PlanejamentoSilagem[];
+  },
+
+  async create(
+    payload: Omit<PlanejamentoSilagem, 'id' | 'created_at'>
+  ): Promise<PlanejamentoSilagem> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('planejamentos_silagem')
+      .insert({ ...payload, fazenda_id: fazendaId })
+      .select()
+      .single();
+    if (error) throw error;
+    return data as PlanejamentoSilagem;
+  },
+
+  async delete(id: string): Promise<void> {
+    const fazendaId = await getFazendaId();
+    const { error } = await supabase
+      .from('planejamentos_silagem')
+      .delete()
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId);
+    if (error) throw error;
+  },
+};
+
+// ---------------------------------------------------------------------------
 // EXPORT PRINCIPAL — use `q.<tabela>.<operação>()`
 // ---------------------------------------------------------------------------
 export const q = {
@@ -1008,4 +1048,5 @@ export const q = {
   financeiro,
   categoriasRebanho,
   periodosConfinamento,
+  planejamentosSilagem,
 };
