@@ -61,7 +61,12 @@
       "Bash(curl -s \"https://api.openweathermap.org/data/2.5/weather?lat=-19.9281&lon=-43.9352&appid=70aa08b07c53c026b597654940751146&units=metric&lang=pt_br\")",
       "Bash(curl -s \"http://localhost:3002/api/weather?latitude=-23.5505&longitude=-46.6333&location=Sao%20Paulo\")",
       "Bash(find . -path ./node_modules -prune -o -name \"*.md\" -type f -exec grep -l \"rebanho\\\\|silagem\\\\|planning\" {} \\\\;)",
-      "Bash(curl -s http://localhost:3000/dashboard/planejamento-silagem)"
+      "Bash(curl -s http://localhost:3000/dashboard/planejamento-silagem)",
+      "Bash(grep -l \"insumos\\\\|insumo\" c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/*.sql)",
+      "Bash(npx supabase *)",
+      "Bash(ls -la c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/20260416090*.sql)",
+      "Bash(grep -n \"CREATE TABLE.*profiles\\\\|ALTER TABLE profiles\" c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/*)",
+      "Bash(grep -r \"profiles WHERE id = auth.uid\\(\\)\" c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/*.sql)"
     ],
     "additionalDirectories": [
       "\\tmp"
