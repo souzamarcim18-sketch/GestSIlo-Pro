@@ -36,13 +36,12 @@ import { ptBR } from 'date-fns/locale';
 // ---------------------------------------------------------------------------
 // Schemas Zod (serão extraídos para /lib/validations/insumos.ts no arquivo 5)
 // ---------------------------------------------------------------------------
-const TIPOS_INSUMO = ['Fertilizante', 'Defensivo', 'Semente', 'Combustível', 'Outros'] as const;
-
 const insumoSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
-  tipo: z.enum(TIPOS_INSUMO),
+  categoria_id: z.string().uuid('Categoria inválida'),
+  tipo_id: z.string().uuid('Tipo inválido').optional(),
   unidade: z.string().min(1, 'Informe a unidade (ex: kg, L, Saco)'),
-  estoque_minimo: z.number().min(0, 'Estoque mínimo não pode ser negativo'),
+  estoque_minimo: z.number().min(0, 'Estoque mínimo não pode ser negativo').optional(),
   estoque_atual: z.number().min(0, 'Estoque inicial não pode ser negativo'),
   teor_n_percent: z.number().min(0).max(100).optional(),
   teor_p_percent: z.number().min(0).max(100).optional(),
@@ -51,10 +50,12 @@ const insumoSchema = z.object({
 
 const movimentacaoSchema = z.object({
   insumo_id: z.string().min(1, 'Selecione um insumo'),
-  tipo: z.enum(['Entrada', 'Saída']),
+  tipo: z.enum(['Entrada', 'Saída', 'Ajuste']),
   quantidade: z.number().positive('Quantidade deve ser maior que zero'),
   valor_unitario: z.number().min(0).optional(),
-  destino: z.string().min(1, 'Informe o destino ou fornecedor'),
+  destino_tipo: z.enum(['talhao', 'maquina', 'silo']).optional(),
+  destino_id: z.string().uuid().optional(),
+  observacoes: z.string().optional(),
   responsavel: z.string().min(1, 'Informe o responsável'),
   data: z.string().min(1, 'Informe a data'),
 });
@@ -87,8 +88,8 @@ export default function InsumosPage() {
   const insumoForm = useForm<InsumoFormData>({
     resolver: zodResolver(insumoSchema),
     defaultValues: {
-      nome: '', tipo: 'Fertilizante', unidade: '',
-      estoque_minimo: 0, estoque_atual: 0,
+      nome: '', categoria_id: '', tipo_id: '', unidade: '',
+      estoque_minimo: undefined, estoque_atual: 0,
     },
   });
 
@@ -97,7 +98,8 @@ export default function InsumosPage() {
     defaultValues: {
       insumo_id: '', tipo: 'Saída',
       quantidade: 0, valor_unitario: 0,
-      destino: '', responsavel: '',
+      destino_tipo: undefined, destino_id: undefined, observacoes: '',
+      responsavel: '',
       data: new Date().toISOString().split('T')[0],
     },
   });
@@ -129,37 +131,55 @@ export default function InsumosPage() {
   // Handlers — Insumo
   // ---------------------------------------------------------------------------
   const handleSaveInsumo = async (data: InsumoFormData) => {
-    setSubmitting(true);
-    try {
-      if (editingInsumo) {
-        await q.insumos.update(editingInsumo.id, data);
-        toast.success('Insumo atualizado com sucesso.');
-        setEditingInsumo(null);
-      } else {
-        await q.insumos.create(data);
-        toast.success('Insumo cadastrado com sucesso.');
-        setIsAddInsumoOpen(false);
-      }
-      insumoForm.reset();
-      await fetchData();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao salvar insumo.');
-    } finally {
-      setSubmitting(false);
+  setSubmitting(true);
+  try {
+    const payload = {
+      nome: data.nome,
+      categoria_id: data.categoria_id,
+      tipo_id: data.tipo_id,
+      unidade: data.unidade,
+      estoque_atual: data.estoque_atual,
+      estoque_minimo: data.estoque_minimo,
+      teor_n_percent: data.teor_n_percent,
+      teor_p_percent: data.teor_p_percent,
+      teor_k_percent: data.teor_k_percent,
+      custo_medio: 0, // valor padrão (será atualizado com primeira entrada)
+      ativo: true,
+      criado_em: new Date().toISOString(),
+      atualizado_em: new Date().toISOString(),
+    };
+
+    if (editingInsumo) {
+      await q.insumos.update(editingInsumo.id, payload as any);
+      toast.success('Insumo atualizado com sucesso.');
+      setEditingInsumo(null);
+    } else {
+      await q.insumos.create(payload as any);
+      toast.success('Insumo cadastrado com sucesso.');
+      setIsAddInsumoOpen(false);
     }
-  };
+    insumoForm.reset();
+    await fetchData();
+  } catch (err: unknown) {
+    toast.error(err instanceof Error ? err.message : 'Erro ao salvar insumo.');
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   const handleOpenEdit = (insumo: Insumo) => {
     setEditingInsumo(insumo);
     insumoForm.reset({
       nome: insumo.nome,
-      tipo: insumo.tipo,
+      categoria_id: insumo.categoria_id || '',
+      tipo_id: insumo.tipo_id,
       unidade: insumo.unidade,
       estoque_minimo: insumo.estoque_minimo,
       estoque_atual: insumo.estoque_atual,
-      teor_n_percent: insumo.teor_n_percent ?? 0,
-      teor_p_percent: insumo.teor_p_percent ?? 0,
-      teor_k_percent: insumo.teor_k_percent ?? 0,
+      teor_n_percent: insumo.teor_n_percent,
+      teor_p_percent: insumo.teor_p_percent,
+      teor_k_percent: insumo.teor_k_percent,
     });
   };
 
@@ -186,18 +206,22 @@ export default function InsumosPage() {
     try {
       await q.movimentacoesInsumo.create({
         insumo_id: data.insumo_id,
-        tipo: data.tipo,
+        tipo: data.tipo as any,
         quantidade: data.quantidade,
-        valor_unitario: data.valor_unitario ?? null,
-        destino: data.destino,
+        valor_unitario: data.valor_unitario,
+        destino_tipo: data.destino_tipo as any,
+        destino_id: data.destino_id,
+        observacoes: data.observacoes,
         responsavel: data.responsavel,
         data: data.data,
-      });
+        origem: 'manual',
+      } as any);
       toast.success('Movimentação registrada com sucesso.');
       setIsAddMovOpen(false);
       movForm.reset({
         insumo_id: '', tipo: 'Saída', quantidade: 0, valor_unitario: 0,
-        destino: '', responsavel: '', data: new Date().toISOString().split('T')[0],
+        destino_tipo: undefined, destino_id: undefined, observacoes: '',
+        responsavel: '', data: new Date().toISOString().split('T')[0],
       });
       await fetchData();
     } catch (err: unknown) {
@@ -210,13 +234,9 @@ export default function InsumosPage() {
   // ---------------------------------------------------------------------------
   // Render helpers
   // ---------------------------------------------------------------------------
-  const insumosPorTipo = TIPOS_INSUMO.map((tipo) => ({
-    tipo,
-    count: insumos.filter((i) => i.tipo === tipo).length,
-    criticos: insumos.filter((i) => i.tipo === tipo && i.estoque_atual < i.estoque_minimo).length,
-  }));
-
-  const totalCriticos = insumos.filter((i) => i.estoque_atual < i.estoque_minimo).length;
+  const totalCriticos = insumos.filter(
+    (i) => i.estoque_minimo != null && i.estoque_atual < i.estoque_minimo
+  ).length;
 
   const formInsumo = (
     <form onSubmit={insumoForm.handleSubmit(handleSaveInsumo)} className="space-y-4 py-2">
@@ -230,15 +250,18 @@ export default function InsumosPage() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <Label>Tipo</Label>
-          <Controller name="tipo" control={insumoForm.control} render={({ field }) => (
+          <Label>Categoria</Label>
+          <Controller name="categoria_id" control={insumoForm.control} render={({ field }) => (
             <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
               <SelectContent>
-                {TIPOS_INSUMO.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {/* TODO: carregar categorias dinamicamente */}
               </SelectContent>
             </Select>
           )} />
+          {insumoForm.formState.errors.categoria_id && (
+            <p className="text-xs text-destructive">{insumoForm.formState.errors.categoria_id.message}</p>
+          )}
         </div>
         <div className="space-y-1">
           <Label htmlFor="unidade">Unidade</Label>
@@ -251,7 +274,9 @@ export default function InsumosPage() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <Label htmlFor="estoque_minimo">Estoque Mínimo</Label>
+          <Label htmlFor="estoque_minimo">
+            Estoque Mínimo <span className="text-muted-foreground text-xs">(opcional)</span>
+          </Label>
           <Input id="estoque_minimo" type="number" step="0.01" {...insumoForm.register('estoque_minimo', { valueAsNumber: true })} />
           {insumoForm.formState.errors.estoque_minimo && (
             <p className="text-xs text-destructive">{insumoForm.formState.errors.estoque_minimo.message}</p>
@@ -266,23 +291,21 @@ export default function InsumosPage() {
         </div>
       </div>
 
-      {/* Campos NPK — visíveis apenas para Fertilizante */}
-      {insumoForm.watch('tipo') === 'Fertilizante' && (
-        <div className="grid grid-cols-3 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="n">% N</Label>
-            <Input id="n" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_n_percent', { valueAsNumber: true })} />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="p">% P₂O₅</Label>
-            <Input id="p" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_p_percent', { valueAsNumber: true })} />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="k">% K₂O</Label>
-            <Input id="k" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_k_percent', { valueAsNumber: true })} />
-          </div>
+      {/* Campos NPK — preenchimento opcional */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="n">% N <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+          <Input id="n" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_n_percent', { valueAsNumber: true })} />
         </div>
-      )}
+        <div className="space-y-1">
+          <Label htmlFor="p">% P₂O₅ <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+          <Input id="p" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_p_percent', { valueAsNumber: true })} />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="k">% K₂O <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+          <Input id="k" type="number" step="0.01" placeholder="0" {...insumoForm.register('teor_k_percent', { valueAsNumber: true })} />
+        </div>
+      </div>
 
       <DialogFooter>
         <DialogClose render={<Button type="button" variant="outline" />}>Cancelar</DialogClose>
@@ -315,7 +338,8 @@ export default function InsumosPage() {
             setIsAddMovOpen(open);
             if (!open) movForm.reset({
               insumo_id: '', tipo: 'Saída', quantidade: 0, valor_unitario: 0,
-              destino: '', responsavel: '', data: new Date().toISOString().split('T')[0],
+              destino_tipo: undefined, destino_id: undefined, observacoes: '',
+              responsavel: '', data: new Date().toISOString().split('T')[0],
             });
           }}>
             <DialogTrigger render={
@@ -381,11 +405,8 @@ export default function InsumosPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label htmlFor="mov-dest">Destino / Fornecedor</Label>
-                    <Input id="mov-dest" placeholder="Ex: Talhão 02 ou AgroSementes" {...movForm.register('destino')} />
-                    {movForm.formState.errors.destino && (
-                      <p className="text-xs text-destructive">{movForm.formState.errors.destino.message}</p>
-                    )}
+                    <Label htmlFor="mov-obs">Observações</Label>
+                    <Input id="mov-obs" placeholder="Notas adicionais..." {...movForm.register('observacoes')} />
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="mov-resp">Responsável</Label>
@@ -452,8 +473,8 @@ export default function InsumosPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {insumos.map((insumo) => {
-            const isLow = insumo.estoque_atual < insumo.estoque_minimo;
-            const pct = insumo.estoque_minimo > 0
+            const isLow = insumo.estoque_minimo != null && insumo.estoque_atual < insumo.estoque_minimo;
+            const pct = insumo.estoque_minimo != null && insumo.estoque_minimo > 0
               ? Math.min(Math.round((insumo.estoque_atual / (insumo.estoque_minimo * 2)) * 100), 100)
               : 100;
             return (
@@ -461,7 +482,6 @@ export default function InsumosPage() {
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                   <div className="space-y-1">
                     <CardTitle className="text-base font-semibold leading-tight">{insumo.nome}</CardTitle>
-                    <span className="text-xs text-muted-foreground">{insumo.tipo}</span>
                   </div>
                   <div className="flex gap-1 shrink-0">
                     {/* Botão editar */}
@@ -505,17 +525,19 @@ export default function InsumosPage() {
                         <span className={isLow ? 'text-destructive font-bold' : 'font-medium'}>
                           {insumo.estoque_atual} {insumo.unidade}
                         </span>
-                        <span className="text-muted-foreground">
-                          Mín: {insumo.estoque_minimo} {insumo.unidade}
-                        </span>
+                        {insumo.estoque_minimo != null && (
+                          <span className="text-muted-foreground">
+                            Mín: {insumo.estoque_minimo} {insumo.unidade}
+                          </span>
+                        )}
                       </div>
                       <Progress value={pct} className="h-1.5" />
                     </div>
-                    {insumo.tipo === 'Fertilizante' && (insumo.teor_n_percent || insumo.teor_p_percent || insumo.teor_k_percent) ? (
+                    {(insumo.teor_n_percent || insumo.teor_p_percent || insumo.teor_k_percent) && (
                       <p className="text-xs text-muted-foreground">
                         NPK: {insumo.teor_n_percent ?? 0}-{insumo.teor_p_percent ?? 0}-{insumo.teor_k_percent ?? 0}
                       </p>
-                    ) : null}
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -565,7 +587,7 @@ export default function InsumosPage() {
                   <TableCell className="font-bold">
                     {mov.quantidade} {mov.insumo_unidade}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{mov.destino ?? '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{mov.destino_tipo ?? '—'}</TableCell>
                   <TableCell>
                     {mov.valor_unitario != null
                       ? `R$ ${mov.valor_unitario.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`

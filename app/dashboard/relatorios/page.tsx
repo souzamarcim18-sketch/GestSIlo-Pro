@@ -93,7 +93,6 @@ async function exportInsumos() {
   const insumos = await q.insumos.list();
   const rows = insumos.map((i) => ({
     Nome: i.nome,
-    Tipo: i.tipo,
     Unidade: i.unidade,
     'Estoque Atual': i.estoque_atual,
     'Estoque Mínimo': i.estoque_minimo,
