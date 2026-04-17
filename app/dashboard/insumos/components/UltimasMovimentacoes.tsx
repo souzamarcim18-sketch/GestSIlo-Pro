@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,59 +11,91 @@ interface UltimasMovimentacoesProps {
   saidas?: MovimentacaoComNome[];
 }
 
-export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: UltimasMovimentacoesProps) {
-  // Combina e ordena as últimas 8 movimentações
-  const todas = [...(entradas || []), ...(saidas || [])]
-    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-    .slice(0, 8);
+const MAX_ITEMS = 4;
 
-  if (todas.length === 0) {
+export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: UltimasMovimentacoesProps) {
+  // Ordena e limita a 4 itens cada
+  const ultimasEntradas = (entradas || [])
+    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+    .slice(0, MAX_ITEMS);
+
+  const ultimasSaidas = (saidas || [])
+    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+    .slice(0, MAX_ITEMS);
+
+  if (ultimasEntradas.length === 0 && ultimasSaidas.length === 0) {
     return null;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Últimas Movimentações</CardTitle>
-        <CardDescription>Entradas e saídas mais recentes</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-32">Data</TableHead>
-              <TableHead>Insumo</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead className="text-right">Quantidade</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {todas.map((mov) => (
-              <TableRow key={mov.id}>
-                <TableCell className="whitespace-nowrap text-sm">
-                  {format(new Date(mov.data + 'T00:00:00'), 'dd/MM', { locale: ptBR })}
-                </TableCell>
-                <TableCell className="font-medium text-sm">{mov.insumo_nome}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1.5">
-                    {mov.tipo === 'Entrada' ? (
-                      <ArrowDownRight className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <ArrowUpRight className="h-4 w-4 text-red-600" />
-                    )}
-                    <span className="text-sm">
-                      {mov.tipo === 'Entrada' ? 'Entrada' : 'Saída'}
-                    </span>
+    <div className="grid gap-4 md:grid-cols-2">
+      {/* Entradas */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <ArrowDownRight className="h-5 w-5 text-green-600" />
+            <div>
+              <CardTitle className="text-base">Últimas Entradas</CardTitle>
+              <CardDescription className="text-xs">Insumos recebidos</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {ultimasEntradas.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma entrada registrada</p>
+          ) : (
+            <div className="space-y-3">
+              {ultimasEntradas.map((mov) => (
+                <div key={mov.id} className="flex justify-between items-start p-2 rounded border border-green-200/50 bg-green-50/30 dark:bg-green-950/20 dark:border-green-900/30">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{mov.insumo_nome}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {mov.quantidade} {mov.insumo_unidade}
+                    </div>
                   </div>
-                </TableCell>
-                <TableCell className="text-right text-sm font-medium">
-                  {mov.quantidade} {mov.insumo_unidade}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                  <div className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                    {format(new Date(mov.data + 'T00:00:00'), 'dd/MM', { locale: ptBR })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Saídas */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <ArrowUpRight className="h-5 w-5 text-red-600" />
+            <div>
+              <CardTitle className="text-base">Últimas Saídas</CardTitle>
+              <CardDescription className="text-xs">Insumos utilizados</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {ultimasSaidas.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma saída registrada</p>
+          ) : (
+            <div className="space-y-3">
+              {ultimasSaidas.map((mov) => (
+                <div key={mov.id} className="flex justify-between items-start p-2 rounded border border-red-200/50 bg-red-50/30 dark:bg-red-950/20 dark:border-red-900/30">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{mov.insumo_nome}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {mov.quantidade} {mov.insumo_unidade}
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                    {format(new Date(mov.data + 'T00:00:00'), 'dd/MM', { locale: ptBR })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
