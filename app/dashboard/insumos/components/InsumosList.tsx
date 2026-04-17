@@ -4,11 +4,6 @@ import { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import {
   Pagination, PaginationContent, PaginationItem,
   PaginationLink, PaginationNext, PaginationPrevious,
@@ -21,6 +16,11 @@ interface InsumosListProps {
   insumos: Insumo[];
   categorias?: CategoriaInsumo[];
   tipos?: Record<string, string>; // Map de tipo_id -> nome
+  filters: {
+    busca: string;
+    categoria_id: string;
+    tipo_id: string;
+  };
   loading: boolean;
   onSaidaClick: (insumo: Insumo) => void;
   onAjusteClick: (insumo: Insumo) => void;
@@ -32,54 +32,31 @@ export default function InsumosList({
   insumos,
   categorias = [],
   tipos = {},
+  filters,
   loading,
   onSaidaClick,
   onAjusteClick,
 }: InsumosListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategoria, setSelectedCategoria] = useState<string>('');
-  const [selectedTipo, setSelectedTipo] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filtra insumos
+  // Filtra insumos baseado nas props de filtros
   const filtered = useMemo(() => {
     return insumos.filter((insumo) => {
-      const matchSearch = searchTerm === '' ||
-        insumo.nome.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchSearch = filters.busca === '' ||
+        insumo.nome.toLowerCase().includes(filters.busca.toLowerCase());
 
-      const matchCategoria = selectedCategoria === '' || insumo.categoria_id === selectedCategoria;
+      const matchCategoria = filters.categoria_id === '' || insumo.categoria_id === filters.categoria_id;
 
-      const matchTipo = selectedTipo === '' || insumo.tipo_id === selectedTipo;
+      const matchTipo = filters.tipo_id === '' || insumo.tipo_id === filters.tipo_id;
 
       return matchSearch && matchCategoria && matchTipo;
     });
-  }, [insumos, searchTerm, selectedCategoria, selectedTipo]);
+  }, [insumos, filters]);
 
   // Pagina os resultados
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedInsumos = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-
-  // Reseta a página quando os filtros mudam
-  const handleFilterChange = () => {
-    setCurrentPage(1);
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    handleFilterChange();
-  };
-
-  const handleCategoriaChange = (value: string | null) => {
-    setSelectedCategoria(value || '');
-    setSelectedTipo(''); // Reset tipo quando muda categoria
-    handleFilterChange();
-  };
-
-  const handleTipoChange = (value: string | null) => {
-    setSelectedTipo(value || '');
-    handleFilterChange();
-  };
 
   const getCategoriaName = (categoriaId?: string) => {
     if (!categoriaId) return '—';
@@ -91,18 +68,6 @@ export default function InsumosList({
     if (!tipoId) return '—';
     return tipos[tipoId] || '—';
   };
-
-  // Filtra tipos disponíveis conforme categoria selecionada
-  const tiposDisponiveis = selectedCategoria === ''
-    ? Object.entries(tipos).map(([id, nome]) => ({ id, nome }))
-    : Object.entries(tipos)
-        .filter(([_, nome]) => {
-          const tiposCategoria = insumos
-            .filter(i => i.categoria_id === selectedCategoria && i.tipo_id === _)
-            .map(i => i.tipo_id);
-          return tiposCategoria.length > 0;
-        })
-        .map(([id, nome]) => ({ id, nome }));
 
   if (loading) {
     return (
@@ -125,51 +90,6 @@ export default function InsumosList({
         <CardTitle>Produtos ({filtered.length})</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Filtros */}
-        <div className="grid gap-3 sm:grid-cols-4">
-          <div>
-            <Label className="text-xs mb-1 block">Buscar por Nome</Label>
-            <Input
-              placeholder="Nome..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="h-9"
-            />
-          </div>
-          <div>
-            <Label className="text-xs mb-1 block">Categoria</Label>
-            <Select value={selectedCategoria} onValueChange={handleCategoriaChange}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
-                {categorias.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs mb-1 block">Tipo</Label>
-            <Select value={selectedTipo} onValueChange={handleTipoChange} disabled={!selectedCategoria && tiposDisponiveis.length === 0}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
-                {tiposDisponiveis.map(({ id, nome }) => (
-                  <SelectItem key={id} value={id}>
-                    {nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
         {/* Tabela */}
         {paginatedInsumos.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">

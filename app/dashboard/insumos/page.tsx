@@ -9,6 +9,7 @@ import { useCategorias } from '@/lib/hooks/useCategorias';
 
 import AlertsSection from './components/AlertsSection';
 import UltimasMovimentacoes from './components/UltimasMovimentacoes';
+import InsumosFilters from './components/InsumosFilters';
 import InsumosList from './components/InsumosList';
 import InsumoForm from './components/InsumoForm';
 import SaidaForm from './components/SaidaForm';
@@ -19,6 +20,12 @@ export default function InsumosPage() {
   const [showSaida, setShowSaida] = useState(false);
   const [showAjuste, setShowAjuste] = useState(false);
   const [selectedInsumoPara, setSelectedInsumoPara] = useState<{ tipo: 'saida' | 'ajuste'; id?: string }>({ tipo: 'saida' });
+
+  const [filters, setFilters] = useState({
+    busca: '',
+    categoria_id: '',
+    tipo_id: '',
+  });
 
   // Queries
   const { data: insumos = [], isLoading: loadingInsumos } = useInsumos();
@@ -94,11 +101,22 @@ export default function InsumosPage() {
       {/* Últimas Movimentações */}
       <UltimasMovimentacoes entradas={entradas} saidas={saidas} />
 
+      {/* Filtros */}
+      <InsumosFilters
+        filters={filters}
+        onChange={(newFilters) => setFilters(prev => ({ ...prev, ...newFilters }))}
+        onReset={() => setFilters({ busca: '', categoria_id: '', tipo_id: '' })}
+        categorias={categorias}
+        tipos={tiposMap}
+        insumos={insumos}
+      />
+
       {/* Tabela de Insumos */}
       <InsumosList
         insumos={insumos}
         categorias={categorias}
         tipos={tiposMap}
+        filters={filters}
         loading={loadingInsumos}
         onSaidaClick={(insumo) => handleSaidaClick(insumo.id)}
         onAjusteClick={(insumo) => handleAjusteClick(insumo.id)}
