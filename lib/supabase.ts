@@ -95,6 +95,23 @@ export type CicloAgricola = {
   produtividade: number | null;
 };
 
+export type CategoriaInsumo = {
+  id: string;
+  nome: string;
+  descricao?: string;
+  ativo: boolean;
+  criado_em: string;
+};
+
+export type TipoInsumo = {
+  id: string;
+  categoria_id: string;
+  nome: string;
+  descricao?: string;
+  ativo: boolean;
+  criado_em: string;
+};
+
 export type Insumo = {
   id: string;
   nome: string;
@@ -103,6 +120,17 @@ export type Insumo = {
   estoque_minimo: number;
   estoque_atual: number;
   fazenda_id: string;
+  categoria_id?: string;
+  tipo_id?: string;
+  custo_medio?: number;
+  fornecedor?: string;
+  local_armazen?: string;
+  observacoes?: string;
+  ativo?: boolean;
+  criado_em?: string;
+  criado_por?: string;
+  atualizado_em?: string;
+  atualizado_por?: string;
   teor_n_percent?: number;
   teor_p_percent?: number;
   teor_k_percent?: number;

@@ -24,6 +24,8 @@ import {
   type CicloAgricola,
   type Insumo,
   type MovimentacaoInsumo,
+  type CategoriaInsumo,
+  type TipoInsumo,
   type Maquina,
   type UsoMaquina,
   type Manutencao,
@@ -332,13 +334,39 @@ const ciclosAgricolas = {
 // INSUMOS
 // ---------------------------------------------------------------------------
 const insumos = {
-  async list(): Promise<Insumo[]> {
+  async list(filters?: {
+    categoria_id?: string;
+    tipo_id?: string;
+    local_armazen?: string;
+    busca?: string;
+    apenasCriticos?: boolean;
+  }, pagination?: { limit: number; offset: number }): Promise<Insumo[]> {
     const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
+    let query = supabase
       .from('insumos')
       .select('*')
       .eq('fazenda_id', fazendaId)
+      .eq('ativo', true)
       .order('nome', { ascending: true });
+
+    if (filters?.categoria_id) {
+      query = query.eq('categoria_id', filters.categoria_id);
+    }
+    if (filters?.tipo_id) {
+      query = query.eq('tipo_id', filters.tipo_id);
+    }
+    if (filters?.local_armazen) {
+      query = query.ilike('local_armazen', `%${filters.local_armazen}%`);
+    }
+    if (filters?.busca) {
+      query = query.or(`nome.ilike.%${filters.busca}%,fornecedor.ilike.%${filters.busca}%`);
+    }
+
+    if (pagination) {
+      query = query.range(pagination.offset, pagination.offset + pagination.limit - 1);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data as Insumo[];
   },
@@ -347,6 +375,20 @@ const insumos = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .rpc('get_insumos_abaixo_minimo', { p_fazenda_id: fazendaId });
+    if (error) throw error;
+    return data as Insumo[];
+  },
+
+  async searchByName(term: string, limit: number = 10): Promise<Insumo[]> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('insumos')
+      .select('id, nome, unidade, categoria_id, tipo_id, estoque_atual, estoque_minimo')
+      .eq('fazenda_id', fazendaId)
+      .eq('ativo', true)
+      .ilike('nome', `%${term}%`)
+      .limit(limit)
+      .order('nome');
     if (error) throw error;
     return data as Insumo[];
   },
@@ -471,6 +513,104 @@ const movimentacoesInsumo = {
       .delete()
       .eq('id', id);
     if (error) throw error;
+  },
+
+  async createAjuste(insumo_id: string, estoque_real: number, motivo: string): Promise<MovimentacaoInsumo> {
+    // Buscar insumo para comparar estoque
+    const insumo = await supabase
+      .from('insumos')
+      .select('estoque_atual')
+      .eq('id', insumo_id)
+      .single();
+    if (insumo.error) throw insumo.error;
+
+    const diferenca = estoque_real - (insumo.data?.estoque_atual || 0);
+
+    if (diferenca === 0) {
+      throw new Error('Nenhuma divergência de inventário');
+    }
+
+    return this.create({
+      insumo_id,
+      tipo: 'Ajuste',
+      quantidade: Math.abs(diferenca),
+      sinal_ajuste: diferenca > 0 ? 1 : -1,
+      observacoes: motivo,
+      origem: 'manual',
+      data: new Date().toISOString().split('T')[0],
+    } as any);
+  },
+};
+
+// ---------------------------------------------------------------------------
+// CATEGORIAS DE INSUMO
+// ---------------------------------------------------------------------------
+const categorias = {
+  async list(): Promise<CategoriaInsumo[]> {
+    const { data, error } = await supabase
+      .from('categorias_insumo')
+      .select('*')
+      .eq('ativo', true)
+      .order('nome');
+    if (error) throw error;
+    return data as CategoriaInsumo[];
+  },
+
+  async getById(id: string): Promise<CategoriaInsumo> {
+    const { data, error } = await supabase
+      .from('categorias_insumo')
+      .select('*')
+      .eq('id', id)
+      .eq('ativo', true)
+      .single();
+    if (error) throw error;
+    return data as CategoriaInsumo;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// TIPOS DE INSUMO
+// ---------------------------------------------------------------------------
+const tipos = {
+  async listByCategoria(categoria_id: string): Promise<TipoInsumo[]> {
+    const { data, error } = await supabase
+      .from('tipos_insumo')
+      .select('*')
+      .eq('categoria_id', categoria_id)
+      .eq('ativo', true)
+      .order('nome');
+    if (error) throw error;
+    return data as TipoInsumo[];
+  },
+
+  async getById(id: string): Promise<TipoInsumo> {
+    const { data, error } = await supabase
+      .from('tipos_insumo')
+      .select('*')
+      .eq('id', id)
+      .eq('ativo', true)
+      .single();
+    if (error) throw error;
+    return data as TipoInsumo;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// LOCAIS DE ARMAZENAMENTO
+// ---------------------------------------------------------------------------
+const locais = {
+  async listDistinct(): Promise<string[]> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('insumos')
+      .select('local_armazen')
+      .eq('fazenda_id', fazendaId)
+      .eq('ativo', true)
+      .neq('local_armazen', null);
+    if (error) throw error;
+
+    const locaisSet = new Set(data?.map(d => d.local_armazen).filter(Boolean));
+    return Array.from(locaisSet).sort();
   },
 };
 
@@ -1221,6 +1361,9 @@ export const q = {
   eventosDAP,
   insumos,
   movimentacoesInsumo,
+  categorias,
+  tipos,
+  locais,
   maquinas,
   usoMaquinas,
   manutencoes,
