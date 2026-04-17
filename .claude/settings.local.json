@@ -66,7 +66,12 @@
       "Bash(npx supabase *)",
       "Bash(ls -la c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/20260416090*.sql)",
       "Bash(grep -n \"CREATE TABLE.*profiles\\\\|ALTER TABLE profiles\" c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/*)",
-      "Bash(grep -r \"profiles WHERE id = auth.uid\\(\\)\" c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/*.sql)"
+      "Bash(grep -r \"profiles WHERE id = auth.uid\\(\\)\" c:/Projetos/GestSilo/GestSIlo-Pro/supabase/migrations/*.sql)",
+      "Bash(npx shadcn-ui@latest add command textarea pagination --yes)",
+      "Bash(npx shadcn@latest add command textarea pagination --yes)",
+      "Bash(npx shadcn@latest add command textarea pagination --overwrite --yes)",
+      "Bash(xargs ls *)",
+      "Bash(curl -s http://localhost:3000/dashboard/insumos)"
     ],
     "additionalDirectories": [
       "\\tmp"

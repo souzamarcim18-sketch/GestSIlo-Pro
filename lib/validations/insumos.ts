@@ -13,7 +13,7 @@ export const insumoFormSchema = z.object({
   fornecedor: z.string().min(1, 'Fornecedor obrigatório').max(255),
   local_armazen: z.string().min(1, 'Local de armazenamento obrigatório').max(255),
   estoque_minimo: z.number().nonnegative('Não pode ser negativo'),
-  registrar_como_despesa: z.boolean().default(true),
+  registrar_como_despesa: z.boolean(),
   observacoes: z.string().optional(),
 });
 
@@ -29,7 +29,7 @@ export const saidaFormSchema = z.object({
   destino_id: z.string().uuid().optional(),
   destino_texto: z.string().optional(), // Para saídas que não têm destino fixo
   responsavel: z.string().min(1, 'Responsável obrigatório'),
-  data: z.coerce.date(),
+  data: z.string().min(1, 'Data obrigatória'),
   observacoes: z.string().optional(),
 }).refine(
   (data) => {

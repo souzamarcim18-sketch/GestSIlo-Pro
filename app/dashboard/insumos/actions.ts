@@ -130,7 +130,7 @@ export async function criarSaidaAction(formData: unknown) {
       destino_tipo: parsed.destino_tipo as any,
       destino_id: parsed.destino_id,
       responsavel: parsed.responsavel,
-      data: parsed.data.toISOString().split('T')[0],
+      data: parsed.data as string,
       observacoes: parsed.observacoes,
       origem: 'manual',
     } as any);
