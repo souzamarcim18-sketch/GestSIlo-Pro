@@ -22,7 +22,7 @@ export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
   },
 });
 
-// ── Types (nenhuma alteração abaixo) ──────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────
 
 export type Profile = {
   id: string;
@@ -95,57 +95,15 @@ export type CicloAgricola = {
   produtividade: number | null;
 };
 
-export type CategoriaInsumo = {
-  id: string;
-  nome: string;
-  descricao?: string;
-  ativo: boolean;
-  criado_em: string;
-};
-
-export type TipoInsumo = {
-  id: string;
-  categoria_id: string;
-  nome: string;
-  descricao?: string;
-  ativo: boolean;
-  criado_em: string;
-};
-
-export type Insumo = {
-  id: string;
-  nome: string;
-  tipo: 'Fertilizante' | 'Defensivo' | 'Semente' | 'Combustível' | 'Outros';
-  unidade: string;
-  estoque_minimo: number;
-  estoque_atual: number;
-  fazenda_id: string;
-  categoria_id?: string;
-  tipo_id?: string;
-  custo_medio?: number;
-  fornecedor?: string;
-  local_armazen?: string;
-  observacoes?: string;
-  ativo?: boolean;
-  criado_em?: string;
-  criado_por?: string;
-  atualizado_em?: string;
-  atualizado_por?: string;
-  teor_n_percent?: number;
-  teor_p_percent?: number;
-  teor_k_percent?: number;
-};
-
-export type MovimentacaoInsumo = {
-  id: string;
-  insumo_id: string;
-  tipo: 'Entrada' | 'Saída';
-  quantidade: number;
-  data: string;
-  destino: string | null;
-  responsavel: string | null;
-  valor_unitario: number | null;
-};
+// ── Insumos: fonte única da verdade em types/insumos.ts ───────────────
+// Re-exports para manter retrocompatibilidade com imports antigos
+// (ex: `import { Insumo } from '@/lib/supabase'`).
+export type {
+  CategoriaInsumo,
+  TipoInsumo,
+  Insumo,
+  MovimentacaoInsumo,
+} from '@/types/insumos';
 
 export type Maquina = {
   id: string;
