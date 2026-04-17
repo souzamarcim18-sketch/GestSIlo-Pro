@@ -351,7 +351,7 @@ const insumos = {
     return data as Insumo[];
   },
 
-  async create(payload: Omit<Insumo, 'id'>): Promise<Insumo> {
+  async create(payload: Omit<Insumo, 'id' | 'fazenda_id'>): Promise<Insumo> {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('insumos')
@@ -373,6 +373,29 @@ const insumos = {
       .single();
     if (error) throw error;
     return data as Insumo;
+  },
+
+  async getById(id: string): Promise<Insumo> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('insumos')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return data as Insumo;
+  },
+
+  async delete(id: string): Promise<void> {
+    const fazendaId = await getFazendaId();
+    // Soft-delete via ativo = false
+    const { error } = await supabase
+      .from('insumos')
+      .update({ ativo: false })
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId);
+    if (error) throw error;
   },
 
   async remove(id: string): Promise<void> {
@@ -399,6 +422,26 @@ const movimentacoesInsumo = {
       .order('data', { ascending: false });
     if (error) throw error;
     return data as MovimentacaoInsumo[];
+  },
+
+  async listByFazenda(): Promise<(MovimentacaoInsumo & { insumo_nome: string; insumo_unidade: string })[]> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('movimentacoes_insumo')
+      .select(`
+        *,
+        insumos!inner(nome, unidade, fazenda_id)
+      `)
+      .eq('insumos.fazenda_id', fazendaId)
+      .order('data', { ascending: false });
+    if (error) throw error;
+
+    return (data ?? []).map((row: any) => ({
+      ...row,
+      insumo_nome: row.insumos?.nome ?? '',
+      insumo_unidade: row.insumos?.unidade ?? '',
+      insumos: undefined,
+    }));
   },
 
   async create(payload: Omit<MovimentacaoInsumo, 'id'>): Promise<MovimentacaoInsumo> {

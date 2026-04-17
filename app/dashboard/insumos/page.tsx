@@ -30,11 +30,6 @@ import { toast } from 'sonner';
 import { Insumo, MovimentacaoInsumo } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
-import {
-  deleteInsumo,
-  createMovimentacaoInsumo,
-  getTodasMovimentacoesByFazenda,
-} from '@/lib/supabase/insumos';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -114,7 +109,7 @@ export default function InsumosPage() {
     try {
       const [insumosData, movsData] = await Promise.all([
         q.insumos.list(),
-        getTodasMovimentacoesByFazenda(fazendaId!),
+        q.movimentacoesInsumo.listByFazenda(),
       ]);
       setInsumos(insumosData);
       setMovimentacoes(movsData);
@@ -141,7 +136,7 @@ export default function InsumosPage() {
         toast.success('Insumo atualizado com sucesso.');
         setEditingInsumo(null);
       } else {
-        await q.insumos.create({ ...data, fazenda_id: '' });
+        await q.insumos.create(data);
         toast.success('Insumo cadastrado com sucesso.');
         setIsAddInsumoOpen(false);
       }
@@ -172,7 +167,7 @@ export default function InsumosPage() {
     if (!deletingInsumo) return;
     setSubmitting(true);
     try {
-      await deleteInsumo(deletingInsumo.id);
+      await q.insumos.delete(deletingInsumo.id);
       toast.success(`"${deletingInsumo.nome}" removido.`);
       setDeletingInsumo(null);
       await fetchData();
@@ -189,7 +184,7 @@ export default function InsumosPage() {
   const handleSaveMovimentacao = async (data: MovimentacaoFormData) => {
     setSubmitting(true);
     try {
-      await createMovimentacaoInsumo({
+      await q.movimentacoesInsumo.create({
         insumo_id: data.insumo_id,
         tipo: data.tipo,
         quantidade: data.quantidade,
