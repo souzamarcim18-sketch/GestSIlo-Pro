@@ -20,6 +20,7 @@ import type { Insumo, CategoriaInsumo } from '@/types/insumos';
 interface InsumosListProps {
   insumos: Insumo[];
   categorias?: CategoriaInsumo[];
+  tipos?: Record<string, string>; // Map de tipo_id -> nome
   loading: boolean;
   onSaidaClick: (insumo: Insumo) => void;
   onAjusteClick: (insumo: Insumo) => void;
@@ -30,26 +31,29 @@ const ITEMS_PER_PAGE = 20;
 export default function InsumosList({
   insumos,
   categorias = [],
+  tipos = {},
   loading,
   onSaidaClick,
   onAjusteClick,
 }: InsumosListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoria, setSelectedCategoria] = useState<string>('');
+  const [selectedTipo, setSelectedTipo] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filtra insumos
   const filtered = useMemo(() => {
     return insumos.filter((insumo) => {
       const matchSearch = searchTerm === '' ||
-        insumo.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (insumo.local_armazen?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        insumo.nome.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchCategoria = selectedCategoria === '' || insumo.categoria_id === selectedCategoria;
 
-      return matchSearch && matchCategoria;
+      const matchTipo = selectedTipo === '' || insumo.tipo_id === selectedTipo;
+
+      return matchSearch && matchCategoria && matchTipo;
     });
-  }, [insumos, searchTerm, selectedCategoria]);
+  }, [insumos, searchTerm, selectedCategoria, selectedTipo]);
 
   // Pagina os resultados
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -68,6 +72,12 @@ export default function InsumosList({
 
   const handleCategoriaChange = (value: string | null) => {
     setSelectedCategoria(value || '');
+    setSelectedTipo(''); // Reset tipo quando muda categoria
+    handleFilterChange();
+  };
+
+  const handleTipoChange = (value: string | null) => {
+    setSelectedTipo(value || '');
     handleFilterChange();
   };
 
@@ -76,6 +86,23 @@ export default function InsumosList({
     const cat = categorias.find(c => c.id === categoriaId);
     return cat?.nome || '—';
   };
+
+  const getTipoName = (tipoId?: string) => {
+    if (!tipoId) return '—';
+    return tipos[tipoId] || '—';
+  };
+
+  // Filtra tipos disponíveis conforme categoria selecionada
+  const tiposDisponiveis = selectedCategoria === ''
+    ? Object.entries(tipos).map(([id, nome]) => ({ id, nome }))
+    : Object.entries(tipos)
+        .filter(([_, nome]) => {
+          const tiposCategoria = insumos
+            .filter(i => i.categoria_id === selectedCategoria && i.tipo_id === _)
+            .map(i => i.tipo_id);
+          return tiposCategoria.length > 0;
+        })
+        .map(([id, nome]) => ({ id, nome }));
 
   if (loading) {
     return (
@@ -99,11 +126,11 @@ export default function InsumosList({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filtros */}
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-4">
           <div>
-            <Label className="text-xs mb-1 block">Buscar</Label>
+            <Label className="text-xs mb-1 block">Buscar por Nome</Label>
             <Input
-              placeholder="Nome ou local..."
+              placeholder="Nome..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="h-9"
@@ -125,6 +152,22 @@ export default function InsumosList({
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label className="text-xs mb-1 block">Tipo</Label>
+            <Select value={selectedTipo} onValueChange={handleTipoChange} disabled={!selectedCategoria && tiposDisponiveis.length === 0}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                {tiposDisponiveis.map(({ id, nome }) => (
+                  <SelectItem key={id} value={id}>
+                    {nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Tabela */}
@@ -138,11 +181,12 @@ export default function InsumosList({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-1/4">Produto</TableHead>
-                    <TableHead className="w-1/5">Categoria</TableHead>
+                    <TableHead className="w-1/5">Produto</TableHead>
+                    <TableHead className="w-1/6">Categoria</TableHead>
+                    <TableHead className="w-1/6">Tipo</TableHead>
                     <TableHead className="text-right w-1/6">Qtde</TableHead>
                     <TableHead className="text-right w-1/6">Mín</TableHead>
-                    <TableHead className="w-1/5">Local</TableHead>
+                    <TableHead className="w-1/6">Local</TableHead>
                     <TableHead className="w-1/6">Status</TableHead>
                     <TableHead className="w-1/5">Ações</TableHead>
                   </TableRow>
@@ -155,6 +199,9 @@ export default function InsumosList({
                         <TableCell className="font-medium text-sm">{insumo.nome}</TableCell>
                         <TableCell className="text-sm">
                           {getCategoriaName(insumo.categoria_id)}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {getTipoName(insumo.tipo_id)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">
                           {insumo.estoque_atual} {insumo.unidade}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AlertTriangle, Plus, ArrowDownRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useInsumos, useInsumosAbaixoMinimo } from '@/lib/hooks/useInsumos';
@@ -42,6 +42,19 @@ export default function InsumosPage() {
   const handleRefresh = () => {
     // TanStack Query revalidará automaticamente
   };
+
+  // Criar map de tipos: tipo_id -> nome
+  const tiposMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    insumos.forEach(insumo => {
+      if (insumo.tipo_id && !map[insumo.tipo_id]) {
+        // Buscar nome do tipo na lista (seria melhor vindo do backend)
+        // Por enquanto, usar placeholder
+        map[insumo.tipo_id] = `Tipo ${insumo.tipo_id.substring(0, 8)}`;
+      }
+    });
+    return map;
+  }, [insumos]);
 
   return (
     <div className="space-y-6">
@@ -85,6 +98,7 @@ export default function InsumosPage() {
       <InsumosList
         insumos={insumos}
         categorias={categorias}
+        tipos={tiposMap}
         loading={loadingInsumos}
         onSaidaClick={(insumo) => handleSaidaClick(insumo.id)}
         onAjusteClick={(insumo) => handleAjusteClick(insumo.id)}

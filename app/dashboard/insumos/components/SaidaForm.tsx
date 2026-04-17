@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { saidaFormSchema, type SaidaFormData } from '@/lib/validations/insumos';
 import { useInsumos } from '@/lib/hooks/useInsumos';
+import { useDestinos } from '@/lib/hooks/useDestinos';
 import { criarSaidaAction } from '../actions';
+import InsumoAutocomplete from './InsumoAutocomplete';
 import { useState } from 'react';
 import type { Insumo } from '@/types/insumos';
 
@@ -52,7 +54,9 @@ export default function SaidaForm({
   });
 
   const tipoSaida = form.watch('tipo_saida') as TipoSaida;
+  const destinoTipo = form.watch('destino_tipo') as string;
   const insumoSelecionado = insumos.find(i => i.id === form.watch('insumo_id'));
+  const { data: destinos, isLoading: loadingDestinos } = useDestinos(destinoTipo);
 
   async function onSubmit(data: SaidaFormData) {
     setSubmitting(true);
@@ -91,33 +95,22 @@ export default function SaidaForm({
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Insumo */}
-          <div>
-            <Label>Insumo *</Label>
-            <Controller
-              name="insumo_id"
-              control={form.control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {insumos
-                      .filter(i => i.ativo)
-                      .map((insumo) => (
-                        <SelectItem key={insumo.id} value={insumo.id}>
-                          {insumo.nome} ({insumo.estoque_atual} {insumo.unidade})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {form.formState.errors.insumo_id && (
-              <p className="text-xs text-destructive mt-1">{form.formState.errors.insumo_id.message}</p>
+          {/* Insumo com Autocomplete */}
+          <Controller
+            name="insumo_id"
+            control={form.control}
+            render={({ field }) => (
+              <InsumoAutocomplete
+                label="Insumo *"
+                value={field.value}
+                onChange={field.onChange}
+                insumos={insumos.filter(i => i.ativo)}
+              />
             )}
-          </div>
+          />
+          {form.formState.errors.insumo_id && (
+            <p className="text-xs text-destructive">{form.formState.errors.insumo_id.message}</p>
+          )}
 
           {/* Tipo Saída */}
           <div>
@@ -196,11 +189,24 @@ export default function SaidaForm({
                 )}
               </div>
               <div>
-                <Label htmlFor="destino_id">ID do Destino *</Label>
-                <Input
-                  id="destino_id"
-                  placeholder="UUID do destino"
-                  {...form.register('destino_id')}
+                <Label>Destino {destinoTipo && `(${destinoTipo})`} *</Label>
+                <Controller
+                  name="destino_id"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select value={field.value || ''} onValueChange={field.onChange} disabled={!destinoTipo || loadingDestinos}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={loadingDestinos ? 'Carregando...' : 'Selecione...'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {destinos?.map((destino) => (
+                          <SelectItem key={destino.id} value={destino.id}>
+                            {destino.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
                 {form.formState.errors.destino_id && (
                   <p className="text-xs text-destructive mt-1">{form.formState.errors.destino_id.message}</p>
