@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { Providers } from "@/app/providers";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -28,9 +29,11 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body suppressHydrationWarning className="h-full">
         <ThemeProvider attribute="class" forcedTheme="dark">
           <AuthProvider>
-            {children}
-            <Toaster position="top-right" />
-            <SyncStatusBar />
+            <Providers>
+              {children}
+              <Toaster position="top-right" />
+              <SyncStatusBar />
+            </Providers>
           </AuthProvider>
         </ThemeProvider>
       </body>
