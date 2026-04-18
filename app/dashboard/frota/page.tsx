@@ -76,14 +76,14 @@ const maquinaSchema = z.object({
 type MaquinaFormData = z.infer<typeof maquinaSchema>;
 
 const abastecimentoSchema = z.object({
-  maquina_id: z.string().uuid('Máquina inválida'),
+  maquina_id: z.string().min(1, 'Máquina obrigatória'),
   data: z.string().min(1, 'Data obrigatória'),
   combustivel: z.enum(['Diesel', 'Gasolina', 'Etanol', 'GNV']),
   litros: z.number().positive('Litros deve ser > 0'),
   valor: z.number().nonnegative('Valor não pode ser negativo'),
   hodometro: z.number().nonnegative('Hodômetro não pode ser negativo').optional(),
   insumo_id: z.string().uuid().optional(),
-  registrar_como_saida: z.boolean().default(true),
+  registrar_como_saida: z.boolean(),
 });
 type AbastecimentoFormData = z.infer<typeof abastecimentoSchema>;
 
@@ -106,13 +106,18 @@ function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormPr
   } = useForm<AbastecimentoFormData>({
     resolver: zodResolver(abastecimentoSchema),
     defaultValues: {
+      maquina_id: '',
       data: new Date().toISOString().split('T')[0],
       registrar_como_saida: true,
+      combustivel: 'Diesel',
     },
   });
 
-  const maquinaSelecionada = watch('maquina_id');
+  const maquinaIdValue = watch('maquina_id');
   const registrarComoSaida = watch('registrar_como_saida');
+
+  // Helper para garantir que o valor é string para o Select component
+  const selectValue = (val: string | null | undefined): string => (val as string) || '';
 
   const onSubmit = async (data: AbastecimentoFormData) => {
     setIsLoading(true);
@@ -177,7 +182,7 @@ function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormPr
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="maquina_id">Máquina</Label>
-        <Select value={maquinaSelecionada} onValueChange={(v) => setValue('maquina_id', v)}>
+        <Select value={selectValue(maquinaIdValue)} onValueChange={(v) => setValue('maquina_id', v)}>
           <SelectTrigger id="maquina_id">
             <SelectValue placeholder="Selecione" />
           </SelectTrigger>
