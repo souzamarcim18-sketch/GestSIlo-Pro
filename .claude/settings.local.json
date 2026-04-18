@@ -71,7 +71,8 @@
       "Bash(npx shadcn@latest add command textarea pagination --yes)",
       "Bash(npx shadcn@latest add command textarea pagination --overwrite --yes)",
       "Bash(xargs ls *)",
-      "Bash(curl -s http://localhost:3000/dashboard/insumos)"
+      "Bash(curl -s http://localhost:3000/dashboard/insumos)",
+      "Bash(git diff *)"
     ],
     "additionalDirectories": [
       "\\tmp"
