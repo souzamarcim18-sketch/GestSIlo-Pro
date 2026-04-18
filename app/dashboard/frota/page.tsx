@@ -75,6 +75,220 @@ const maquinaSchema = z.object({
 });
 type MaquinaFormData = z.infer<typeof maquinaSchema>;
 
+const abastecimentoSchema = z.object({
+  maquina_id: z.string().uuid('Máquina inválida'),
+  data: z.string().min(1, 'Data obrigatória'),
+  combustivel: z.enum(['Diesel', 'Gasolina', 'Etanol', 'GNV']),
+  litros: z.number().positive('Litros deve ser > 0'),
+  valor: z.number().nonnegative('Valor não pode ser negativo'),
+  hodometro: z.number().nonnegative('Hodômetro não pode ser negativo').optional(),
+  insumo_id: z.string().uuid().optional(),
+  registrar_como_saida: z.boolean().default(true),
+});
+type AbastecimentoFormData = z.infer<typeof abastecimentoSchema>;
+
+// Componente do Formulário de Abastecimento
+interface AbastecimentoFormProps {
+  maquinas: Maquina[];
+  onSuccess: () => void;
+  onError: (error: Error) => void;
+}
+
+function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<AbastecimentoFormData>({
+    resolver: zodResolver(abastecimentoSchema),
+    defaultValues: {
+      data: new Date().toISOString().split('T')[0],
+      registrar_como_saida: true,
+    },
+  });
+
+  const maquinaSelecionada = watch('maquina_id');
+  const registrarComoSaida = watch('registrar_como_saida');
+
+  const onSubmit = async (data: AbastecimentoFormData) => {
+    setIsLoading(true);
+    try {
+      // Criar abastecimento
+      const abastecimento = await q.abastecimentos.create({
+        maquina_id: data.maquina_id,
+        data: data.data,
+        combustivel: data.combustivel,
+        litros: data.litros,
+        valor: data.valor,
+        hodometro: data.hodometro || null,
+      } as any);
+
+      // Integração Frota → Insumos: Se marcado, criar saída de combustível
+      if (data.registrar_como_saida && data.insumo_id) {
+        try {
+          const insumo = await q.insumos.getById(data.insumo_id);
+
+          // Validar estoque
+          if (insumo.estoque_atual < data.litros) {
+            throw new Error(
+              `Estoque insuficiente. Disponível: ${insumo.estoque_atual} L, Solicitado: ${data.litros} L`
+            );
+          }
+
+          // Criar saída de combustível
+          await q.movimentacoesInsumo.create({
+            insumo_id: data.insumo_id,
+            tipo: 'Saída',
+            quantidade: data.litros,
+            valor_unitario: data.valor / data.litros,
+            tipo_saida: 'USO_INTERNO',
+            destino_tipo: 'maquina',
+            destino_id: data.maquina_id,
+            origem: 'frota',
+            data: data.data,
+            observacoes: `Abastecimento de ${data.combustivel} - ${data.litros} L`,
+          } as any);
+
+          toast.success('Abastecimento registrado com saída de insumo');
+        } catch (insumoError) {
+          console.error('Erro ao integrar combustível:', insumoError);
+          // Reverter abastecimento se falhar integração
+          await q.abastecimentos.remove(abastecimento.id);
+          throw insumoError;
+        }
+      } else {
+        toast.success('Abastecimento registrado');
+      }
+
+      reset();
+      onSuccess();
+    } catch (error) {
+      onError(error instanceof Error ? error : new Error('Erro ao registrar'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="maquina_id">Máquina</Label>
+        <Select value={maquinaSelecionada} onValueChange={(v) => setValue('maquina_id', v)}>
+          <SelectTrigger id="maquina_id">
+            <SelectValue placeholder="Selecione" />
+          </SelectTrigger>
+          <SelectContent>
+            {maquinas.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.maquina_id && <p className="text-sm text-red-500">{errors.maquina_id.message}</p>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="data">Data</Label>
+          <Input id="data" type="date" {...register('data')} />
+          {errors.data && <p className="text-sm text-red-500">{errors.data.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="combustivel">Combustível</Label>
+          <Select value={watch('combustivel') || ''} onValueChange={(v) => setValue('combustivel', v as any)}>
+            <SelectTrigger id="combustivel">
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              {['Diesel', 'Gasolina', 'Etanol', 'GNV'].map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.combustivel && <p className="text-sm text-red-500">{errors.combustivel.message}</p>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="litros">Litros</Label>
+          <Input
+            id="litros"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            {...register('litros', { valueAsNumber: true })}
+          />
+          {errors.litros && <p className="text-sm text-red-500">{errors.litros.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="valor">Valor (R$)</Label>
+          <Input
+            id="valor"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            {...register('valor', { valueAsNumber: true })}
+          />
+          {errors.valor && <p className="text-sm text-red-500">{errors.valor.message}</p>}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="hodometro">Hodômetro (opcional)</Label>
+        <Input
+          id="hodometro"
+          type="number"
+          placeholder="0"
+          {...register('hodometro', { valueAsNumber: true })}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            {...register('registrar_como_saida')}
+            className="w-4 h-4"
+          />
+          <span className="text-sm">Registrar como saída de insumo</span>
+        </label>
+      </div>
+
+      {registrarComoSaida && (
+        <div className="space-y-2 bg-blue-50 p-3 rounded">
+          <Label htmlFor="insumo_id">Insumo (Combustível)</Label>
+          <Select value={watch('insumo_id') || ''} onValueChange={(v) => setValue('insumo_id', v)}>
+            <SelectTrigger id="insumo_id">
+              <SelectValue placeholder="Selecione combustível" />
+            </SelectTrigger>
+            <SelectContent>
+              {maquinas.length > 0 && (
+                <SelectItem value="">Carregando...</SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      <DialogFooter>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Salvando...' : 'Registrar'}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
 export default function FrotaPage() {
   const { loading: authLoading } = useAuth();
   const [maquinas, setMaquinas]           = useState<Maquina[]>([]);
@@ -84,6 +298,8 @@ export default function FrotaPage() {
   const [loading, setLoading]             = useState(true);
   const [isAddMaquinaOpen, setIsAddMaquinaOpen] = useState(false);
   const [isManutencaoOpen, setIsManutencaoOpen] = useState(false);
+  const [isAbastecimentoOpen, setIsAbastecimentoOpen] = useState(false);
+  const [maquinaSelecionada, setMaquinaSelecionada] = useState<string>('');
 
   // IDs estáveis para associação label ↔ controle
   const uid = useId();
@@ -746,10 +962,33 @@ export default function FrotaPage() {
                 <CardTitle id="abast-titulo">Histórico de Abastecimentos</CardTitle>
                 <CardDescription>Consumo de combustível por máquina.</CardDescription>
               </div>
-              <Button size="sm" variant="outline" disabled aria-disabled="true" aria-label="Registrar abastecimento — funcionalidade em breve">
-                <Fuel className="mr-2 h-4 w-4" aria-hidden="true" />
-                Novo Abastecimento
-              </Button>
+              <Dialog open={isAbastecimentoOpen} onOpenChange={setIsAbastecimentoOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" onClick={() => setMaquinaSelecionada('')}>
+                    <Fuel className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Novo Abastecimento
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Registrar Abastecimento</DialogTitle>
+                    <DialogDescription>Registre combustível consumido</DialogDescription>
+                  </DialogHeader>
+                  <AbastecimentoForm
+                    maquinas={maquinas}
+                    onSuccess={() => {
+                      setIsAbastecimentoOpen(false);
+                      setMaquinaSelecionada('');
+                      // Recarregar abastecimentos
+                      const maquinaIds = maquinas.map((m) => m.id);
+                      q.abastecimentos.listByMaquinas(maquinaIds).then(setAbastecimentos);
+                    }}
+                    onError={(error) => {
+                      toast.error(error instanceof Error ? error.message : 'Erro ao registrar abastecimento');
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <div className="w-full overflow-x-auto">
