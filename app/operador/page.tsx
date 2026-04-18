@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, type Silo, type Profile } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
 import { registrarRetiradaSilo, registrarPerdaSilo } from '@/lib/supabase/operador';
 import { enqueue } from '@/lib/db/syncQueue';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +33,7 @@ import { LogOut, PackageMinus, AlertOctagon, User, Home } from 'lucide-react';
 
 export default function ModoOperadorPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [silos, setSilos] = useState<Silo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,57 +49,58 @@ export default function ModoOperadorPage() {
   const [submitting, setSubmitting] = useState(false);
   const { isOnline, updateStatus } = useOfflineSync();
 
-  const checkAuth = useCallback(async () => {
-    try {
-      authLog('checkAuth: starting');
-      const { data: { user } } = await supabase.auth.getUser();
+  useEffect(() => {
+    if (authLoading) return;
 
-      if (!user) {
-        authLog('checkAuth: no user found');
-        router.push('/login');
-        return;
-      }
-
-      authLog('checkAuth: fetching profile for user:', user.id);
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*, fazendas(nome)')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      if (!profileData) {
-        setError('Perfil não encontrado. Contate o administrador.');
-        authLog('checkAuth: profile not found');
-        return;
-      }
-
-      if (profileData.perfil !== 'Operador') {
-        authLog('checkAuth: user is not Operador, redirecting to dashboard');
-        router.push('/dashboard');
-        return;
-      }
-
-      authLog('checkAuth: profile loaded successfully');
-      setProfile(profileData);
-      if (profileData.fazenda_id) {
-        const silosData = await q.silos.list();
-        setSilos(silosData);
-      }
-      setError(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados do operador';
-      authError('checkAuth: error:', errorMessage);
-      setError('Erro ao carregar dados. Tente novamente ou contacte o suporte.');
-    } finally {
-      setLoading(false);
+    if (!user) {
+      authLog('checkAuth: no user found');
+      router.push('/login');
+      return;
     }
-  }, [router]);
 
-  useEffect(() => { checkAuth(); }, [checkAuth]);
+    const checkAuth = async () => {
+      try {
+        authLog('checkAuth: fetching profile for user:', user.id);
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*, fazendas(nome)')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          throw profileError;
+        }
+
+        if (!profileData) {
+          setError('Perfil não encontrado. Contate o administrador.');
+          authLog('checkAuth: profile not found');
+          return;
+        }
+
+        if (profileData.perfil !== 'Operador') {
+          authLog('checkAuth: user is not Operador, redirecting to dashboard');
+          router.push('/dashboard');
+          return;
+        }
+
+        authLog('checkAuth: profile loaded successfully');
+        setProfile(profileData);
+        if (profileData.fazenda_id) {
+          const silosData = await q.silos.list();
+          setSilos(silosData);
+        }
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados do operador';
+        authError('checkAuth: error:', errorMessage);
+        setError('Erro ao carregar dados. Tente novamente ou contacte o suporte.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [user, authLoading, router]);
 
   const handleRetirada = async (e: React.FormEvent) => {
     e.preventDefault();

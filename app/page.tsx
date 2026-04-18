@@ -1,35 +1,43 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
 export default function LandingPage() {
   const router = useRouter();
-
-  const checkAuth = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('perfil')
-        .eq('id', user.id)
-        .single();
-      
-      if (profile?.perfil === 'Operador') {
-        router.push('/operador');
-      } else {
-        router.push('/dashboard');
-      }
-    }
-  }, [router]);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    checkAuth();
-  }, [checkAuth]);
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (user) {
+      // Redirecionar based on user role
+      supabase
+        .from('profiles')
+        .select('perfil')
+        .eq('id', user.id)
+        .single()
+        .then(({ data: profile }) => {
+          if (profile?.perfil === 'Operador') {
+            router.push('/operador');
+          } else {
+            router.push('/dashboard');
+          }
+        })
+        .catch(() => {
+          // Se não conseguir buscar o perfil, redireciona para dashboard
+          router.push('/dashboard');
+        });
+    }
+  }, [user, loading, router]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-sidebar flex flex-col">
