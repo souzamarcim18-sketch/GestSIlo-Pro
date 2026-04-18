@@ -429,6 +429,51 @@ const insumos = {
     return data as Insumo;
   },
 
+  /**
+   * Lista insumos com categoria e tipo relacionados (JOIN).
+   * Retorna dados normalizados para otimizar queries no frontend.
+   */
+  async listComRelacoes(filters?: {
+    categoria_id?: string;
+    tipo_id?: string;
+    local_armazen?: string;
+    busca?: string;
+    apenasCriticos?: boolean;
+  }, pagination?: { limit: number; offset: number }): Promise<Array<Insumo & { categoria?: { id: string; nome: string }; tipo?: { id: string; nome: string } }>> {
+    const fazendaId = await getFazendaId();
+    let query = supabase
+      .from('insumos')
+      .select(`
+        *,
+        categoria:categorias_insumo(id, nome),
+        tipo:tipos_insumo(id, nome)
+      `)
+      .eq('fazenda_id', fazendaId)
+      .eq('ativo', true)
+      .order('nome', { ascending: true });
+
+    if (filters?.categoria_id) {
+      query = query.eq('categoria_id', filters.categoria_id);
+    }
+    if (filters?.tipo_id) {
+      query = query.eq('tipo_id', filters.tipo_id);
+    }
+    if (filters?.local_armazen) {
+      query = query.ilike('local_armazen', `%${filters.local_armazen}%`);
+    }
+    if (filters?.busca) {
+      query = query.or(`nome.ilike.%${filters.busca}%,fornecedor.ilike.%${filters.busca}%`);
+    }
+
+    if (pagination) {
+      query = query.range(pagination.offset, pagination.offset + pagination.limit - 1);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as Array<Insumo & { categoria?: { id: string; nome: string }; tipo?: { id: string; nome: string } }>;
+  },
+
   async delete(id: string): Promise<void> {
     const fazendaId = await getFazendaId();
     // Soft-delete via ativo = false

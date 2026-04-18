@@ -87,6 +87,15 @@ export enum OrigemMovimentacao {
   FINANCEIRO = 'financeiro',
 }
 
+/**
+ * Insumo com relacionamentos JOINados.
+ * Usado em queries que trazem categoria e tipo normalized.
+ */
+export interface InsumoComRelacoes extends Insumo {
+  categoria?: { id: string; nome: string };
+  tipo?: { id: string; nome: string };
+}
+
 export interface ListInsumosFilter {
   categoria_id?: string;
   tipo_id?: string;

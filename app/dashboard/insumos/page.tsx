@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { AlertTriangle, Plus, ArrowDownRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useInsumos, useInsumosAbaixoMinimo } from '@/lib/hooks/useInsumos';
+import { useInsumosComRelacoes, useInsumosAbaixoMinimo } from '@/lib/hooks/useInsumos';
 import { useUltimasEntradas, useUltimasSaidas } from '@/lib/hooks/useMovimentacoes';
 import { useCategorias } from '@/lib/hooks/useCategorias';
 
@@ -28,7 +28,7 @@ export default function InsumosPage() {
   });
 
   // Queries
-  const { data: insumos = [], isLoading: loadingInsumos } = useInsumos();
+  const { data: insumos = [], isLoading: loadingInsumos } = useInsumosComRelacoes();
   const { data: criticos = [] } = useInsumosAbaixoMinimo();
   const { data: entradas = [] } = useUltimasEntradas();
   const { data: saidas = [] } = useUltimasSaidas();
@@ -49,19 +49,6 @@ export default function InsumosPage() {
   const handleRefresh = () => {
     // TanStack Query revalidará automaticamente
   };
-
-  // Criar map de tipos: tipo_id -> nome
-  const tiposMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    insumos.forEach(insumo => {
-      if (insumo.tipo_id && !map[insumo.tipo_id]) {
-        // Buscar nome do tipo na lista (seria melhor vindo do backend)
-        // Por enquanto, usar placeholder
-        map[insumo.tipo_id] = `Tipo ${insumo.tipo_id.substring(0, 8)}`;
-      }
-    });
-    return map;
-  }, [insumos]);
 
   return (
     <div className="space-y-6">
@@ -107,7 +94,6 @@ export default function InsumosPage() {
         onChange={(newFilters) => setFilters(prev => ({ ...prev, ...newFilters }))}
         onReset={() => setFilters({ busca: '', categoria_id: '', tipo_id: '' })}
         categorias={categorias}
-        tipos={tiposMap}
         insumos={insumos}
       />
 
@@ -115,7 +101,6 @@ export default function InsumosPage() {
       <InsumosList
         insumos={insumos}
         categorias={categorias}
-        tipos={tiposMap}
         filters={filters}
         loading={loadingInsumos}
         onSaidaClick={(insumo) => handleSaidaClick(insumo.id)}

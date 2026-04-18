@@ -26,6 +26,21 @@ export function useInsumos(
   });
 }
 
+/**
+ * Hook otimizado: lista insumos com categoria e tipo (JOIN).
+ * Recomendado para páginas que exibem listas de insumos.
+ */
+export function useInsumosComRelacoes(
+  filters?: ListInsumosFilter,
+  pagination?: PaginationOptions
+) {
+  return useQuery({
+    queryKey: ['insumos', 'listComRelacoes', filters, pagination],
+    queryFn: () => q.insumos.listComRelacoes(filters, pagination),
+    staleTime: 1000 * 60,
+  });
+}
+
 export function useInsumoById(id: string | undefined) {
   return useQuery({
     queryKey: ['insumos', 'detail', id],

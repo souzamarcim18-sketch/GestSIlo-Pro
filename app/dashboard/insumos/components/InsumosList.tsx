@@ -13,9 +13,8 @@ import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import type { Insumo, CategoriaInsumo } from '@/types/insumos';
 
 interface InsumosListProps {
-  insumos: Insumo[];
+  insumos: Array<Insumo & { categoria?: { id: string; nome: string }; tipo?: { id: string; nome: string } }>;
   categorias?: CategoriaInsumo[];
-  tipos?: Record<string, string>; // Map de tipo_id -> nome
   filters: {
     busca: string;
     categoria_id: string;
@@ -31,7 +30,6 @@ const ITEMS_PER_PAGE = 20;
 export default function InsumosList({
   insumos,
   categorias = [],
-  tipos = {},
   filters,
   loading,
   onSaidaClick,
@@ -58,15 +56,12 @@ export default function InsumosList({
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedInsumos = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
-  const getCategoriaName = (categoriaId?: string) => {
-    if (!categoriaId) return '—';
-    const cat = categorias.find(c => c.id === categoriaId);
-    return cat?.nome || '—';
+  const getCategoriaName = (categoria?: { id: string; nome: string }) => {
+    return categoria?.nome || '—';
   };
 
-  const getTipoName = (tipoId?: string) => {
-    if (!tipoId) return '—';
-    return tipos[tipoId] || '—';
+  const getTipoName = (tipo?: { id: string; nome: string }) => {
+    return tipo?.nome || '—';
   };
 
   if (loading) {
@@ -118,10 +113,10 @@ export default function InsumosList({
                       <TableRow key={insumo.id}>
                         <TableCell className="font-medium text-sm">{insumo.nome}</TableCell>
                         <TableCell className="text-sm">
-                          {getCategoriaName(insumo.categoria_id)}
+                          {getCategoriaName(insumo.categoria)}
                         </TableCell>
                         <TableCell className="text-sm">
-                          {getTipoName(insumo.tipo_id)}
+                          {getTipoName(insumo.tipo)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">
                           {insumo.estoque_atual} {insumo.unidade}

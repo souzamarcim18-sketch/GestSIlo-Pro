@@ -18,8 +18,7 @@ interface InsumosFiltersProps {
   onChange: (filters: Partial<InsumosFiltersState>) => void;
   onReset: () => void;
   categorias: CategoriaInsumo[];
-  tipos: Record<string, string>; // Map de tipo_id -> nome
-  insumos?: Array<{ id: string; categoria_id?: string; tipo_id?: string }>;
+  insumos?: Array<{ id: string; categoria_id?: string; tipo_id?: string; tipo?: { id: string; nome: string } }>;
 }
 
 export default function InsumosFilters({
@@ -27,21 +26,25 @@ export default function InsumosFilters({
   onChange,
   onReset,
   categorias,
-  tipos,
   insumos = [],
 }: InsumosFiltersProps) {
   const hasActiveFilters = filters.busca || filters.categoria_id || filters.tipo_id;
 
-  // Filtrar tipos disponíveis conforme categoria selecionada
+  // Extrair tipos únicos disponíveis (do relacionamento)
+  const tiposMap = new Map<string, { id: string; nome: string }>();
+  insumos.forEach(insumo => {
+    if (insumo.tipo && !tiposMap.has(insumo.tipo.id)) {
+      tiposMap.set(insumo.tipo.id, insumo.tipo);
+    }
+  });
+
+  // Filtrar tipos conforme categoria selecionada
   const tiposDisponiveis = filters.categoria_id === ''
-    ? Object.entries(tipos).map(([id, nome]) => ({ id, nome }))
-    : Object.entries(tipos)
-        .filter(([tipoId]) => {
-          return insumos.some(
-            i => i.categoria_id === filters.categoria_id && i.tipo_id === tipoId
-          );
-        })
-        .map(([id, nome]) => ({ id, nome }));
+    ? Array.from(tiposMap.values())
+    : insumos
+        .filter(i => i.categoria_id === filters.categoria_id && i.tipo)
+        .map(i => i.tipo!)
+        .filter((tipo, idx, self) => self.findIndex(t => t.id === tipo.id) === idx);
 
   return (
     <div className="space-y-3 rounded-lg border p-4 bg-card">
@@ -115,9 +118,9 @@ export default function InsumosFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Todos</SelectItem>
-              {tiposDisponiveis.map(({ id, nome }) => (
-                <SelectItem key={id} value={id}>
-                  {nome}
+              {tiposDisponiveis.map((tipo) => (
+                <SelectItem key={tipo.id} value={tipo.id}>
+                  {tipo.nome}
                 </SelectItem>
               ))}
             </SelectContent>
