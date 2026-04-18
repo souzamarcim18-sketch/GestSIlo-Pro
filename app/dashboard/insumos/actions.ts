@@ -1,6 +1,7 @@
 'use server';
 
 import { q } from '@/lib/supabase/queries-audit';
+import { supabase } from '@/lib/supabase';
 import { insumoFormSchema, saidaFormSchema, ajusteInventarioSchema } from '@/lib/validations/insumos';
 import { revalidatePath } from 'next/cache';
 
@@ -36,7 +37,7 @@ export async function criarInsumoAction(formData: unknown) {
     } as any);
 
     // Criar movimentação de entrada
-    await q.movimentacoesInsumo.create({
+    const movimentacao = await q.movimentacoesInsumo.create({
       insumo_id: insumo.id,
       tipo: 'Entrada',
       quantidade: parsed.quantidade_entrada,
@@ -45,11 +46,38 @@ export async function criarInsumoAction(formData: unknown) {
       origem: 'manual',
     } as any);
 
-    // TODO: Se parsed.registrar_como_despesa, criar despesa em financeiro
-    // Integração Financeiro: Fase 4
+    // Integração Financeiro: Se marcado, criar despesa automática
+    let despesa_id: string | null = null;
+    if (parsed.registrar_como_despesa) {
+      try {
+        const despesa = await q.financeiro.create({
+          categoria: 'Insumos',
+          descricao: `Entrada de ${insumo.nome}: ${parsed.quantidade_entrada} ${parsed.unidade}`,
+          valor: parsed.quantidade_entrada * parsed.valor_unitario,
+          data: new Date().toISOString().split('T')[0],
+          tipo: 'Despesa',
+          referencia: movimentacao.id,
+        } as any);
+
+        despesa_id = despesa.id;
+
+        // Linkar despesa à movimentação
+        await supabase
+          .from('movimentacoes_insumo')
+          .update({ despesa_id })
+          .eq('id', movimentacao.id);
+      } catch (despesaError) {
+        // Se falhar ao criar despesa, reverter movimentação (transação atômica)
+        console.error('Erro ao criar despesa. Revertendo movimentação.', despesaError);
+        await q.movimentacoesInsumo.remove(movimentacao.id);
+        throw new Error(
+          'Falha ao registrar como despesa. Operação revertida. Tente novamente.'
+        );
+      }
+    }
 
     revalidatePath('/dashboard/insumos');
-    return { success: true, insumo };
+    return { success: true, insumo, despesa_id };
   } catch (error) {
     console.error('Erro ao criar insumo:', error);
     throw error;
