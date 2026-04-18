@@ -18,25 +18,27 @@ export default function LandingPage() {
   useEffect(() => {
     if (loading) return;
 
-    if (user) {
-      // Redirecionar based on user role
-      supabase
-        .from('profiles')
-        .select('perfil')
-        .eq('id', user.id)
-        .single()
-        .then(({ data: profile }) => {
-          if (profile?.perfil === 'Operador') {
-            router.push('/operador');
-          } else {
-            router.push('/dashboard');
-          }
-        })
-        .catch(() => {
-          // Se não conseguir buscar o perfil, redireciona para dashboard
+    if (!user) return;
+
+    const checkUserRole = async () => {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('perfil')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.perfil === 'Operador') {
+          router.push('/operador');
+        } else {
           router.push('/dashboard');
-        });
-    }
+        }
+      } catch {
+        router.push('/dashboard');
+      }
+    };
+
+    checkUserRole();
   }, [user, loading, router]);
 
   return (
