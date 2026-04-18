@@ -113,12 +113,71 @@ export function SiloForm({
         observacoes_gerais: null,
       };
 
+      let siloId: string;
+
       if (mode === 'create') {
-        await q.silos.create({
+        const siloNovo = await q.silos.create({
           ...payload,
           fazenda_id: '',
         });
-        toast.success('Silo criado com sucesso!');
+        siloId = siloNovo.id;
+
+        // Integração Silos → Insumos: Se adicionou lona/inoculante, criar saídas
+        if (data.insumo_lona_id || data.insumo_inoculante_id) {
+          try {
+            // Saída de Lona
+            if (data.insumo_lona_id) {
+              const insumoLona = await q.insumos.getById(data.insumo_lona_id);
+              await q.movimentacoesInsumo.create({
+                insumo_id: data.insumo_lona_id,
+                tipo: 'Saída',
+                quantidade: 1, // 1 unidade de lona por silo
+                valor_unitario: insumoLona.custo_medio,
+                tipo_saida: 'USO_INTERNO',
+                destino_tipo: 'silo',
+                destino_id: siloId,
+                origem: 'silo',
+                data: new Date().toISOString().split('T')[0],
+                observacoes: `Lona para silo: ${data.nome}`,
+              } as any);
+            }
+
+            // Saída de Inoculante
+            if (data.insumo_inoculante_id) {
+              const insumoInoc = await q.insumos.getById(data.insumo_inoculante_id);
+              // Calcular quantidade de inoculante baseado no volume do silo
+              const quantidade = data.volume_ensilado_ton_mv ? data.volume_ensilado_ton_mv / 1000 : 1;
+
+              if (insumoInoc.estoque_atual < quantidade) {
+                throw new Error(
+                  `Estoque insuficiente de ${insumoInoc.nome}. Disponível: ${insumoInoc.estoque_atual} ${insumoInoc.unidade}, Necessário: ${quantidade}`
+                );
+              }
+
+              await q.movimentacoesInsumo.create({
+                insumo_id: data.insumo_inoculante_id,
+                tipo: 'Saída',
+                quantidade,
+                valor_unitario: insumoInoc.custo_medio,
+                tipo_saida: 'USO_INTERNO',
+                destino_tipo: 'silo',
+                destino_id: siloId,
+                origem: 'silo',
+                data: new Date().toISOString().split('T')[0],
+                observacoes: `Inoculante para silo: ${data.nome} (${data.volume_ensilado_ton_mv} ton MV)`,
+              } as any);
+            }
+
+            toast.success('Silo criado com sucesso! Saídas de insumo registradas.');
+          } catch (insumoError) {
+            console.error('Erro ao integrar insumos em silo:', insumoError);
+            // Reverter silo se falhar integração
+            await q.silos.remove(siloId);
+            throw insumoError;
+          }
+        } else {
+          toast.success('Silo criado com sucesso!');
+        }
       } else if (silo) {
         await q.silos.update(silo.id, payload);
         toast.success('Silo atualizado com sucesso!');
