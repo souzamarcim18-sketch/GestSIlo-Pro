@@ -184,7 +184,9 @@ function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormPr
         <Label htmlFor="maquina_id">Máquina</Label>
         <Select value={selectValue(maquinaIdValue)} onValueChange={(v: string | null) => v && setValue('maquina_id', v)}>
           <SelectTrigger id="maquina_id">
-            <SelectValue placeholder="Selecione" />
+            <SelectValue>
+              {maquinaIdValue ? maquinas.find(m => m.id === maquinaIdValue)?.nome || 'Selecione' : 'Selecione'}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {maquinas.map((m) => (
@@ -208,7 +210,9 @@ function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormPr
           <Label htmlFor="combustivel">Combustível</Label>
           <Select value={watch('combustivel') || ''} onValueChange={(v: string | null) => v && setValue('combustivel', v as any)}>
             <SelectTrigger id="combustivel">
-              <SelectValue placeholder="Selecione" />
+              <SelectValue>
+                {watch('combustivel') || 'Selecione'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {['Diesel', 'Gasolina', 'Etanol', 'GNV'].map((c) => (

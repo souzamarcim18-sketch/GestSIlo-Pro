@@ -118,21 +118,35 @@ export default function SaidaForm({
             <Controller
               name="tipo_saida"
               control={form.control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USO_INTERNO">Uso Interno</SelectItem>
-                    <SelectItem value="TRANSFERENCIA">Transferência</SelectItem>
-                    <SelectItem value="VENDA">Venda</SelectItem>
-                    <SelectItem value="DEVOLUCAO">Devolução</SelectItem>
-                    <SelectItem value="DESCARTE">Descarte</SelectItem>
-                    <SelectItem value="TROCA">Troca</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+              render={({ field }) => {
+                const tipoLabels: Record<TipoSaida, string> = {
+                  USO_INTERNO: 'Uso Interno',
+                  TRANSFERENCIA: 'Transferência',
+                  VENDA: 'Venda',
+                  DEVOLUCAO: 'Devolução',
+                  DESCARTE: 'Descarte',
+                  TROCA: 'Troca',
+                };
+                return (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue>
+                        {field.value && tipoLabels[field.value as TipoSaida]
+                          ? tipoLabels[field.value as TipoSaida]
+                          : 'Selecione...'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USO_INTERNO">Uso Interno</SelectItem>
+                      <SelectItem value="TRANSFERENCIA">Transferência</SelectItem>
+                      <SelectItem value="VENDA">Venda</SelectItem>
+                      <SelectItem value="DEVOLUCAO">Devolução</SelectItem>
+                      <SelectItem value="DESCARTE">Descarte</SelectItem>
+                      <SelectItem value="TROCA">Troca</SelectItem>
+                    </SelectContent>
+                  </Select>
+                );
+              }}
             />
           </div>
 
@@ -193,20 +207,29 @@ export default function SaidaForm({
                 <Controller
                   name="destino_id"
                   control={form.control}
-                  render={({ field }) => (
-                    <Select value={field.value || ''} onValueChange={field.onChange} disabled={!destinoTipo || loadingDestinos}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={loadingDestinos ? 'Carregando...' : 'Selecione...'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {destinos?.map((destino) => (
-                          <SelectItem key={destino.id} value={destino.id}>
-                            {destino.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  render={({ field }) => {
+                    const selectedDestino = destinos?.find(d => d.id === field.value);
+                    return (
+                      <Select value={field.value || ''} onValueChange={field.onChange} disabled={!destinoTipo || loadingDestinos}>
+                        <SelectTrigger>
+                          <SelectValue>
+                            {loadingDestinos
+                              ? 'Carregando...'
+                              : selectedDestino
+                              ? selectedDestino.nome
+                              : 'Selecione...'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {destinos?.map((destino) => (
+                            <SelectItem key={destino.id} value={destino.id}>
+                              {destino.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    );
+                  }}
                 />
                 {form.formState.errors.destino_id && (
                   <p className="text-xs text-destructive mt-1">{form.formState.errors.destino_id.message}</p>
@@ -277,22 +300,26 @@ export default function SaidaForm({
               <Controller
                 name="destino_id"
                 control={form.control}
-                render={({ field }) => (
-                  <Select value={field.value || ''} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {insumos
-                        .filter(i => i.ativo && i.id !== form.watch('insumo_id'))
-                        .map((insumo) => (
+                render={({ field }) => {
+                  const outrosInsumos = insumos.filter(i => i.ativo && i.id !== form.watch('insumo_id'));
+                  const selectedInsumo = outrosInsumos.find(i => i.id === field.value);
+                  return (
+                    <Select value={field.value || ''} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue>
+                          {selectedInsumo ? selectedInsumo.nome : 'Selecione...'}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {outrosInsumos.map((insumo) => (
                           <SelectItem key={insumo.id} value={insumo.id}>
                             {insumo.nome}
                           </SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                      </SelectContent>
+                    </Select>
+                  );
+                }}
               />
               {form.formState.errors.destino_id && (
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.destino_id.message}</p>

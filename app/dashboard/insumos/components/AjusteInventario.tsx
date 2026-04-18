@@ -84,22 +84,29 @@ export default function AjusteInventario({
             <Controller
               name="insumo_id"
               control={form.control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {insumos
-                      .filter(i => i.ativo)
-                      .map((insumo) => (
-                        <SelectItem key={insumo.id} value={insumo.id}>
-                          {insumo.nome} ({insumo.estoque_atual} {insumo.unidade})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              )}
+              render={({ field }) => {
+                const selectedInsumo = insumos.find(i => i.id === field.value);
+                return (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue>
+                        {selectedInsumo
+                          ? `${selectedInsumo.nome} (${selectedInsumo.estoque_atual} ${selectedInsumo.unidade})`
+                          : 'Selecione...'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {insumos
+                        .filter(i => i.ativo)
+                        .map((insumo) => (
+                          <SelectItem key={insumo.id} value={insumo.id}>
+                            {insumo.nome} ({insumo.estoque_atual} {insumo.unidade})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                );
+              }}
             />
             {form.formState.errors.insumo_id && (
               <p className="text-xs text-destructive mt-1">{form.formState.errors.insumo_id.message}</p>
