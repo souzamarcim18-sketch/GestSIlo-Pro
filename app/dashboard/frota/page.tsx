@@ -182,7 +182,7 @@ function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormPr
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="maquina_id">Máquina</Label>
-        <Select value={selectValue(maquinaIdValue)} onValueChange={(v: string) => setValue('maquina_id', v)}>
+        <Select value={selectValue(maquinaIdValue)} onValueChange={(v: string | null) => v && setValue('maquina_id', v)}>
           <SelectTrigger id="maquina_id">
             <SelectValue placeholder="Selecione" />
           </SelectTrigger>
