@@ -36,9 +36,9 @@ export interface Insumo {
   local_armazen?: string;
   observacoes?: string;
   ativo: boolean;
-  criado_em: string;
+  criado_em?: string;
   criado_por?: string;
-  atualizado_em: string;
+  atualizado_em?: string;
   atualizado_por?: string;
   // NPK (se categoria == Fertilizantes)
   teor_n_percent?: number;
