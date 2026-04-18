@@ -206,7 +206,7 @@ function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormPr
 
         <div className="space-y-2">
           <Label htmlFor="combustivel">Combustível</Label>
-          <Select value={watch('combustivel') || ''} onValueChange={(v) => setValue('combustivel', v as any)}>
+          <Select value={watch('combustivel') || ''} onValueChange={(v: string | null) => v && setValue('combustivel', v as any)}>
             <SelectTrigger id="combustivel">
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
@@ -272,7 +272,7 @@ function AbastecimentoForm({ maquinas, onSuccess, onError }: AbastecimentoFormPr
       {registrarComoSaida && (
         <div className="space-y-2 bg-blue-50 p-3 rounded">
           <Label htmlFor="insumo_id">Insumo (Combustível)</Label>
-          <Select value={watch('insumo_id') || ''} onValueChange={(v) => setValue('insumo_id', v)}>
+          <Select value={watch('insumo_id') || ''} onValueChange={(v: string | null) => v && setValue('insumo_id', v)}>
             <SelectTrigger id="insumo_id">
               <SelectValue placeholder="Selecione combustível" />
             </SelectTrigger>
