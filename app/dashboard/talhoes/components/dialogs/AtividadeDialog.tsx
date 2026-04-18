@@ -259,13 +259,6 @@ export function AtividadeDialog({
               data: data.data,
               observacoes: `Aplicado em atividade: ${data.tipo_operacao}`,
             } as any);
-
-            // Atualizar custo_producao do talhão
-            const custoCriado = quantidade * insumo.custo_medio;
-            const talhao = await q.talhoes.getById(talhaoId);
-            await q.talhoes.update(talhaoId, {
-              custo_producao: (talhao?.custo_producao || 0) + custoCriado,
-            } as any);
           }
         } catch (insumoError) {
           console.error('Erro ao integrar insumo em talhão:', insumoError);
