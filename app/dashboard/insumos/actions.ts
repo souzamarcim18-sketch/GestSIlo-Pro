@@ -22,7 +22,7 @@ export async function criarInsumoAction(formData: unknown) {
     }
 
     // Criar insumo
-    const insumo = await q.insumos.create({
+    const insumo = await qServer.insumos.create({
       nome: parsed.nome,
       categoria_id: parsed.categoria_id,
       tipo_id: parsed.tipo_id,
@@ -37,7 +37,7 @@ export async function criarInsumoAction(formData: unknown) {
     } as any);
 
     // Criar movimentação de entrada
-    const movimentacao = await q.movimentacoesInsumo.create({
+    const movimentacao = await qServer.movimentacoesInsumo.create({
       insumo_id: insumo.id,
       tipo: 'Entrada',
       quantidade: parsed.quantidade_entrada,
@@ -50,7 +50,7 @@ export async function criarInsumoAction(formData: unknown) {
     let despesa_id: string | null = null;
     if (parsed.registrar_como_despesa) {
       try {
-        const despesa = await q.financeiro.create({
+        const despesa = await qServer.financeiro.create({
           categoria: 'Insumos',
           descricao: `Entrada de ${insumo.nome}: ${parsed.quantidade_entrada} ${parsed.unidade}`,
           valor: parsed.quantidade_entrada * parsed.valor_unitario,
@@ -70,7 +70,7 @@ export async function criarInsumoAction(formData: unknown) {
       } catch (despesaError) {
         // Se falhar ao criar despesa, reverter movimentação (transação atômica)
         console.error('Erro ao criar despesa. Revertendo movimentação.', despesaError);
-        await q.movimentacoesInsumo.remove(movimentacao.id);
+        await qServer.movimentacoesInsumo.remove(movimentacao.id);
         throw new Error(
           'Falha ao registrar como despesa. Operação revertida. Tente novamente.'
         );
@@ -100,7 +100,7 @@ export async function atualizarInsumoAction(id: string, formData: unknown) {
       }
     }
 
-    const insumo = await q.insumos.update(id, {
+    const insumo = await qServer.insumos.update(id, {
       nome: parsed.nome,
       categoria_id: parsed.categoria_id,
       tipo_id: parsed.tipo_id,
@@ -124,7 +124,7 @@ export async function atualizarInsumoAction(id: string, formData: unknown) {
  */
 export async function deletarInsumoAction(id: string) {
   try {
-    await q.insumos.delete(id);
+    await qServer.insumos.delete(id);
     revalidatePath('/dashboard/insumos');
     return { success: true };
   } catch (error) {
@@ -141,7 +141,7 @@ export async function criarSaidaAction(formData: unknown) {
 
   try {
     // Buscar insumo para validar estoque e obter custo_medio
-    const insumo = await q.insumos.getById(parsed.insumo_id);
+    const insumo = await qServer.insumos.getById(parsed.insumo_id);
 
     // Validar estoque
     if (insumo.estoque_atual < parsed.quantidade) {
@@ -150,7 +150,7 @@ export async function criarSaidaAction(formData: unknown) {
       );
     }
 
-    await q.movimentacoesInsumo.create({
+    await qServer.movimentacoesInsumo.create({
       insumo_id: parsed.insumo_id,
       tipo: 'Saída',
       quantidade: parsed.quantidade,
@@ -179,7 +179,7 @@ export async function criarAjusteAction(formData: unknown) {
   const parsed = ajusteInventarioSchema.parse(formData);
 
   try {
-    await q.movimentacoesInsumo.createAjuste(
+    await qServer.movimentacoesInsumo.createAjuste(
       parsed.insumo_id,
       parsed.estoque_real,
       parsed.motivo

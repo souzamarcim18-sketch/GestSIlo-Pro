@@ -656,6 +656,140 @@ const tipos = {
 };
 
 // ✅ Server-side versions para Server Actions
+
+const insumosServer = {
+  async create(payload: Omit<Insumo, 'id' | 'fazenda_id'>): Promise<Insumo> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('insumos')
+      .insert({ ...payload, fazenda_id: fazendaId })
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Insumo;
+  },
+
+  async getById(id: string): Promise<Insumo> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('insumos')
+      .select('*')
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (error) throw error;
+    return data as Insumo;
+  },
+
+  async update(id: string, payload: Partial<Insumo>): Promise<Insumo> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('insumos')
+      .update(payload)
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Insumo;
+  },
+
+  async delete(id: string): Promise<void> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { error } = await supabaseServer
+      .from('insumos')
+      .update({ ativo: false })
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId);
+    if (error) throw error;
+  },
+};
+
+const movimentacoesInsumoServer = {
+  async create(payload: Omit<MovimentacaoInsumo, 'id'>): Promise<MovimentacaoInsumo> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { count, error: checkError } = await supabaseServer
+      .from('insumos')
+      .select('id', { count: 'exact', head: true })
+      .eq('id', payload.insumo_id)
+      .eq('fazenda_id', fazendaId);
+    if (checkError || count === 0) {
+      throw new Error('Insumo não encontrado ou não pertence a esta fazenda.');
+    }
+
+    const { data, error } = await supabaseServer
+      .from('movimentacoes_insumo')
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as MovimentacaoInsumo;
+  },
+
+  async remove(id: string): Promise<void> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    await getFazendaIdServer();
+    const { error } = await supabaseServer
+      .from('movimentacoes_insumo')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+
+  async createAjuste(insumo_id: string, estoque_real: number, motivo: string): Promise<MovimentacaoInsumo> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const insumo = await supabaseServer
+      .from('insumos')
+      .select('estoque_atual')
+      .eq('id', insumo_id)
+      .single();
+    if (insumo.error) throw insumo.error;
+
+    const diferenca = estoque_real - (insumo.data?.estoque_atual || 0);
+
+    if (diferenca === 0) {
+      throw new Error('Nenhuma divergência de inventário');
+    }
+
+    return this.create({
+      insumo_id,
+      tipo: 'Ajuste',
+      quantidade: Math.abs(diferenca),
+      sinal_ajuste: diferenca > 0 ? 1 : -1,
+      observacoes: motivo,
+      origem: 'manual',
+      data: new Date().toISOString().split('T')[0],
+    } as any);
+  },
+};
+
+const financeiroServer = {
+  async create(payload: Omit<Financeiro, 'id'>): Promise<Financeiro> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+    const { data, error } = await supabaseServer
+      .from('financeiro')
+      .insert({ ...payload, fazenda_id: fazendaId })
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Financeiro;
+  },
+};
+
 const tiposServer = {
   async getById(id: string): Promise<TipoInsumo> {
     const { createSupabaseServerClient } = await import('./server');
@@ -1457,4 +1591,7 @@ export const qServer = {
   planejamentosSilagem: planejamentosSilagemServer,
   categorias: categoriasServer,
   tipos: tiposServer,
+  insumos: insumosServer,
+  movimentacoesInsumo: movimentacoesInsumoServer,
+  financeiro: financeiroServer,
 };
