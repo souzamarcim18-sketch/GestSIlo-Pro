@@ -968,7 +968,7 @@ export default function FrotaPage() {
                 <CardDescription>Consumo de combustível por máquina.</CardDescription>
               </div>
               <Dialog open={isAbastecimentoOpen} onOpenChange={setIsAbastecimentoOpen}>
-                <DialogTrigger asChild>
+                <DialogTrigger>
                   <Button size="sm" variant="outline" onClick={() => setMaquinaSelecionada('')}>
                     <Fuel className="mr-2 h-4 w-4" aria-hidden="true" />
                     Novo Abastecimento
