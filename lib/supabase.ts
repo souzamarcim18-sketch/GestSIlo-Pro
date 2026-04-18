@@ -78,11 +78,11 @@ export type MovimentacaoSilo = {
 export type Talhao = {
   id: string;
   nome: string;
-  area: number;
-  tipo_solo: string | null;
-  localizacao: string | null;
-  status: 'Plantado' | 'Em preparo' | 'Colhido' | 'Em pousio';
+  area_ha: number;
+  tipo_solo: string;
+  status: 'Em pousio' | 'Em preparo' | 'Plantado' | 'Colhido';
   fazenda_id: string;
+  observacoes?: string | null;
 };
 
 export type CicloAgricola = {

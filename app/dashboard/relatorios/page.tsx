@@ -110,9 +110,8 @@ async function exportTalhoes() {
   const talhoes = await q.talhoes.list();
   const rows = talhoes.map((t) => ({
     Nome: t.nome,
-    'Área (ha)': t.area,
+    'Área (ha)': t.area_ha,
     'Tipo de Solo': t.tipo_solo ?? '',
-    Localização: t.localizacao ?? '',
     Status: t.status,
   }));
   const ws = XLSX.utils.json_to_sheet(rows);

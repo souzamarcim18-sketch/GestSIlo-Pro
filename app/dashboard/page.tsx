@@ -97,11 +97,11 @@ export default function DashboardPage() {
           await Promise.all([
             supabase
               .from('silos')
-              .select('capacidade, estoque_atual')
+              .select('volume_ensilado_ton_mv, estoque_atual')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('talhoes')
-              .select('area')
+              .select('area_ha')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('maquinas')
@@ -125,8 +125,8 @@ export default function DashboardPage() {
         let silosOcupacao = '—';
         let silosDetalhe = '—';
         if (silosData.length > 0) {
-          const totalCapacidade = silosData.reduce(
-            (acc, s) => acc + (s.capacidade ?? 0),
+          const totalVolume = silosData.reduce(
+            (acc, s) => acc + (s.volume_ensilado_ton_mv ?? 0),
             0
           );
           const totalEstoque = silosData.reduce(
@@ -134,11 +134,11 @@ export default function DashboardPage() {
             0
           );
           const ocupPct =
-            totalCapacidade > 0
-              ? Math.round((totalEstoque / totalCapacidade) * 100)
+            totalVolume > 0
+              ? Math.round((totalEstoque / totalVolume) * 100)
               : 0;
           silosOcupacao = `${ocupPct}%`;
-          silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalCapacidade.toLocaleString('pt-BR')} ton`;
+          silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
         }
 
         // Talhões
@@ -146,7 +146,7 @@ export default function DashboardPage() {
         let talhaoArea = '—';
         if (talhoesData.length > 0) {
           const totalArea = talhoesData.reduce(
-            (acc, t) => acc + (t.area ?? 0),
+            (acc, t) => acc + (t.area_ha ?? 0),
             0
           );
           talhaoArea = `${totalArea.toLocaleString('pt-BR')} ha`;
