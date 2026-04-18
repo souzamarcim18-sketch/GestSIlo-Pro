@@ -613,6 +613,21 @@ const categorias = {
   },
 };
 
+// ✅ Server-side versions para Server Actions
+const categoriasServer = {
+  async list(): Promise<CategoriaInsumo[]> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const { data, error } = await supabaseServer
+      .from('categorias_insumo')
+      .select('*')
+      .eq('ativo', true)
+      .order('nome');
+    if (error) throw error;
+    return data as CategoriaInsumo[];
+  },
+};
+
 // ---------------------------------------------------------------------------
 // TIPOS DE INSUMO
 // ---------------------------------------------------------------------------
@@ -630,6 +645,22 @@ const tipos = {
 
   async getById(id: string): Promise<TipoInsumo> {
     const { data, error } = await supabase
+      .from('tipos_insumo')
+      .select('*')
+      .eq('id', id)
+      .eq('ativo', true)
+      .single();
+    if (error) throw error;
+    return data as TipoInsumo;
+  },
+};
+
+// ✅ Server-side versions para Server Actions
+const tiposServer = {
+  async getById(id: string): Promise<TipoInsumo> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const { data, error } = await supabaseServer
       .from('tipos_insumo')
       .select('*')
       .eq('id', id)
@@ -1424,4 +1455,6 @@ export const q = {
 // ---------------------------------------------------------------------------
 export const qServer = {
   planejamentosSilagem: planejamentosSilagemServer,
+  categorias: categoriasServer,
+  tipos: tiposServer,
 };

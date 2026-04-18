@@ -1,7 +1,7 @@
 'use server';
 
-import { q } from '@/lib/supabase/queries-audit';
-import { supabase } from '@/lib/supabase';
+import { q, qServer } from '@/lib/supabase/queries-audit';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { insumoFormSchema, saidaFormSchema, ajusteInventarioSchema } from '@/lib/validations/insumos';
 import { revalidatePath } from 'next/cache';
 
@@ -15,7 +15,7 @@ export async function criarInsumoAction(formData: unknown) {
   try {
     // Se tipo_id fornecido, validar que pertence à categoria_id
     if (parsed.tipo_id) {
-      const tipo = await q.tipos.getById(parsed.tipo_id);
+      const tipo = await qServer.tipos.getById(parsed.tipo_id);
       if (tipo.categoria_id !== parsed.categoria_id) {
         throw new Error('Tipo selecionado não pertence à categoria escolhida');
       }
@@ -62,7 +62,8 @@ export async function criarInsumoAction(formData: unknown) {
         despesa_id = despesa.id;
 
         // Linkar despesa à movimentação
-        await supabase
+        const supabaseServer = await createSupabaseServerClient();
+        await supabaseServer
           .from('movimentacoes_insumo')
           .update({ despesa_id })
           .eq('id', movimentacao.id);
@@ -93,7 +94,7 @@ export async function atualizarInsumoAction(id: string, formData: unknown) {
   try {
     // Se tipo_id fornecido, validar que pertence à categoria_id
     if (parsed.tipo_id) {
-      const tipo = await q.tipos.getById(parsed.tipo_id);
+      const tipo = await qServer.tipos.getById(parsed.tipo_id);
       if (tipo.categoria_id !== parsed.categoria_id) {
         throw new Error('Tipo selecionado não pertence à categoria escolhida');
       }
