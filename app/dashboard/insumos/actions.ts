@@ -13,8 +13,11 @@ export async function criarInsumoAction(formData: unknown) {
   const parsed = insumoFormSchema.parse(formData);
 
   try {
+    console.log('[criarInsumoAction] Iniciando com dados:', { nome: parsed.nome, categoria_id: parsed.categoria_id });
+
     // Se tipo_id fornecido, validar que pertence à categoria_id
     if (parsed.tipo_id) {
+      console.log('[criarInsumoAction] Validando tipo_id:', parsed.tipo_id);
       const tipo = await qServer.tipos.getById(parsed.tipo_id);
       if (tipo.categoria_id !== parsed.categoria_id) {
         throw new Error('Tipo selecionado não pertence à categoria escolhida');
@@ -22,6 +25,7 @@ export async function criarInsumoAction(formData: unknown) {
     }
 
     // Criar insumo
+    console.log('[criarInsumoAction] Criando insumo...');
     const insumo = await qServer.insumos.create({
       nome: parsed.nome,
       categoria_id: parsed.categoria_id,
@@ -30,11 +34,11 @@ export async function criarInsumoAction(formData: unknown) {
       fornecedor: parsed.fornecedor,
       local_armazen: parsed.local_armazen,
       estoque_minimo: parsed.estoque_minimo,
-      estoque_atual: parsed.quantidade_entrada, // Inicia com quantidade_entrada
+      estoque_atual: parsed.quantidade_entrada,
       custo_medio: parsed.valor_unitario,
       observacoes: parsed.observacoes,
       ativo: true,
-    } as any);
+    });
 
     // Criar movimentação de entrada
     const movimentacao = await qServer.movimentacoesInsumo.create({
@@ -44,7 +48,7 @@ export async function criarInsumoAction(formData: unknown) {
       valor_unitario: parsed.valor_unitario,
       data: new Date().toISOString().split('T')[0],
       origem: 'manual',
-    } as any);
+    });
 
     // Integração Financeiro: Se marcado, criar despesa automática
     let despesa_id: string | null = null;
@@ -56,8 +60,9 @@ export async function criarInsumoAction(formData: unknown) {
           valor: parsed.quantidade_entrada * parsed.valor_unitario,
           data: new Date().toISOString().split('T')[0],
           tipo: 'Despesa',
-          referencia: movimentacao.id,
-        } as any);
+          referencia_id: movimentacao.id,
+          referencia_tipo: null,
+        });
 
         despesa_id = despesa.id;
 
@@ -109,7 +114,7 @@ export async function atualizarInsumoAction(id: string, formData: unknown) {
       local_armazen: parsed.local_armazen,
       estoque_minimo: parsed.estoque_minimo,
       observacoes: parsed.observacoes,
-    } as any);
+    });
 
     revalidatePath('/dashboard/insumos');
     return { success: true, insumo };
@@ -155,14 +160,14 @@ export async function criarSaidaAction(formData: unknown) {
       tipo: 'Saída',
       quantidade: parsed.quantidade,
       valor_unitario: parsed.valor_unitario || insumo.custo_medio,
-      tipo_saida: parsed.tipo_saida as any,
-      destino_tipo: parsed.destino_tipo as any,
+      tipo_saida: parsed.tipo_saida,
+      destino_tipo: parsed.destino_tipo,
       destino_id: parsed.destino_id,
       responsavel: parsed.responsavel,
-      data: parsed.data as string,
+      data: parsed.data,
       observacoes: parsed.observacoes,
       origem: 'manual',
-    } as any);
+    });
 
     revalidatePath('/dashboard/insumos');
     return { success: true };
