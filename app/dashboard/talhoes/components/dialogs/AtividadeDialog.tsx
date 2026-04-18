@@ -229,7 +229,53 @@ export function AtividadeDialog({
         custo_por_hora_r: data.custo_por_hora_r || null,
       };
 
-      await q.atividadesCampo.create(payload);
+      const atividade = await q.atividadesCampo.create(payload);
+      let criadaAtividadeId = atividade.id;
+
+      // Integração Talhões → Insumos: Se aplicou insumo, criar saída
+      if (data.insumo_id && ['Calagem', 'Gessagem', 'Pulverização'].includes(data.tipo_operacao)) {
+        try {
+          const insumo = await q.insumos.getById(data.insumo_id);
+          const quantidade = data.dose_ton_ha ? data.dose_ton_ha * (talhaoAreaHa || 1) : 0;
+
+          if (quantidade > 0) {
+            // Validar estoque antes de criar saída
+            if (insumo.estoque_atual < quantidade) {
+              throw new Error(
+                `Estoque insuficiente de ${insumo.nome}. Disponível: ${insumo.estoque_atual} ${insumo.unidade}, Solicitado: ${quantidade}`
+              );
+            }
+
+            // Criar saída de insumo (integração)
+            await q.movimentacoesInsumo.create({
+              insumo_id: data.insumo_id,
+              tipo: 'Saída',
+              quantidade,
+              valor_unitario: insumo.custo_medio,
+              tipo_saida: 'USO_INTERNO',
+              destino_tipo: 'talhao',
+              destino_id: talhaoId,
+              origem: 'talhao',
+              data: data.data,
+              observacoes: `Aplicado em atividade: ${data.tipo_operacao}`,
+            } as any);
+
+            // Atualizar custo_producao do talhão
+            const custoCriado = quantidade * insumo.custo_medio;
+            const talhao = await q.talhoes.getById(talhaoId);
+            await q.talhoes.update(talhaoId, {
+              custo_producao: (talhao?.custo_producao || 0) + custoCriado,
+            } as any);
+          }
+        } catch (insumoError) {
+          console.error('Erro ao integrar insumo em talhão:', insumoError);
+          // Reverter atividade se falhar integração de insumo
+          if (criadaAtividadeId) {
+            await q.atividadesCampo.remove(criadaAtividadeId);
+          }
+          throw insumoError;
+        }
+      }
 
       // Gerar eventos DAP automaticamente ao registrar Plantio
       if (data.tipo_operacao === 'Plantio') {
@@ -263,7 +309,9 @@ export function AtividadeDialog({
       onSuccess?.();
     } catch (error) {
       console.error('Erro ao criar atividade:', error);
-      toast.error('Erro ao registrar atividade');
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao registrar atividade'
+      );
     } finally {
       setIsLoading(false);
     }
