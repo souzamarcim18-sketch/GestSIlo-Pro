@@ -796,44 +796,75 @@ const movimentacoesInsumoServer = {
   },
 
   async createAjuste(insumo_id: string, estoque_real: number, motivo: string): Promise<MovimentacaoInsumo> {
-    const { createSupabaseServerClient } = await import('./server');
-    const supabaseServer = await createSupabaseServerClient();
-    const fazendaId = await getFazendaIdServer();
+    try {
+      const { createSupabaseServerClient } = await import('./server');
+      const supabaseServer = await createSupabaseServerClient();
+      const fazendaId = await getFazendaIdServer();
 
-    const insumo = await supabaseServer
-      .from('insumos')
-      .select('estoque_atual, fazenda_id')
-      .eq('id', insumo_id)
-      .single();
+      console.log('[createAjuste] Iniciando:', { insumo_id, estoque_real, motivo, fazendaId });
 
-    if (insumo.error) throw insumo.error;
-    if (!insumo.data || insumo.data.fazenda_id !== fazendaId) {
-      throw new Error('Insumo não encontrado ou não pertence a esta fazenda.');
+      // Buscar insumo com tratamento de erro explícito
+      const { data: insumoData, error: insumoError } = await supabaseServer
+        .from('insumos')
+        .select('estoque_atual, fazenda_id, nome')
+        .eq('id', insumo_id)
+        .single();
+
+      if (insumoError) {
+        console.error('[createAjuste] Erro ao buscar insumo:', insumoError);
+        throw new Error(`Não foi possível buscar insumo: ${insumoError.message}`);
+      }
+
+      if (!insumoData) {
+        throw new Error('Insumo não encontrado');
+      }
+
+      if (insumoData.fazenda_id !== fazendaId) {
+        throw new Error('Insumo não pertence a esta fazenda');
+      }
+
+      console.log('[createAjuste] Insumo encontrado:', { nome: insumoData.nome, estoque_atual: insumoData.estoque_atual });
+
+      const diferenca = estoque_real - (insumoData.estoque_atual || 0);
+
+      if (diferenca === 0) {
+        throw new Error('Nenhuma divergência de inventário (estoque real = estoque registrado)');
+      }
+
+      const sinal = diferenca > 0 ? 1 : -1;
+
+      console.log('[createAjuste] Diferença calculada:', { diferenca, sinal, quantidade: Math.abs(diferenca) });
+
+      // Insert with explicit error handling
+      const { data, error } = await supabaseServer
+        .from('movimentacoes_insumo')
+        .insert({
+          insumo_id,
+          tipo: 'Ajuste',
+          quantidade: Math.abs(diferenca),
+          sinal_ajuste: sinal,
+          observacoes: motivo,
+          origem: 'manual',
+          data: new Date().toISOString().split('T')[0],
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[createAjuste] Erro ao inserir movimentação:', error);
+        throw new Error(`Erro ao registrar ajuste: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('Nenhum registro retornado após inserção');
+      }
+
+      console.log('[createAjuste] Ajuste criado com sucesso:', { id: data.id });
+      return data as MovimentacaoInsumo;
+    } catch (error) {
+      console.error('[createAjuste] Erro geral:', error);
+      throw error;
     }
-
-    const diferenca = estoque_real - (insumo.data.estoque_atual || 0);
-
-    if (diferenca === 0) {
-      throw new Error('Nenhuma divergência de inventário');
-    }
-
-    // Insert directly without calling this.create() to avoid duplicate getFazendaIdServer() calls
-    const { data, error } = await supabaseServer
-      .from('movimentacoes_insumo')
-      .insert({
-        insumo_id,
-        tipo: 'Ajuste',
-        quantidade: Math.abs(diferenca),
-        sinal_ajuste: diferenca > 0 ? 1 : -1,
-        observacoes: motivo,
-        origem: 'manual',
-        data: new Date().toISOString().split('T')[0],
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as MovimentacaoInsumo;
   },
 };
 

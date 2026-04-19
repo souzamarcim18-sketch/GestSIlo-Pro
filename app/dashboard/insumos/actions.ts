@@ -188,6 +188,15 @@ export async function criarAjusteAction(formData: unknown) {
     const parsed = ajusteInventarioSchema.parse(formData);
     console.log('[criarAjusteAction] Validação OK:', { insumo_id: parsed.insumo_id, estoque_real: parsed.estoque_real });
 
+    // Validar que estoque_real seja um número válido
+    if (typeof parsed.estoque_real !== 'number' || isNaN(parsed.estoque_real)) {
+      throw new Error('Estoque real deve ser um número válido');
+    }
+
+    if (parsed.estoque_real < 0) {
+      throw new Error('Estoque real não pode ser negativo');
+    }
+
     const resultado = await qServer.movimentacoesInsumo.createAjuste(
       parsed.insumo_id,
       parsed.estoque_real,
@@ -198,7 +207,15 @@ export async function criarAjusteAction(formData: unknown) {
     revalidatePath('/dashboard/insumos');
     return { success: true };
   } catch (error) {
-    console.error('[criarAjusteAction] Erro:', error);
-    throw error;
+    console.error('[criarAjusteAction] Erro completo:', error);
+
+    // Mensagem de erro mais específica
+    if (error instanceof Error) {
+      console.error('[criarAjusteAction] Mensagem:', error.message);
+      console.error('[criarAjusteAction] Stack:', error.stack);
+      throw new Error(`Ajuste falhou: ${error.message}`);
+    }
+
+    throw new Error('Erro desconhecido ao registrar ajuste');
   }
 }
