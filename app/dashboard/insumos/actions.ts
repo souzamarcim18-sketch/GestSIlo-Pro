@@ -60,6 +60,7 @@ export async function criarInsumoAction(formData: unknown) {
           valor: parsed.quantidade_entrada * parsed.valor_unitario,
           data: new Date().toISOString().split('T')[0],
           tipo: 'Despesa',
+          forma_pagamento: null,
           referencia_id: movimentacao.id,
           referencia_tipo: null,
         });

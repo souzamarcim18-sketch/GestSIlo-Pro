@@ -776,7 +776,7 @@ const movimentacoesInsumoServer = {
 };
 
 const financeiroServer = {
-  async create(payload: Omit<Financeiro, 'id'>): Promise<Financeiro> {
+  async create(payload: Omit<Financeiro, 'id' | 'fazenda_id'>): Promise<Financeiro> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
     const fazendaId = await getFazendaIdServer();
