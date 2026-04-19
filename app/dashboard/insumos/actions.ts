@@ -36,7 +36,7 @@ export async function criarInsumoAction(formData: unknown) {
       estoque_minimo: parsed.estoque_minimo,
       estoque_atual: parsed.quantidade_entrada,
       custo_medio: parsed.valor_unitario,
-      criado_em: parsed.data,
+      data_cadastro: parsed.data,
       observacoes: parsed.observacoes,
       ativo: true,
     });

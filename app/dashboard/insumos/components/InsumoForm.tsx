@@ -260,21 +260,13 @@ export default function InsumoForm({
               render={({ field }) => (
                 <Checkbox
                   checked={field.value}
-                  onCheckedChange={(checked) => {
-                    field.onChange(checked);
-                    if (checked) {
-                      toast.info('✓ Integração financeira será ativada em breve (Fase 4)', {
-                        duration: 3000,
-                      });
-                    }
-                  }}
+                  onCheckedChange={field.onChange}
                   id="registrar_como_despesa"
                 />
               )}
             />
             <Label htmlFor="registrar_como_despesa" className="font-normal cursor-pointer">
               Registrar como Despesa
-              <span className="text-xs text-muted-foreground ml-2">(Fase 4)</span>
             </Label>
           </div>
 

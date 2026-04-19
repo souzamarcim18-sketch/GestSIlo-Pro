@@ -34,6 +34,7 @@ export interface Insumo {
   custo_medio: number;
   fornecedor?: string;
   local_armazen?: string;
+  data_cadastro?: string; // YYYY-MM-DD
   observacoes?: string;
   ativo: boolean;
   criado_em?: string;
