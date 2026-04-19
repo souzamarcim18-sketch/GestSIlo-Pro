@@ -561,11 +561,14 @@ const movimentacoesInsumo = {
   },
 
   async createAjuste(insumo_id: string, estoque_real: number, motivo: string): Promise<MovimentacaoInsumo> {
+    const fazendaId = await getFazendaId();
+
     // Buscar insumo para comparar estoque
     const insumo = await supabase
       .from('insumos')
       .select('estoque_atual')
       .eq('id', insumo_id)
+      .eq('fazenda_id', fazendaId)
       .single();
     if (insumo.error) throw insumo.error;
 
@@ -575,15 +578,23 @@ const movimentacoesInsumo = {
       throw new Error('Nenhuma divergência de inventário');
     }
 
-    return this.create({
-      insumo_id,
-      tipo: 'Ajuste',
-      quantidade: Math.abs(diferenca),
-      sinal_ajuste: diferenca > 0 ? 1 : -1,
-      observacoes: motivo,
-      origem: 'manual',
-      data: new Date().toISOString().split('T')[0],
-    } as any);
+    // Insert directly without calling this.create() to avoid duplicate getFazendaId() calls
+    const { data, error } = await supabase
+      .from('movimentacoes_insumo')
+      .insert({
+        insumo_id,
+        tipo: 'Ajuste',
+        quantidade: Math.abs(diferenca),
+        sinal_ajuste: diferenca > 0 ? 1 : -1,
+        observacoes: motivo,
+        origem: 'manual',
+        data: new Date().toISOString().split('T')[0],
+        fazenda_id: fazendaId,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data as MovimentacaoInsumo;
   },
 };
 
@@ -772,15 +783,24 @@ const movimentacoesInsumoServer = {
       throw new Error('Nenhuma divergência de inventário');
     }
 
-    return this.create({
-      insumo_id,
-      tipo: 'Ajuste',
-      quantidade: Math.abs(diferenca),
-      sinal_ajuste: diferenca > 0 ? 1 : -1,
-      observacoes: motivo,
-      origem: 'manual',
-      data: new Date().toISOString().split('T')[0],
-    } as any);
+    // Insert directly without calling this.create() to avoid duplicate getFazendaIdServer() calls
+    const { data, error } = await supabaseServer
+      .from('movimentacoes_insumo')
+      .insert({
+        insumo_id,
+        tipo: 'Ajuste',
+        quantidade: Math.abs(diferenca),
+        sinal_ajuste: diferenca > 0 ? 1 : -1,
+        observacoes: motivo,
+        origem: 'manual',
+        data: new Date().toISOString().split('T')[0],
+        fazenda_id: fazendaId,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as MovimentacaoInsumo;
   },
 };
 
