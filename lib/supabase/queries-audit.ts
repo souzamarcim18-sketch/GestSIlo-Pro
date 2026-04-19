@@ -752,24 +752,18 @@ const movimentacoesInsumoServer = {
     const supabaseServer = await createSupabaseServerClient();
     const fazendaId = await getFazendaIdServer();
 
-    // Validar que insumo pertence à fazenda
-    const { count, error: checkError } = await supabaseServer
+    const insumo = await supabaseServer
       .from('insumos')
-      .select('estoque_atual', { count: 'exact', head: true })
+      .select('estoque_atual, fazenda_id')
       .eq('id', insumo_id)
-      .eq('fazenda_id', fazendaId);
-    if (checkError || count === 0) {
+      .single();
+
+    if (insumo.error) throw insumo.error;
+    if (!insumo.data || insumo.data.fazenda_id !== fazendaId) {
       throw new Error('Insumo não encontrado ou não pertence a esta fazenda.');
     }
 
-    const insumo = await supabaseServer
-      .from('insumos')
-      .select('estoque_atual')
-      .eq('id', insumo_id)
-      .single();
-    if (insumo.error) throw insumo.error;
-
-    const diferenca = estoque_real - (insumo.data?.estoque_atual || 0);
+    const diferenca = estoque_real - (insumo.data.estoque_atual || 0);
 
     if (diferenca === 0) {
       throw new Error('Nenhuma divergência de inventário');
