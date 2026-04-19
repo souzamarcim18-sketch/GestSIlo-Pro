@@ -4,7 +4,7 @@
 -- Function: get_insumos_abaixo_minimo
 -- Issue: SECURITY DEFINER without fazenda_id validation
 -- Fix: Add check to ensure user owns the fazenda
-DROP FUNCTION IF EXISTS get_insumos_abaixo_minimo(uuid);
+DROP FUNCTION IF EXISTS get_insumos_abaixo_minimo(uuid) CASCADE;
 
 CREATE OR REPLACE FUNCTION get_insumos_abaixo_minimo(p_fazenda_id uuid)
 RETURNS TABLE (

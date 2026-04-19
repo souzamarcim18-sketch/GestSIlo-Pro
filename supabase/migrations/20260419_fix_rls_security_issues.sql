@@ -9,22 +9,24 @@ DROP VIEW IF EXISTS user_profiles CASCADE;
 -- Step 2: Enable RLS on profiles table
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Step 3: Ensure RLS policies are in place
--- (Keep the policies from simplify_profiles_policies.sql)
--- If they don't exist, recreate them
+-- Step 3: Drop existing policies if they exist
+DROP POLICY IF EXISTS "profiles_select" ON profiles;
+DROP POLICY IF EXISTS "profiles_insert" ON profiles;
+DROP POLICY IF EXISTS "profiles_update" ON profiles;
 
+-- Step 4: Create RLS policies
 -- SELECT: Users can read their own profile ONLY
-CREATE POLICY IF NOT EXISTS "profiles_select" ON profiles
+CREATE POLICY "profiles_select" ON profiles
   FOR SELECT
   USING (id = auth.uid());
 
 -- INSERT: Users can create their own profile (during signup)
-CREATE POLICY IF NOT EXISTS "profiles_insert" ON profiles
+CREATE POLICY "profiles_insert" ON profiles
   FOR INSERT
   WITH CHECK (id = auth.uid());
 
 -- UPDATE: Users can update their own profile
-CREATE POLICY IF NOT EXISTS "profiles_update" ON profiles
+CREATE POLICY "profiles_update" ON profiles
   FOR UPDATE
   USING (id = auth.uid())
   WITH CHECK (id = auth.uid());
