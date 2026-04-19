@@ -60,7 +60,7 @@ export interface MovimentacaoInsumo {
   origem: 'manual' | 'talhao' | 'frota' | 'silo' | 'financeiro';
   sinal_ajuste?: 1 | -1; // +1 (ganho) ou -1 (perda) para Ajuste
   despesa_id?: string;
-  criado_em: string;
+  criado_em?: string;
   criado_por?: string;
   responsavel?: string; // Nome do operador
 }
