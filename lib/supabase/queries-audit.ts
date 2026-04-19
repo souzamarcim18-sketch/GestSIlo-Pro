@@ -544,7 +544,7 @@ const movimentacoesInsumo = {
 
     const { data, error } = await supabase
       .from('movimentacoes_insumo')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select()
       .single();
     if (error) throw error;
