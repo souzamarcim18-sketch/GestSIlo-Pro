@@ -29,21 +29,26 @@ DROP VIEW IF EXISTS user_profiles CASCADE;
 -- Step 2: Enable RLS on profiles table
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Step 3: Ensure RLS policies are in place
-CREATE POLICY IF NOT EXISTS "profiles_select" ON profiles
+-- Step 3: Drop existing policies
+DROP POLICY IF EXISTS "profiles_select" ON profiles;
+DROP POLICY IF EXISTS "profiles_insert" ON profiles;
+DROP POLICY IF EXISTS "profiles_update" ON profiles;
+
+-- Step 4: Create RLS policies
+CREATE POLICY "profiles_select" ON profiles
   FOR SELECT
   USING (id = auth.uid());
 
-CREATE POLICY IF NOT EXISTS "profiles_insert" ON profiles
+CREATE POLICY "profiles_insert" ON profiles
   FOR INSERT
   WITH CHECK (id = auth.uid());
 
-CREATE POLICY IF NOT EXISTS "profiles_update" ON profiles
+CREATE POLICY "profiles_update" ON profiles
   FOR UPDATE
   USING (id = auth.uid())
   WITH CHECK (id = auth.uid());
 
--- Step 4: Create secure view with SECURITY INVOKER
+-- Step 5: Create secure view with SECURITY INVOKER
 CREATE OR REPLACE VIEW user_profiles WITH (security_invoker) AS
   SELECT * FROM profiles
   WHERE id = auth.uid();
