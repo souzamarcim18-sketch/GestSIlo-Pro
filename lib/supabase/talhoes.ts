@@ -388,23 +388,27 @@ export async function getProximasOperacoes(fazendaId: string): Promise<ProximaOp
     const { data, error } = await supabase
       .from('eventos_dap')
       .select(
-        'id, data_esperada, data_realizada, tipo_operacao, status, cultura, talhoes!inner(id, nome, fazenda_id)'
+        'id, data_esperada, data_realizada, tipo_operacao, status, cultura, talhoes(id, nome, fazenda_id)'
       )
-      .eq('talhoes.fazenda_id', fazendaId)
       .gte('data_esperada', inicioStr)
       .lte('data_esperada', fimStr)
       .order('data_esperada', { ascending: true });
 
+    // Filtrar por fazenda_id no lado do cliente (RLS já garante isolamento)
+    const filtradosPorFazenda = (data || []).filter(
+      (evt: any) => evt.talhoes?.fazenda_id === fazendaId
+    );
+
     if (error) throw error;
 
-    return (data || []).map((evento: any) => ({
+    return filtradosPorFazenda.map((evento: any) => ({
       id: evento.id,
       data_esperada: evento.data_esperada,
       data_realizada: evento.data_realizada,
       tipo_operacao: evento.tipo_operacao,
       status: evento.status,
       cultura: evento.cultura,
-      talhao_nome: evento.talhoes.nome,
+      talhao_nome: evento.talhoes?.nome || 'N/A',
     }));
   } catch (error) {
     console.error('Erro ao buscar próximas operações:', error);

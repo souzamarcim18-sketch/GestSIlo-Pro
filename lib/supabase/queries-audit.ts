@@ -37,6 +37,13 @@ import {
 } from '../supabase';
 import type { EventoDAP } from '@/lib/types/talhoes';
 import type { PlanejamentoSilagem } from '@/lib/types/planejamento-silagem';
+import {
+  deleteSiloSafely,
+  deleteTalhaoSafely,
+  deleteCicloSafely,
+  deleteMaquinaSafely,
+  deleteInsumoSafely,
+} from './safe-delete';
 
 // ---------------------------------------------------------------------------
 // Helper interno — nunca exportar diretamente
@@ -112,6 +119,13 @@ const silos = {
 
   async remove(id: string): Promise<void> {
     const fazendaId = await getFazendaId();
+
+    // Validação: verificar dependências antes de deletar
+    const validacao = await deleteSiloSafely(id);
+    if (!validacao.permitir) {
+      throw new Error(validacao.mensagem);
+    }
+
     const { error } = await supabase
       .from('silos')
       .delete()
@@ -246,6 +260,13 @@ const talhoes = {
 
   async remove(id: string): Promise<void> {
     const fazendaId = await getFazendaId();
+
+    // Validação: verificar dependências antes de deletar
+    const validacao = await deleteTalhaoSafely(id);
+    if (!validacao.permitir) {
+      throw new Error(validacao.mensagem);
+    }
+
     const { error } = await supabase
       .from('talhoes')
       .delete()
@@ -322,6 +343,13 @@ const ciclosAgricolas = {
 
   async remove(id: string): Promise<void> {
     await getFazendaId();
+
+    // Validação: verificar dependências antes de deletar
+    const validacao = await deleteCicloSafely(id);
+    if (!validacao.permitir) {
+      throw new Error(validacao.mensagem);
+    }
+
     const { error } = await supabase
       .from('ciclos_agricolas')
       .delete()
@@ -487,6 +515,13 @@ const insumos = {
 
   async remove(id: string): Promise<void> {
     const fazendaId = await getFazendaId();
+
+    // Validação: verificar dependências antes de hard-delete
+    const validacao = await deleteInsumoSafely(id);
+    if (!validacao.permitir) {
+      throw new Error(validacao.mensagem);
+    }
+
     const { error } = await supabase
       .from('insumos')
       .delete()
@@ -892,6 +927,13 @@ const maquinas = {
 
   async remove(id: string): Promise<void> {
     const fazendaId = await getFazendaId();
+
+    // Validação: verificar dependências antes de deletar
+    const validacao = await deleteMaquinaSafely(id);
+    if (!validacao.permitir) {
+      throw new Error(validacao.mensagem);
+    }
+
     const { error } = await supabase
       .from('maquinas')
       .delete()
