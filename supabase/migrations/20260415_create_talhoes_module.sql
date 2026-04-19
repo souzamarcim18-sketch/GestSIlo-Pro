@@ -178,7 +178,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = extensions, public;
 
 CREATE TRIGGER trg_calcular_analise_solo
   BEFORE INSERT OR UPDATE ON public.atividades_campo

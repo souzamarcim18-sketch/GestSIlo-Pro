@@ -44,7 +44,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = extensions, public;
 
 -- Criar trigger (ou recriar se já existe)
 DROP TRIGGER IF EXISTS mov_insumo_atualizar_estoque_cmp ON movimentacoes_insumo;

@@ -19,7 +19,7 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = extensions, public;
 
 CREATE TRIGGER trigger_updated_at_planejamentos
   BEFORE UPDATE ON planejamentos_silagem

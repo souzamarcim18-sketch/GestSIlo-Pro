@@ -19,7 +19,7 @@ ALTER TABLE insumos
 CREATE OR REPLACE FUNCTION update_insumos_atualizado_em()
 RETURNS TRIGGER AS $$
 BEGIN NEW.atualizado_em = NOW(); RETURN NEW; END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = extensions, public;
 
 -- 4. Trigger que dispara a função em cada UPDATE
 DROP TRIGGER IF EXISTS trg_insumos_atualizado_em ON insumos;
