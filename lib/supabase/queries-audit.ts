@@ -544,7 +544,7 @@ const movimentacoesInsumo = {
 
     const { data, error } = await supabase
       .from('movimentacoes_insumo')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -589,7 +589,6 @@ const movimentacoesInsumo = {
         observacoes: motivo,
         origem: 'manual',
         data: new Date().toISOString().split('T')[0],
-        fazenda_id: fazendaId,
       })
       .select()
       .single();
@@ -743,7 +742,7 @@ const movimentacoesInsumoServer = {
 
     const { data, error } = await supabaseServer
       .from('movimentacoes_insumo')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -794,7 +793,6 @@ const movimentacoesInsumoServer = {
         observacoes: motivo,
         origem: 'manual',
         data: new Date().toISOString().split('T')[0],
-        fazenda_id: fazendaId,
       })
       .select()
       .single();
