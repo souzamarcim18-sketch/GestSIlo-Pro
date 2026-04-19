@@ -718,12 +718,15 @@ const movimentacoesInsumoServer = {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
     const fazendaId = await getFazendaIdServer();
-    const { count, error: checkError } = await supabaseServer
+
+    const { data: insumoCheck, error: checkError } = await supabaseServer
       .from('insumos')
-      .select('id', { count: 'exact', head: true })
+      .select('id')
       .eq('id', payload.insumo_id)
-      .eq('fazenda_id', fazendaId);
-    if (checkError || count === 0) {
+      .eq('fazenda_id', fazendaId)
+      .single();
+
+    if (checkError || !insumoCheck) {
       throw new Error('Insumo não encontrado ou não pertence a esta fazenda.');
     }
 

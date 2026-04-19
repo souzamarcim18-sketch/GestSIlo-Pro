@@ -183,19 +183,22 @@ export async function criarSaidaAction(formData: unknown) {
  * Cria um ajuste de inventário (diferença entre real e sistema).
  */
 export async function criarAjusteAction(formData: unknown) {
-  const parsed = ajusteInventarioSchema.parse(formData);
-
   try {
-    await qServer.movimentacoesInsumo.createAjuste(
+    console.log('[criarAjusteAction] Iniciando com dados:', formData);
+    const parsed = ajusteInventarioSchema.parse(formData);
+    console.log('[criarAjusteAction] Validação OK:', { insumo_id: parsed.insumo_id, estoque_real: parsed.estoque_real });
+
+    const resultado = await qServer.movimentacoesInsumo.createAjuste(
       parsed.insumo_id,
       parsed.estoque_real,
       parsed.motivo
     );
 
+    console.log('[criarAjusteAction] Ajuste criado:', resultado.id);
     revalidatePath('/dashboard/insumos');
     return { success: true };
   } catch (error) {
-    console.error('Erro ao criar ajuste:', error);
+    console.error('[criarAjusteAction] Erro:', error);
     throw error;
   }
 }
