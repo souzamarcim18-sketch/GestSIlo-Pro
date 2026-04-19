@@ -86,7 +86,7 @@ const silos = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('silos')
-      .select('*')
+      .select('id, nome, tipo, talhao_id, cultura_ensilada, data_fechamento, data_abertura_real, data_abertura_prevista, volume_ensilado_ton_mv, materia_seca_percent, comprimento_m, largura_m, altura_m, observacoes_gerais, insumo_lona_id, insumo_inoculante_id, created_at, fazenda_id')
       .eq('fazenda_id', fazendaId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -138,7 +138,7 @@ const silos = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('silos')
-      .select('*')
+      .select('id, nome, tipo, talhao_id, cultura_ensilada, data_fechamento, data_abertura_real, data_abertura_prevista, volume_ensilado_ton_mv, materia_seca_percent, comprimento_m, largura_m, altura_m, observacoes_gerais, insumo_lona_id, insumo_inoculante_id, created_at, fazenda_id')
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .single();

@@ -51,18 +51,11 @@ export default function SiloDetailPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [silosData, movsData, talhoesData] = await Promise.all([
-        q.silos.list(),
+      const [siloData, movsData, talhoesData] = await Promise.all([
+        q.silos.getById(siloId),
         q.movimentacoesSilo.listBySilo(siloId),
         q.talhoes.list(),
       ]);
-
-      const siloData = silosData.find((s) => s.id === siloId);
-      if (!siloData) {
-        toast.error('Silo não encontrado');
-        router.push('/dashboard/silos');
-        return;
-      }
 
       setSilo(siloData);
       setMovimentacoes(movsData);

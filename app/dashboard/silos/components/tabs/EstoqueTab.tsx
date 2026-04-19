@@ -175,8 +175,8 @@ export function EstoqueTab({
           <CardTitle>Histórico de Movimentações</CardTitle>
           <CardDescription>
             {movimentacoes.length > 0
-              ? `${movimentacoes.length} registro(s)`
-              : 'Nenhuma movimentação registrada'}
+              ? `${movimentacoes.length} registro(s) — ${estoque.toFixed(2)} t em estoque`
+              : 'Nenhuma movimentação registrada. Clique em "Registrar Movimentação" para começar.'}
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -43,19 +43,13 @@ export const siloSchema = z.object({
     .nullable()
     .optional(),
   comprimento_m: z
-    .number()
-    .positive('Comprimento deve ser maior que 0')
-    .nullable()
+    .union([z.number().positive('Comprimento deve ser maior que 0'), z.null()])
     .optional(),
   largura_m: z
-    .number()
-    .positive('Largura deve ser maior que 0')
-    .nullable()
+    .union([z.number().positive('Largura deve ser maior que 0'), z.null()])
     .optional(),
   altura_m: z
-    .number()
-    .positive('Altura deve ser maior que 0')
-    .nullable()
+    .union([z.number().positive('Altura deve ser maior que 0'), z.null()])
     .optional(),
   insumo_lona_id: z.string().uuid('ID da lona inválido').nullable().optional(),
   insumo_inoculante_id: z
