@@ -13,6 +13,7 @@ export const insumoFormSchema = z.object({
   fornecedor: z.string().min(1, 'Fornecedor obrigatório').max(255),
   local_armazen: z.string().min(1, 'Local de armazenamento obrigatório').max(255),
   estoque_minimo: z.number().nonnegative('Não pode ser negativo'),
+  data: z.string().min(1, 'Data obrigatória'),
   registrar_como_despesa: z.boolean(),
   observacoes: z.string().optional(),
 });

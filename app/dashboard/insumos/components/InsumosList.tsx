@@ -9,7 +9,7 @@ import {
   PaginationLink, PaginationNext, PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Trash2 } from 'lucide-react';
 import type { Insumo, CategoriaInsumo } from '@/types/insumos';
 
 interface InsumosListProps {
@@ -23,6 +23,7 @@ interface InsumosListProps {
   loading: boolean;
   onSaidaClick: (insumo: Insumo) => void;
   onAjusteClick: (insumo: Insumo) => void;
+  onDeleteClick?: (insumo: Insumo) => void;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -34,6 +35,7 @@ export default function InsumosList({
   loading,
   onSaidaClick,
   onAjusteClick,
+  onDeleteClick,
 }: InsumosListProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -152,6 +154,17 @@ export default function InsumosList({
                             >
                               <ArrowDownRight className="h-4 w-4" />
                             </Button>
+                            {onDeleteClick && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => onDeleteClick(insumo)}
+                                title="Deletar insumo"
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

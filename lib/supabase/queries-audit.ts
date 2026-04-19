@@ -750,6 +750,18 @@ const movimentacoesInsumoServer = {
   async createAjuste(insumo_id: string, estoque_real: number, motivo: string): Promise<MovimentacaoInsumo> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
+    const fazendaId = await getFazendaIdServer();
+
+    // Validar que insumo pertence à fazenda
+    const { count, error: checkError } = await supabaseServer
+      .from('insumos')
+      .select('estoque_atual', { count: 'exact', head: true })
+      .eq('id', insumo_id)
+      .eq('fazenda_id', fazendaId);
+    if (checkError || count === 0) {
+      throw new Error('Insumo não encontrado ou não pertence a esta fazenda.');
+    }
+
     const insumo = await supabaseServer
       .from('insumos')
       .select('estoque_atual')

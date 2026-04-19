@@ -14,12 +14,14 @@ import InsumosList from './components/InsumosList';
 import InsumoForm from './components/InsumoForm';
 import SaidaForm from './components/SaidaForm';
 import AjusteInventario from './components/AjusteInventario';
+import DeleteInsumoDialog from './components/DeleteInsumoDialog';
 
 export default function InsumosPage() {
   const [showNovoInsumo, setShowNovoInsumo] = useState(false);
   const [showSaida, setShowSaida] = useState(false);
   const [showAjuste, setShowAjuste] = useState(false);
-  const [selectedInsumoPara, setSelectedInsumoPara] = useState<{ tipo: 'saida' | 'ajuste'; id?: string }>({ tipo: 'saida' });
+  const [showDelete, setShowDelete] = useState(false);
+  const [selectedInsumoPara, setSelectedInsumoPara] = useState<{ tipo: 'saida' | 'ajuste' | 'delete'; id?: string }>({ tipo: 'saida' });
 
   const [filters, setFilters] = useState({
     busca: '',
@@ -44,6 +46,11 @@ export default function InsumosPage() {
   const handleAjusteClick = (insumoId: string) => {
     setSelectedInsumoPara({ tipo: 'ajuste', id: insumoId });
     setShowAjuste(true);
+  };
+
+  const handleDeleteClick = (insumo: typeof insumos[0]) => {
+    setSelectedInsumoPara({ tipo: 'delete', id: insumo.id });
+    setShowDelete(true);
   };
 
   const handleRefresh = () => {
@@ -105,6 +112,7 @@ export default function InsumosPage() {
         loading={loadingInsumos}
         onSaidaClick={(insumo) => handleSaidaClick(insumo.id)}
         onAjusteClick={(insumo) => handleAjusteClick(insumo.id)}
+        onDeleteClick={handleDeleteClick}
       />
 
       {/* Dialogs */}
@@ -128,6 +136,13 @@ export default function InsumosPage() {
         onOpenChange={setShowAjuste}
         insumos={insumos}
         insumoPredefined={selectedInsumoPara.tipo === 'ajuste' ? selectedInsumoPara.id : undefined}
+        onSuccess={handleRefresh}
+      />
+
+      <DeleteInsumoDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        insumoId={selectedInsumoPara.tipo === 'delete' ? selectedInsumoPara.id : undefined}
         onSuccess={handleRefresh}
       />
     </div>
