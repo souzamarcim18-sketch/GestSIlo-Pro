@@ -19,7 +19,7 @@ interface SiloCardProps {
   onClick?: () => void;
   dataFechamento?: string | null;
   dataAberturaReal?: string | null;
-  dataAberturaP revista?: string | null;
+  dataAberturaPrevia?: string | null;
 }
 
 const statusConfig: Record<SiloStatus, { emoji: string; color: string; label: string }> = {
@@ -56,7 +56,7 @@ export function SiloCard({
   onClick,
   dataFechamento,
   dataAberturaReal,
-  dataAberturaP revista,
+  dataAberturaPrevia,
 }: SiloCardProps) {
   const capacidade = getCapacidade(silo);
   const percentage = capacidade > 0
@@ -145,8 +145,8 @@ export function SiloCard({
             <p className="font-medium">
               {dataAberturaReal
                 ? format(new Date(dataAberturaReal), 'dd/MM/yyyy', { locale: ptBR })
-                : dataAberturaP revista
-                  ? format(new Date(dataAberturaP revista), 'dd/MM/yyyy', { locale: ptBR })
+                : dataAberturaPrevia
+                  ? format(new Date(dataAberturaPrevia), 'dd/MM/yyyy', { locale: ptBR })
                   : '-'}
             </p>
           </div>

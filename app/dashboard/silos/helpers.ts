@@ -97,7 +97,7 @@ export interface SiloCardData {
   status: SiloStatus;
   dataFechamento?: string | null;
   dataAberturaReal?: string | null;
-  dataAberturaP revista?: string | null;
+  dataAberturaPrevia?: string | null;
 }
 
 /**
@@ -124,7 +124,7 @@ export function calcularDadosSilos(
       status,
       dataFechamento: silo.data_fechamento,
       dataAberturaReal: silo.data_abertura_real,
-      dataAberturaP revista: silo.data_abertura_prevista,
+      dataAberturaPrevia: silo.data_abertura_prevista,
     };
   });
 }
