@@ -1,8 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -21,25 +21,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { movimentacaoSiloSchema, type MovimentacaoSiloInput, SUBTIPOS_MOVIMENTACAO } from '@/lib/validations/silos';
 import { type Silo } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
+import { AlertTriangle } from 'lucide-react';
 
-const movSchema = z.object({
-  silo_id: z.string().min(1, 'Selecione um silo'),
-  tipo: z.enum(['Entrada', 'Saída'] as const),
-  quantidade: z.number().positive('Quantidade deve ser positiva'),
-  responsavel: z.string().min(1, 'Informe o responsável'),
-  observacao: z.string().optional(),
-});
-
-type MovFormData = z.infer<typeof movSchema>;
+const TODAY = new Date().toISOString().split('T')[0];
 
 interface MovimentacaoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   silos: Silo[];
-  siloId?: string; // Se fornecido, fixa o silo
+  siloId?: string;
   onSuccess: () => void;
 }
 
@@ -50,31 +45,69 @@ export function MovimentacaoDialog({
   siloId,
   onSuccess,
 }: MovimentacaoDialogProps) {
-  const form = useForm<MovFormData>({
-    resolver: zodResolver(movSchema),
+  const [jaTemEntrada, setJaTemEntrada] = useState(false);
+  const [checandoEntrada, setChecandoEntrada] = useState(false);
+
+  const form = useForm<MovimentacaoSiloInput>({
+    resolver: zodResolver(movimentacaoSiloSchema),
     defaultValues: {
       silo_id: siloId || '',
-      tipo: 'Entrada',
-      quantidade: 0,
+      tipo: 'Saída',
+      subtipo: undefined,
+      quantidade: undefined as any,
+      data: TODAY,
       responsavel: '',
       observacao: '',
     },
   });
 
-  const handleSubmit = async (data: MovFormData) => {
+  const tipoAtual = form.watch('tipo');
+  const siloIdAtual = form.watch('silo_id');
+
+  // Verificar hasEntrada quando o silo muda ou o dialog abre
+  useEffect(() => {
+    const targetId = siloId || siloIdAtual;
+    if (!open || !targetId) {
+      setJaTemEntrada(false);
+      return;
+    }
+    setChecandoEntrada(true);
+    q.movimentacoesSilo
+      .hasEntrada(targetId)
+      .then((has) => setJaTemEntrada(has))
+      .catch(() => setJaTemEntrada(false))
+      .finally(() => setChecandoEntrada(false));
+  }, [open, siloId, siloIdAtual]);
+
+  // Reset ao fechar
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        silo_id: siloId || '',
+        tipo: 'Saída',
+        subtipo: undefined,
+        quantidade: undefined as any,
+        data: TODAY,
+        responsavel: '',
+        observacao: '',
+      });
+      setJaTemEntrada(false);
+    }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmit = async (data: MovimentacaoSiloInput) => {
     try {
       await q.movimentacoesSilo.create({
         silo_id: data.silo_id,
         tipo: data.tipo,
-        subtipo: null,
+        subtipo: data.tipo === 'Saída' ? (data.subtipo ?? null) : null,
         quantidade: data.quantidade,
+        data: data.data,
         responsavel: data.responsavel || null,
         observacao: data.observacao || null,
         talhao_id: null,
-        data: new Date().toISOString().split('T')[0],
       });
       toast.success('Movimentação registrada com sucesso!');
-      form.reset({ ...form.getValues(), quantidade: 0, responsavel: '', observacao: '' });
       onOpenChange(false);
       onSuccess();
     } catch (err) {
@@ -87,13 +120,11 @@ export function MovimentacaoDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Registrar Movimentação</DialogTitle>
-          <DialogDescription>
-            Registre entrada ou saída de silagem do silo.
-          </DialogDescription>
+          <DialogDescription>Registre saída de silagem do silo.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
-          {/* Silo (mostrar dropdown só se não fixo) */}
+          {/* Silo (dropdown apenas quando não fixo) */}
           {!siloId && (
             <div className="space-y-2">
               <Label htmlFor="mov-silo">Silo</Label>
@@ -103,11 +134,7 @@ export function MovimentacaoDialog({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger id="mov-silo">
-                      <SelectValue
-                        placeholder="Selecione o silo"
-                      >
-                        {field.value ? silos.find((s) => s.id === field.value)?.nome || field.value : 'Selecione o silo'}
-                      </SelectValue>
+                      <SelectValue placeholder="Selecione o silo" />
                     </SelectTrigger>
                     <SelectContent>
                       {silos.map((s) => (
@@ -125,6 +152,16 @@ export function MovimentacaoDialog({
             </div>
           )}
 
+          {/* Alerta: silo já tem entrada */}
+          {jaTemEntrada && !checandoEntrada && (
+            <Alert variant="destructive" className="py-2">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                Este silo já possui uma entrada registrada. Registre apenas saídas.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Tipo */}
           <div className="space-y-2">
             <Label htmlFor="mov-tipo">Tipo</Label>
@@ -137,7 +174,9 @@ export function MovimentacaoDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Entrada">Entrada</SelectItem>
+                    {!jaTemEntrada && (
+                      <SelectItem value="Entrada">Entrada</SelectItem>
+                    )}
                     <SelectItem value="Saída">Saída</SelectItem>
                   </SelectContent>
                 </Select>
@@ -148,9 +187,58 @@ export function MovimentacaoDialog({
             )}
           </div>
 
+          {/* Subtipo — apenas para Saída */}
+          {tipoAtual === 'Saída' && (
+            <div className="space-y-2">
+              <Label htmlFor="mov-subtipo">
+                Subtipo <span className="text-destructive">*</span>
+              </Label>
+              <Controller
+                control={form.control}
+                name="subtipo"
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value ?? ''}
+                  >
+                    <SelectTrigger id="mov-subtipo">
+                      <SelectValue placeholder="Selecione o destino da saída" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUBTIPOS_MOVIMENTACAO.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.subtipo && (
+                <p className="text-xs text-destructive">{form.formState.errors.subtipo.message}</p>
+              )}
+            </div>
+          )}
+
+          {/* Data */}
+          <div className="space-y-2">
+            <Label htmlFor="mov-data">Data</Label>
+            <Input
+              id="mov-data"
+              type="date"
+              aria-required="true"
+              {...form.register('data')}
+            />
+            {form.formState.errors.data && (
+              <p className="text-xs text-destructive">{form.formState.errors.data.message}</p>
+            )}
+          </div>
+
           {/* Quantidade */}
           <div className="space-y-2">
-            <Label htmlFor="mov-qty">Quantidade (toneladas)</Label>
+            <Label htmlFor="mov-qty">
+              Quantidade (toneladas) <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="mov-qty"
               type="number"
@@ -166,14 +254,7 @@ export function MovimentacaoDialog({
           {/* Responsável */}
           <div className="space-y-2">
             <Label htmlFor="mov-resp">Responsável</Label>
-            <Input
-              id="mov-resp"
-              aria-required="true"
-              {...form.register('responsavel')}
-            />
-            {form.formState.errors.responsavel && (
-              <p className="text-xs text-destructive">{form.formState.errors.responsavel.message}</p>
-            )}
+            <Input id="mov-resp" {...form.register('responsavel')} />
           </div>
 
           {/* Observação */}
@@ -193,7 +274,7 @@ export function MovimentacaoDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
+            <Button type="submit" disabled={form.formState.isSubmitting || checandoEntrada}>
               {form.formState.isSubmitting ? 'Registrando...' : 'Registrar'}
             </Button>
           </DialogFooter>

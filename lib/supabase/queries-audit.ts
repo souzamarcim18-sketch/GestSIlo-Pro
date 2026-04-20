@@ -208,6 +208,18 @@ const movimentacoesSilo = {
       .eq('id', id);
     if (error) throw error;
   },
+
+  /** Verifica se já existe uma movimentação de Entrada para o silo (UNIQUE INDEX no BD) */
+  async hasEntrada(siloId: string): Promise<boolean> {
+    await getFazendaId();
+    const { count, error } = await supabase
+      .from('movimentacoes_silo')
+      .select('id', { count: 'exact', head: true })
+      .eq('silo_id', siloId)
+      .eq('tipo', 'Entrada');
+    if (error) throw error;
+    return (count ?? 0) > 0;
+  },
 };
 
 // ---------------------------------------------------------------------------

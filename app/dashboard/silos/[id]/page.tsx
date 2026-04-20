@@ -194,6 +194,7 @@ export default function SiloDetailPage() {
             consumoDiario={consumoDiario}
             estoquePara={estoquePara}
             onNovaMovimentacao={() => setIsMovOpen(true)}
+            onRefresh={fetchData}
           />
         </TabsContent>
 

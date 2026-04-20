@@ -30,6 +30,7 @@ interface EstoqueTabProps {
   consumoDiario: number | null;
   estoquePara: number | null;
   onNovaMovimentacao: () => void;
+  onRefresh: () => void;
 }
 
 export function EstoqueTab({
@@ -40,8 +41,8 @@ export function EstoqueTab({
   consumoDiario,
   estoquePara,
   onNovaMovimentacao,
+  onRefresh,
 }: EstoqueTabProps) {
-  // Calcular resumos
   const entradas = movimentacoes
     .filter((m) => m.tipo === 'Entrada')
     .reduce((acc, m) => acc + m.quantidade, 0);
@@ -50,20 +51,19 @@ export function EstoqueTab({
     .filter((m) => m.tipo === 'Saída')
     .reduce((acc, m) => acc + m.quantidade, 0);
 
-  // Agrupar saídas por subtipo (para exemplo)
-  const saidasPorTipo: Record<string, number> = {};
+  // Agrupar saídas por subtipo (não por observação)
+  const saidasPorSubtipo: Record<string, number> = {};
   movimentacoes
     .filter((m) => m.tipo === 'Saída')
     .forEach((m) => {
-      const key = m.observacao || 'Sem tipo';
-      saidasPorTipo[key] = (saidasPorTipo[key] || 0) + m.quantidade;
+      const key = m.subtipo || 'Sem subtipo';
+      saidasPorSubtipo[key] = (saidasPorSubtipo[key] || 0) + m.quantidade;
     });
 
   return (
     <div className="space-y-6">
       {/* Resumo de Estoque */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Card: Entradas */}
         <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -72,15 +72,12 @@ export function EstoqueTab({
           </CardHeader>
           <CardContent>
             <div className="flex items-end justify-between">
-              <div>
-                <p className="text-2xl font-bold">{entradas.toFixed(1)} t</p>
-              </div>
+              <p className="text-2xl font-bold">{entradas.toFixed(1)} t</p>
               <ArrowDownRight className="h-5 w-5 text-green-600" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Card: Saídas */}
         <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -89,15 +86,12 @@ export function EstoqueTab({
           </CardHeader>
           <CardContent>
             <div className="flex items-end justify-between">
-              <div>
-                <p className="text-2xl font-bold">{saidas.toFixed(1)} t</p>
-              </div>
+              <p className="text-2xl font-bold">{saidas.toFixed(1)} t</p>
               <ArrowUpRight className="h-5 w-5 text-amber-600" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Card: Estoque Atual */}
         <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -106,15 +100,12 @@ export function EstoqueTab({
           </CardHeader>
           <CardContent>
             <div className="flex items-end justify-between">
-              <div>
-                <p className="text-2xl font-bold">{estoque.toFixed(1)} t</p>
-              </div>
+              <p className="text-2xl font-bold">{estoque.toFixed(1)} t</p>
               <TrendingDown className="h-5 w-5 text-blue-600" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Card: Dias Restantes */}
         <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -128,9 +119,7 @@ export function EstoqueTab({
                   {estoquePara !== null ? estoquePara : '-'}
                 </p>
                 {consumoDiario !== null && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {consumoDiario} t/dia
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{consumoDiario} t/dia</p>
                 )}
               </div>
             </div>
@@ -138,17 +127,17 @@ export function EstoqueTab({
         </Card>
       </div>
 
-      {/* Card: Saídas por Tipo (apenas para exemplo) */}
-      {Object.keys(saidasPorTipo).length > 0 && (
+      {/* Distribuição de Saídas por Subtipo */}
+      {Object.keys(saidasPorSubtipo).length > 0 && (
         <Card className="rounded-2xl bg-card shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Distribuição de Saídas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {Object.entries(saidasPorTipo).map(([tipo, quantidade]) => (
-                <div key={tipo} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{tipo}</span>
+              {Object.entries(saidasPorSubtipo).map(([subtipo, quantidade]) => (
+                <div key={subtipo} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{subtipo}</span>
                   <Badge variant="outline">{quantidade.toFixed(1)} t</Badge>
                 </div>
               ))}
@@ -159,7 +148,7 @@ export function EstoqueTab({
 
       {/* Botões de Ação */}
       <div className="flex gap-2">
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={onRefresh}>
           <RotateCw className="h-4 w-4" />
           Atualizar
         </Button>
@@ -169,7 +158,7 @@ export function EstoqueTab({
         </Button>
       </div>
 
-      {/* Tabela de Histórico de Movimentações */}
+      {/* Tabela de Histórico */}
       <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader>
           <CardTitle>Histórico de Movimentações</CardTitle>
@@ -186,6 +175,7 @@ export function EstoqueTab({
                 <TableRow>
                   <TableHead scope="col">Data</TableHead>
                   <TableHead scope="col">Tipo</TableHead>
+                  <TableHead scope="col">Subtipo</TableHead>
                   <TableHead scope="col">Quantidade</TableHead>
                   <TableHead scope="col">Responsável</TableHead>
                   <TableHead scope="col">Observação</TableHead>
@@ -196,7 +186,7 @@ export function EstoqueTab({
                   movimentacoes.map((mov) => (
                     <TableRow key={mov.id}>
                       <TableCell className="text-sm">
-                        {format(new Date(mov.data), 'dd/MM/yyyy HH:mm', {
+                        {format(new Date(mov.data + 'T00:00:00'), 'dd/MM/yyyy', {
                           locale: ptBR,
                         })}
                       </TableCell>
@@ -219,6 +209,9 @@ export function EstoqueTab({
                           )}
                         </div>
                       </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {mov.subtipo || '-'}
+                      </TableCell>
                       <TableCell className="font-bold">{mov.quantidade.toFixed(2)} t</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {mov.responsavel || '-'}
@@ -231,7 +224,7 @@ export function EstoqueTab({
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="text-center py-8 text-muted-foreground"
                     >
                       Nenhuma movimentação registrada ainda
