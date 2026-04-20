@@ -11,13 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type Silo, type Talhao } from '@/lib/supabase';
 import { Edit2, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { calcularDensidade } from '@/lib/supabase/silos';
 
 interface VisaoGeralTabProps {
   silo: Silo;
   talhao: Talhao | null;
-  custo: number | null;
+  custo: { custoPorTonelada: number; custoTotal: number } | null;
   densidade: number | null;
   insumoLona: string | null;
   insumoInoculante: string | null;
@@ -93,6 +92,34 @@ export function VisaoGeralTab({
             <p className="text-sm text-muted-foreground">Matéria Seca Original</p>
             <p className="font-semibold text-lg">{silo.materia_seca_percent || '-'}%</p>
           </div>
+          {silo.comprimento_m && silo.largura_m && silo.altura_m && (
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Dimensões</p>
+              <p className="font-medium">
+                {silo.comprimento_m} m × {silo.largura_m} m × {silo.altura_m} m
+              </p>
+            </div>
+          )}
+          {silo.comprimento_m && silo.largura_m && silo.altura_m && silo.volume_ensilado_ton_mv && (
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Densidade</p>
+              {(() => {
+                const dens = calcularDensidade(
+                  silo.volume_ensilado_ton_mv,
+                  silo.comprimento_m,
+                  silo.largura_m,
+                  silo.altura_m
+                );
+                const indicator = dens >= 650 ? '🟢' : dens >= 550 ? '🟡' : '🔴';
+                return (
+                  <div className="flex items-center gap-2">
+                    <span>{indicator}</span>
+                    <p className="font-medium">{dens.toFixed(0)} kg/m³</p>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -103,11 +130,19 @@ export function VisaoGeralTab({
           <CardDescription>Informações de produção e economia</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {silo.talhao_id && talhao && (
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Talhão de Origem</p>
+              <p className="font-medium">{talhao.nome}</p>
+            </div>
+          )}
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Custo de Produção</p>
+            <p className="text-sm text-muted-foreground">
+              {silo.talhao_id ? 'Custo de Produção' : 'Custo de Aquisição'}
+            </p>
             {custo !== null ? (
               <p className="font-semibold text-lg text-green-700">
-                R$ {custo.toLocaleString('pt-BR', {
+                R$ {custo.custoPorTonelada.toLocaleString('pt-BR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -118,9 +153,14 @@ export function VisaoGeralTab({
             )}
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Densidade Aparente</p>
-            {densidade !== null ? (
-              <p className="font-semibold text-lg">{densidade} kg/m³</p>
+            <p className="text-sm text-muted-foreground">Custo Total Estimado</p>
+            {custo !== null ? (
+              <p className="font-semibold text-lg">
+                R$ {custo.custoTotal.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
             ) : (
               <p className="font-medium">-</p>
             )}
@@ -136,17 +176,42 @@ export function VisaoGeralTab({
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Enchimento Previsto</p>
-            <p className="font-medium">-</p>
+            <p className="text-sm text-muted-foreground">Fechamento</p>
+            <p className="font-medium">
+              {silo.data_fechamento
+                ? new Date(silo.data_fechamento).toLocaleDateString('pt-BR')
+                : '-'}
+            </p>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Fechamento Previsto</p>
-            <p className="font-medium">-</p>
+            <p className="text-sm text-muted-foreground">Abertura Prevista</p>
+            <p className="font-medium">
+              {silo.data_abertura_prevista
+                ? new Date(silo.data_abertura_prevista).toLocaleDateString('pt-BR')
+                : '-'}
+            </p>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Esvaziamento Previsto</p>
-            <p className="font-medium">-</p>
+            <p className="text-sm text-muted-foreground">Abertura Real</p>
+            <p className="font-medium">
+              {silo.data_abertura_real
+                ? new Date(silo.data_abertura_real).toLocaleDateString('pt-BR')
+                : '-'}
+            </p>
           </div>
+          {silo.data_fechamento && silo.data_abertura_real && (
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Dias de Fermentação</p>
+              <p className="font-medium">
+                {Math.floor(
+                  (new Date(silo.data_abertura_real).getTime() -
+                    new Date(silo.data_fechamento).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                )}{' '}
+                dias
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -175,8 +240,8 @@ export function VisaoGeralTab({
           <CardDescription>Anotações e detalhes adicionais</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Nenhuma observação registrada
+          <p className="text-sm">
+            {silo.observacoes_gerais || 'Nenhuma observação registrada'}
           </p>
         </CardContent>
       </Card>

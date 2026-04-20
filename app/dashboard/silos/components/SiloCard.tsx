@@ -161,6 +161,19 @@ export function SiloCard({
             </p>
           </div>
         </div>
+
+        {/* Custo de aquisição (apenas para silos sem talhão) */}
+        {!silo.talhao_id && silo.custo_aquisicao_rs_ton && (
+          <div className="pt-2 border-t">
+            <span className="text-muted-foreground text-xs">Custo de Aquisição:</span>
+            <p className="font-medium text-sm">
+              R$ {silo.custo_aquisicao_rs_ton.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}/ton
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
+import { getCustoSilo } from '@/lib/supabase/silos';
 import {
   type Silo,
   type MovimentacaoSilo,
@@ -46,6 +47,7 @@ export default function SiloDetailPage() {
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
   const [avaliacoesBromatologicas, setAvaliacoesBromatologicas] = useState<AvaliacaoBromatologica[]>([]);
   const [avaliacoesPsps, setAvaliacoesPsps] = useState<AvaliacaoPSPS[]>([]);
+  const [custo, setCusto] = useState<{ custoPorTonelada: number; custoTotal: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMovOpen, setIsMovOpen] = useState(false);
@@ -72,6 +74,10 @@ export default function SiloDetailPage() {
       setTalhoes(talhoesData);
       setAvaliacoesBromatologicas(bromData);
       setAvaliacoesPsps(pspsData);
+
+      // Calcular custo do silo
+      const custoData = await getCustoSilo(siloData);
+      setCusto(custoData);
 
       // Buscar talhão se houver (guard para null)
       let talData: Talhao | null = null;
@@ -177,7 +183,7 @@ export default function SiloDetailPage() {
           <VisaoGeralTab
             silo={silo}
             talhao={talhao}
-            custo={null}
+            custo={custo}
             densidade={null}
             insumoLona={null}
             insumoInoculante={null}

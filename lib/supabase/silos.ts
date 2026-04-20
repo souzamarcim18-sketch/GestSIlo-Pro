@@ -287,3 +287,36 @@ export async function obterEstoqueParaDias(
 
   return Math.floor(estoque / consumoDiario);
 }
+
+/**
+ * Calcula o custo total e por tonelada de um silo
+ * Prioriza custo de produção (via talhão), com fallback para custo de aquisição
+ * Retorna null se ambos não estiverem disponíveis
+ */
+export async function getCustoSilo(silo: Silo): Promise<{ custoPorTonelada: number; custoTotal: number } | null> {
+  // Se talhao_id não-nulo, tentar custo de produção com fallback
+  if (silo.talhao_id) {
+    const custoProducao = await getCustoProducaoSilagem(silo.id);
+    if (custoProducao) {
+      return custoProducao;
+    }
+    // Fallback para custo de aquisição se produção retornou null
+    if (silo.custo_aquisicao_rs_ton) {
+      return {
+        custoPorTonelada: silo.custo_aquisicao_rs_ton,
+        custoTotal: (silo.volume_ensilado_ton_mv || 0) * silo.custo_aquisicao_rs_ton,
+      };
+    }
+    return null;
+  }
+
+  // Se sem talhão, usar custo de aquisição se preenchido
+  if (silo.custo_aquisicao_rs_ton) {
+    return {
+      custoPorTonelada: silo.custo_aquisicao_rs_ton,
+      custoTotal: (silo.volume_ensilado_ton_mv || 0) * silo.custo_aquisicao_rs_ton,
+    };
+  }
+
+  return null;
+}
