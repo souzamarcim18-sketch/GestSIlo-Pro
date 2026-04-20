@@ -23,14 +23,13 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
-  avaliacaoPspsSchema,
+  avaliacaoPspsFormSchema,
   MOMENTOS_AVALIACAO,
   FAIXAS_PSPS,
 } from '@/lib/validations/silos';
 import { q } from '@/lib/supabase/queries-audit';
 
-// Omite silo_id do form — é passado como prop e adicionado no submit
-const formSchema = avaliacaoPspsSchema.omit({ silo_id: true });
+const formSchema = avaliacaoPspsFormSchema;
 type FormData = z.infer<typeof formSchema>;
 
 interface AvaliacaoPspsDialogProps {

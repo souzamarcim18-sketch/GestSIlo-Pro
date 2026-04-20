@@ -23,13 +23,12 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
-  avaliacaoBromatologicaSchema,
+  avaliacaoBromatologicaFormSchema,
   MOMENTOS_AVALIACAO,
 } from '@/lib/validations/silos';
 import { q } from '@/lib/supabase/queries-audit';
 
-// Omite silo_id do form — é passado como prop e adicionado no submit
-const formSchema = avaliacaoBromatologicaSchema.omit({ silo_id: true });
+const formSchema = avaliacaoBromatologicaFormSchema;
 type FormData = z.infer<typeof formSchema>;
 
 interface AvaliacaoBromatologicaDialogProps {

@@ -182,21 +182,42 @@ const movimentacoesSilo = {
   async create(payload: Omit<MovimentacaoSilo, 'id'>): Promise<MovimentacaoSilo> {
     // Verificar que o silo_id pertence à fazenda antes de inserir
     const fazendaId = await getFazendaId();
-    const { count, error: checkError } = await supabase
+    const { data: silo, error: checkError } = await supabase
       .from('silos')
-      .select('id', { count: 'exact', head: true })
+      .select('id, data_abertura_real')
       .eq('id', payload.silo_id)
-      .eq('fazenda_id', fazendaId);
-    if (checkError || count === 0) {
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (checkError || !silo) {
       throw new Error('Silo não encontrado ou não pertence a esta fazenda.');
     }
 
+    // Criar movimentação
     const { data, error } = await supabase
       .from('movimentacoes_silo')
       .insert(payload)
       .select()
       .single();
     if (error) throw error;
+
+    // Auto-registrar data de abertura real na primeira saída
+    if (payload.tipo === 'Saída' && !silo.data_abertura_real) {
+      const { count: countSaidas, error: countError } = await supabase
+        .from('movimentacoes_silo')
+        .select('id', { count: 'exact', head: true })
+        .eq('silo_id', payload.silo_id)
+        .eq('tipo', 'Saída');
+
+      // Se essa é a primeira saída (count === 1), atualizar data_abertura_real
+      if (!countError && countSaidas === 1) {
+        await supabase
+          .from('silos')
+          .update({ data_abertura_real: payload.data })
+          .eq('id', payload.silo_id)
+          .eq('fazenda_id', fazendaId);
+      }
+    }
+
     return data as MovimentacaoSilo;
   },
 

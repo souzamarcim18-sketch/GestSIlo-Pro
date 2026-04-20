@@ -80,6 +80,7 @@ export function SiloForm({
           talhao_id: silo.talhao_id ?? null,
           data_fechamento: silo.data_fechamento ?? undefined,
           data_abertura_prevista: silo.data_abertura_prevista ?? undefined,
+          data_abertura_real: silo.data_abertura_real ?? undefined,
           observacoes_gerais: silo.observacoes_gerais ?? '',
           custo_aquisicao_rs_ton: silo.custo_aquisicao_rs_ton ?? null,
           insumo_lona_id: silo.insumo_lona_id ?? null,
@@ -97,6 +98,7 @@ export function SiloForm({
           talhao_id: null,
           data_fechamento: undefined,
           data_abertura_prevista: undefined,
+          data_abertura_real: undefined,
           observacoes_gerais: '',
           custo_aquisicao_rs_ton: null,
           insumo_lona_id: null,
@@ -172,7 +174,7 @@ export function SiloForm({
         talhao_id: data.talhao_id || null,
         data_fechamento: data.data_fechamento ?? null,
         data_abertura_prevista: data.data_abertura_prevista ?? null,
-        data_abertura_real: silo?.data_abertura_real ?? null,
+        data_abertura_real: data.data_abertura_real ?? null,
         observacoes_gerais: data.observacoes_gerais || null,
         custo_aquisicao_rs_ton: showCustoAquisicao ? (data.custo_aquisicao_rs_ton ?? null) : null,
         insumo_lona_id: data.insumo_lona_id || null,
@@ -344,6 +346,27 @@ export function SiloForm({
                 {...form.register('data_abertura_prevista')}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="silo-abertura-real">
+              Data de Abertura Real
+              {silo?.data_abertura_real && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  (auto-registrada na primeira saída)
+                </span>
+              )}
+            </Label>
+            <Input
+              id="silo-abertura-real"
+              type="date"
+              {...form.register('data_abertura_real')}
+            />
+            {form.formState.errors.data_abertura_real && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.data_abertura_real.message}
+              </p>
+            )}
           </div>
 
           {/* Talhão */}

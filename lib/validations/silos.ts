@@ -119,12 +119,10 @@ export const movimentacaoSiloSchema = z
 export type MovimentacaoSiloInput = z.infer<typeof movimentacaoSiloSchema>;
 
 /**
- * Schema para Avaliação Bromatológica.
- * Campos obrigatórios: data, momento.
- * Demais campos numéricos são opcionais — laudos parciais são comuns no campo.
+ * Schema para formulário de Avaliação Bromatológica.
+ * Sem silo_id — será adicionado no submit.
  */
-export const avaliacaoBromatologicaSchema = z.object({
-  silo_id: z.string().uuid('ID do silo inválido'),
+export const avaliacaoBromatologicaFormSchema = z.object({
   data: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
@@ -144,16 +142,22 @@ export const avaliacaoBromatologicaSchema = z.object({
   avaliador: z.string().max(100).nullable().optional(),
 });
 
+/**
+ * Schema para criar Avaliação Bromatológica (com silo_id).
+ */
+export const avaliacaoBromatologicaSchema = avaliacaoBromatologicaFormSchema.extend({
+  silo_id: z.string().uuid('ID do silo inválido'),
+});
+
 export type AvaliacaoBromatologicaInput = z.infer<typeof avaliacaoBromatologicaSchema>;
 
 /**
- * Schema para Avaliação PSPS (Penn State Particle Separator).
+ * Schema para formulário de Avaliação PSPS.
  * - Soma das 4 peneiras deve ser 100% (±0.5%)
- * - tmp_mm é GENERATED pelo BD — não incluído no schema de input
+ * - Sem silo_id — será adicionado no submit
  */
-export const avaliacaoPspsSchema = z
+export const avaliacaoPspsFormSchema = z
   .object({
-    silo_id: z.string().uuid('ID do silo inválido'),
     data: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
@@ -196,5 +200,12 @@ export const avaliacaoPspsSchema = z
       path: ['peneira_fundo_4mm'],
     }
   );
+
+/**
+ * Schema para criar Avaliação PSPS (com silo_id).
+ */
+export const avaliacaoPspsSchema = avaliacaoPspsFormSchema.extend({
+  silo_id: z.string().uuid('ID do silo inválido'),
+});
 
 export type AvaliacaoPspsInput = z.infer<typeof avaliacaoPspsSchema>;
