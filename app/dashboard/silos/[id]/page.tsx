@@ -173,7 +173,7 @@ export default function SiloDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="visao-geral">
-        <TabsList>
+        <TabsList className="h-9 text-sm overflow-x-auto">
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="estoque">Estoque</TabsTrigger>
           <TabsTrigger value="qualidade">Qualidade</TabsTrigger>
