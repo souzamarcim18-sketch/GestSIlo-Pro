@@ -13,29 +13,9 @@ import { Progress } from '@/components/ui/progress';
 import { Plus, Microscope, BarChart3 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-interface AvaliacaoBromatologica {
-  id: string;
-  data: string;
-  momento: string;
-  avaliador: string;
-  pb: number;
-  fd: number;
-  fda: number;
-  energia: number;
-  umidade: number;
-}
-
-interface AvaliacaoPSPS {
-  id: string;
-  data: string;
-  peneira1: number; // 19 mm
-  peneira2: number; // 8 mm
-  peneira3: number; // 1.18 mm
-  peneira4: number; // fundo
-  tmp: number;
-  status: 'Ideal' | 'Bom' | 'Ruim';
-}
+import type { AvaliacaoBromatologica, AvaliacaoPSPS } from '@/lib/supabase';
+import { calcularStatusPeneira, calcularStatusTmp } from '@/lib/supabase/silos';
+import { FAIXAS_PSPS, TMP_IDEAL_SEM_KP, TMP_IDEAL_COM_KP } from '@/lib/validations/silos';
 
 interface QualidadeTabProps {
   siloId: string;
@@ -43,6 +23,15 @@ interface QualidadeTabProps {
   avaliacoesPsps: AvaliacaoPSPS[];
   onNovaBromatologica: () => void;
   onNovaPsps: () => void;
+}
+
+function StatusIcon({ status }: { status: 'ok' | 'fora' }) {
+  return status === 'ok' ? <span aria-label="ok">✅</span> : <span aria-label="fora">⚠️</span>;
+}
+
+function formatVal(val: number | null | undefined, decimals = 1): string {
+  if (val === null || val === undefined || isNaN(val as number)) return '-';
+  return (val as number).toFixed(decimals);
 }
 
 export function QualidadeTab({
@@ -85,7 +74,6 @@ export function QualidadeTab({
                   role="region"
                   aria-labelledby={`bromatologica-${aval.id}`}
                 >
-                  {/* Header */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p
@@ -95,32 +83,41 @@ export function QualidadeTab({
                         {format(new Date(aval.data), 'dd/MM/yyyy', { locale: ptBR })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {aval.momento} • Avaliador: {aval.avaliador}
+                        {aval.momento}
+                        {aval.avaliador ? ` • ${aval.avaliador}` : ''}
                       </p>
                     </div>
+                    <Badge variant="outline">{aval.momento}</Badge>
                   </div>
 
-                  {/* Valores em Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <span className="text-muted-foreground">PB</span>
-                      <p className="font-bold">{aval.pb.toFixed(1)}%</p>
+                      <span className="text-muted-foreground">MS</span>
+                      <p className="font-bold">{formatVal(aval.ms)}%</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">FD</span>
-                      <p className="font-bold">{aval.fd.toFixed(1)}%</p>
+                      <span className="text-muted-foreground">PB</span>
+                      <p className="font-bold">{formatVal(aval.pb)}%</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">FDN</span>
+                      <p className="font-bold">{formatVal(aval.fdn)}%</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground">FDA</span>
-                      <p className="font-bold">{aval.fda.toFixed(1)}%</p>
+                      <p className="font-bold">{formatVal(aval.fda)}%</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Energia</span>
-                      <p className="font-bold">{aval.energia.toFixed(2)} Mcal/kg</p>
+                      <span className="text-muted-foreground">Amido</span>
+                      <p className="font-bold">{formatVal(aval.amido)}%</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Umidade</span>
-                      <p className="font-bold">{aval.umidade.toFixed(1)}%</p>
+                      <span className="text-muted-foreground">NDT</span>
+                      <p className="font-bold">{formatVal(aval.ndt)}%</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">pH</span>
+                      <p className="font-bold">{formatVal(aval.ph, 2)}</p>
                     </div>
                   </div>
                 </div>
@@ -135,7 +132,7 @@ export function QualidadeTab({
         </CardContent>
       </Card>
 
-      {/* Seção: Análise PSPS (Penn State Particle Separator) */}
+      {/* Seção: Análise PSPS */}
       <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <div className="flex items-center gap-2">
@@ -160,11 +157,18 @@ export function QualidadeTab({
           {avaliacoesPsps.length > 0 ? (
             <div className="space-y-4">
               {avaliacoesPsps.map((aval) => {
-                const statusColor: Record<string, string> = {
-                  Ideal: 'bg-green-100 text-green-700 border-green-200',
-                  Bom: 'bg-blue-100 text-blue-700 border-blue-200',
-                  Ruim: 'bg-red-100 text-red-700 border-red-200',
-                };
+                const tmpStatus =
+                  aval.tmp_mm !== null && aval.tmp_mm !== undefined
+                    ? calcularStatusTmp(aval.tmp_mm, aval.kernel_processor)
+                    : null;
+                const tmpFaixa = aval.kernel_processor ? TMP_IDEAL_COM_KP : TMP_IDEAL_SEM_KP;
+
+                const peneiras = [
+                  { key: 'peneira_19mm', label: '>19mm', valor: aval.peneira_19mm },
+                  { key: 'peneira_8_19mm', label: '8–19mm', valor: aval.peneira_8_19mm },
+                  { key: 'peneira_4_8mm', label: '4–8mm', valor: aval.peneira_4_8mm },
+                  { key: 'peneira_fundo_4mm', label: '<4mm', valor: aval.peneira_fundo_4mm },
+                ] as const;
 
                 return (
                   <div
@@ -173,90 +177,62 @@ export function QualidadeTab({
                     role="region"
                     aria-labelledby={`psps-${aval.id}`}
                   >
-                    {/* Header */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <p
-                          id={`psps-${aval.id}`}
-                          className="font-semibold text-sm"
-                        >
-                          {format(new Date(aval.data), 'dd/MM/yyyy', {
-                            locale: ptBR,
-                          })}
+                        <p id={`psps-${aval.id}`} className="font-semibold text-sm">
+                          {format(new Date(aval.data), 'dd/MM/yyyy', { locale: ptBR })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {aval.momento}
+                          {aval.avaliador ? ` • ${aval.avaliador}` : ''}
                         </p>
                       </div>
-                      <Badge className={statusColor[aval.status] || statusColor.Bom}>
-                        {aval.status}
+                      <Badge variant={aval.kernel_processor ? 'default' : 'secondary'}>
+                        {aval.kernel_processor ? 'Com KP' : 'Sem KP'}
                       </Badge>
                     </div>
 
-                    {/* Peneiras */}
+                    {/* Peneiras com indicadores individuais */}
                     <div className="space-y-3 text-sm">
-                      {/* Peneira 1 (19 mm) */}
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-muted-foreground">
-                            Peneira 1 (19 mm): {aval.peneira1.toFixed(1)}%
-                          </span>
-                          <span className="font-semibold">{aval.peneira1.toFixed(1)}%</span>
-                        </div>
-                        <Progress
-                          value={aval.peneira1}
-                          className="h-1.5"
-                          aria-label={`Peneira 1: ${aval.peneira1.toFixed(1)}%`}
-                        />
-                      </div>
+                      {peneiras.map(({ key, label, valor }) => {
+                        const status = calcularStatusPeneira(key, valor);
+                        const faixa = FAIXAS_PSPS[key];
+                        return (
+                          <div key={key}>
+                            <div className="flex justify-between mb-1 text-xs">
+                              <span className="text-muted-foreground flex items-center gap-1">
+                                <StatusIcon status={status} />
+                                Peneira {label}
+                                <span className="text-muted-foreground/70">
+                                  ({faixa.min}–{faixa.max}%)
+                                </span>
+                              </span>
+                              <span className="font-semibold">{valor.toFixed(1)}%</span>
+                            </div>
+                            <Progress
+                              value={valor}
+                              className="h-1.5"
+                              aria-label={`Peneira ${label}: ${valor.toFixed(1)}%`}
+                            />
+                          </div>
+                        );
+                      })}
 
-                      {/* Peneira 2 (8 mm) */}
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-muted-foreground">
-                            Peneira 2 (8 mm): {aval.peneira2.toFixed(1)}%
-                          </span>
-                          <span className="font-semibold">{aval.peneira2.toFixed(1)}%</span>
-                        </div>
-                        <Progress
-                          value={aval.peneira2}
-                          className="h-1.5"
-                          aria-label={`Peneira 2: ${aval.peneira2.toFixed(1)}%`}
-                        />
-                      </div>
-
-                      {/* Peneira 3 (1.18 mm) */}
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-muted-foreground">
-                            Peneira 3 (1.18 mm): {aval.peneira3.toFixed(1)}%
-                          </span>
-                          <span className="font-semibold">{aval.peneira3.toFixed(1)}%</span>
-                        </div>
-                        <Progress
-                          value={aval.peneira3}
-                          className="h-1.5"
-                          aria-label={`Peneira 3: ${aval.peneira3.toFixed(1)}%`}
-                        />
-                      </div>
-
-                      {/* Fundo (< 1.18 mm) */}
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-muted-foreground">
-                            Fundo (&lt;1.18 mm): {aval.peneira4.toFixed(1)}%
-                          </span>
-                          <span className="font-semibold">{aval.peneira4.toFixed(1)}%</span>
-                        </div>
-                        <Progress
-                          value={aval.peneira4}
-                          className="h-1.5"
-                          aria-label={`Fundo: ${aval.peneira4.toFixed(1)}%`}
-                        />
-                      </div>
-
-                      {/* TMP - Tempo Médio de Mastigação */}
+                      {/* TMP calculado pelo BD */}
                       <div className="pt-2 border-t">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">TMP (min)</span>
-                          <span className="font-semibold">{aval.tmp.toFixed(1)} min</span>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            {tmpStatus && <StatusIcon status={tmpStatus} />}
+                            TMP — Tamanho Médio de Partícula
+                            <span className="text-muted-foreground/70">
+                              ({tmpFaixa.min}–{tmpFaixa.max} mm)
+                            </span>
+                          </span>
+                          <span className="font-semibold">
+                            {aval.tmp_mm !== null && aval.tmp_mm !== undefined
+                              ? `${aval.tmp_mm.toFixed(2)} mm`
+                              : '-'}
+                          </span>
                         </div>
                       </div>
                     </div>

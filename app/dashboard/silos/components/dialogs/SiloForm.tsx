@@ -111,6 +111,7 @@ export function SiloForm({
         data_abertura_prevista: null,
         data_abertura_real: null,
         observacoes_gerais: null,
+        custo_aquisicao_rs_ton: null,
       };
 
       let siloId: string;

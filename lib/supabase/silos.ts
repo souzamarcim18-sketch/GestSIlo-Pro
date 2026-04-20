@@ -7,6 +7,7 @@ import {
   type AvaliacaoBromatologica,
 } from '../supabase';
 import { q } from './queries-audit';
+import { FAIXAS_PSPS, TMP_IDEAL_SEM_KP, TMP_IDEAL_COM_KP } from '../validations/silos';
 
 export async function updateSilo(id: string, silo: Partial<Silo>) {
   const { data, error } = await supabase
@@ -227,6 +228,29 @@ export async function obterStatusSilo(
   if (silo.data_abertura_real && estoque > 0) return 'Aberto';
 
   return 'Aberto'; // Default
+}
+
+/**
+ * Retorna 'ok' se o valor da peneira está dentro da faixa ideal (FAIXAS_PSPS), 'fora' caso contrário.
+ */
+export function calcularStatusPeneira(
+  peneira: string,
+  valor: number
+): 'ok' | 'fora' {
+  const faixa = FAIXAS_PSPS[peneira];
+  if (!faixa) return 'fora';
+  return valor >= faixa.min && valor <= faixa.max ? 'ok' : 'fora';
+}
+
+/**
+ * Retorna 'ok' se o TMP está dentro da faixa ideal, considerando presença de Kernel Processor.
+ */
+export function calcularStatusTmp(
+  tmpMm: number,
+  kernelProcessor: boolean
+): 'ok' | 'fora' {
+  const faixa = kernelProcessor ? TMP_IDEAL_COM_KP : TMP_IDEAL_SEM_KP;
+  return tmpMm >= faixa.min && tmpMm <= faixa.max ? 'ok' : 'fora';
 }
 
 /**

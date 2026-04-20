@@ -66,11 +66,12 @@ export function MovimentacaoDialog({
       await q.movimentacoesSilo.create({
         silo_id: data.silo_id,
         tipo: data.tipo,
+        subtipo: null,
         quantidade: data.quantidade,
         responsavel: data.responsavel || null,
         observacao: data.observacao || null,
         talhao_id: null,
-        data: new Date().toISOString(),
+        data: new Date().toISOString().split('T')[0],
       });
       toast.success('Movimentação registrada com sucesso!');
       form.reset({ ...form.getValues(), quantidade: 0, responsavel: '', observacao: '' });

@@ -5,7 +5,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
-import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
+import {
+  type Silo,
+  type MovimentacaoSilo,
+  type Talhao,
+  type AvaliacaoBromatologica,
+  type AvaliacaoPSPS,
+} from '@/lib/supabase';
 import { SiloDetailHeader } from '../components/SiloDetailHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -38,6 +44,8 @@ export default function SiloDetailPage() {
   const [silo, setSilo] = useState<Silo | null>(null);
   const [talhao, setTalhao] = useState<Talhao | null>(null);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
+  const [avaliacoesBromatologicas, setAvaliacoesBromatologicas] = useState<AvaliacaoBromatologica[]>([]);
+  const [avaliacoesPsps, setAvaliacoesPsps] = useState<AvaliacaoPSPS[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMovOpen, setIsMovOpen] = useState(false);
@@ -51,15 +59,19 @@ export default function SiloDetailPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [siloData, movsData, talhoesData] = await Promise.all([
+      const [siloData, movsData, talhoesData, bromData, pspsData] = await Promise.all([
         q.silos.getById(siloId),
         q.movimentacoesSilo.listBySilo(siloId),
         q.talhoes.list(),
+        q.avaliacoesBromatologicas.listBySilo(siloId),
+        q.avaliacoesPsps.listBySilo(siloId),
       ]);
 
       setSilo(siloData);
       setMovimentacoes(movsData);
       setTalhoes(talhoesData);
+      setAvaliacoesBromatologicas(bromData);
+      setAvaliacoesPsps(pspsData);
 
       // Buscar talhão se houver (guard para null)
       let talData: Talhao | null = null;
@@ -188,8 +200,8 @@ export default function SiloDetailPage() {
         <TabsContent value="qualidade" className="mt-6">
           <QualidadeTab
             siloId={siloId}
-            avaliacoesBromatologicas={[]}
-            avaliacoesPsps={[]}
+            avaliacoesBromatologicas={avaliacoesBromatologicas}
+            avaliacoesPsps={avaliacoesPsps}
             onNovaBromatologica={() => setIsBromOpen(true)}
             onNovaPsps={() => setIsPspsOpen(true)}
           />

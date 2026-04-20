@@ -34,7 +34,10 @@ import {
   type AtividadeCampo,
   type CategoriaRebanho,
   type PeriodoConfinamento,
+  type AvaliacaoBromatologica,
+  type AvaliacaoPSPS,
 } from '../supabase';
+import type { AvaliacaoBromatologicaInput, AvaliacaoPspsInput } from '../validations/silos';
 import type { EventoDAP } from '@/lib/types/talhoes';
 import type { PlanejamentoSilagem } from '@/lib/types/planejamento-silagem';
 import {
@@ -86,7 +89,7 @@ const silos = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('silos')
-      .select('id, nome, tipo, talhao_id, cultura_ensilada, data_fechamento, data_abertura_real, data_abertura_prevista, volume_ensilado_ton_mv, materia_seca_percent, comprimento_m, largura_m, altura_m, observacoes_gerais, insumo_lona_id, insumo_inoculante_id, created_at, fazenda_id')
+      .select('id, nome, tipo, talhao_id, cultura_ensilada, data_fechamento, data_abertura_real, data_abertura_prevista, volume_ensilado_ton_mv, materia_seca_percent, comprimento_m, largura_m, altura_m, observacoes_gerais, custo_aquisicao_rs_ton, insumo_lona_id, insumo_inoculante_id, created_at, fazenda_id')
       .eq('fazenda_id', fazendaId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -138,7 +141,7 @@ const silos = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('silos')
-      .select('id, nome, tipo, talhao_id, cultura_ensilada, data_fechamento, data_abertura_real, data_abertura_prevista, volume_ensilado_ton_mv, materia_seca_percent, comprimento_m, largura_m, altura_m, observacoes_gerais, insumo_lona_id, insumo_inoculante_id, created_at, fazenda_id')
+      .select('id, nome, tipo, talhao_id, cultura_ensilada, data_fechamento, data_abertura_real, data_abertura_prevista, volume_ensilado_ton_mv, materia_seca_percent, comprimento_m, largura_m, altura_m, observacoes_gerais, custo_aquisicao_rs_ton, insumo_lona_id, insumo_inoculante_id, created_at, fazenda_id')
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .single();
@@ -1660,6 +1663,79 @@ const planejamentosSilagemServer = {
 };
 
 // ---------------------------------------------------------------------------
+// AVALIAÇÕES BROMATOLÓGICAS
+// ---------------------------------------------------------------------------
+const avaliacoesBromatologicas = {
+  async listBySilo(siloId: string): Promise<AvaliacaoBromatologica[]> {
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('avaliacoes_bromatologicas')
+      .select('*')
+      .eq('silo_id', siloId)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as AvaliacaoBromatologica[];
+  },
+
+  async create(payload: AvaliacaoBromatologicaInput): Promise<AvaliacaoBromatologica> {
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('avaliacoes_bromatologicas')
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AvaliacaoBromatologica;
+  },
+
+  async remove(id: string): Promise<void> {
+    await getFazendaId();
+    const { error } = await supabase
+      .from('avaliacoes_bromatologicas')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// AVALIAÇÕES PSPS
+// ---------------------------------------------------------------------------
+const avaliacoesPsps = {
+  async listBySilo(siloId: string): Promise<AvaliacaoPSPS[]> {
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('avaliacoes_psps')
+      .select('*')
+      .eq('silo_id', siloId)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return data as AvaliacaoPSPS[];
+  },
+
+  // Nota: não enviar tmp_mm no payload — é GENERATED pelo BD
+  async create(payload: AvaliacaoPspsInput): Promise<AvaliacaoPSPS> {
+    await getFazendaId();
+    const { data, error } = await supabase
+      .from('avaliacoes_psps')
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AvaliacaoPSPS;
+  },
+
+  async remove(id: string): Promise<void> {
+    await getFazendaId();
+    const { error } = await supabase
+      .from('avaliacoes_psps')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+};
+
+// ---------------------------------------------------------------------------
 // EXPORT PRINCIPAL — use `q.<tabela>.<operação>()` para Client
 // ---------------------------------------------------------------------------
 export const q = {
@@ -1682,6 +1758,8 @@ export const q = {
   categoriasRebanho,
   periodosConfinamento,
   planejamentosSilagem,
+  avaliacoesBromatologicas,
+  avaliacoesPsps,
 };
 
 // ---------------------------------------------------------------------------

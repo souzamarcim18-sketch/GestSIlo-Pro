@@ -13,24 +13,48 @@ export const SUBTIPOS_MOVIMENTACAO = [
   'Venda',
 ] as const;
 
+// Faixas ideais por peneira — iguais para silos com e sem Kernel Processor
+// A diferença de KP impacta apenas a interpretação do TMP (tamanho médio de partícula)
+export const FAIXAS_PSPS: Record<string, { min: number; max: number }> = {
+  peneira_19mm: { min: 3, max: 8 },
+  peneira_8_19mm: { min: 45, max: 65 },
+  peneira_4_8mm: { min: 20, max: 30 },
+  peneira_fundo_4mm: { min: 0, max: 10 },
+};
+
+export const TMP_IDEAL_SEM_KP = { min: 8, max: 12 };
+export const TMP_IDEAL_COM_KP = { min: 6, max: 10 };
+
 // ========================================
-// SCHEMAS ZODO
+// SCHEMAS ZOD
 // ========================================
 
 /**
- * Schema para criar/editar Silo
- * - talhao_id obrigatório para novos silos
- * - Para edição, pode ser atualizado
+ * Schema para criar/editar Silo.
+ * Campos de data validados como YYYY-MM-DD (formato de <Input type="date">).
  */
 export const siloSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório').max(100),
   tipo: z.enum(TIPOS_SILO),
   talhao_id: z.string().uuid('ID do talhão inválido').nullable(),
   cultura_ensilada: z.string().max(100).nullable().optional(),
-  data_fechamento: z.string().nullable().optional(),
-  data_abertura_prevista: z.string().nullable().optional(),
-  data_abertura_real: z.string().nullable().optional(),
-  observacoes_gerais: z.string().max(500).nullable().optional(),
+  data_fechamento: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida')
+    .nullable()
+    .optional(),
+  data_abertura_prevista: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida')
+    .nullable()
+    .optional(),
+  data_abertura_real: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida')
+    .nullable()
+    .optional(),
+  observacoes_gerais: z.string().max(1000).nullable().optional(),
+  custo_aquisicao_rs_ton: z.number().min(0).nullable().optional(),
   volume_ensilado_ton_mv: z
     .number()
     .positive('Volume deve ser maior que 0')
@@ -62,10 +86,9 @@ export const siloSchema = z.object({
 export type SiloInput = z.infer<typeof siloSchema>;
 
 /**
- * Schema para registrar Movimentação de Silo
+ * Schema para registrar Movimentação de Silo.
  * - Subtipo obrigatório se tipo='Saída'
- * - Quantidade deve ser positiva
- * - Quantidade não pode exceder estoque atual (validar em server)
+ * - Data no formato YYYY-MM-DD (obrigatório)
  */
 export const movimentacaoSiloSchema = z
   .object({
@@ -73,14 +96,15 @@ export const movimentacaoSiloSchema = z
     tipo: z.enum(['Entrada', 'Saída']),
     subtipo: z.enum(SUBTIPOS_MOVIMENTACAO).nullable().optional(),
     quantidade: z.number().positive('Quantidade deve ser maior que 0'),
-    data: z.string(),
+    data: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
     talhao_id: z.string().uuid('ID do talhão inválido').nullable().optional(),
     responsavel: z.string().max(100).nullable().optional(),
     observacao: z.string().max(500).nullable().optional(),
   })
   .refine(
     (data) => {
-      // Se tipo='Saída', subtipo é obrigatório
       if (data.tipo === 'Saída') {
         return data.subtipo !== null && data.subtipo !== undefined;
       }
@@ -95,22 +119,22 @@ export const movimentacaoSiloSchema = z
 export type MovimentacaoSiloInput = z.infer<typeof movimentacaoSiloSchema>;
 
 /**
- * Schema para Avaliação Bromatológica
- * - Todos os campos são opcionais (usuário escolhe quais preencher)
- * - MS e pH aceita valores de 0 a 100+
+ * Schema para Avaliação Bromatológica.
+ * Campos obrigatórios: data, momento.
+ * Demais campos numéricos são opcionais — laudos parciais são comuns no campo.
  */
 export const avaliacaoBromatologicaSchema = z.object({
   silo_id: z.string().uuid('ID do silo inválido'),
-  data: z.string(),
+  data: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
   momento: z.enum(MOMENTOS_AVALIACAO),
-  ms: z.number().min(0, 'MS não pode ser negativa').nullable().optional(),
-  pb: z.number().min(0, 'PB não pode ser negativa').nullable().optional(),
-  fdn: z.number().min(0, 'FDN não pode ser negativa').nullable().optional(),
-  fda: z.number().min(0, 'FDA não pode ser negativa').nullable().optional(),
-  ee: z.number().min(0, 'EE não pode ser negativa').nullable().optional(),
-  mm: z.number().min(0, 'MM não pode ser negativa').nullable().optional(),
-  amido: z.number().min(0, 'Amido não pode ser negativo').nullable().optional(),
-  ndt: z.number().min(0, 'NDT não pode ser negativo').nullable().optional(),
+  ms: z.number().min(0, 'MS não pode ser negativa').max(100, 'MS não pode exceder 100%').nullable().optional(),
+  pb: z.number().min(0, 'PB não pode ser negativa').max(100, 'PB não pode exceder 100%').nullable().optional(),
+  fdn: z.number().min(0, 'FDN não pode ser negativa').max(100, 'FDN não pode exceder 100%').nullable().optional(),
+  fda: z.number().min(0, 'FDA não pode ser negativa').max(100, 'FDA não pode exceder 100%').nullable().optional(),
+  amido: z.number().min(0, 'Amido não pode ser negativo').max(100, 'Amido não pode exceder 100%').nullable().optional(),
+  ndt: z.number().min(0, 'NDT não pode ser negativo').max(100, 'NDT não pode exceder 100%').nullable().optional(),
   ph: z
     .number()
     .min(0, 'pH não pode ser negativo')
@@ -120,24 +144,24 @@ export const avaliacaoBromatologicaSchema = z.object({
   avaliador: z.string().max(100).nullable().optional(),
 });
 
-export type AvaliacaoBromatologicaInput = z.infer<
-  typeof avaliacaoBromatologicaSchema
->;
+export type AvaliacaoBromatologicaInput = z.infer<typeof avaliacaoBromatologicaSchema>;
 
 /**
- * Schema para Avaliação PSPS
- * - Validação: soma dos peneiras deve ser 100% ±0.5%
- * - Todos os peneiras são obrigatórios
+ * Schema para Avaliação PSPS (Penn State Particle Separator).
+ * - Soma das 4 peneiras deve ser 100% (±0.5%)
+ * - tmp_mm é GENERATED pelo BD — não incluído no schema de input
  */
 export const avaliacaoPspsSchema = z
   .object({
     silo_id: z.string().uuid('ID do silo inválido'),
-    data: z.string(),
+    data: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
     momento: z.enum(MOMENTOS_AVALIACAO),
     peneira_19mm: z
       .number()
-      .min(0, 'Peneira 19mm não pode ser negativa')
-      .max(100, 'Peneira 19mm não pode exceder 100%'),
+      .min(0, 'Peneira >19mm não pode ser negativa')
+      .max(100, 'Peneira >19mm não pode exceder 100%'),
     peneira_8_19mm: z
       .number()
       .min(0, 'Peneira 8-19mm não pode ser negativa')
@@ -148,8 +172,8 @@ export const avaliacaoPspsSchema = z
       .max(100, 'Peneira 4-8mm não pode exceder 100%'),
     peneira_fundo_4mm: z
       .number()
-      .min(0, 'Peneira fundo 4mm não pode ser negativa')
-      .max(100, 'Peneira fundo 4mm não pode exceder 100%'),
+      .min(0, 'Fundo <4mm não pode ser negativo')
+      .max(100, 'Fundo <4mm não pode exceder 100%'),
     tamanho_teorico_corte_mm: z
       .number()
       .positive('Tamanho teórico deve ser maior que 0')
@@ -165,12 +189,11 @@ export const avaliacaoPspsSchema = z
         data.peneira_8_19mm +
         data.peneira_4_8mm +
         data.peneira_fundo_4mm;
-      // Validar que a soma está entre 99.5% e 100.5%
       return soma >= 99.5 && soma <= 100.5;
     },
     {
       message: 'Soma dos peneiras deve ser 100% (±0.5%)',
-      path: ['peneira_fundo_4mm'], // Erro será mostrado neste campo
+      path: ['peneira_fundo_4mm'],
     }
   );
 

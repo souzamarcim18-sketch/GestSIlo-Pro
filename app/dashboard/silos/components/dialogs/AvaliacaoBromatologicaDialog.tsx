@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -14,20 +14,23 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
+import {
+  avaliacaoBromatologicaSchema,
+  MOMENTOS_AVALIACAO,
+} from '@/lib/validations/silos';
+import { q } from '@/lib/supabase/queries-audit';
 
-const bromatologicaSchema = z.object({
-  data: z.string().min(1, 'Data é obrigatória'),
-  momento: z.string().min(1, 'Momento é obrigatório'),
-  avaliador: z.string().min(1, 'Avaliador é obrigatório'),
-  pb: z.number().min(0, 'PB deve ser >= 0').max(100, 'PB deve ser <= 100'),
-  fd: z.number().min(0, 'FD deve ser >= 0').max(100, 'FD deve ser <= 100'),
-  fda: z.number().min(0, 'FDA deve ser >= 0').max(100, 'FDA deve ser <= 100'),
-  energia: z.number().min(0, 'Energia deve ser >= 0'),
-  umidade: z.number().min(0, 'Umidade deve ser >= 0').max(100, 'Umidade deve ser <= 100'),
-});
-
-type BromatologicaFormData = z.infer<typeof bromatologicaSchema>;
+// Omite silo_id do form — é passado como prop e adicionado no submit
+const formSchema = avaliacaoBromatologicaSchema.omit({ silo_id: true });
+type FormData = z.infer<typeof formSchema>;
 
 interface AvaliacaoBromatologicaDialogProps {
   open: boolean;
@@ -36,45 +39,39 @@ interface AvaliacaoBromatologicaDialogProps {
   onSuccess: () => void;
 }
 
+const defaultValues: FormData = {
+  data: new Date().toISOString().split('T')[0],
+  momento: 'Fechamento',
+  ms: undefined,
+  pb: undefined,
+  fdn: undefined,
+  fda: undefined,
+  amido: undefined,
+  ndt: undefined,
+  ph: undefined,
+  avaliador: '',
+};
+
 export function AvaliacaoBromatologicaDialog({
   open,
   onOpenChange,
   siloId,
   onSuccess,
 }: AvaliacaoBromatologicaDialogProps) {
-  const form = useForm<BromatologicaFormData>({
-    resolver: zodResolver(bromatologicaSchema),
-    defaultValues: {
-      data: new Date().toISOString().split('T')[0],
-      momento: 'Manhã',
-      avaliador: '',
-      pb: 0,
-      fd: 0,
-      fda: 0,
-      energia: 0,
-      umidade: 0,
-    },
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
   });
 
-  const handleSubmit = async (data: BromatologicaFormData) => {
+  const handleSubmit = async (data: FormData) => {
     try {
-      // TODO: Implementar salvamento em banco de dados
-      // Por enquanto, apenas mostrar sucesso
-      toast.success('Análise bromatológica registrada!');
-      form.reset({
-        data: new Date().toISOString().split('T')[0],
-        momento: 'Manhã',
-        avaliador: '',
-        pb: 0,
-        fd: 0,
-        fda: 0,
-        energia: 0,
-        umidade: 0,
-      });
+      await q.avaliacoesBromatologicas.create({ silo_id: siloId, ...data });
+      toast.success('Análise bromatológica registrada com sucesso!');
+      form.reset(defaultValues);
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao registrar análise');
+      toast.error(err instanceof Error ? err.message : 'Erro ao registrar análise bromatológica');
     }
   };
 
@@ -84,7 +81,7 @@ export function AvaliacaoBromatologicaDialog({
         <DialogHeader>
           <DialogTitle>Análise Bromatológica</DialogTitle>
           <DialogDescription>
-            Registre a composição química e nutritiva da silagem.
+            Registre a composição química e nutritiva da silagem. Campos numéricos são opcionais.
           </DialogDescription>
         </DialogHeader>
 
@@ -92,7 +89,7 @@ export function AvaliacaoBromatologicaDialog({
           {/* Data e Momento */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="brom-data">Data</Label>
+              <Label htmlFor="brom-data">Data *</Label>
               <Input
                 id="brom-data"
                 type="date"
@@ -103,11 +100,22 @@ export function AvaliacaoBromatologicaDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brom-momento">Momento</Label>
-              <Input
-                id="brom-momento"
-                placeholder="Ex: Manhã, Tarde"
-                {...form.register('momento')}
+              <Label htmlFor="brom-momento">Momento *</Label>
+              <Controller
+                control={form.control}
+                name="momento"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger id="brom-momento">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOMENTOS_AVALIACAO.map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
               {form.formState.errors.momento && (
                 <p className="text-xs text-destructive">{form.formState.errors.momento.message}</p>
@@ -117,67 +125,116 @@ export function AvaliacaoBromatologicaDialog({
 
           {/* Avaliador */}
           <div className="space-y-2">
-            <Label htmlFor="brom-avaliador">Avaliador</Label>
+            <Label htmlFor="brom-avaliador">Avaliador / Laboratório</Label>
             <Input
               id="brom-avaliador"
+              placeholder="Ex: Lab XYZ"
               {...form.register('avaliador')}
             />
-            {form.formState.errors.avaliador && (
-              <p className="text-xs text-destructive">{form.formState.errors.avaliador.message}</p>
-            )}
           </div>
 
-          {/* PB, FD, FDA, Energia, Umidade */}
+          {/* MS, PB, FDN, FDA */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="brom-pb">PB (%)</Label>
+              <Label htmlFor="brom-ms">MS — Matéria Seca (%)</Label>
+              <Input
+                id="brom-ms"
+                type="number"
+                step="0.01"
+                placeholder="Ex: 32.5"
+                {...form.register('ms', { valueAsNumber: true })}
+              />
+              {form.formState.errors.ms && (
+                <p className="text-xs text-destructive">{form.formState.errors.ms.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brom-pb">PB — Proteína Bruta (%)</Label>
               <Input
                 id="brom-pb"
                 type="number"
-                step="0.1"
+                step="0.01"
+                placeholder="Ex: 8.2"
                 {...form.register('pb', { valueAsNumber: true })}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="brom-fd">FD (%)</Label>
-              <Input
-                id="brom-fd"
-                type="number"
-                step="0.1"
-                {...form.register('fd', { valueAsNumber: true })}
-              />
+              {form.formState.errors.pb && (
+                <p className="text-xs text-destructive">{form.formState.errors.pb.message}</p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="brom-fda">FDA (%)</Label>
+              <Label htmlFor="brom-fdn">FDN — Fibra em Det. Neutro (%)</Label>
+              <Input
+                id="brom-fdn"
+                type="number"
+                step="0.01"
+                placeholder="Ex: 55.0"
+                {...form.register('fdn', { valueAsNumber: true })}
+              />
+              {form.formState.errors.fdn && (
+                <p className="text-xs text-destructive">{form.formState.errors.fdn.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brom-fda">FDA — Fibra em Det. Ácido (%)</Label>
               <Input
                 id="brom-fda"
                 type="number"
-                step="0.1"
+                step="0.01"
+                placeholder="Ex: 28.0"
                 {...form.register('fda', { valueAsNumber: true })}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="brom-energia">Energia (Mcal/kg)</Label>
-              <Input
-                id="brom-energia"
-                type="number"
-                step="0.01"
-                {...form.register('energia', { valueAsNumber: true })}
-              />
+              {form.formState.errors.fda && (
+                <p className="text-xs text-destructive">{form.formState.errors.fda.message}</p>
+              )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="brom-umidade">Umidade (%)</Label>
-            <Input
-              id="brom-umidade"
-              type="number"
-              step="0.1"
-              {...form.register('umidade', { valueAsNumber: true })}
-            />
+          {/* Amido, NDT, pH */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="brom-amido">Amido (%)</Label>
+              <Input
+                id="brom-amido"
+                type="number"
+                step="0.01"
+                placeholder="Ex: 30.0"
+                {...form.register('amido', { valueAsNumber: true })}
+              />
+              {form.formState.errors.amido && (
+                <p className="text-xs text-destructive">{form.formState.errors.amido.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brom-ndt">NDT — Nut. Dig. Totais (%)</Label>
+              <Input
+                id="brom-ndt"
+                type="number"
+                step="0.01"
+                placeholder="Ex: 65.0"
+                {...form.register('ndt', { valueAsNumber: true })}
+              />
+              {form.formState.errors.ndt && (
+                <p className="text-xs text-destructive">{form.formState.errors.ndt.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brom-ph">pH</Label>
+              <Input
+                id="brom-ph"
+                type="number"
+                step="0.01"
+                min="0"
+                max="14"
+                placeholder="Ex: 3.8"
+                {...form.register('ph', { valueAsNumber: true })}
+              />
+              {form.formState.errors.ph && (
+                <p className="text-xs text-destructive">{form.formState.errors.ph.message}</p>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -185,7 +242,7 @@ export function AvaliacaoBromatologicaDialog({
               type="button"
               variant="outline"
               onClick={() => {
-                form.reset();
+                form.reset(defaultValues);
                 onOpenChange(false);
               }}
             >

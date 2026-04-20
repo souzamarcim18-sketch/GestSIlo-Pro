@@ -62,12 +62,14 @@ export type Silo = {
   largura_m: number | null;
   altura_m: number | null;
   observacoes_gerais: string | null;
+  custo_aquisicao_rs_ton: number | null;
 };
 
 export type MovimentacaoSilo = {
   id: string;
   silo_id: string;
   tipo: 'Entrada' | 'Saída';
+  subtipo: 'Ensilagem' | 'Uso na alimentação' | 'Descarte' | 'Transferência' | 'Venda' | null;
   quantidade: number;
   data: string;
   talhao_id: string | null;
@@ -198,7 +200,31 @@ export type AvaliacaoBromatologica = {
   id: string;
   silo_id: string;
   data: string;
+  momento: 'Fechamento' | 'Abertura' | 'Monitoramento';
   ms: number | null;
+  pb: number | null;
+  fdn: number | null;
+  fda: number | null;
+  amido: number | null;
+  ndt: number | null;
+  ph: number | null;
+  avaliador: string | null;
+  created_at: string;
+};
+
+export type AvaliacaoPSPS = {
+  id: string;
+  silo_id: string;
+  data: string;
+  momento: 'Fechamento' | 'Abertura' | 'Monitoramento';
+  peneira_19mm: number;
+  peneira_8_19mm: number;
+  peneira_4_8mm: number;
+  peneira_fundo_4mm: number;
+  tmp_mm: number | null;
+  tamanho_teorico_corte_mm: number | null;
+  kernel_processor: boolean;
+  avaliador: string | null;
   created_at: string;
 };
 
