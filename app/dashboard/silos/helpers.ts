@@ -95,6 +95,9 @@ export interface SiloCardData {
   consumoDiario: number | null;
   estoquePara: number | null;
   status: SiloStatus;
+  dataFechamento?: string | null;
+  dataAberturaReal?: string | null;
+  dataAberturaP revista?: string | null;
 }
 
 /**
@@ -119,6 +122,9 @@ export function calcularDadosSilos(
       consumoDiario,
       estoquePara,
       status,
+      dataFechamento: silo.data_fechamento,
+      dataAberturaReal: silo.data_abertura_real,
+      dataAberturaP revista: silo.data_abertura_prevista,
     };
   });
 }

@@ -10,7 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type Silo, type Talhao } from '@/lib/supabase';
-import { Edit2, AlertCircle } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 import { calcularDensidade } from '@/lib/supabase/silos';
 
 interface VisaoGeralTabProps {
@@ -32,24 +32,8 @@ export function VisaoGeralTab({
   insumoInoculante,
   onEdit,
 }: VisaoGeralTabProps) {
-  const isLegacy = !talhao;
-
   return (
     <div className="space-y-6">
-      {/* Alerta de Silo Legado */}
-      {isLegacy && (
-        <Card className="rounded-2xl bg-amber-50 shadow-sm border-amber-200">
-          <CardContent className="pt-6 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-amber-900">Silo sem vínculo de talhão</p>
-              <p className="text-sm text-amber-800">
-                Edite os dados do silo para vincular a um talhão e tabilir informações de cultura e safra.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* 1. Dados do Silo */}
       <Card className="rounded-2xl bg-card shadow-sm">
@@ -69,7 +53,7 @@ export function VisaoGeralTab({
             Editar
           </Button>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Nome</p>
             <p className="font-semibold text-lg">{silo.nome}</p>
@@ -129,7 +113,7 @@ export function VisaoGeralTab({
           <CardTitle>Rastreabilidade & Custo</CardTitle>
           <CardDescription>Informações de produção e economia</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {silo.talhao_id && talhao && (
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Talhão de Origem</p>
@@ -174,7 +158,7 @@ export function VisaoGeralTab({
           <CardTitle>Datas Importantes</CardTitle>
           <CardDescription>Ciclos de armazenamento</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Fechamento</p>
             <p className="font-medium">
@@ -184,19 +168,15 @@ export function VisaoGeralTab({
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Abertura Prevista</p>
-            <p className="font-medium">
-              {silo.data_abertura_prevista
-                ? new Date(silo.data_abertura_prevista).toLocaleDateString('pt-BR')
-                : '-'}
+            <p className="text-sm text-muted-foreground">
+              {silo.data_abertura_real ? 'Abertura Real' : 'Previsão de Abertura'}
             </p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Abertura Real</p>
             <p className="font-medium">
               {silo.data_abertura_real
                 ? new Date(silo.data_abertura_real).toLocaleDateString('pt-BR')
-                : '-'}
+                : silo.data_abertura_prevista
+                  ? new Date(silo.data_abertura_prevista).toLocaleDateString('pt-BR')
+                  : '-'}
             </p>
           </div>
           {silo.data_fechamento && silo.data_abertura_real && (

@@ -173,10 +173,25 @@ export default function SiloDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="visao-geral">
-        <TabsList className="h-9 text-sm overflow-x-auto">
-          <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
-          <TabsTrigger value="estoque">Estoque</TabsTrigger>
-          <TabsTrigger value="qualidade">Qualidade</TabsTrigger>
+        <TabsList className="h-9 text-sm overflow-x-auto bg-transparent border-b border-border">
+          <TabsTrigger
+            value="visao-geral"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600 data-[state=active]:bg-transparent rounded-none"
+          >
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger
+            value="estoque"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600 data-[state=active]:bg-transparent rounded-none"
+          >
+            Estoque
+          </TabsTrigger>
+          <TabsTrigger
+            value="qualidade"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600 data-[state=active]:bg-transparent rounded-none"
+          >
+            Qualidade
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="visao-geral" className="mt-6">

@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Silo } from '@/lib/supabase';
-import { ArrowLeft, Edit2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit2 } from 'lucide-react';
 
 type SiloStatus = 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
 
@@ -72,19 +72,12 @@ export function SiloDetailHeader({
           </Button>
         </div>
 
-        {/* Informações de talhão e cultura */}
-        <div className="text-sm text-muted-foreground space-y-1">
-          {talhaoNome ? (
+        {/* Informações de talhão */}
+        {talhaoNome && (
+          <div className="text-sm text-muted-foreground">
             <p>Talhão: <span className="font-medium text-foreground">{talhaoNome}</span></p>
-          ) : (
-            <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-md">
-              <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-amber-700">
-                <strong>⚠️ Silo legado</strong> — Edite os dados para vincular a um talhão
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -18,7 +18,8 @@ interface SiloCardProps {
   status: SiloStatus;
   onClick?: () => void;
   dataFechamento?: string | null;
-  dataAbertura?: string | null;
+  dataAberturaReal?: string | null;
+  dataAberturaP revista?: string | null;
 }
 
 const statusConfig: Record<SiloStatus, { emoji: string; color: string; label: string }> = {
@@ -54,7 +55,8 @@ export function SiloCard({
   status,
   onClick,
   dataFechamento,
-  dataAbertura,
+  dataAberturaReal,
+  dataAberturaP revista,
 }: SiloCardProps) {
   const capacidade = getCapacidade(silo);
   const percentage = capacidade > 0
@@ -126,23 +128,7 @@ export function SiloCard({
           </div>
         </div>
 
-        {/* Linha: Estoque para X dias | Consumo X ton/dia */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Estoque:</span>
-            <p className="font-medium">
-              {estoquePara !== null ? `${estoquePara} dias` : '-'}
-            </p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Consumo:</span>
-            <p className="font-medium">
-              {consumoDiario !== null ? `${consumoDiario.toFixed(2)} t/dia` : '-'}
-            </p>
-          </div>
-        </div>
-
-        {/* Linha: Fechado em dd/mm/yyyy | Aberto em dd/mm/yyyy */}
+        {/* Linha: Fechado em dd/mm/yyyy | Previsão/Abertura Real */}
         <div className="grid grid-cols-2 gap-4 pt-2 border-t text-sm">
           <div>
             <span className="text-muted-foreground text-xs">Fechado em:</span>
@@ -153,11 +139,15 @@ export function SiloCard({
             </p>
           </div>
           <div>
-            <span className="text-muted-foreground text-xs">Aberto em:</span>
+            <span className="text-muted-foreground text-xs">
+              {dataAberturaReal ? 'Abertura Real:' : 'Previsão de Abertura:'}
+            </span>
             <p className="font-medium">
-              {dataAbertura
-                ? format(new Date(dataAbertura), 'dd/MM/yyyy', { locale: ptBR })
-                : '-'}
+              {dataAberturaReal
+                ? format(new Date(dataAberturaReal), 'dd/MM/yyyy', { locale: ptBR })
+                : dataAberturaP revista
+                  ? format(new Date(dataAberturaP revista), 'dd/MM/yyyy', { locale: ptBR })
+                  : '-'}
             </p>
           </div>
         </div>
