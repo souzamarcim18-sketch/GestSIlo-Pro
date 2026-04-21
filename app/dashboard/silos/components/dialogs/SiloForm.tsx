@@ -348,26 +348,28 @@ export function SiloForm({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="silo-abertura-real">
-              Data de Abertura Real
-              {silo?.data_abertura_real && (
-                <span className="text-xs text-muted-foreground ml-2">
-                  (auto-registrada na primeira saída)
-                </span>
+          {mode === 'edit' && (
+            <div className="space-y-2">
+              <Label htmlFor="silo-abertura-real">
+                Data de Abertura Real
+                {silo?.data_abertura_real && (
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (auto-registrada na primeira saída)
+                  </span>
+                )}
+              </Label>
+              <Input
+                id="silo-abertura-real"
+                type="date"
+                {...form.register('data_abertura_real')}
+              />
+              {form.formState.errors.data_abertura_real && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.data_abertura_real.message}
+                </p>
               )}
-            </Label>
-            <Input
-              id="silo-abertura-real"
-              type="date"
-              {...form.register('data_abertura_real')}
-            />
-            {form.formState.errors.data_abertura_real && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.data_abertura_real.message}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Talhão */}
           <div className="space-y-2">

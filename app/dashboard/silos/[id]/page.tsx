@@ -202,7 +202,6 @@ export default function SiloDetailPage() {
             densidade={null}
             insumoLona={null}
             insumoInoculante={null}
-            onEdit={() => setIsEditOpen(true)}
           />
         </TabsContent>
 

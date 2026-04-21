@@ -97,7 +97,7 @@ export default function DashboardPage() {
           await Promise.all([
             supabase
               .from('silos')
-              .select('volume_ensilado_ton_mv, estoque_atual')
+              .select('id, volume_ensilado_ton_mv')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('talhoes')
@@ -129,10 +129,28 @@ export default function DashboardPage() {
             (acc, s) => acc + (s.volume_ensilado_ton_mv ?? 0),
             0
           );
-          const totalEstoque = silosData.reduce(
-            (acc, s) => acc + (s.estoque_atual ?? 0),
+
+          // Calcular estoque via movimentações
+          const siloIds = silosData.map((s) => s.id);
+          const movsRes = siloIds.length > 0
+            ? await supabase
+                .from('movimentacoes_silo')
+                .select('silo_id, tipo, quantidade')
+                .in('silo_id', siloIds)
+            : { data: [] };
+
+          const movsData = movsRes.data ?? [];
+          const estoquePorSilo: Record<string, number> = {};
+          for (const mov of movsData) {
+            if (!estoquePorSilo[mov.silo_id]) estoquePorSilo[mov.silo_id] = 0;
+            estoquePorSilo[mov.silo_id] += mov.tipo === 'Entrada' ? mov.quantidade : -mov.quantidade;
+          }
+
+          const totalEstoque = Object.values(estoquePorSilo).reduce(
+            (acc, v) => acc + Math.max(v, 0),
             0
           );
+
           const ocupPct =
             totalVolume > 0
               ? Math.round((totalEstoque / totalVolume) * 100)

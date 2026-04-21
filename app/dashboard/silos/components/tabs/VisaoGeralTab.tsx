@@ -8,9 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { type Silo, type Talhao } from '@/lib/supabase';
-import { Edit2 } from 'lucide-react';
 import { calcularDensidade } from '@/lib/supabase/silos';
 
 interface VisaoGeralTabProps {
@@ -20,7 +18,6 @@ interface VisaoGeralTabProps {
   densidade: number | null;
   insumoLona: string | null;
   insumoInoculante: string | null;
-  onEdit: () => void;
 }
 
 export function VisaoGeralTab({
@@ -30,28 +27,15 @@ export function VisaoGeralTab({
   densidade,
   insumoLona,
   insumoInoculante,
-  onEdit,
 }: VisaoGeralTabProps) {
   return (
     <div className="space-y-6">
 
       {/* 1. Dados do Silo */}
       <Card className="rounded-2xl bg-card shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-          <div>
-            <CardTitle>Dados do Silo</CardTitle>
-            <CardDescription>Informações básicas de estrutura e capacidade</CardDescription>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onEdit}
-            className="gap-2"
-            aria-label="Editar dados do silo"
-          >
-            <Edit2 className="h-4 w-4" />
-            Editar
-          </Button>
+        <CardHeader className="pb-3">
+          <CardTitle>Dados do Silo</CardTitle>
+          <CardDescription>Informações básicas de estrutura e capacidade</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-1">
