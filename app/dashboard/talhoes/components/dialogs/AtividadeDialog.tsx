@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,6 +26,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
 import { type CicloAgricola } from '@/lib/types/talhoes';
+import type { Insumo } from '@/lib/supabase';
 import {
   PreparoSoloFields,
   CalagemFields,
@@ -124,6 +125,18 @@ export function AtividadeDialog({
   onSuccess,
 }: AtividadeDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [sementes, setSementes] = useState<Insumo[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    q.categorias.list().then((cats) => {
+      const catSemente = cats.find((c) =>
+        c.nome.toLowerCase().includes('sement')
+      );
+      if (!catSemente) return;
+      q.insumos.list({ categoria_id: catSemente.id }).then(setSementes);
+    });
+  }, [open]);
   const methods = useForm<AtividadeInput>({
     resolver: zodResolver(atividadeSchema),
     defaultValues: {
@@ -393,7 +406,7 @@ export function AtividadeDialog({
 
             {tipoOperacao === 'Plantio' && (
               <div className="border-t pt-4">
-                <PlantioFields control={control} errors={errors} />
+                <PlantioFields control={control} errors={errors} sementes={sementes} />
               </div>
             )}
 
