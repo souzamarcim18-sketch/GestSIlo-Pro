@@ -171,62 +171,74 @@ export function AtividadeDialog({
 
     setIsLoading(true);
     try {
+      // Construir dados_json com detalhes específicos de cada tipo de operação
+      const dadosJson: any = {};
+
+      // Adicionar campos comuns opcionais
+      if (data.maquina_id) dadosJson.maquina_id = data.maquina_id;
+      if (data.horas_maquina) dadosJson.horas_maquina = data.horas_maquina;
+
+      // Preparo de Solo
+      if (data.tipo_operacao_solo) dadosJson.tipo_operacao_solo = data.tipo_operacao_solo;
+
+      // Calagem / Gessagem
+      if (data.insumo_id) dadosJson.insumo_id = data.insumo_id;
+      if (data.dose_ton_ha) dadosJson.dose_ton_ha = data.dose_ton_ha;
+
+      // Plantio
+      if (data.semente_id) dadosJson.semente_id = data.semente_id;
+      if (data.populacao_plantas_ha) dadosJson.populacao_plantas_ha = data.populacao_plantas_ha;
+      if (data.sacos_ha) dadosJson.sacos_ha = data.sacos_ha;
+      if (data.espacamento_entre_linhas_cm) dadosJson.espacamento_entre_linhas_cm = data.espacamento_entre_linhas_cm;
+
+      // Pulverização
+      if (data.categoria_pulverizacao) dadosJson.categoria_pulverizacao = data.categoria_pulverizacao;
+      if (data.dose_valor) dadosJson.dose_valor = data.dose_valor;
+      if (data.dose_unidade) dadosJson.dose_unidade = data.dose_unidade;
+      if (data.volume_calda_l_ha) dadosJson.volume_calda_l_ha = data.volume_calda_l_ha;
+
+      // Colheita
+      if (data.produtividade_ton_ha) dadosJson.produtividade_ton_ha = data.produtividade_ton_ha;
+      if (data.maquina_colheita_id) dadosJson.maquina_colheita_id = data.maquina_colheita_id;
+      if (data.horas_colheita) dadosJson.horas_colheita = data.horas_colheita;
+      if (data.maquina_transporte_id) dadosJson.maquina_transporte_id = data.maquina_transporte_id;
+      if (data.horas_transporte) dadosJson.horas_transporte = data.horas_transporte;
+      if (data.maquina_compactacao_id) dadosJson.maquina_compactacao_id = data.maquina_compactacao_id;
+      if (data.horas_compactacao) dadosJson.horas_compactacao = data.horas_compactacao;
+      if (data.valor_terceirizacao_r) dadosJson.valor_terceirizacao_r = data.valor_terceirizacao_r;
+      if (data.permite_rebrota) dadosJson.permite_rebrota = data.permite_rebrota;
+
+      // Análise de Solo
+      if (data.custo_amostra_r) dadosJson.custo_amostra_r = data.custo_amostra_r;
+      if (data.metodo_entrada) dadosJson.metodo_entrada = data.metodo_entrada;
+      if (data.ph_cacl2) dadosJson.ph_cacl2 = data.ph_cacl2;
+      if (data.mo_g_dm3) dadosJson.mo_g_dm3 = data.mo_g_dm3;
+      if (data.p_mg_dm3) dadosJson.p_mg_dm3 = data.p_mg_dm3;
+      if (data.k_mmolc_dm3) dadosJson.k_mmolc_dm3 = data.k_mmolc_dm3;
+      if (data.ca_mmolc_dm3) dadosJson.ca_mmolc_dm3 = data.ca_mmolc_dm3;
+      if (data.mg_mmolc_dm3) dadosJson.mg_mmolc_dm3 = data.mg_mmolc_dm3;
+      if (data.al_mmolc_dm3) dadosJson.al_mmolc_dm3 = data.al_mmolc_dm3;
+      if (data.h_al_mmolc_dm3) dadosJson.h_al_mmolc_dm3 = data.h_al_mmolc_dm3;
+      if (data.s_mg_dm3) dadosJson.s_mg_dm3 = data.s_mg_dm3;
+      if (data.b_mg_dm3) dadosJson.b_mg_dm3 = data.b_mg_dm3;
+      if (data.cu_mg_dm3) dadosJson.cu_mg_dm3 = data.cu_mg_dm3;
+      if (data.fe_mg_dm3) dadosJson.fe_mg_dm3 = data.fe_mg_dm3;
+      if (data.mn_mg_dm3) dadosJson.mn_mg_dm3 = data.mn_mg_dm3;
+      if (data.zn_mg_dm3) dadosJson.zn_mg_dm3 = data.zn_mg_dm3;
+
+      // Irrigação
+      if (data.lamina_mm) dadosJson.lamina_mm = data.lamina_mm;
+      if (data.horas_irrigacao) dadosJson.horas_irrigacao = data.horas_irrigacao;
+      if (data.custo_por_hora_r) dadosJson.custo_por_hora_r = data.custo_por_hora_r;
+
       const payload: any = {
         ciclo_id: cicloAtivo.id,
         talhao_id: talhaoId,
-        tipo_operacao: data.tipo_operacao,
-        data: data.data,
-        maquina_id: data.maquina_id || null,
-        horas_maquina: data.horas_maquina || null,
+        tipo_atividade: data.tipo_operacao,
+        data_atividade: data.data,
         observacoes: data.observacoes || null,
-        custo_manual: data.custo_manual || null,
         custo_total: custoEstimado,
-        // Preparo de Solo
-        tipo_operacao_solo: data.tipo_operacao_solo || null,
-        // Calagem / Gessagem
-        insumo_id: data.insumo_id || null,
-        dose_ton_ha: data.dose_ton_ha || null,
-        // Plantio
-        semente_id: data.semente_id || null,
-        populacao_plantas_ha: data.populacao_plantas_ha || null,
-        sacos_ha: data.sacos_ha || null,
-        espacamento_entre_linhas_cm: data.espacamento_entre_linhas_cm || null,
-        // Pulverização
-        categoria_pulverizacao: data.categoria_pulverizacao || null,
-        dose_valor: data.dose_valor || null,
-        dose_unidade: data.dose_unidade || null,
-        volume_calda_l_ha: data.volume_calda_l_ha || null,
-        // Colheita
-        produtividade_ton_ha: data.produtividade_ton_ha || null,
-        maquina_colheita_id: data.maquina_colheita_id || null,
-        horas_colheita: data.horas_colheita || null,
-        maquina_transporte_id: data.maquina_transporte_id || null,
-        horas_transporte: data.horas_transporte || null,
-        maquina_compactacao_id: data.maquina_compactacao_id || null,
-        horas_compactacao: data.horas_compactacao || null,
-        valor_terceirizacao_r: data.valor_terceirizacao_r || null,
-        permite_rebrota: data.permite_rebrota || false,
-        // Análise de Solo
-        custo_amostra_r: data.custo_amostra_r || null,
-        metodo_entrada: data.metodo_entrada || null,
-        ph_cacl2: data.ph_cacl2 || null,
-        mo_g_dm3: data.mo_g_dm3 || null,
-        p_mg_dm3: data.p_mg_dm3 || null,
-        k_mmolc_dm3: data.k_mmolc_dm3 || null,
-        ca_mmolc_dm3: data.ca_mmolc_dm3 || null,
-        mg_mmolc_dm3: data.mg_mmolc_dm3 || null,
-        al_mmolc_dm3: data.al_mmolc_dm3 || null,
-        h_al_mmolc_dm3: data.h_al_mmolc_dm3 || null,
-        s_mg_dm3: data.s_mg_dm3 || null,
-        b_mg_dm3: data.b_mg_dm3 || null,
-        cu_mg_dm3: data.cu_mg_dm3 || null,
-        fe_mg_dm3: data.fe_mg_dm3 || null,
-        mn_mg_dm3: data.mn_mg_dm3 || null,
-        zn_mg_dm3: data.zn_mg_dm3 || null,
-        // Irrigação
-        lamina_mm: data.lamina_mm || null,
-        horas_irrigacao: data.horas_irrigacao || null,
-        custo_por_hora_r: data.custo_por_hora_r || null,
+        dados_json: dadosJson,
       };
 
       const atividade = await q.atividadesCampo.create(payload);

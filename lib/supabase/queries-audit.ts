@@ -1305,15 +1305,15 @@ const atividadesCampo = {
   },
 
   async create(
-    payload: Omit<AtividadeCampo, 'id' | 'created_at'>
+    payload: Omit<AtividadeCampo, 'id' | 'created_at' | 'fazenda_id'>
   ): Promise<AtividadeCampo> {
     // TODO [Bloco Frota/Insumos]: Integrar custo_hora da tabela maquinas
     // e preco_unitario da tabela insumos para cálculo automático de custo_total.
     // Atualmente, custo é calculado client-side e passado aqui como payload.
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('atividades_campo')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select()
       .single();
     if (error) throw error;
@@ -1324,11 +1324,12 @@ const atividadesCampo = {
     id: string,
     payload: Partial<AtividadeCampo>
   ): Promise<AtividadeCampo> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('atividades_campo')
       .update(payload)
       .eq('id', id)
+      .eq('fazenda_id', fazendaId)
       .select()
       .single();
     if (error) throw error;
@@ -1336,11 +1337,12 @@ const atividadesCampo = {
   },
 
   async remove(id: string): Promise<void> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { error } = await supabase
       .from('atividades_campo')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId);
     if (error) throw error;
   },
 };
