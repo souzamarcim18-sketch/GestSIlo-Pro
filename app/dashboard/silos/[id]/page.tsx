@@ -6,6 +6,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
 import { getCustoSilo } from '@/lib/supabase/silos';
+import { deleteSiloSafely } from '@/lib/supabase/safe-delete';
+import { supabase } from '@/lib/supabase';
 import {
   type Silo,
   type MovimentacaoSilo,
@@ -56,6 +58,8 @@ export default function SiloDetailPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
+  const [deleteDependencies, setDeleteDependencies] = useState<{ movimentacoesCount: number; avaliacoesCount: number } | null>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   // Fetch dados
   const fetchData = useCallback(async () => {
@@ -93,13 +97,38 @@ export default function SiloDetailPage() {
     }
   }, [siloId, router]);
 
+  const handleCheckDelete = async () => {
+    if (!silo) return;
+    setIsDeleting(true);
+    try {
+      const validacao = await deleteSiloSafely(silo.id);
+      setDeleteDependencies({
+        movimentacoesCount: validacao.movimentacoesCount,
+        avaliacoesCount: validacao.avaliacoesCount,
+      });
+      setShowDeleteConfirmation(true);
+    } catch (err) {
+      toast.error('Erro ao verificar dependências');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleDeleteSilo = async () => {
     if (!silo) return;
     setIsDeleting(true);
     try {
-      await q.silos.remove(silo.id);
-      toast.success('Silo deletado com sucesso!');
+      // Chamar remoção diretamente sem validação (já foi feita)
+      const { error } = await supabase
+        .from('silos')
+        .delete()
+        .eq('id', silo.id);
+
+      if (error) throw error;
+
+      toast.success('Silo deletado com sucesso junto com suas movimentações e avaliações!');
       setIsDeleteOpen(false);
+      setShowDeleteConfirmation(false);
       router.push('/dashboard/silos');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao deletar silo');
@@ -162,7 +191,11 @@ export default function SiloDetailPage() {
         <Button
           variant="destructive"
           size="sm"
-          onClick={() => setIsDeleteOpen(true)}
+          onClick={() => {
+            setDeleteDependencies(null);
+            setShowDeleteConfirmation(false);
+            setIsDeleteOpen(true);
+          }}
           className="gap-2"
           aria-label="Deletar silo"
         >
@@ -231,30 +264,84 @@ export default function SiloDetailPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Deletar Silo</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja deletar o silo <strong>{silo?.nome}</strong>? Esta ação não pode ser desfeita.
-            </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsDeleteOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDeleteSilo}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deletando...' : 'Deletar'}
-            </Button>
-          </DialogFooter>
+
+          {!showDeleteConfirmation ? (
+            <>
+              <DialogDescription>
+                Clique em &quot;Verificar&quot; para ver as dependências associadas antes de deletar o silo <strong>{silo?.nome}</strong>.
+              </DialogDescription>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDeleteOpen(false)}
+                  disabled={isDeleting}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleCheckDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Verificando...' : 'Verificar'}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="space-y-4 py-4">
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-3">
+                  <p className="text-sm font-medium text-destructive">
+                    Este silo possui as seguintes dependências que serão deletadas:
+                  </p>
+                  {deleteDependencies && (
+                    <ul className="text-sm space-y-1 ml-4">
+                      {deleteDependencies.movimentacoesCount > 0 && (
+                        <li className="list-disc">
+                          <strong>{deleteDependencies.movimentacoesCount}</strong> movimentação(ões) de estoque
+                        </li>
+                      )}
+                      {deleteDependencies.avaliacoesCount > 0 && (
+                        <li className="list-disc">
+                          <strong>{deleteDependencies.avaliacoesCount}</strong> avaliação(ões) bromatológica(s) ou PSPS
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Tem certeza que deseja deletar o silo <strong>{silo?.nome}</strong> e todos os seus dados associados? Esta ação não pode ser desfeita.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowDeleteConfirmation(false);
+                    setDeleteDependencies(null);
+                  }}
+                  disabled={isDeleting}
+                >
+                  Voltar
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteSilo}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deletando...' : 'Confirmar Deleção'}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
