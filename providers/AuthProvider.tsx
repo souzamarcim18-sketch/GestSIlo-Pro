@@ -95,8 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from('profiles')
           .select('*')
           .eq('id', currentUser.id)
-          .single()
-          ; 
+          .maybeSingle(); // Changed from .single() to .maybeSingle() to handle missing profiles
 
         console.log('🔐 [FETCH-PROFILE] Awaiting promise.race...');
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -104,6 +103,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error) {
           console.error('🔐 [FETCH-PROFILE] Query returned error:', error);
           throw error;
+        }
+
+        // If no profile exists, create a minimal one for onboarding
+        if (!data) {
+          console.log('⚠️  [FETCH-PROFILE] No profile found, creating minimal profile for onboarding');
+          return {
+            data: {
+              id: currentUser.id,
+              nome: currentUser.email?.split('@')[0] || 'Usuário',
+              email: currentUser.email,
+              perfil: 'Operador',
+              fazenda_id: null,
+            },
+            error: null
+          };
         }
 
         console.log('✅ [FETCH-PROFILE] SUCCESS - profile loaded:', data);
