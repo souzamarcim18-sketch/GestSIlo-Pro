@@ -6,10 +6,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import {
+  Wheat,
+  Map as MapIcon,
+  Tractor,
+  Calculator,
+  DollarSign,
+  Beef,
+  FlaskConical,
+  BarChart3,
+} from 'lucide-react';
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -45,7 +56,13 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white dark:bg-sidebar flex flex-col">
 
       {/* ===== NAVBAR ===== */}
-<header className="fixed top-0 left-0 right-0 z-50 bg-[#e8f5e9]/80 dark:bg-gradient-to-r dark:from-[#243d24]/95 dark:to-[#3a4f3a]/95 backdrop-blur-md border-b border-gray-100 dark:border-white/10 shadow-sm">
+<header
+  className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-gray-400 dark:border-white/10 shadow-sm"
+  style={{
+    background:
+      'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)',
+  }}
+>
   <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <Image
@@ -58,30 +75,31 @@ export default function LandingPage() {
       />
     </div>
 
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-muted-foreground">
-            <a href="#funcionalidades" className="hover:text-primary transition-colors">Funcionalidades</a>
-            <a href="#beneficios" className="hover:text-primary transition-colors">Benefícios</a>
-            <a href="#depoimentos" className="hover:text-primary transition-colors">Depoimentos</a>
-            <a href="#planos" className="hover:text-primary transition-colors">Planos</a>
-          </nav>
+    <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-black dark:text-muted-foreground">
+      <a href="#funcionalidades" className="hover:text-primary transition-colors">Funcionalidades</a>
+      <a href="#beneficios" className="hover:text-primary transition-colors">Benefícios</a>
+      <a href="#depoimentos" className="hover:text-primary transition-colors">Depoimentos</a>
+      <a href="#planos" className="hover:text-primary transition-colors">Planos</a>
+    </nav>
 
-          <div className="flex items-center gap-2 md:gap-4">
-            <button
-              onClick={() => router.push('/login')}
-              className="hidden md:block text-sm font-semibold text-gray-600 dark:text-muted-foreground hover:text-primary transition-colors"
-            >
-              Entrar
-            </button>
-            <button
-              onClick={() => router.push('/register')}
-              className="text-sm font-semibold text-white px-4 md:px-6 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
-              style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
-            >
-              Solicitar acesso
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="flex items-center gap-2 md:gap-4">
+      <button
+        onClick={() => router.push('/login')}
+        className="hidden md:block text-sm font-semibold text-black dark:text-muted-foreground hover:text-primary transition-colors"
+      >
+        Entrar
+      </button>
+      <button
+        onClick={() => router.push('/register')}
+        className="text-sm font-semibold text-white px-4 md:px-6 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
+        style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
+      >
+        Solicitar acesso
+      </button>
+    </div>
+  </div>
+</header>
+
 
       {/* ===== HERO ===== */}
 <section className="relative min-h-[80vh] flex items-center overflow-hidden pt-20 bg-gradient-to-br from-[#f0f7f0] via-[#e8f5e9] to-[#dcedc8]">
@@ -110,7 +128,7 @@ export default function LandingPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm"
             style={{ backgroundColor: 'rgba(0,166,81,0.1)', color: '#00A651', border: '1px solid rgba(0,166,81,0.2)' }}
           >
-            Plataforma feita para o produtor brasileiro
+            Plataforma feita para o pecuarista e agricultor brasileiro
           </span>
         </div>
 
@@ -190,60 +208,112 @@ export default function LandingPage() {
 </section>
 
 
-      {/* ===== FUNCIONALIDADES ===== */}
-      <section id="funcionalidades" className="py-24 bg-white dark:bg-sidebar px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-foreground mb-4">Tudo que sua fazenda precisa</h2>
-            <p className="text-lg text-gray-500 dark:text-muted-foreground max-w-xl mx-auto">
-              Uma plataforma completa para gestão do campo à administração.
-            </p>
-          </div>
+     {/* ===== FUNCIONALIDADES ===== */}
+<section
+  id="funcionalidades"
+  className="py-24 px-6 dark:bg-sidebar"
+  style={{
+    background:
+      'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)',
+  }}
+>
+  <div className="max-w-6xl mx-auto">
+    <div className="text-center mb-16">
+      <h2 className="text-4xl font-extrabold text-black dark:text-foreground mb-4">
+        O sistema que sua fazenda precisa
+      </h2>
+      <p className="text-lg text-black/70 dark:text-muted-foreground max-w-xl mx-auto">
+        Uma plataforma completa para gestão. Do campo à administração.
+      </p>
+    </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: '🌾',
-                title: 'Silos & Estoque',
-                desc: 'Monitore volumes, entradas, saídas e qualidade dos grãos armazenados em tempo real.',
-                color: '#F0FDF4',
-                border: '#BBF7D0',
-              },
-              {
-                icon: '🗺️',
-                title: 'Talhões',
-                desc: 'Gerencie áreas, culturas, histórico de plantio e produtividade por talhão.',
-                color: '#EFF6FF',
-                border: '#BFDBFE',
-              },
-              {
-                icon: '🚜',
-                title: 'Frota & Maquinário',
-                desc: 'Controle manutenções, abastecimentos, horas trabalhadas e custos operacionais.',
-                color: '#FFF7ED',
-                border: '#FED7AA',
-              },
-              {
-                icon: '📊',
-                title: 'Financeiro',
-                desc: 'Acompanhe receitas, despesas, DRE e fluxo de caixa da sua propriedade.',
-                color: '#FDF4FF',
-                border: '#E9D5FF',
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="rounded-2xl p-6 border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-default dark:bg-muted dark:border-border"
-                style={{ background: item.color, borderColor: item.border }}
-              >
-                <div className="text-4xl mb-4">{item.icon}</div>
-                <h3 className="font-bold text-gray-900 dark:text-foreground text-lg mb-2">{item.title}</h3>
-                <p className="text-gray-500 dark:text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {[
+        {
+          Icon: Wheat,
+          title: 'Gestão de Silagens',
+          desc: 'Tenha controle total das suas silagens em tempo real — acompanhe entradas, saídas, volumes armazenados e a qualidade de cada lote, evitando perdas e garantindo forragem de alto valor nutricional para o seu rebanho.',
+          color: '#023c1f',
+          border: '#BBF7D0',
+          iconColor: '#BBF7D0',
+        },
+        {
+          Icon: MapIcon,
+          title: 'Gestão de Lavouras',
+          desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.',
+          color: '#023c1f',
+          border: '#BFDBFE',
+          iconColor: '#BFDBFE',
+        },
+        {
+          Icon: Tractor,
+          title: 'Gestão de Máquinas e Implementos',
+          desc: 'Controle as manutenções, os abastecimentos, as horas trabalhadas e os custos operacionais.',
+          color: '#023c1f',
+          border: '#FED7AA',
+          iconColor: '#FED7AA',
+        },
+        {
+          Icon: Calculator,
+          title: 'Calculadoras',
+          desc: 'Tenha nas suas mãos calculadoras que te ajudarão a tomar decisões em relação à compras de fertilizantes e calcário.',
+          color: '#023c1f',
+          border: '#E9D5FF',
+          iconColor: '#E9D5FF',
+        },
+        {
+          Icon: DollarSign,
+          title: 'Gestão Financeira',
+          desc: 'Acompanhe as receitas, as despesas, da sua propriedade com formatação em BRL e cálculos automáticos.',
+          color: '#023c1f',
+          border: '#FEF08A',
+          iconColor: '#FEF08A',
+        },
+        {
+          Icon: Beef,
+          title: 'Planejamento de silagens',
+          desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.',
+          color: '#023c1f',
+          border: '#FECACA',
+          iconColor: '#FECACA',
+        },
+        {
+          Icon: FlaskConical,
+          title: 'Gestão de Insumos',
+          desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.',
+          color: '#023c1f',
+          border: '#A5F3FC',
+          iconColor: '#A5F3FC',
+        },
+        {
+          Icon: BarChart3,
+          title: 'Relatórios & Simulador',
+          desc: 'Gere relatórios consolidados por período e simule cenários agrícolas para apoiar suas decisões estratégicas.',
+          color: '#023c1f',
+          border: '#DDD6FE',
+          iconColor: '#DDD6FE',
+        },
+      ].map((item) => (
+        <div
+          key={item.title}
+          className="rounded-2xl p-6 border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-default dark:bg-muted dark:border-border"
+          style={{ background: item.color, borderColor: item.border }}
+        >
+          <div className="mb-4">
+            <item.Icon size={40} strokeWidth={1.8} color={item.iconColor} />
           </div>
+          <h3 className="font-bold text-white dark:text-foreground text-lg mb-2">
+            {item.title}
+          </h3>
+          <p className="text-gray-300 dark:text-muted-foreground text-sm leading-relaxed">
+            {item.desc}
+          </p>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
+
 
       {/* ===== BENEFÍCIOS ===== */}
       <section
