@@ -68,7 +68,7 @@ export default function LandingPage() {
               alt="GestSilo"
               width={180}
               height={45}
-              className="object-contain brightness-130"
+              className="object-contain brightness-110"
               priority
             />
           </div>
@@ -263,19 +263,19 @@ export default function LandingPage() {
               className="text-xs font-bold uppercase tracking-widest mb-4 block"
               style={{ color: '#00843D' }}
             >
-              Por que o GestSilo?
+              Por que utilizar o GestSilo na sua propriedade?
             </span>
             <h2
               className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight"
               style={{ color: '#023c1f' }}
             >
-              Decisões mais inteligentes,<br />resultado no campo
+              Decisões mais inteligentes,<br />resultado no campo!
             </h2>
             <div className="space-y-5">
               {[
-                { icon: '⚡', title: 'Agilidade', desc: 'Acesse qualquer informação em segundos, do celular ou computador.' },
-                { icon: '📍', title: 'Rastreabilidade', desc: 'Histórico completo de cada talhão, silo e máquina da sua fazenda.' },
-                { icon: '💰', title: 'Redução de custos', desc: 'Identifique gargalos e reduza desperdícios com dados precisos.' },
+                { icon: '⚡', title: 'Agilidade', desc: 'Acesse qualquer informação em segundos, do celular ou do computador.' },
+                { icon: '📍', title: 'Rastreabilidade', desc: 'Histórico completo de cada silo, de cada lavoura e das máquinas da sua fazenda.' },
+                { icon: '💰', title: 'Gestão de custos', desc: 'Identifique os gargalos e reduza os desperdícios, através de dados precisos.' },
                 { icon: '🔒', title: 'Segurança', desc: 'Seus dados protegidos com criptografia e backup automático.' },
               ].map((b) => (
                 <div key={b.title} className="flex items-start gap-4">
@@ -348,42 +348,42 @@ export default function LandingPage() {
               className="text-4xl md:text-5xl font-extrabold mb-4 dark:text-foreground"
               style={{ color: '#023c1f' }}
             >
-              Planos para todo tamanho de fazenda
+              O plano certo para cada fazenda!
             </h2>
             <p
               className="text-lg dark:text-muted-foreground"
               style={{ color: '#1a1a1a' }}
             >
-              Comece grátis e escale conforme crescer
+              Grátis para começar. Sem surpresa e sem limites para crescer!
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                name: 'Starter',
+                name: 'Start',
                 price: 'Grátis',
                 period: '',
-                desc: 'Para pequenos produtores',
-                features: ['1 silo', 'Até 5 talhões', 'Relatórios básicos', 'Suporte por e-mail'],
+                desc: 'Para produtores que querem iniciar e conhecer',
+                features: ['1 silo', 'Até 3 talhões', 'Suporte por e-mail'],
                 cta: 'Começar grátis',
                 highlight: false,
               },
               {
                 name: 'Pro',
-                price: 'R$ 197',
+                price: 'R$ 49',
                 period: '/mês',
-                desc: 'Para produtores em crescimento',
-                features: ['Silos ilimitados', 'Talhões ilimitados', 'Módulo financeiro', 'Frota & maquinário', 'Relatórios avançados', 'Suporte prioritário'],
+                desc: 'Para gestão profissional da propriedade',
+                features: ['Silos ilimitados', 'Talhões ilimitados', 'Planejador de silagem', 'Módulo financeiro', 'Gestão de Frotas', 'Calculadoras de Calcário e de Fertilizantes' , 'Relatórios avançados', 'Suporte prioritário'],
                 cta: 'Assinar Pro',
                 highlight: true,
               },
               {
-                name: 'Enterprise',
-                price: 'Sob consulta',
-                period: '',
+                name: 'Max',
+                price: 'R$ 119',
+                period: '/mês',
                 desc: 'Para grandes operações',
-                features: ['Tudo do Pro', 'Multi-fazendas', 'API & integrações', 'Gerente de conta dedicado', 'Treinamento presencial'],
+                features: ['Tudo do Pro', 'Multi-fazendas', 'Assessoria agronômica exclusiva'],
                 cta: 'Falar com vendas',
                 highlight: false,
               },
@@ -492,23 +492,23 @@ export default function LandingPage() {
             className="text-4xl md:text-5xl font-extrabold mb-6"
             style={{ color: '#023c1f' }}
           >
-            Pronto para transformar<br />sua gestão agrícola?
+            Pronto para transformar sua gestão<br />de silagens e da propriedade?
           </h2>
           <p
             className="text-lg mb-10"
             style={{ color: '#2d2d2d' }}
           >
-            Junte-se a mais de 500 produtores que já gerenciam suas fazendas com mais eficiência e controle.
-          </p>
+            Mais controle. Menos perdas. Mais resultados para seu rebanho e para sua propriedade.
+             </p>
           <button
             onClick={() => router.push('/register')}
             className="px-10 py-5 font-bold text-lg rounded-2xl shadow-2xl transition-all duration-200 hover:-translate-y-1 text-white"
             style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
           >
-            Começar agora — é grátis →
+            Solicitar meu acesso
           </button>
           <p className="text-sm mt-4" style={{ color: '#4a4a4a' }}>
-            Sem cartão de crédito. Sem compromisso.
+            Solicite seu primeiro acesso, conheça e melhore sua gestão.
           </p>
         </div>
       </section>
