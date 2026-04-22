@@ -495,7 +495,7 @@ export default function LandingPage() {
             className="text-4xl md:text-5xl font-extrabold mb-6"
             style={{ color: '#023c1f' }}
           >
-            Pronto para transformar sua gestão<br />de silagens e da propriedade?
+            Pronto para gerenciar<br />suas silagens e sua propriedade?
           </h2>
           <p
             className="text-lg mb-10"
@@ -521,7 +521,7 @@ export default function LandingPage() {
   className="py-12 px-6 border-t border-gray-400/50"
   style={{
     background:
-      'linear-gradient(135deg, #7a7a7a 0%, #9a9a9a 25%, #b0b0b0 50%, #8a8a8a 75%, #6a6a6a 100%)',
+      'linear-gradient(135deg, #8b8a8a 0%, #9a9a9a 25%, #b0b0b0 50%, #8a8a8a 75%, #838282 100%)',
   }}
 >
   <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
@@ -531,9 +531,9 @@ export default function LandingPage() {
       <Image
         src="/logo_degrad-hor.png"
         alt="GestSilo"
-        width={180}
-        height={45}
-        className="object-contain brightness-130"
+        width={200}
+        height={50}
+        className="object-contain brightness-140"
       />
       <span className="text-sm font-medium" style={{ color: '#1a1a1a' }}>
         © 2026 · Todos os direitos reservados
