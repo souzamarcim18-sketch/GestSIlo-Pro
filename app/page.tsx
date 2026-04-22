@@ -14,6 +14,9 @@ import {
   Beef,
   FlaskConical,
   BarChart3,
+  Phone,
+  Instagram,
+  Mail,
 } from 'lucide-react';
 
 // Fundo cinza metálico padrão da página
@@ -514,20 +517,79 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-gray-900 dark:bg-background text-gray-400 dark:text-muted-foreground py-12 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <span className="font-bold" style={{ color: '#00A651' }}>Gest</span>
-            <span className="font-bold" style={{ color: '#6B8E23' }}>Silo</span>
-            <span className="text-gray-600 dark:text-muted-foreground/60 ml-2 text-sm">© 2026 · Todos os direitos reservados</span>
-          </div>
-          <div className="flex items-center gap-6 text-sm">
-            <a href="#" className="hover:text-white dark:hover:text-foreground transition-colors">Privacidade</a>
-            <a href="#" className="hover:text-white dark:hover:text-foreground transition-colors">Termos de uso</a>
-            <a href="#" className="hover:text-white dark:hover:text-foreground transition-colors">Suporte</a>
-          </div>
-        </div>
-      </footer>
+<footer
+  className="py-12 px-6 border-t border-gray-400/50"
+  style={{
+    background:
+      'linear-gradient(135deg, #7a7a7a 0%, #9a9a9a 25%, #b0b0b0 50%, #8a8a8a 75%, #6a6a6a 100%)',
+  }}
+>
+  <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+
+    {/* Logo + copyright */}
+    <div className="flex items-center gap-4">
+      <Image
+        src="/logo_degrad-hor.png"
+        alt="GestSilo"
+        width={180}
+        height={45}
+        className="object-contain brightness-130"
+      />
+      <span className="text-sm font-medium" style={{ color: '#1a1a1a' }}>
+        © 2026 · Todos os direitos reservados
+      </span>
+    </div>
+
+    {/* Links + Contatos */}
+    <div
+      className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-semibold"
+      style={{ color: '#1a1a1a' }}
+    >
+      <a href="#" className="hover:text-primary transition-colors">
+        Privacidade
+      </a>
+      <a href="#" className="hover:text-primary transition-colors">
+        Termos de uso
+      </a>
+
+      {/* Separador visual */}
+      <span className="hidden md:inline-block w-px h-4 bg-black/30" />
+
+      {/* Contatos */}
+      <a
+        href="https://wa.me/5531990875346"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 hover:text-primary transition-colors"
+        aria-label="WhatsApp"
+      >
+        <Phone size={16} />
+        <span>(31) 99087-5346</span>
+      </a>
+
+      <a
+        href="https://instagram.com/gestsilo"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 hover:text-primary transition-colors"
+        aria-label="Instagram"
+      >
+        <Instagram size={16} />
+        <span>@gestsilo</span>
+      </a>
+
+      <a
+        href="mailto:gestsilo.app@gmail.com"
+        className="flex items-center gap-1.5 hover:text-primary transition-colors"
+        aria-label="E-mail"
+      >
+        <Mail size={16} />
+        <span>gestsilo.app@gmail.com</span>
+      </a>
+    </div>
+  </div>
+</footer>
+
 
     </div>
   );
