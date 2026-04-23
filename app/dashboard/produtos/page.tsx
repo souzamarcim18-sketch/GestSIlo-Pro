@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { PackageOpen, ArrowRight, Wheat, Beef, Leaf, BarChart3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 
 const features = [
@@ -92,12 +92,13 @@ export default function ProdutosPage() {
               O módulo de Insumos já está disponível para gestão do que é utilizado na produção.
             </p>
           </div>
-          <Button asChild size="sm" variant="outline">
-            <Link href="/dashboard/insumos">
-              Ver Insumos
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Link>
-          </Button>
+          <Link
+            href="/dashboard/insumos"
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Ver Insumos
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Link>
         </CardContent>
       </Card>
 

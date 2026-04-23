@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { HelpCircle, Mail, MessageSquare, BookOpen, ExternalLink, Phone } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const contactOptions = [
@@ -88,17 +88,15 @@ export default function SuportePage() {
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{opt.description}</p>
                 <p className="text-sm font-medium text-foreground mt-2">{opt.action}</p>
               </div>
-              <Button
-                asChild
-                size="sm"
-                variant="outline"
-                className="w-full mt-auto"
+              <a
+                href={opt.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonVariants({ variant: 'outline', size: 'sm', className: 'w-full mt-auto' })}
               >
-                <a href={opt.href} target="_blank" rel="noopener noreferrer">
-                  {opt.label}
-                  <ExternalLink className="h-3.5 w-3.5 ml-2" />
-                </a>
-              </Button>
+                {opt.label}
+                <ExternalLink className="h-3.5 w-3.5 ml-2" />
+              </a>
             </CardContent>
           </Card>
         ))}

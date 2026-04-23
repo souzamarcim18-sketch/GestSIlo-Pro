@@ -4,12 +4,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFazendaCoordinates } from '@/hooks/useFazendaCoordinates';
 import { WeatherWidget } from '@/components/widgets';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { CloudSun, MapPin, Settings, Sprout, Droplets, Wind, Thermometer, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 import type { WeatherWidgetData } from '@/lib/weather';
-import { getWeatherIconComponent, formatTemperature, getWindDirection } from '@/lib/widget-utils';
+import { formatTemperature, getWindDirection } from '@/lib/widget-utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const agriTips: Record<string, { icon: React.ElementType; tip: string; color: string }[]> = {
@@ -107,12 +107,13 @@ export default function PrevisaoTempoPage() {
                 Configure as coordenadas da sua propriedade em Configurações para ver a previsão do tempo.
               </p>
             </div>
-            <Button asChild size="sm" variant="outline" className="border-amber-400 text-amber-800 hover:bg-amber-100">
-              <Link href="/dashboard/configuracoes">
-                <Settings className="h-4 w-4 mr-2" />
-                Configurar
-              </Link>
-            </Button>
+            <Link
+              href="/dashboard/configuracoes"
+              className={buttonVariants({ variant: 'outline', size: 'sm', className: 'border-amber-400 text-amber-800 hover:bg-amber-100' })}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Configurar
+            </Link>
           </CardContent>
         </Card>
       )}
