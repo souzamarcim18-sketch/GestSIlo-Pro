@@ -519,7 +519,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== FOOTER ===== */}
+     {/* ===== FOOTER ===== */}
 <footer
   className="py-12 px-6 border-t border-gray-400/50"
   style={{
@@ -527,10 +527,10 @@ export default function LandingPage() {
       'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)',
   }}
 >
-  <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+  <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
 
-    {/* Logo + copyright */}
-    <div className="flex items-center gap-2">
+    {/* ===== COLUNA 1 — Logo + copyright ===== */}
+    <div className="flex flex-col items-center md:items-start gap-3">
       <Image
         src="/logo_degrad-hor.png"
         alt="GestSilo"
@@ -538,32 +538,29 @@ export default function LandingPage() {
         height={50}
         className="object-contain brightness-140"
       />
-      <span className="text-sm font-medium" style={{ color: '#1a1a1a' }}>
+      <span
+        className="text-sm font-medium"
+        style={{ color: '#1a1a1a' }}
+      >
         © 2026 · Todos os direitos reservados
       </span>
     </div>
 
-    {/* Links + Contatos */}
-    <div
-      className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-semibold"
-      style={{ color: '#1a1a1a' }}
-    >
-      <a href="#" className="hover:text-primary transition-colors">
-        Privacidade
-      </a>
-      <a href="#" className="hover:text-primary transition-colors">
-        Termos de uso
-      </a>
+    {/* ===== COLUNA 2 — Contatos ===== */}
+    <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-black/30 md:pl-8">
+      <h4
+        className="text-sm font-bold uppercase tracking-wider mb-1"
+        style={{ color: '#023c1f' }}
+      >
+        Contatos
+      </h4>
 
-      {/* Separador visual */}
-      <span className="hidden md:inline-block w-px h-4 bg-black/30" />
-
-      {/* Contatos */}
       <a
         href="https://wa.me/5531990875346"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 hover:text-primary transition-colors"
+        className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+        style={{ color: '#1a1a1a' }}
         aria-label="WhatsApp"
       >
         <Phone size={16} />
@@ -574,7 +571,8 @@ export default function LandingPage() {
         href="https://instagram.com/gestsilo"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 hover:text-primary transition-colors"
+        className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+        style={{ color: '#1a1a1a' }}
         aria-label="Instagram"
       >
         <Instagram size={16} />
@@ -583,17 +581,44 @@ export default function LandingPage() {
 
       <a
         href="mailto:gestsilo.app@gmail.com"
-        className="flex items-center gap-1.5 hover:text-primary transition-colors"
+        className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+        style={{ color: '#1a1a1a' }}
         aria-label="E-mail"
       >
         <Mail size={16} />
         <span>gestsilo.app@gmail.com</span>
       </a>
     </div>
-  </div>
-</footer>
 
+    {/* ===== COLUNA 3 — Links institucionais ===== */}
+    <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-black/30 md:pl-8">
+      <h4
+        className="text-sm font-bold uppercase tracking-wider mb-1"
+        style={{ color: '#023c1f' }}
+      >
+        Institucional
+      </h4>
+
+      <a
+        href="#"
+        className="text-sm font-medium hover:text-primary transition-colors"
+        style={{ color: '#1a1a1a' }}
+      >
+        Privacidade
+      </a>
+      <a
+        href="#"
+        className="text-sm font-medium hover:text-primary transition-colors"
+        style={{ color: '#1a1a1a' }}
+      >
+        Termos de uso
+      </a>
+    </div>
+
+  </div>
+      </footer>
 
     </div>
   );
 }
+
