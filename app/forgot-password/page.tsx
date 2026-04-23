@@ -18,22 +18,24 @@ export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      setSent(true);
-      toast.success('E-mail de recuperação enviado!');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao enviar e-mail.';
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
+  e.preventDefault();
+  if (!email.trim()) return;
+  setLoading(true);
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${siteUrl}/reset-password`,
+    });
+    if (error) throw error;
+    setSent(true);
+    toast.success('E-mail de recuperação enviado!');
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erro ao enviar e-mail.';
+    toast.error(msg);
+  } finally {
+    setLoading(false);
+  }
   };
 
   return (
