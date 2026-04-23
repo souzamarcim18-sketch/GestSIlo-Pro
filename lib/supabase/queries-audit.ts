@@ -36,6 +36,7 @@ import {
   type PeriodoConfinamento,
   type AvaliacaoBromatologica,
   type AvaliacaoPSPS,
+  type PlanoManutencao,
 } from '../supabase';
 import type { AvaliacaoBromatologicaInput, AvaliacaoPspsInput } from '../validations/silos';
 import type { EventoDAP } from '@/lib/types/talhoes';
@@ -961,7 +962,7 @@ const maquinas = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('maquinas')
-      .select('*')
+      .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis')
       .eq('fazenda_id', fazendaId)
       .order('nome', { ascending: true });
     if (error) throw error;
@@ -1018,7 +1019,7 @@ const usoMaquinas = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('uso_maquinas')
-      .select('*')
+      .select('id, maquina_id, data, operador, atividade, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
       .eq('maquina_id', maquinaId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1030,7 +1031,7 @@ const usoMaquinas = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('uso_maquinas')
-      .select('*')
+      .select('id, maquina_id, data, operador, atividade, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
       .in('maquina_id', maquinaIds)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1075,7 +1076,7 @@ const manutencoes = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('manutencoes')
-      .select('*')
+      .select('id, maquina_id, data, tipo, descricao, custo, proxima_manutencao, status, data_prevista, data_realizada, horimetro, proxima_manutencao_horimetro, responsavel, mao_de_obra_tipo, mao_de_obra_valor, pecas')
       .eq('maquina_id', maquinaId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1087,7 +1088,7 @@ const manutencoes = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('manutencoes')
-      .select('*')
+      .select('id, maquina_id, data, tipo, descricao, custo, proxima_manutencao, status, data_prevista, data_realizada, horimetro, proxima_manutencao_horimetro, responsavel, mao_de_obra_tipo, mao_de_obra_valor, pecas')
       .in('maquina_id', maquinaIds)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1144,7 +1145,7 @@ const abastecimentos = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('abastecimentos')
-      .select('*')
+      .select('id, maquina_id, data, combustivel, litros, valor, hodometro, preco_litro, fornecedor, horimetro')
       .eq('maquina_id', maquinaId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1156,7 +1157,7 @@ const abastecimentos = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('abastecimentos')
-      .select('*')
+      .select('id, maquina_id, data, combustivel, litros, valor, hodometro, preco_litro, fornecedor, horimetro')
       .in('maquina_id', maquinaIds)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1771,6 +1772,76 @@ const avaliacoesPsps = {
 // ---------------------------------------------------------------------------
 // EXPORT PRINCIPAL — use `q.<tabela>.<operação>()` para Client
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// PLANOS DE MANUTENÇÃO
+// ---------------------------------------------------------------------------
+const planosManutencao = {
+  async listByMaquina(maquinaId: string): Promise<PlanoManutencao[]> {
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('planos_manutencao')
+      .select('id, maquina_id, descricao, intervalo_horas, intervalo_dias, horimetro_base, data_base, ativo, fazenda_id, created_at')
+      .eq('maquina_id', maquinaId)
+      .eq('fazenda_id', fazendaId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as PlanoManutencao[];
+  },
+
+  async listByMaquinas(maquinaIds: string[]): Promise<PlanoManutencao[]> {
+    if (maquinaIds.length === 0) return [];
+    const fazendaId = await getFazendaId();
+    const { data, error } = await supabase
+      .from('planos_manutencao')
+      .select('id, maquina_id, descricao, intervalo_horas, intervalo_dias, horimetro_base, data_base, ativo, fazenda_id, created_at')
+      .in('maquina_id', maquinaIds)
+      .eq('fazenda_id', fazendaId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as PlanoManutencao[];
+  },
+
+  async create(payload: Omit<PlanoManutencao, 'id' | 'created_at'>): Promise<PlanoManutencao> {
+    const fazendaId = await getFazendaId();
+    const { count, error: checkError } = await supabase
+      .from('maquinas')
+      .select('id', { count: 'exact', head: true })
+      .eq('id', payload.maquina_id)
+      .eq('fazenda_id', fazendaId);
+    if (checkError || count === 0) {
+      throw new Error('Máquina não encontrada ou não pertence a esta fazenda.');
+    }
+
+    const { data, error } = await supabase
+      .from('planos_manutencao')
+      .insert({ ...payload, fazenda_id: fazendaId })
+      .select('id, maquina_id, descricao, intervalo_horas, intervalo_dias, horimetro_base, data_base, ativo, fazenda_id, created_at')
+      .single();
+    if (error) throw error;
+    return data as PlanoManutencao;
+  },
+
+  async update(id: string, payload: Partial<Omit<PlanoManutencao, 'id' | 'created_at' | 'fazenda_id'>>): Promise<void> {
+    const fazendaId = await getFazendaId();
+    const { error } = await supabase
+      .from('planos_manutencao')
+      .update(payload)
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId);
+    if (error) throw error;
+  },
+
+  async remove(id: string): Promise<void> {
+    const fazendaId = await getFazendaId();
+    const { error } = await supabase
+      .from('planos_manutencao')
+      .delete()
+      .eq('id', id)
+      .eq('fazenda_id', fazendaId);
+    if (error) throw error;
+  },
+};
+
 export const q = {
   silos,
   movimentacoesSilo,
@@ -1787,6 +1858,7 @@ export const q = {
   usoMaquinas,
   manutencoes,
   abastecimentos,
+  planosManutencao,
   financeiro,
   categoriasRebanho,
   periodosConfinamento,

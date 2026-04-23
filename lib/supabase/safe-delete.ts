@@ -120,11 +120,14 @@ export async function deleteCicloSafely(cicloId: string): Promise<{
 
 /**
  * Deleta uma máquina de forma segura.
+ * planos_manutencao usa ON DELETE CASCADE, então não bloqueia a deleção,
+ * mas o total de planos que serão removidos é informado na mensagem.
  */
 export async function deleteMaquinaSafely(maquinaId: string): Promise<{
   usoCount: number;
   manutencaoCount: number;
   abastecimentoCount: number;
+  planosCount: number;
   permitir: boolean;
   mensagem: string;
 }> {
@@ -146,9 +149,16 @@ export async function deleteMaquinaSafely(maquinaId: string): Promise<{
     .select('id', { count: 'exact', head: true })
     .eq('maquina_id', maquinaId);
 
+  // 4. Contar planos de manutenção (ON DELETE CASCADE — não bloqueia, apenas informa)
+  const { count: planosCountRaw } = await supabase
+    .from('planos_manutencao')
+    .select('id', { count: 'exact', head: true })
+    .eq('maquina_id', maquinaId);
+
   const usoCountNum = usoCount || 0;
   const manutencaoCount = mantCount || 0;
   const abastecimentoCount = abasCount || 0;
+  const planosCount = planosCountRaw || 0;
   const permitir = usoCountNum === 0 && manutencaoCount === 0 && abastecimentoCount === 0;
 
   let mensagem = '';
@@ -158,9 +168,14 @@ export async function deleteMaquinaSafely(maquinaId: string): Promise<{
     if (manutencaoCount > 0) itens.push(`${manutencaoCount} manutenção(ões)`);
     if (abastecimentoCount > 0) itens.push(`${abastecimentoCount} abastecimento(s)`);
     mensagem = `Não é possível deletar esta máquina. Ela possui ${itens.join(', ')} associados. Remova-os primeiro.`;
+    if (planosCount > 0) {
+      mensagem += ` Obs: ${planosCount} plano(s) de manutenção seriam removidos em cascata.`;
+    }
+  } else if (planosCount > 0) {
+    mensagem = `A deleção também removerá ${planosCount} plano(s) de manutenção preventiva em cascata.`;
   }
 
-  return { usoCount: usoCountNum, manutencaoCount, abastecimentoCount, permitir, mensagem };
+  return { usoCount: usoCountNum, manutencaoCount, abastecimentoCount, planosCount, permitir, mensagem };
 }
 
 /**

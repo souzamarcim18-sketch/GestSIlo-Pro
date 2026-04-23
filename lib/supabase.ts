@@ -110,7 +110,7 @@ export type {
 export type Maquina = {
   id: string;
   nome: string;
-  tipo: 'Trator' | 'Colheitadeira' | 'Pulverizador' | 'Caminhão' | 'Outros';
+  tipo: 'Trator' | 'Ensiladeira' | 'Colheitadeira' | 'Pulverizador' | 'Plantadeira/Semeadora' | 'Implemento' | 'Caminhão' | 'Outros';
   marca: string | null;
   modelo: string | null;
   ano: number | null;
@@ -120,6 +120,16 @@ export type Maquina = {
   valor_aquisicao: number | null;
   data_aquisicao: string | null;
   vida_util_anos: number | null;
+  // Campos adicionados na migration 20260423_frota_expansao (opcionais para compatibilidade)
+  status?: 'Ativo' | 'Em manutenção' | 'Parado' | 'Vendido' | null;
+  numero_serie?: string | null;
+  placa?: string | null;
+  potencia_cv?: number | null;
+  horimetro_atual?: number | null;
+  valor_residual?: number | null;
+  vida_util_horas?: number | null;
+  largura_trabalho_metros?: number | null;
+  tratores_compativeis?: string[] | null;
 };
 
 export type UsoMaquina = {
@@ -130,6 +140,20 @@ export type UsoMaquina = {
   atividade: string | null;
   horas: number | null;
   km: number | null;
+  // Campos adicionados na migration 20260423_frota_expansao (opcionais para compatibilidade)
+  horimetro_inicio?: number | null;
+  horimetro_fim?: number | null;
+  implemento_id?: string | null;
+  talhao_id?: string | null;
+  tipo_operacao?: string | null;
+  area_ha?: number | null;
+  origem?: 'manual' | 'operacao_agricola' | null;
+};
+
+export type PecaManutencao = {
+  descricao: string;
+  quantidade: number;
+  valor_unitario: number;
 };
 
 export type Manutencao = {
@@ -140,6 +164,16 @@ export type Manutencao = {
   descricao: string | null;
   custo: number | null;
   proxima_manutencao: string | null;
+  // Campos adicionados na migration 20260423_frota_expansao (opcionais para compatibilidade)
+  status?: 'aberta' | 'em andamento' | 'concluída' | null;
+  data_prevista?: string | null;
+  data_realizada?: string | null;
+  horimetro?: number | null;
+  proxima_manutencao_horimetro?: number | null;
+  responsavel?: string | null;
+  mao_de_obra_tipo?: 'própria' | 'terceirizada' | null;
+  mao_de_obra_valor?: number | null;
+  pecas?: PecaManutencao[] | null;
 };
 
 export type Abastecimento = {
@@ -150,6 +184,23 @@ export type Abastecimento = {
   litros: number | null;
   valor: number | null;
   hodometro: number | null;
+  // Campos adicionados na migration 20260423_frota_expansao (opcionais para compatibilidade)
+  preco_litro?: number | null;
+  fornecedor?: string | null;
+  horimetro?: number | null;
+};
+
+export type PlanoManutencao = {
+  id: string;
+  maquina_id: string;
+  descricao: string;
+  intervalo_horas: number | null;
+  intervalo_dias: number | null;
+  horimetro_base: number | null;
+  data_base: string | null;
+  ativo: boolean;
+  fazenda_id: string;
+  created_at: string;
 };
 
 export type Financeiro = {
