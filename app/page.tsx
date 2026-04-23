@@ -13,10 +13,13 @@ import {
   DollarSign,
   Beef,
   FlaskConical,
+  Package,
+  NotebookPen,
   BarChart3,
   Phone,
   Instagram,
   Mail,
+  Sprout,
 } from 'lucide-react';
 
 // Fundo cinza metálico padrão da página
@@ -213,7 +216,7 @@ export default function LandingPage() {
               className="text-4xl md:text-5xl font-extrabold mb-4 dark:text-foreground"
               style={{ color: '#023c1f' }}
             >
-              O sistema que sua fazenda precisa
+              O sistema que a sua fazenda precisa
             </h2>
             <p
               className="text-lg max-w-xl mx-auto dark:text-muted-foreground"
@@ -226,12 +229,12 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Tenha controle total das suas silagens em tempo real — acompanhe entradas, saídas, volumes armazenados e a qualidade de cada lote, evitando perdas e garantindo forragem de alto valor nutricional para o seu rebanho.', color: '#023c1f', border: '#BBF7D0', iconColor: '#BBF7D0' },
-              { Icon: MapIcon, title: 'Gestão de Lavouras', desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.', color: '#023c1f', border: '#BFDBFE', iconColor: '#BFDBFE' },
+              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.', color: '#023c1f', border: '#BFDBFE', iconColor: '#BFDBFE' },
               { Icon: Tractor, title: 'Gestão de Máquinas e Implementos', desc: 'Controle as manutenções, os abastecimentos, as horas trabalhadas e os custos operacionais.', color: '#023c1f', border: '#FED7AA', iconColor: '#FED7AA' },
               { Icon: Calculator, title: 'Calculadoras', desc: 'Tenha nas suas mãos calculadoras que te ajudarão a tomar decisões em relação à compras de fertilizantes e calcário.', color: '#023c1f', border: '#E9D5FF', iconColor: '#E9D5FF' },
               { Icon: DollarSign, title: 'Gestão Financeira', desc: 'Acompanhe as receitas, as despesas, da sua propriedade com formatação em BRL e cálculos automáticos.', color: '#023c1f', border: '#FEF08A', iconColor: '#FEF08A' },
-              { Icon: Beef, title: 'Planejamento de silagens', desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.', color: '#023c1f', border: '#FECACA', iconColor: '#FECACA' },
-              { Icon: FlaskConical, title: 'Gestão de Insumos', desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.', color: '#023c1f', border: '#A5F3FC', iconColor: '#A5F3FC' },
+              { Icon: NotebookPen, title: 'Planejamento de silagens', desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.', color: '#023c1f', border: '#FECACA', iconColor: '#FECACA' },
+              { Icon: Package, title: 'Gestão de Insumos', desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.', color: '#023c1f', border: '#A5F3FC', iconColor: '#A5F3FC' },
               { Icon: BarChart3, title: 'Relatórios & Simulador', desc: 'Gere relatórios consolidados por período e simule cenários agrícolas para apoiar suas decisões estratégicas.', color: '#023c1f', border: '#DDD6FE', iconColor: '#DDD6FE' },
             ].map((item) => (
               <div
@@ -521,13 +524,13 @@ export default function LandingPage() {
   className="py-12 px-6 border-t border-gray-400/50"
   style={{
     background:
-      'linear-gradient(135deg, #8b8a8a 0%, #9a9a9a 25%, #b0b0b0 50%, #8a8a8a 75%, #838282 100%)',
+      'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)',
   }}
 >
   <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
 
     {/* Logo + copyright */}
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2">
       <Image
         src="/logo_degrad-hor.png"
         alt="GestSilo"
