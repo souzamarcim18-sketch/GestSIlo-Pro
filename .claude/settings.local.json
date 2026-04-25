@@ -73,7 +73,9 @@
       "Bash(xargs ls *)",
       "Bash(curl -s http://localhost:3000/dashboard/insumos)",
       "Bash(git diff *)",
-      "Read(//c/Users/marci/AppData/Local/Temp/claude/c--Projetos-GestSilo-GestSIlo-Pro/5afb4cab-0dd8-45d1-98d5-aed8d8795a66/tasks/**)"
+      "Read(//c/Users/marci/AppData/Local/Temp/claude/c--Projetos-GestSilo-GestSIlo-Pro/5afb4cab-0dd8-45d1-98d5-aed8d8795a66/tasks/**)",
+      "Bash(git checkout *)",
+      "Bash(npx next *)"
     ],
     "additionalDirectories": [
       "\\tmp"
