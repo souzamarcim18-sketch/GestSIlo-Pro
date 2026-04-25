@@ -53,9 +53,13 @@ import {
 // Helper interno — nunca exportar diretamente
 // ---------------------------------------------------------------------------
 
+const fazendaIdCache = new Map<string, { value: string; expiresAt: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
 /**
  * Busca o fazenda_id do usuário logado a partir do seu profile.
  * Lança erro se não houver sessão ou se o profile não tiver fazenda associada.
+ * Cacheia o resultado por 5 minutos para evitar queries desnecessárias.
  */
 async function getFazendaId(): Promise<string> {
   const {
@@ -65,6 +69,12 @@ async function getFazendaId(): Promise<string> {
 
   if (authError || !user) {
     throw new Error('Usuário não autenticado. Faça login novamente.');
+  }
+
+  // Verificar cache
+  const cached = fazendaIdCache.get(user.id);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -79,7 +89,9 @@ async function getFazendaId(): Promise<string> {
     );
   }
 
-  return profile.fazenda_id as string;
+  const fazendaId = profile.fazenda_id as string;
+  fazendaIdCache.set(user.id, { value: fazendaId, expiresAt: Date.now() + CACHE_TTL_MS });
+  return fazendaId;
 }
 
 // ---------------------------------------------------------------------------
@@ -974,7 +986,7 @@ const maquinas = {
     const { data, error } = await supabase
       .from('maquinas')
       .insert({ ...payload, fazenda_id: fazendaId })
-      .select()
+      .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis')
       .single();
     if (error) throw error;
     return data as Maquina;
@@ -987,7 +999,7 @@ const maquinas = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis')
       .single();
     if (error) throw error;
     return data as Maquina;

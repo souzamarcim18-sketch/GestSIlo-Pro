@@ -190,7 +190,6 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
         vida_util_anos: data.vida_util_anos ?? 10,
         valor_residual: data.valor_residual ?? null,
         vida_util_horas: data.vida_util_horas ?? null,
-        fazenda_id: '',
       };
 
       if (isEditing && maquina) {
