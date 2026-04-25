@@ -49,34 +49,37 @@ export default function FrotaPage() {
         onValueChange={(v) => setActiveTab(v as FrotaTab)}
         className="w-full"
       >
-        <TabsList className="flex flex-wrap h-auto gap-1 w-full lg:w-auto">
-          <TabsTrigger value="visao-geral" className="flex items-center gap-1.5">
-            <LayoutDashboard className="h-3.5 w-3.5" aria-hidden="true" />
-            Visão Geral
+        <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent border-b border-border p-0">
+          <TabsTrigger value="visao-geral" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
+            <LayoutDashboard className="h-3 w-3" aria-hidden="true" />
+            <span className="hidden sm:inline">Visão Geral</span>
+            <span className="sm:hidden">Visão</span>
           </TabsTrigger>
-          <TabsTrigger value="cadastro" className="flex items-center gap-1.5">
-            <Truck className="h-3.5 w-3.5" aria-hidden="true" />
-            Cadastro
+          <TabsTrigger value="cadastro" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
+            <Truck className="h-3 w-3" aria-hidden="true" />
+            <span>Cadastro</span>
           </TabsTrigger>
-          <TabsTrigger value="uso" className="flex items-center gap-1.5">
-            <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
-            Diário de Bordo
+          <TabsTrigger value="uso" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
+            <BookOpen className="h-3 w-3" aria-hidden="true" />
+            <span className="hidden sm:inline">Diário de Bordo</span>
+            <span className="sm:hidden">Diário</span>
           </TabsTrigger>
-          <TabsTrigger value="manutencoes" className="flex items-center gap-1.5">
-            <Wrench className="h-3.5 w-3.5" aria-hidden="true" />
-            Manutenções
+          <TabsTrigger value="manutencoes" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
+            <Wrench className="h-3 w-3" aria-hidden="true" />
+            <span>Manutenções</span>
           </TabsTrigger>
-          <TabsTrigger value="abastecimento" className="flex items-center gap-1.5">
-            <Fuel className="h-3.5 w-3.5" aria-hidden="true" />
-            Abastecimento
+          <TabsTrigger value="abastecimento" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
+            <Fuel className="h-3 w-3" aria-hidden="true" />
+            <span className="hidden sm:inline">Abastecimento</span>
+            <span className="sm:hidden">Abast.</span>
           </TabsTrigger>
-          <TabsTrigger value="custos" className="flex items-center gap-1.5">
-            <Settings className="h-3.5 w-3.5" aria-hidden="true" />
-            Custos
+          <TabsTrigger value="custos" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
+            <Settings className="h-3 w-3" aria-hidden="true" />
+            <span>Custos</span>
           </TabsTrigger>
-          <TabsTrigger value="relatorios" className="flex items-center gap-1.5">
-            <BarChart2 className="h-3.5 w-3.5" aria-hidden="true" />
-            Relatórios
+          <TabsTrigger value="relatorios" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
+            <BarChart2 className="h-3 w-3" aria-hidden="true" />
+            <span>Relatórios</span>
           </TabsTrigger>
         </TabsList>
 

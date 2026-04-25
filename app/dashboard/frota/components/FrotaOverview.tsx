@@ -59,13 +59,13 @@ function KpiCard({
   }
   return (
     <Card className="rounded-2xl">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+      <CardContent className="pt-4 pb-4">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs sm:text-sm text-muted-foreground">{title}</p>
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         </div>
-        <p className="text-2xl font-bold">{value}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+        <p className="text-xl sm:text-2xl font-bold">{value}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -198,7 +198,7 @@ export function FrotaOverview({
   return (
     <div className="space-y-6">
       {/* ── KPI Cards ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <KpiCard
           title="Máquinas Ativas"
           value={String(kpis.ativas)}
