@@ -33,6 +33,7 @@ export interface UseFrotaDataReturn {
   refreshUsos: () => Promise<void>;
   refreshManutencoes: () => Promise<void>;
   refreshAbastecimentos: () => Promise<void>;
+  refreshPlanos: () => Promise<void>;
   refreshAll: () => void;
 }
 
@@ -44,18 +45,14 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [planos, setPlanos] = useState<PlanoManutencao[]>([]);
   const [loading, setLoading] = useState(false);
-  // Counter incremented by refreshAll to force re-execution of the load effect
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Which tabs have already had their data loaded
   const initializedRef = useRef<Partial<Record<FrotaTab, boolean>>>({});
-  // Which data sets have been fetched (shared across tabs)
   const fetchedRef = useRef(new Set<string>());
-  // Mirror of maquinas state for use inside the load effect without stale closure
   const maquinasRef = useRef<Maquina[]>([]);
 
   // ---------------------------------------------------------------------------
-  // Granular refresh callbacks — force re-fetch of a specific data set
+  // Granular refresh callbacks
   // ---------------------------------------------------------------------------
   const refreshMaquinas = useCallback(async () => {
     try {
@@ -104,7 +101,18 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
     }
   }, []);
 
-  // Clears all cached state and forces a full reload on next tab render
+  const refreshPlanos = useCallback(async () => {
+    const ids = maquinasRef.current.map((m) => m.id);
+    if (ids.length === 0) return;
+    try {
+      const data = await q.planosManutencao.listByMaquinas(ids);
+      setPlanos(data);
+      fetchedRef.current.add('planos');
+    } catch {
+      toast.error('Erro ao recarregar planos de manutenção');
+    }
+  }, []);
+
   const refreshAll = useCallback(() => {
     fetchedRef.current.clear();
     initializedRef.current = {};
@@ -117,18 +125,12 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
   useEffect(() => {
     if (initializedRef.current[activeTab]) return;
 
-    // Placeholder tabs — nothing to load
-    if (activeTab === 'custos' || activeTab === 'relatorios') {
-      initializedRef.current[activeTab] = true;
-      return;
-    }
-
     let cancelled = false;
 
     const load = async () => {
       setLoading(true);
       try {
-        // ── Step 1: always ensure maquinas + talhoes are loaded first ──────
+        // ── Step 1: ensure maquinas are loaded first ────────────────────────
         let ids: string[];
         if (!fetchedRef.current.has('maquinas')) {
           const [maq, tals] = await Promise.all([
@@ -157,23 +159,24 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
           return;
         }
 
-        // ── Step 2: load tab-specific secondary data in parallel ───────────
+        // ── Step 2: load tab-specific data in parallel ──────────────────────
         const tasks: Promise<void>[] = [];
 
         const needsUsos =
-          (activeTab === 'visao-geral' || activeTab === 'uso') &&
+          (activeTab === 'visao-geral' || activeTab === 'uso' || activeTab === 'custos' || activeTab === 'relatorios') &&
           !fetchedRef.current.has('usos');
 
         const needsManutencoes =
-          (activeTab === 'visao-geral' || activeTab === 'manutencoes') &&
+          (activeTab === 'visao-geral' || activeTab === 'manutencoes' || activeTab === 'custos' || activeTab === 'relatorios') &&
           !fetchedRef.current.has('manutencoes');
 
         const needsAbastecimentos =
-          (activeTab === 'visao-geral' || activeTab === 'abastecimento') &&
+          (activeTab === 'visao-geral' || activeTab === 'abastecimento' || activeTab === 'custos' || activeTab === 'relatorios') &&
           !fetchedRef.current.has('abastecimentos');
 
         const needsPlanos =
-          activeTab === 'visao-geral' && !fetchedRef.current.has('planos');
+          (activeTab === 'visao-geral' || activeTab === 'manutencoes') &&
+          !fetchedRef.current.has('planos');
 
         if (needsUsos)
           tasks.push(
@@ -232,6 +235,7 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
     refreshUsos,
     refreshManutencoes,
     refreshAbastecimentos,
+    refreshPlanos,
     refreshAll,
   };
 }

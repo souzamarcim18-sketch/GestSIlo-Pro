@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { BarChart2, BookOpen, Truck, Fuel, Settings, Wrench, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useFrotaData, type FrotaTab } from './hooks/useFrotaData';
+import { FrotaOverview } from './components/FrotaOverview';
 import { FrotaCadastro } from './components/FrotaCadastro';
 import { FrotaDiarioBordo } from './components/FrotaDiarioBordo';
 import { FrotaManutencoes } from './components/FrotaManutencoes';
 import { FrotaAbastecimento } from './components/FrotaAbastecimento';
+import { FrotaCustos } from './components/FrotaCustos';
+import { FrotaRelatorios } from './components/FrotaRelatorios';
 
 export default function FrotaPage() {
   useAuth();
@@ -21,11 +23,13 @@ export default function FrotaPage() {
     manutencoes,
     abastecimentos,
     talhoes,
+    planos,
     loading,
     refreshMaquinas,
     refreshUsos,
     refreshManutencoes,
     refreshAbastecimentos,
+    refreshPlanos,
     refreshAll,
   } = useFrotaData(activeTab);
 
@@ -76,18 +80,16 @@ export default function FrotaPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* ── Visão Geral (placeholder) ──────────────────────────────── */}
+        {/* ── Visão Geral ───────────────────────────────────────────────── */}
         <TabsContent value="visao-geral" className="mt-6">
-          <Card className="rounded-2xl">
-            <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-              <LayoutDashboard className="h-10 w-10 text-muted-foreground opacity-30" aria-hidden="true" />
-              <p className="text-lg font-semibold text-muted-foreground">Em desenvolvimento</p>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                KPIs consolidados de frota: ocupação, horas trabalhadas, custo/hora e alertas
-                críticos de manutenção.
-              </p>
-            </CardContent>
-          </Card>
+          <FrotaOverview
+            maquinas={maquinas}
+            usos={usos}
+            manutencoes={manutencoes}
+            abastecimentos={abastecimentos}
+            planosManutencao={planos}
+            loading={loading}
+          />
         </TabsContent>
 
         {/* ── Cadastro ──────────────────────────────────────────────── */}
@@ -119,12 +121,12 @@ export default function FrotaPage() {
           <FrotaManutencoes
             maquinas={maquinas}
             manutencoes={manutencoes}
+            planosManutencao={planos}
             loading={loading}
-            onRefresh={refreshManutencoes}
-            onMaquinaStatusChange={(maquinaId, novoStatus) => {
-              // Atualizar maquinas localmente sem precisar de re-fetch completo
-              refreshMaquinas();
-            }}
+            onRefreshManutencoes={refreshManutencoes}
+            onRefreshPlanos={refreshPlanos}
+            onRefreshMaquinas={refreshMaquinas}
+            onMaquinaStatusChange={() => refreshMaquinas()}
           />
         </TabsContent>
 
@@ -138,31 +140,26 @@ export default function FrotaPage() {
           />
         </TabsContent>
 
-        {/* ── Custos (placeholder) ──────────────────────────────────── */}
+        {/* ── Custos ────────────────────────────────────────────────── */}
         <TabsContent value="custos" className="mt-6">
-          <Card className="rounded-2xl">
-            <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-              <Settings className="h-10 w-10 text-muted-foreground opacity-30" aria-hidden="true" />
-              <p className="text-lg font-semibold text-muted-foreground">Em desenvolvimento</p>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Análise de custo por máquina: combustível, manutenções, mão de obra e
-                depreciação consolidados.
-              </p>
-            </CardContent>
-          </Card>
+          <FrotaCustos
+            maquinas={maquinas}
+            abastecimentos={abastecimentos}
+            manutencoes={manutencoes}
+            usos={usos}
+            loading={loading}
+          />
         </TabsContent>
 
-        {/* ── Relatórios (placeholder) ──────────────────────────────── */}
+        {/* ── Relatórios ────────────────────────────────────────────── */}
         <TabsContent value="relatorios" className="mt-6">
-          <Card className="rounded-2xl">
-            <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-              <BarChart2 className="h-10 w-10 text-muted-foreground opacity-30" aria-hidden="true" />
-              <p className="text-lg font-semibold text-muted-foreground">Em desenvolvimento</p>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Relatórios de produtividade, consumo e histórico de manutenção por período.
-              </p>
-            </CardContent>
-          </Card>
+          <FrotaRelatorios
+            maquinas={maquinas}
+            usos={usos}
+            manutencoes={manutencoes}
+            abastecimentos={abastecimentos}
+            loading={loading}
+          />
         </TabsContent>
       </Tabs>
     </div>
