@@ -107,7 +107,7 @@ export function SiloForm({
   });
 
   // Reset form when dialog opens in create mode
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     if (open && mode === 'create') {
       form.reset({

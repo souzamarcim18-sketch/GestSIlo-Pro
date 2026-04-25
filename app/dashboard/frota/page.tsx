@@ -34,54 +34,56 @@ export default function FrotaPage() {
   } = useFrotaData(activeTab);
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
-      {/* ── Header ───────────────────────────────────────────────────── */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Frota e Máquinas</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Gerencie equipamentos, manutenções e abastecimentos da fazenda.
-        </p>
-      </div>
-
+    <div className="p-6 md:p-8">
       {/* ── Tabs principais ──────────────────────────────────────────── */}
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as FrotaTab)}
         className="w-full"
       >
-        <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent border-b border-border p-0">
-          <TabsTrigger value="visao-geral" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
-            <LayoutDashboard className="h-3 w-3" aria-hidden="true" />
+        {/* ── Header + Tabs na mesma linha ───────────────────────────── */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Frota e Máquinas</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Gerencie equipamentos, manutenções e abastecimentos da fazenda.
+            </p>
+          </div>
+
+          <TabsList className="flex flex-wrap gap-1.5 bg-muted/40 border border-border/50 p-1.5 rounded-xl h-auto self-start sm:self-center">
+          <TabsTrigger value="visao-geral" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-background/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+            <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Visão Geral</span>
             <span className="sm:hidden">Visão</span>
           </TabsTrigger>
-          <TabsTrigger value="cadastro" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
-            <Truck className="h-3 w-3" aria-hidden="true" />
+          <TabsTrigger value="cadastro" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-background/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+            <Truck className="h-4 w-4" aria-hidden="true" />
             <span>Cadastro</span>
           </TabsTrigger>
-          <TabsTrigger value="uso" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
-            <BookOpen className="h-3 w-3" aria-hidden="true" />
+          <TabsTrigger value="uso" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-background/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+            <BookOpen className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Diário de Bordo</span>
             <span className="sm:hidden">Diário</span>
           </TabsTrigger>
-          <TabsTrigger value="manutencoes" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
-            <Wrench className="h-3 w-3" aria-hidden="true" />
+          <TabsTrigger value="manutencoes" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-background/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+            <Wrench className="h-4 w-4" aria-hidden="true" />
             <span>Manutenções</span>
           </TabsTrigger>
-          <TabsTrigger value="abastecimento" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
-            <Fuel className="h-3 w-3" aria-hidden="true" />
+          <TabsTrigger value="abastecimento" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-background/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+            <Fuel className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Abastecimento</span>
             <span className="sm:hidden">Abast.</span>
           </TabsTrigger>
-          <TabsTrigger value="custos" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
-            <Settings className="h-3 w-3" aria-hidden="true" />
+          <TabsTrigger value="custos" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-background/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+            <Settings className="h-4 w-4" aria-hidden="true" />
             <span>Custos</span>
           </TabsTrigger>
-          <TabsTrigger value="relatorios" className="px-2 py-1.5 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1">
-            <BarChart2 className="h-3 w-3" aria-hidden="true" />
+          <TabsTrigger value="relatorios" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-background/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+            <BarChart2 className="h-4 w-4" aria-hidden="true" />
             <span>Relatórios</span>
           </TabsTrigger>
         </TabsList>
+        </div>
 
         {/* ── Visão Geral ───────────────────────────────────────────────── */}
         <TabsContent value="visao-geral" className="mt-6">
