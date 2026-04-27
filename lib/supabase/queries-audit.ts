@@ -172,7 +172,7 @@ const movimentacoesSilo = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('movimentacoes_silo')
-      .select('*')
+      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
       .eq('silo_id', siloId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -185,7 +185,7 @@ const movimentacoesSilo = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('movimentacoes_silo')
-      .select('*')
+      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
       .in('silo_id', siloIds)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -264,7 +264,7 @@ const talhoes = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('talhoes')
-      .select('*')
+      .select('id, nome, area_ha, tipo_solo, status, fazenda_id, observacoes')
       .eq('fazenda_id', fazendaId)
       .order('nome', { ascending: true });
     if (error) throw error;
@@ -275,7 +275,7 @@ const talhoes = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('talhoes')
-      .select('*')
+      .select('id, nome, area_ha, tipo_solo, status, fazenda_id, observacoes')
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .single();
@@ -351,7 +351,7 @@ const ciclosAgricolas = {
 
     const { data, error } = await supabase
       .from('ciclos_agricolas')
-      .select('*')
+      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade')
       .in('talhao_id', idsValidados)
       .order('data_plantio', { ascending: false });
     if (error) throw error;
@@ -1219,7 +1219,7 @@ const financeiro = {
     const fazendaId = await getFazendaId();
     let query = supabase
       .from('financeiro')
-      .select('*')
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
       .eq('fazenda_id', fazendaId)
       .order('data', { ascending: false });
 
@@ -1464,7 +1464,7 @@ const categoriasRebanho = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('categorias_rebanho')
-      .select('*')
+      .select('id, fazenda_id, nome, quantidade_cabecas, consumo_ms_kg_cab_dia, created_at')
       .eq('fazenda_id', fazendaId)
       .order('nome');
     if (error) throw error;
@@ -1501,7 +1501,7 @@ const periodosConfinamento = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('periodos_confinamento')
-      .select('*')
+      .select('id, fazenda_id, nome, data_inicio, data_fim, created_at')
       .eq('fazenda_id', fazendaId)
       .order('data_inicio', { ascending: false });
     if (error) throw error;
@@ -1716,7 +1716,7 @@ const avaliacoesBromatologicas = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('avaliacoes_bromatologicas')
-      .select('*')
+      .select('id, silo_id, data, momento, ms, pb, fdn, fda, amido, ndt, ph, avaliador, created_at')
       .eq('silo_id', siloId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1752,7 +1752,7 @@ const avaliacoesPsps = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('avaliacoes_psps')
-      .select('*')
+      .select('id, silo_id, data, momento, peneira_19mm, peneira_8_19mm, peneira_4_8mm, peneira_fundo_4mm, tmp_mm, tamanho_teorico_corte_mm, kernel_processor, avaliador, created_at')
       .eq('silo_id', siloId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1781,9 +1781,6 @@ const avaliacoesPsps = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// EXPORT PRINCIPAL — use `q.<tabela>.<operação>()` para Client
-// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // PLANOS DE MANUTENÇÃO
 // ---------------------------------------------------------------------------
@@ -1854,6 +1851,9 @@ const planosManutencao = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// EXPORT PRINCIPAL — use `q.<tabela>.<operação>()` para Client
+// ---------------------------------------------------------------------------
 export const q = {
   silos,
   movimentacoesSilo,

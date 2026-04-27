@@ -56,25 +56,7 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
-        authLog('handleRegister: signUp success, creating profile row');
-
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              nome,
-              email,
-              perfil,
-            },
-          ]);
-
-        if (profileError) {
-          authError('handleRegister: profile insert error:', profileError.message);
-          throw new Error('Erro ao finalizar cadastro. Contate o suporte.');
-        }
-
-        authLog('handleRegister: profile created successfully');
+        authLog('handleRegister: signUp success — profile criado pela trigger handle_new_user');
       }
 
       toast.success('Cadastro realizado! Verifique seu e-mail.');

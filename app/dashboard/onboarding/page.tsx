@@ -50,7 +50,7 @@ export default function OnboardingPage() {
 
     setSaving(true);
     try {
-      await createFazenda(user.id, {
+      await createFazenda({
         nome,
         localizacao: selectedCity.displayName,
         area_total: areaRef.current?.value

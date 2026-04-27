@@ -74,6 +74,7 @@ function NavItem({
       <Link
         href={href}
         onClick={onNavigate}
+        prefetch={false}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
           'text-xs group flex items-center font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 px-3',
@@ -94,6 +95,7 @@ function NavItem({
     </li>
   );
 }
+
 
 export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const pathname = usePathname();
