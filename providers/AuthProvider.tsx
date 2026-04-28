@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-        const timeoutMs = 30000;
+        const timeoutMs = 10000; // 10s timeout (reduzido de 30s)
 
         const timeoutPromise = new Promise<never>((_, reject) => {
           const timer = setTimeout(() => {
@@ -92,7 +92,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-        if (error) throw error;
+        if (error) {
+          authError('[FETCH-PROFILE] Query error:', error.message || error);
+          throw error;
+        }
 
         return { data, error: null };
       } catch (error) {
@@ -100,14 +103,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw error;
         }
 
-        if (retries < MAX_RETRIES) {
-          const isTimeout = error instanceof Error && error.message.includes('timeout');
-          if (isTimeout) {
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            return attemptFetch();
-          }
+        const isTimeout = error instanceof Error && error.message.includes('timeout');
+        authError('[FETCH-PROFILE] Attempt error:', error instanceof Error ? error.message : error, 'isTimeout:', isTimeout);
+
+        // Só retenta em caso de timeout; outros erros (RLS, conexão) são imediatos
+        if (isTimeout && retries < MAX_RETRIES) {
+          retries++;
+          authLog('[FETCH-PROFILE] Retrying after timeout...', retries);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return attemptFetch();
         }
+
+        // Erros não-timeout (RLS, query, etc) não retentam: fail-fast
         throw error;
       }
     };
@@ -129,10 +136,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao buscar perfil';
-      authError('[FETCH-PROFILE] ERROR:', errorMessage);
-      setProfileError(errorMessage);
+      authError('[FETCH-PROFILE] FINAL ERROR - continuing without profile:', errorMessage);
+
+      // ✅ Continua o fluxo imediatamente mesmo com erro - não bloqueia entrada
       setUser(currentUser);
       setProfile(null);
+      setProfileError(errorMessage);
     } finally {
       if (abortControllerRef.current === abortController) {
         fetchingRef.current = null;
