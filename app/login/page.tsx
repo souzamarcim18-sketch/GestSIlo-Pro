@@ -62,13 +62,19 @@ export default function LoginPage() {
       setTimeout(false);
 
       try {
-        authLog('handleLogin: starting signInWithPassword');
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        authLog('handleLogin: starting POST /api/auth/login');
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
 
-        if (error) {
-          setError('E-mail ou senha inválidos. Verifique suas credenciais.');
-          toast.error('E-mail ou senha inválidos.');
-          authLog('handleLogin: signIn error:', error.message);
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.error || 'Erro ao realizar login.');
+          toast.error(data.error || 'Erro ao realizar login.');
+          authLog('handleLogin: API error:', data.error);
           return;
         }
 

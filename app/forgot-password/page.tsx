@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Home, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
@@ -22,12 +21,21 @@ export default function ForgotPasswordPage() {
   if (!email.trim()) return;
   setLoading(true);
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${siteUrl}/reset-password`,
+    const response = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim(), redirectUrl }),
     });
-    if (error) throw error;
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast.error(data.error || 'Erro ao enviar e-mail.');
+      return;
+    }
+
     setSent(true);
     toast.success('E-mail de recuperação enviado!');
   } catch (err: unknown) {

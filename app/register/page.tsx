@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Home } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authLog, authError } from '@/lib/auth/logger';
@@ -37,28 +36,22 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      authLog('handleRegister: starting signUp for email:', email);
+      authLog('handleRegister: starting POST /api/auth/register for email:', email);
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            nome,
-            perfil,
-          },
-        },
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, nome, perfil }),
       });
 
-      if (error) {
-        authError('handleRegister: signUp error:', error.message);
-        throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        authError('handleRegister: API error:', data.error);
+        throw new Error(data.error || 'Erro ao realizar cadastro');
       }
 
-      if (data.user) {
-        authLog('handleRegister: signUp success — profile criado pela trigger handle_new_user');
-      }
-
+      authLog('handleRegister: signUp success — profile criado pela trigger handle_new_user');
       toast.success('Cadastro realizado! Verifique seu e-mail.');
       router.push('/login');
     } catch (error: unknown) {
