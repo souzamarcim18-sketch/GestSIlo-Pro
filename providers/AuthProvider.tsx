@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-        const timeoutMs = 30000;
+        const timeoutMs = 10000;
 
         const timeoutPromise = new Promise<never>((_, reject) => {
           const timer = setTimeout(() => {
@@ -84,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         // ✅ Colunas específicas em vez de '*'
+        authLog('[FETCH-PROFILE] Executing query for profiles...');
         const queryPromise = supabase
           .from('profiles')
           .select('id, fazenda_id, nome, perfil, created_at')
