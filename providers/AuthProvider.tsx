@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         authLog('[FETCH-PROFILE] START - userId:', currentUser.id);
 
-        const timeoutMs = 10000;
+        const timeoutMs = 30000;
 
         const timeoutPromise = new Promise<never>((_, reject) => {
           const timer = setTimeout(() => {
@@ -84,7 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         // ✅ Colunas específicas em vez de '*'
-        authLog('[FETCH-PROFILE] Executing query for profiles...');
         const queryPromise = supabase
           .from('profiles')
           .select('id, fazenda_id, nome, perfil, created_at')
@@ -199,19 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (lastProcessedUserIdRef.current === currentUserId) {
           authLog('Auth event: same user already processed, skipping');
           return;
-        }
-
-        // ✅ VALIDAÇÃO DE SESSÃO: aguarda a sessão estar completamente estabelecida
-        // Especialmente importante após login via API route
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          authLog('[SESSION-CHECK] Validating session before fetch...');
-          const { data: sessionData } = await supabase.auth.getSession();
-
-          if (!sessionData?.session?.user?.id) {
-            authLog('[SESSION-CHECK] Session not ready, waiting for next event...');
-            return;
-          }
-          authLog('[SESSION-CHECK] Session validated, proceeding with fetch');
         }
 
         lastProcessedUserIdRef.current = currentUserId;
