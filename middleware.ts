@@ -26,7 +26,15 @@ export async function middleware(request: NextRequest) {
   // as it may cause hard-to-debug session refresh issues.
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  console.log('MIDDLEWARE DEBUG:', {
+    pathname: request.nextUrl.pathname,
+    hasUser: !!user,
+    userError: error?.message,
+    cookieNames: request.cookies.getAll().map(c => c.name)
+  });
 
   const { pathname } = request.nextUrl;
 
