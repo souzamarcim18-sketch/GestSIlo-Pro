@@ -80,6 +80,11 @@ export default function LoginPage() {
 
         authLog('handleLogin: signIn success, waiting for AuthProvider...');
         toast.success('Login realizado com sucesso!');
+
+        if (data.success) {
+          router.refresh();
+          router.push('/dashboard');
+        }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
         authLog('handleLogin: caught error:', errorMessage);
