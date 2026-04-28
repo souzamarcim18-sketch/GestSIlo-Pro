@@ -94,7 +94,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     },
-    [email, password]
+    [email, password, router]
   );
 
   return (
