@@ -1724,10 +1724,10 @@ const avaliacoesBromatologicas = {
   },
 
   async create(payload: AvaliacaoBromatologicaInput): Promise<AvaliacaoBromatologica> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('avaliacoes_bromatologicas')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select()
       .single();
     if (error) throw error;
@@ -1761,10 +1761,10 @@ const avaliacoesPsps = {
 
   // Nota: não enviar tmp_mm no payload — é GENERATED pelo BD
   async create(payload: AvaliacaoPspsInput): Promise<AvaliacaoPSPS> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('avaliacoes_psps')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select()
       .single();
     if (error) throw error;
