@@ -82,8 +82,7 @@ export default function LoginPage() {
         toast.success('Login realizado com sucesso!');
 
         if (data.success) {
-          router.refresh();
-          router.push('/dashboard');
+          window.location.href = '/dashboard';
         }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
@@ -94,7 +93,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     },
-    [email, password, router]
+    [email, password]
   );
 
   return (
