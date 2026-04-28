@@ -224,8 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: currentUser.id,
           nome: currentUser.user_metadata?.nome || currentUser.email || '',
           perfil: currentUser.user_metadata?.perfil || 'Operador',
-          fazenda_id: currentUser.user_metadata?.fazenda_id || null,
-          created_at: currentUser.created_at
+          fazenda_id: currentUser.user_metadata?.fazenda_id || null
         };
 
         authLog('[AUTH-PROVIDER] Profile loaded from JWT metadata:', {
