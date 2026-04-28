@@ -93,6 +93,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
         if (error) {
+          console.error('[FETCH-PROFILE] Query error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
           authError('[FETCH-PROFILE] Query error:', error.message || error);
           throw error;
         }
