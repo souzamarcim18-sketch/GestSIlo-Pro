@@ -78,12 +78,9 @@ export default function LoginPage() {
           return;
         }
 
-        authLog('handleLogin: signIn success, waiting for AuthProvider...');
+        authLog('handleLogin: signIn success, redirecting...');
         toast.success('Login realizado com sucesso!');
-
-        if (data.success) {
-          window.location.href = '/dashboard';
-        }
+        // O servidor (API route) faz o redirect para /dashboard com os cookies já definidos
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
         authLog('handleLogin: caught error:', errorMessage);

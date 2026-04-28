@@ -60,18 +60,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    response = NextResponse.json({
-      success: true,
-      user: data.user,
-      session: data.session,
-    });
+    // Redirect direto para /dashboard com cookies já definidos
+    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
 
+    // Copie todos os cookies para o response de redirect
     const cookieList = cookieStore.getAll();
     cookieList.forEach(({ name, value }) => {
-      response.cookies.set(name, value);
+      redirectResponse.cookies.set(name, value);
     });
 
-    return response;
+    return redirectResponse;
   } catch (error) {
     console.error('Erro na rota de login:', error);
     return NextResponse.json(
