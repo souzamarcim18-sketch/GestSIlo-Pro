@@ -222,6 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // ✅ Build profile from JWT metadata (fast path - no database query)
         const profileFromMetadata: Profile = {
           id: currentUser.id,
+          email: currentUser.email || '',
           nome: currentUser.user_metadata?.nome || currentUser.email || '',
           perfil: currentUser.user_metadata?.perfil || 'Operador',
           fazenda_id: currentUser.user_metadata?.fazenda_id || null
