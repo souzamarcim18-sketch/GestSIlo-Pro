@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
     cookieList.forEach(({ name, value }) => {
       response.cookies.set(name, value);
     });
+
+    return response;
   } catch (error) {
     console.error('Erro na rota de login:', error);
     return NextResponse.json(
