@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // ✅ Colunas específicas em vez de '*'
         const queryPromise = supabase
           .from('profiles')
-          .select('id, fazenda_id, nome, role, avatar_url, created_at, updated_at')
+          .select('id, fazenda_id, nome, perfil, avatar_url, created_at, updated_at')
           .eq('id', currentUser.id)
           .single();
 

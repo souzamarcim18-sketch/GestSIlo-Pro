@@ -1852,6 +1852,13 @@ const planosManutencao = {
 };
 
 // ---------------------------------------------------------------------------
+// Cache cleanup helper — usado em testes para forçar re-query do fazenda_id
+// ---------------------------------------------------------------------------
+export function clearFazendaIdCache(): void {
+  fazendaIdCache.clear();
+}
+
+// ---------------------------------------------------------------------------
 // EXPORT PRINCIPAL — use `q.<tabela>.<operação>()` para Client
 // ---------------------------------------------------------------------------
 export const q = {

@@ -198,7 +198,7 @@ export function useInsumosMutation() {
             nome: data.nome,
             quantidade: data.quantidade_entrada,
             valorUnitario: data.valor_unitario,
-            fornecedor: data.fornecedor,
+            fornecedor: data.fornecedor ?? '',
             fazendaId: insumoCriado.fazenda_id,
           });
         }

@@ -30,7 +30,6 @@ export type Profile = {
   email: string;
   telefone?: string | null;
   perfil: 'Administrador' | 'Operador' | 'Visualizador';
-  role?: 'Administrador' | 'Operador' | 'Visualizador' | null;
   fazenda_id: string | null;
   fazendas?: { nome: string } | null;
 };

@@ -23,7 +23,7 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Importar após o mock
-import { q } from '@/lib/supabase/queries-audit';
+import { q, clearFazendaIdCache } from '@/lib/supabase/queries-audit';
 
 // ---------------------------------------------------------------------------
 // Helpers de setup
@@ -48,6 +48,7 @@ function setupAuthMock(fazendaId = 'fazenda-abc') {
 describe('q.insumos.listAbaixoMinimo()', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearFazendaIdCache();
     setupAuthMock();
   });
 

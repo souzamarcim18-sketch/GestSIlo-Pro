@@ -10,7 +10,7 @@ export const insumoFormSchema = z.object({
   unidade: z.string().min(1, 'Unidade obrigatória').max(50),
   quantidade_entrada: z.number().positive('Deve ser > 0'),
   valor_unitario: z.number().nonnegative('Não pode ser negativo'),
-  fornecedor: z.string().min(1, 'Fornecedor obrigatório').max(255),
+  fornecedor: z.string().trim().min(1).max(255).optional(),
   local_armazen: z.string().min(1, 'Local de armazenamento obrigatório').max(255),
   estoque_minimo: z.number().nonnegative('Não pode ser negativo'),
   registrar_como_despesa: z.boolean(),
