@@ -44,7 +44,6 @@ export default function InsumoForm({
       fornecedor: '',
       local_armazen: '',
       estoque_minimo: 0,
-      data: new Date().toISOString().split('T')[0],
       registrar_como_despesa: true,
       observacoes: '',
     },
@@ -236,19 +235,6 @@ export default function InsumoForm({
             />
             {form.formState.errors.estoque_minimo && (
               <p className="text-xs text-destructive mt-1">{form.formState.errors.estoque_minimo.message}</p>
-            )}
-          </div>
-
-          {/* Data */}
-          <div>
-            <Label htmlFor="data">Data do Cadastro *</Label>
-            <Input
-              id="data"
-              type="date"
-              {...form.register('data')}
-            />
-            {form.formState.errors.data && (
-              <p className="text-xs text-destructive mt-1">{form.formState.errors.data.message}</p>
             )}
           </div>
 

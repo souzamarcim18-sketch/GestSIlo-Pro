@@ -6,14 +6,13 @@ import { z } from 'zod';
 export const insumoFormSchema = z.object({
   nome: z.string().min(2, 'Mínimo 2 caracteres').max(255),
   categoria_id: z.string().uuid('Categoria inválida'),
-  tipo_id: z.string().uuid('Tipo inválido').optional(),
+  tipo_id: z.string().uuid('Tipo inválido').nullable().optional(),
   unidade: z.string().min(1, 'Unidade obrigatória').max(50),
   quantidade_entrada: z.number().positive('Deve ser > 0'),
   valor_unitario: z.number().nonnegative('Não pode ser negativo'),
   fornecedor: z.string().min(1, 'Fornecedor obrigatório').max(255),
   local_armazen: z.string().min(1, 'Local de armazenamento obrigatório').max(255),
   estoque_minimo: z.number().nonnegative('Não pode ser negativo'),
-  data: z.string().min(1, 'Data obrigatória'),
   registrar_como_despesa: z.boolean(),
   observacoes: z.string().optional(),
 });

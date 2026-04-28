@@ -29,14 +29,13 @@ export async function criarInsumoAction(formData: unknown) {
     const insumo = await qServer.insumos.create({
       nome: parsed.nome,
       categoria_id: parsed.categoria_id,
-      tipo_id: parsed.tipo_id,
+      tipo_id: parsed.tipo_id ?? undefined,
       unidade: parsed.unidade,
       fornecedor: parsed.fornecedor,
       local_armazen: parsed.local_armazen,
       estoque_minimo: parsed.estoque_minimo,
       estoque_atual: parsed.quantidade_entrada,
       custo_medio: parsed.valor_unitario,
-      data_cadastro: parsed.data,
       observacoes: parsed.observacoes,
       ativo: true,
     });
@@ -110,7 +109,7 @@ export async function atualizarInsumoAction(id: string, formData: unknown) {
     const insumo = await qServer.insumos.update(id, {
       nome: parsed.nome,
       categoria_id: parsed.categoria_id,
-      tipo_id: parsed.tipo_id,
+      tipo_id: parsed.tipo_id ?? undefined,
       unidade: parsed.unidade,
       fornecedor: parsed.fornecedor,
       local_armazen: parsed.local_armazen,
