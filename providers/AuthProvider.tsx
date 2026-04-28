@@ -218,6 +218,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         lastProcessedUserIdRef.current = currentUserId;
         authLog('Auth event: processing user', currentUserId);
         setProfileError(null);
+
+        // ✅ Wait for Supabase client to finish initialization before querying profiles
+        // Prevents query hang when client is still in _initialize/_recoverAndRefresh
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
         await fetchProfile(currentUser);
       });
 
