@@ -201,6 +201,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
+        // ✅ VALIDAÇÃO DE SESSÃO: aguarda a sessão estar completamente estabelecida
+        // Especialmente importante após login via API route
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          authLog('[SESSION-CHECK] Validating session before fetch...');
+          const { data: sessionData } = await supabase.auth.getSession();
+
+          if (!sessionData?.session?.user?.id) {
+            authLog('[SESSION-CHECK] Session not ready, waiting for next event...');
+            return;
+          }
+          authLog('[SESSION-CHECK] Session validated, proceeding with fetch');
+        }
+
         lastProcessedUserIdRef.current = currentUserId;
         authLog('Auth event: processing user', currentUserId);
         setProfileError(null);
