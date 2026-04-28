@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Talhao, type CicloAgricola, type AtividadeCampo } from '@/lib/types/talhoes';
+import { type Profile } from '@/lib/supabase';
 import { AlertCircle, Plus, Edit2, Trash2 } from 'lucide-react';
 import {
   Alert,
@@ -21,6 +22,7 @@ interface TalhaoResumoTabProps {
   onEditTalhao?: () => void;
   onDeleteTalhao?: () => void;
   onRefresh?: () => void;
+  profile?: Profile | null;
 }
 
 export function TalhaoResumoTab({
@@ -30,6 +32,7 @@ export function TalhaoResumoTab({
   onEditTalhao,
   onDeleteTalhao,
   onRefresh,
+  profile,
 }: TalhaoResumoTabProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddCicloOpen, setIsAddCicloOpen] = useState(false);
@@ -189,14 +192,16 @@ export function TalhaoResumoTab({
             Novo Ciclo
           </Button>
         )}
-        <Button
-          variant="destructive"
-          onClick={onDeleteTalhao}
-          className="flex-1"
-        >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Deletar
-        </Button>
+        {profile?.perfil === 'Administrador' && (
+          <Button
+            variant="destructive"
+            onClick={onDeleteTalhao}
+            className="flex-1"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Deletar
+          </Button>
+        )}
       </div>
 
       {/* Dialogs */}

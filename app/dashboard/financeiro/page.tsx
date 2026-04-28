@@ -82,7 +82,7 @@ const tooltipFormatter = (
 // Componente
 // ---------------------------------------------------------------------------
 export default function FinanceiroPage() {
-  const { fazendaId, loading: authLoading } = useAuth();
+  const { fazendaId, loading: authLoading, profile } = useAuth();
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -436,15 +436,17 @@ export default function FinanceiroPage() {
           >
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => setDeletingLancamento(l)}
-            aria-label={`Excluir lançamento: ${l.descricao}`}
-          >
-            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-          </Button>
+          {profile?.perfil === 'Administrador' && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setDeletingLancamento(l)}
+              aria-label={`Excluir lançamento: ${l.descricao}`}
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          )}
         </div>
       </TableCell>
     </TableRow>

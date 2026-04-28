@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { type Talhao, type CicloAgricola, type AtividadeCampo } from '@/lib/types/talhoes';
+import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
 import {
   TalhaoDetailHeader,
@@ -27,6 +28,7 @@ import {
 export default function TalhaoDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { profile } = useAuth();
   const talhaoId = params.id as string;
 
   const [talhao, setTalhao] = useState<Talhao | null>(null);
@@ -128,6 +130,7 @@ export default function TalhaoDetailPage() {
           cicloAtivo={cicloAtivo}
           onEdit={() => setIsEditOpen(true)}
           onDelete={() => setIsDeleteOpen(true)}
+          profile={profile}
         />
 
         <Tabs defaultValue="resumo" className="w-full">
@@ -145,6 +148,7 @@ export default function TalhaoDetailPage() {
               onEditTalhao={() => setIsEditOpen(true)}
               onDeleteTalhao={() => setIsDeleteOpen(true)}
               onRefresh={fetchData}
+              profile={profile}
             />
           </TabsContent>
 

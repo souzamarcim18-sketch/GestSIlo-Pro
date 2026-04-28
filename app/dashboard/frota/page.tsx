@@ -14,7 +14,7 @@ import { FrotaCustos } from './components/FrotaCustos';
 import { FrotaRelatorios } from './components/FrotaRelatorios';
 
 export default function FrotaPage() {
-  useAuth();
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<FrotaTab>('visao-geral');
 
   const {
@@ -110,6 +110,7 @@ export default function FrotaPage() {
               await refreshMaquinas();
               await refreshUsos();
             }}
+            profile={profile}
           />
         </TabsContent>
 

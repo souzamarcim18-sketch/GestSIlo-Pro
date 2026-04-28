@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Truck, Clock, Gauge, Fuel, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { type Maquina, type UsoMaquina } from '@/lib/supabase';
+import { type Maquina, type UsoMaquina, type Profile } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
 import { MaquinaDialog } from './dialogs/MaquinaDialog';
 import { differenceInDays } from 'date-fns';
@@ -22,6 +22,7 @@ interface FrotaCadastroProps {
   usos: UsoMaquina[];
   loading: boolean;
   onRefresh: () => Promise<void>;
+  profile?: Profile | null;
 }
 
 function calcularDepreciacao(maquina: Maquina) {
@@ -42,7 +43,7 @@ const STATUS_BADGE: Record<string, string> = {
   'Vendido': 'destructive',
 };
 
-export function FrotaCadastro({ maquinas, usos, loading, onRefresh }: FrotaCadastroProps) {
+export function FrotaCadastro({ maquinas, usos, loading, onRefresh, profile }: FrotaCadastroProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [editMaquina, setEditMaquina] = useState<Maquina | undefined>(undefined);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -131,16 +132,18 @@ export function FrotaCadastro({ maquinas, usos, loading, onRefresh }: FrotaCadas
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(maquina)}
-                      disabled={deletingId === maquina.id}
-                      aria-label={`Excluir ${maquina.nome}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    {profile?.perfil === 'Administrador' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(maquina)}
+                        disabled={deletingId === maquina.id}
+                        aria-label={`Excluir ${maquina.nome}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>

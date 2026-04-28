@@ -36,7 +36,7 @@ import {
 import type { CityOption } from '@/hooks/useGeocoding';
 
 export default function ConfiguracoesPage() {
-  const { user, fazendaId, loading: authLoading } = useAuth();
+  const { user, fazendaId, loading: authLoading, profile: userProfile } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fazenda, setFazenda]  = useState<Fazenda | null>(null);
   const [users, setUsers]      = useState<Profile[]>([]);
@@ -429,22 +429,19 @@ export default function ConfiguracoesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {/*
-                          ✅ aria-label inclui o nome do usuário:
-                          "Remover acesso de João Silva"
-                          — resolve button-name CRITICAL
-                        */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          aria-label={`Remover acesso de ${user.nome}`}
-                          onClick={() =>
-                            toast.warning(`Remoção de ${user.nome} em breve.`)
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" aria-hidden="true" />
-                        </Button>
+                        {userProfile?.perfil === 'Administrador' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            aria-label={`Remover acesso de ${user.nome}`}
+                            onClick={() =>
+                              toast.warning(`Remoção de ${user.nome} em breve.`)
+                            }
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

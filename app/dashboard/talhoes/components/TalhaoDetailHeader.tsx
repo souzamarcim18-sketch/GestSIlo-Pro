@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Talhao, type CicloAgricola } from '@/lib/types/talhoes';
+import { type Profile } from '@/lib/supabase';
 import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
 import { getStatusDisplay } from '../helpers';
 
@@ -12,6 +13,7 @@ interface TalhaoDetailHeaderProps {
   cicloAtivo?: CicloAgricola;
   onEdit?: () => void;
   onDelete?: () => void;
+  profile?: Profile | null;
 }
 
 export function TalhaoDetailHeader({
@@ -19,6 +21,7 @@ export function TalhaoDetailHeader({
   cicloAtivo,
   onEdit,
   onDelete,
+  profile,
 }: TalhaoDetailHeaderProps) {
   const router = useRouter();
   const statusDisplay = getStatusDisplay(talhao.status);
@@ -58,10 +61,12 @@ export function TalhaoDetailHeader({
             <Edit2 className="w-4 h-4 mr-2" />
             Editar
           </Button>
-          <Button variant="destructive" size="sm" onClick={onDelete}>
-            <Trash2 className="w-4 h-4 mr-2" />
-            Deletar
-          </Button>
+          {profile?.perfil === 'Administrador' && (
+            <Button variant="destructive" size="sm" onClick={onDelete}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Deletar
+            </Button>
+          )}
         </div>
       </div>
     </div>

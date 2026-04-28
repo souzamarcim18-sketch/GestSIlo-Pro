@@ -41,7 +41,7 @@ import {
 export default function SiloDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { loading: authLoading } = useAuth();
+  const { loading: authLoading, profile } = useAuth();
 
   const siloId = params.id as string;
   const [silo, setSilo] = useState<Silo | null>(null);
@@ -188,20 +188,22 @@ export default function SiloDetailPage() {
             talhaoNome={talhao?.nome}
           />
         </div>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => {
-            setDeleteDependencies(null);
-            setShowDeleteConfirmation(false);
-            setIsDeleteOpen(true);
-          }}
-          className="gap-2"
-          aria-label="Deletar silo"
-        >
-          <Trash2 className="h-4 w-4" />
-          Deletar
-        </Button>
+        {profile?.perfil === 'Administrador' && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              setDeleteDependencies(null);
+              setShowDeleteConfirmation(false);
+              setIsDeleteOpen(true);
+            }}
+            className="gap-2"
+            aria-label="Deletar silo"
+          >
+            <Trash2 className="h-4 w-4" />
+            Deletar
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
