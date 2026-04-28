@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Redirect direto para /dashboard com cookies já definidos
-    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
+    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url), { status: 303 });
 
     // Copie todos os cookies para o response de redirect
     const cookieList = cookieStore.getAll();
