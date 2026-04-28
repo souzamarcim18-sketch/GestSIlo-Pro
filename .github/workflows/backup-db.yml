@@ -1,0 +1,86 @@
+name: Backup Automatizado DB (LGPD)
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configurar rclone para R2
+        env:
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: cloudflare
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [r2]
+          type = s3
+          provider = cloudflare
+          access_key_id = $RCLONE_CONFIG_R2_ACCESS_KEY_ID
+          secret_access_key = $RCLONE_CONFIG_R2_SECRET_ACCESS_KEY
+          endpoint = $RCLONE_CONFIG_R2_ENDPOINT
+          EOF
+          chmod 600 ~/.config/rclone/rclone.conf
+
+      - name: Fazer backup do BD (pg_dump)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_FILE="backup_$TIMESTAMP.sql.gz"
+          pg_dump "$SUPABASE_DB_URL" | gzip > "$BACKUP_FILE"
+          ls -lh "$BACKUP_FILE"
+          echo "BACKUP_FILE=$BACKUP_FILE" >> $GITHUB_ENV
+
+      - name: Upload para Cloudflare R2
+        run: |
+          rclone copy "${{ env.BACKUP_FILE }}" "r2:${{ secrets.R2_BUCKET }}/backups/"
+          echo "✅ Backup enviado para R2"
+          rm "${{ env.BACKUP_FILE }}"
+
+      - name: Notificar sucesso
+        if: success()
+        run: |
+          echo "✅ Backup concluído com sucesso em $(date)"
+
+      - name: Notificar falha por email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USER }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "❌ FALHA: Backup automático do BD — GestSilo Pro"
+          to: ${{ secrets.BACKUP_ALERT_EMAIL }}
+          from: "github-actions@gestsilo.com"
+          body: |
+            Falha ao executar backup automático do banco de dados.
+
+            📊 Detalhes do erro:
+            - Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            - Branch: ${{ github.ref }}
+            - Commit: ${{ github.sha }}
+            - Hora: $(date)
+
+            ⚠️ Ação necessária:
+            1. Investigar o erro no GitHub Actions
+            2. Executar backup manual conforme documentação
+            3. Verificar credenciais do Cloudflare R2
+
+            Compliância LGPD: Falha em backup pode resultar em violação de requisitos de recuperação de dados.
