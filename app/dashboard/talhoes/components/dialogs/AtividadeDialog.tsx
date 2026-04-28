@@ -25,8 +25,9 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
-import { type CicloAgricola } from '@/lib/types/talhoes';
+import { type CicloAgricola, type AtividadeCampoInput } from '@/lib/types/talhoes';
 import type { Insumo } from '@/lib/supabase';
+import type { MovimentacaoInsumo } from '@/types/insumos';
 import {
   PreparoSoloFields,
   CalagemFields,
@@ -184,10 +185,10 @@ export function AtividadeDialog({
 
     setIsLoading(true);
     try {
-      const payload: any = {
+      const payload: AtividadeCampoInput = {
         ciclo_id: cicloAtivo.id,
         talhao_id: talhaoId,
-        tipo_operacao: data.tipo_operacao,
+        tipo_operacao: data.tipo_operacao as any,
         data: data.data,
         maquina_id: data.maquina_id || null,
         horas_maquina: data.horas_maquina || null,
@@ -201,9 +202,9 @@ export function AtividadeDialog({
         populacao_plantas_ha: data.populacao_plantas_ha || null,
         sacos_ha: data.sacos_ha || null,
         espacamento_entre_linhas_cm: data.espacamento_entre_linhas_cm || null,
-        categoria_pulverizacao: data.categoria_pulverizacao || null,
+        categoria_pulverizacao: (data.categoria_pulverizacao as any) || null,
         dose_valor: data.dose_valor || null,
-        dose_unidade: data.dose_unidade || null,
+        dose_unidade: (data.dose_unidade as any) || null,
         volume_calda_l_ha: data.volume_calda_l_ha || null,
         produtividade_ton_ha: data.produtividade_ton_ha || null,
         maquina_colheita_id: data.maquina_colheita_id || null,
@@ -213,9 +214,8 @@ export function AtividadeDialog({
         maquina_compactacao_id: data.maquina_compactacao_id || null,
         horas_compactacao: data.horas_compactacao || null,
         valor_terceirizacao_r: data.valor_terceirizacao_r || null,
-        permite_rebrota: data.permite_rebrota || false,
         custo_amostra_r: data.custo_amostra_r || null,
-        metodo_entrada: data.metodo_entrada || null,
+        metodo_entrada: (data.metodo_entrada as any) || null,
         ph_cacl2: data.ph_cacl2 || null,
         mo_g_dm3: data.mo_g_dm3 || null,
         p_mg_dm3: data.p_mg_dm3 || null,
@@ -264,7 +264,7 @@ export function AtividadeDialog({
               origem: 'talhao',
               data: data.data,
               observacoes: `Aplicado em atividade: ${data.tipo_operacao}`,
-            } as any);
+            } as Omit<MovimentacaoInsumo, 'id'>);
           }
         } catch (insumoError) {
           console.error('Erro ao integrar insumo em talhão:', insumoError);

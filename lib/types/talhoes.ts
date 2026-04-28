@@ -194,3 +194,6 @@ export interface ProximaOperacao {
   cultura: string;
   talhao_nome: string;
 }
+
+// Type para criar/atualizar atividade de campo (sem id e timestamps)
+export type AtividadeCampoInput = Omit<AtividadeCampo, 'id' | 'created_at' | 'updated_at'>;
