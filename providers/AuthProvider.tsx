@@ -219,13 +219,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authLog('Auth event: processing user', currentUserId);
         setProfileError(null);
 
-        // ✅ Wait for Supabase client to finish initialization before querying profiles
-        // Prevents query hang when client is still in _initialize/_recoverAndRefresh
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
+        // ✅ Build profile from JWT metadata (fast path - no database query)
+        const profileFromMetadata: Profile = {
+          id: currentUser.id,
+          nome: currentUser.user_metadata?.nome || currentUser.email || '',
+          perfil: currentUser.user_metadata?.perfil || 'Operador',
+          fazenda_id: currentUser.user_metadata?.fazenda_id || null,
+          created_at: currentUser.created_at
+        };
 
-        await fetchProfile(currentUser);
+        authLog('[AUTH-PROVIDER] Profile loaded from JWT metadata:', {
+          nome: profileFromMetadata.nome,
+          perfil: profileFromMetadata.perfil,
+          fazenda_id: profileFromMetadata.fazenda_id
+        });
+
+        setUser(currentUser);
+        setProfile(profileFromMetadata);
+        setLoading(false);
+
+        // ✅ Fetch profile from database in background (optional sync, non-blocking)
+        // If metadata is missing or stale, this updates it without blocking dashboard load
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          fetchProfile(currentUser).catch(err => {
+            authLog('[AUTH-PROVIDER] Background profile sync failed (non-blocking):', err);
+          });
+        }
       });
 
       unsubscribe = () => subscription.unsubscribe();
