@@ -67,20 +67,23 @@ export default function LoginPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
+          redirect: 'follow'
         });
 
-        const data = await response.json();
+        if (response.ok && response.redirected) {
+          authLog('handleLogin: redirect received, navigating...');
+          toast.success('Login realizado com sucesso!');
+          window.location.href = response.url;
+          return;
+        }
 
         if (!response.ok) {
+          const data = await response.json();
           setError(data.error || 'Erro ao realizar login.');
           toast.error(data.error || 'Erro ao realizar login.');
           authLog('handleLogin: API error:', data.error);
           return;
         }
-
-        authLog('handleLogin: signIn success, redirecting...');
-        toast.success('Login realizado com sucesso!');
-        // O servidor (API route) faz o redirect para /dashboard com os cookies já definidos
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
         authLog('handleLogin: caught error:', errorMessage);
