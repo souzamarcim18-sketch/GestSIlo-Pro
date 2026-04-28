@@ -202,7 +202,6 @@ export default function FinanceiroPage() {
       } else {
         await q.financeiro.create({
           ...data,
-          fazenda_id: '',
           referencia_id: null,
           referencia_tipo: data.referencia_tipo ?? null,
           forma_pagamento: data.forma_pagamento ?? null,

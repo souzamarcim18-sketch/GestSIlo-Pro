@@ -109,11 +109,11 @@ const silos = {
     return data as Silo[];
   },
 
-  async create(payload: Omit<Silo, 'id'>): Promise<Silo> {
-    const fazendaId = await getFazendaId();
+  async create(payload: Omit<Silo, 'id' | 'fazenda_id'>): Promise<Silo> {
+    await getFazendaId();
     const { data, error } = await supabase
       .from('silos')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -283,11 +283,11 @@ const talhoes = {
     return (data as Talhao) || null;
   },
 
-  async create(payload: Omit<Talhao, 'id'>): Promise<Talhao> {
-    const fazendaId = await getFazendaId();
+  async create(payload: Omit<Talhao, 'id' | 'fazenda_id'>): Promise<Talhao> {
+    await getFazendaId();
     const { data, error } = await supabase
       .from('talhoes')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -471,10 +471,10 @@ const insumos = {
   },
 
   async create(payload: Omit<Insumo, 'id' | 'fazenda_id'>): Promise<Insumo> {
-    const fazendaId = await getFazendaId();
+    await getFazendaId();
     const { data, error } = await supabase
       .from('insumos')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -755,10 +755,10 @@ const insumosServer = {
   async create(payload: Omit<Insumo, 'id' | 'fazenda_id'>): Promise<Insumo> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
-    const fazendaId = await getFazendaIdServer();
+    await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('insumos')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -921,10 +921,10 @@ const financeiroServer = {
   async create(payload: Omit<Financeiro, 'id' | 'fazenda_id'>): Promise<Financeiro> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
-    const fazendaId = await getFazendaIdServer();
+    await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('financeiro')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -981,11 +981,11 @@ const maquinas = {
     return data as Maquina[];
   },
 
-  async create(payload: Omit<Maquina, 'id'>): Promise<Maquina> {
-    const fazendaId = await getFazendaId();
+  async create(payload: Omit<Maquina, 'id' | 'fazenda_id'>): Promise<Maquina> {
+    await getFazendaId();
     const { data, error } = await supabase
       .from('maquinas')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis')
       .single();
     if (error) throw error;
@@ -1233,11 +1233,11 @@ const financeiro = {
     return data as Financeiro[];
   },
 
-  async create(payload: Omit<Financeiro, 'id'>): Promise<Financeiro> {
-    const fazendaId = await getFazendaId();
+  async create(payload: Omit<Financeiro, 'id' | 'fazenda_id'>): Promise<Financeiro> {
+    await getFazendaId();
     const { data, error } = await supabase
       .from('financeiro')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -1323,10 +1323,10 @@ const atividadesCampo = {
     // TODO [Bloco Frota/Insumos]: Integrar custo_hora da tabela maquinas
     // e preco_unitario da tabela insumos para cálculo automático de custo_total.
     // Atualmente, custo é calculado client-side e passado aqui como payload.
-    const fazendaId = await getFazendaId();
+    await getFazendaId();
     const { data, error } = await supabase
       .from('atividades_campo')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -1548,12 +1548,12 @@ const planejamentosSilagem = {
   },
 
   async create(
-    payload: Omit<PlanejamentoSilagem, 'id' | 'created_at'>
+    payload: Omit<PlanejamentoSilagem, 'id' | 'created_at' | 'fazenda_id'>
   ): Promise<PlanejamentoSilagem> {
-    const fazendaId = await getFazendaId();
+    await getFazendaId();
     const { data, error } = await supabase
       .from('planejamentos_silagem')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -1652,14 +1652,14 @@ const planejamentosSilagemServer = {
   },
 
   async create(
-    payload: Omit<PlanejamentoSilagem, 'id' | 'created_at'>
+    payload: Omit<PlanejamentoSilagem, 'id' | 'created_at' | 'fazenda_id'>
   ): Promise<PlanejamentoSilagem> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
-    const fazendaId = await getFazendaIdServer();
+    await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('planejamentos_silagem')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
@@ -1823,7 +1823,7 @@ const planosManutencao = {
 
     const { data, error } = await supabase
       .from('planos_manutencao')
-      .insert({ ...payload, fazenda_id: fazendaId })
+      .insert(payload)
       .select('id, maquina_id, descricao, intervalo_horas, intervalo_dias, horimetro_base, data_base, ativo, fazenda_id, created_at')
       .single();
     if (error) throw error;

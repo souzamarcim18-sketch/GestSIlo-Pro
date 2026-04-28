@@ -50,6 +50,7 @@ GestSilo-Pro/
 - Existem funcionalidades de UI concluídas visualmente, mas com implementações de backend pendentes, identificadas durante a análise. 
   - *Exemplo crítico:* `// TODO: Implementar salvamento em banco de dados` nos módulos de `AvaliacaoBromatologicaDialog` e `AvaliacaoPspsDialog`. 
   - *Integrações ausentes:* `// TODO: Se parsed.registrar_como_despesa, criar despesa em financeiro` no módulo de insumos.
+  - **Rotas Mockadas (Vision Framework):** Existem rotas em `app/dashboard/` (como `/assessoria`, `/produtos`, `/configuracoes`) que atualmente operam apenas como protótipos de interface (UI/Mock). Elas não possuem tabelas persistentes dedicadas criadas no PostgreSQL ainda, devendo entrar na esteira de modelagem antes de um lançamento em produção.
 - Há um rastro de exceções manuais como `eslint-disable-line react-hooks/exhaustive-deps` em certos hooks de dialog (`SiloForm.tsx`, `MovimentacaoDialog.tsx`), o que expõe componentes a _stale closures_ e bugs silenciosos.
 
 ## 6. PRIORIDADES DE REFATORAÇÃO

@@ -182,7 +182,7 @@ export function SiloForm({
       };
 
       if (mode === 'create') {
-        const novoSilo = await q.silos.create({ ...payload, fazenda_id: '' });
+        const novoSilo = await q.silos.create(payload);
 
         // Criação atômica: movimentação de entrada obrigatória
         try {
