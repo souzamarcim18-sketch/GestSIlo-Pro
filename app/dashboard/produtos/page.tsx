@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
+import { ComingSoonBanner } from '@/components/ComingSoonBanner';
 import { PackageOpen, ArrowRight, Wheat, Beef, Leaf, BarChart3 } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
@@ -31,6 +32,7 @@ const features = [
 export default function ProdutosPage() {
   return (
     <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
+      <ComingSoonBanner message="Gestão de produtos está em desenvolvimento" />
 
       {/* Cabeçalho */}
       <div className="flex items-center gap-3">

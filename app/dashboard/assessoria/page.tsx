@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
+import { ComingSoonBanner } from '@/components/ComingSoonBanner';
 import { GraduationCap, StickyNote, CalendarClock, Lock, NotebookPen, CalendarDays } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -22,6 +23,7 @@ const features = [
 export default function AssessoriaPage() {
   return (
     <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
+      <ComingSoonBanner message="Assessoria agronômica será lançada em breve no Plano Max" />
 
       {/* Cabeçalho */}
       <div className="flex items-center gap-3">

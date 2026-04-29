@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useId, useRef } from 'react';
+import { ComingSoonBanner } from '@/components/ComingSoonBanner';
 import {
   Card,
   CardContent,
@@ -171,6 +172,8 @@ export default function ConfiguracoesPage() {
           Configurações do Sistema
         </h1>
       </div>
+
+      <ComingSoonBanner message="Convite de usuários e gestão de acessos será expandida em breve" />
 
       {/* ── Tabs ───────────────────────────────────────────────────────── */}
       <Tabs defaultValue="perfil" className="w-full">

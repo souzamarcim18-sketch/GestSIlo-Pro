@@ -1288,9 +1288,13 @@ auth.users (Supabase Auth)
 
 ### Rotas mockadas (sem persistência)
 
-- `/dashboard/assessoria` — UI/Mock
-- `/dashboard/produtos` — UI/Mock
-- `/dashboard/configuracoes` — parcialmente UI/Mock
+| Rota | Status | Prazo Estimado | Notas |
+|------|--------|---|---|
+| `/dashboard/assessoria` | Mock/Placeholder | Q3 2026 | UI completa com Plano Max, aguardando integração com assessor |
+| `/dashboard/produtos` | Mock/Placeholder | Q3 2026 | Estrutura pronta, tabelas preparadas no banco |
+| `/dashboard/configuracoes` | Parcial | Q2 2026 | Perfil + Fazenda completos; Usuários e convites em breve |
+
+**Sinalização visual:** Todas as rotas "Em breve" têm badge `"Em breve"` no menu Sidebar e banner `ComingSoonBanner` no topo da página.
 
 ---
 

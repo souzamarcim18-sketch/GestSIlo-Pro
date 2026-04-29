@@ -23,33 +23,41 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-const gerencialRoutes = [
-  { label: 'Silos',       icon: Database,      href: '/dashboard/silos'                          },
-  { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes'                        },
-  { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos'                        },
-  { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos'                       },
-  { label: 'Frota',       icon: Truck,         href: '/dashboard/frota'                          },
-  { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro'                     },
-  { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario'                     },
-  { label: 'Relatórios',  icon: BarChart3,     href: '/dashboard/relatorios'                     },
-  { label: 'Histórico',   icon: History,       href: '/dashboard/planejamento-silagem/historico' },
+type RouteItem = {
+  label: string;
+  icon: React.ElementType;
+  href: string;
+  badge?: 'comingSoon' | null;
+};
+
+const gerencialRoutes: RouteItem[] = [
+  { label: 'Silos',       icon: Database,      href: '/dashboard/silos',                          badge: null },
+  { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes',                        badge: null },
+  { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
+  { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: 'comingSoon' },
+  { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },
+  { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro',                     badge: null },
+  { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario',                     badge: null },
+  { label: 'Relatórios',  icon: BarChart3,     href: '/dashboard/relatorios',                     badge: null },
+  { label: 'Histórico',   icon: History,       href: '/dashboard/planejamento-silagem/historico', badge: null },
 ];
 
-const ferramentasRoutes = [
+const ferramentasRoutes: RouteItem[] = [
   { label: 'Plan. Silagem',     icon: Calculator, href: '/dashboard/planejamento-silagem' },
   { label: 'Calculadoras',      icon: Beaker,     href: '/dashboard/calculadoras'         },
   { label: 'Previsão do tempo', icon: CloudSun,   href: '/dashboard/previsao-tempo'       },
 ];
 
-const sistemaRoutes = [
-  { label: 'Configurações',         icon: Settings,      href: '/dashboard/configuracoes' },
-  { label: 'Suporte',               icon: HelpCircle,    href: '/dashboard/suporte'       },
-  { label: 'Assessoria agronômica', icon: GraduationCap, href: '/dashboard/assessoria'    },
+const sistemaRoutes: RouteItem[] = [
+  { label: 'Configurações',         icon: Settings,      href: '/dashboard/configuracoes', badge: null },
+  { label: 'Suporte',               icon: HelpCircle,    href: '/dashboard/suporte',       badge: null },
+  { label: 'Assessoria agronômica', icon: GraduationCap, href: '/dashboard/assessoria',    badge: 'comingSoon' },
 ];
 
 interface SidebarProps {
@@ -62,12 +70,14 @@ function NavItem({
   label,
   isActive,
   onNavigate,
+  badge,
 }: {
   href: string;
   icon: React.ElementType;
   label: string;
   isActive: boolean;
   onNavigate?: () => void;
+  badge?: 'comingSoon' | null;
 }) {
   return (
     <li>
@@ -77,20 +87,27 @@ function NavItem({
         prefetch={false}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'text-xs group flex items-center font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 px-3',
+          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 px-3',
           isActive
             ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40'
             : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted/80',
         )}
       >
-        <Icon
-          aria-hidden="true"
-          className={cn(
-            'h-4 w-4 transition-colors mr-2.5 flex-shrink-0',
-            isActive ? 'text-primary' : 'text-sidebar-foreground'
-          )}
-        />
-        <span>{label}</span>
+        <span className="flex items-center gap-2">
+          <Icon
+            aria-hidden="true"
+            className={cn(
+              'h-4 w-4 transition-colors flex-shrink-0',
+              isActive ? 'text-primary' : 'text-sidebar-foreground'
+            )}
+          />
+          <span>{label}</span>
+        </span>
+        {badge === 'comingSoon' && (
+          <Badge variant="outline" className="text-[10px] ml-1 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
+            Em breve
+          </Badge>
+        )}
       </Link>
     </li>
   );
@@ -159,6 +176,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                     label={route.label}
                     isActive={pathname === route.href}
                     onNavigate={onNavigate}
+                    badge={route.badge}
                   />
                 ))}
               </ul>
@@ -203,6 +221,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                     label={route.label}
                     isActive={pathname === route.href}
                     onNavigate={onNavigate}
+                    badge={route.badge}
                   />
                 ))}
               </ul>
