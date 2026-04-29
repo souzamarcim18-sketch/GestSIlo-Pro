@@ -1,0 +1,29 @@
+-- Migration: VAZIA (comentada por segurança)
+-- Data: 2026-04-29
+-- Status: SKIPPED - Constraints de atividades_campo deixados para próxima tarefa
+-- Razão: Existem dados históricos em atividades_campo que violam o novo enum de tipo_operacao
+--
+-- Solução futura:
+-- 1. Limpar dados problemáticos (UPDATE ou DELETE)
+-- 2. Rodar esta migration para adicionar CHECKs
+-- 3. Regenerar tipos TypeScript
+--
+-- Para referência, os constraints que seriam adicionados:
+--
+-- ALTER TABLE public.atividades_campo
+-- ADD CONSTRAINT chk_categoria_pulverizacao
+--   CHECK (categoria_pulverizacao IS NULL OR categoria_pulverizacao = ANY(ARRAY['Herbicida', 'Inseticida', 'Fungicida', 'Fertilizante Foliar', 'Outros']));
+--
+-- ALTER TABLE public.atividades_campo
+-- ADD CONSTRAINT chk_dose_unidade
+--   CHECK (dose_unidade IS NULL OR dose_unidade = ANY(ARRAY['L/ha', 'kg/ha']));
+--
+-- ALTER TABLE public.atividades_campo
+-- ADD CONSTRAINT chk_metodo_entrada
+--   CHECK (metodo_entrada IS NULL OR metodo_entrada = ANY(ARRAY['Manual', 'Upload PDF']));
+--
+-- ALTER TABLE public.atividades_campo
+-- ADD CONSTRAINT chk_tipo_operacao
+--   CHECK (tipo_operacao = ANY(ARRAY['Aração', 'Gradagem', 'Subsolagem', 'Escarificação', 'Nivelamento',
+--   'Roçagem', 'Destorroamento', 'Calagem', 'Gessagem', 'Plantio', 'Pulverização', 'Colheita', 'Análise de Solo', 'Irrigação']));
+--

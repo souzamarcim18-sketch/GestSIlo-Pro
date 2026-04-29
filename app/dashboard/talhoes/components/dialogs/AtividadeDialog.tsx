@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -25,9 +24,10 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
-import { type CicloAgricola, type AtividadeCampoInput } from '@/lib/types/talhoes';
+import { type CicloAgricola, type AtividadeCampoInput, TipoOperacao, CategoriaPulverizacao } from '@/lib/types/talhoes';
 import type { Insumo } from '@/lib/supabase';
 import type { MovimentacaoInsumo } from '@/types/insumos';
+import { AtividadeCampoSchema, type AtividadeCampoInput as AtividadeCampoInputType } from '@/lib/validators/atividades-campo';
 import {
   PreparoSoloFields,
   CalagemFields,
@@ -39,74 +39,9 @@ import {
   IrrigacaoFields,
 } from './fields';
 
-const TIPOS_OPERACAO = [
-  'Preparo de Solo',
-  'Calagem',
-  'Gessagem',
-  'Plantio',
-  'Pulverização',
-  'Colheita',
-  'Análise de Solo',
-  'Irrigação',
-];
+const TIPOS_OPERACAO = Object.values(TipoOperacao);
 
-const atividadeSchema = z.object({
-  tipo_operacao: z.string().min(1, 'Tipo de operação é obrigatório'),
-  data: z.string().min(1, 'Data é obrigatória'),
-  maquina_id: z.string().optional(),
-  horas_maquina: z.number().optional(),
-  observacoes: z.string().optional(),
-  custo_manual: z.number().optional(),
-  // Preparo de Solo
-  tipo_operacao_solo: z.string().optional(),
-  // Calagem / Gessagem
-  insumo_id: z.string().optional(),
-  dose_ton_ha: z.number().optional(),
-  // Plantio
-  semente_id: z.string().optional(),
-  populacao_plantas_ha: z.number().optional(),
-  sacos_ha: z.number().optional(),
-  espacamento_entre_linhas_cm: z.number().optional(),
-  // Pulverização
-  categoria_pulverizacao: z.string().optional(),
-  dose_valor: z.number().optional(),
-  dose_unidade: z.string().optional(),
-  volume_calda_l_ha: z.number().optional(),
-  // Colheita
-  produtividade_ton_ha: z.number().optional(),
-  maquina_colheita_id: z.string().optional(),
-  horas_colheita: z.number().optional(),
-  maquina_transporte_id: z.string().optional(),
-  horas_transporte: z.number().optional(),
-  maquina_compactacao_id: z.string().optional(),
-  horas_compactacao: z.number().optional(),
-  valor_terceirizacao_r: z.number().optional(),
-  permite_rebrota: z.boolean().optional(),
-  // Análise de Solo
-  custo_amostra_r: z.number().optional(),
-  metodo_entrada: z.string().optional(),
-  url_pdf_analise: z.any().optional(),
-  ph_cacl2: z.number().optional(),
-  mo_g_dm3: z.number().optional(),
-  p_mg_dm3: z.number().optional(),
-  k_mmolc_dm3: z.number().optional(),
-  ca_mmolc_dm3: z.number().optional(),
-  mg_mmolc_dm3: z.number().optional(),
-  al_mmolc_dm3: z.number().optional(),
-  h_al_mmolc_dm3: z.number().optional(),
-  s_mg_dm3: z.number().optional(),
-  b_mg_dm3: z.number().optional(),
-  cu_mg_dm3: z.number().optional(),
-  fe_mg_dm3: z.number().optional(),
-  mn_mg_dm3: z.number().optional(),
-  zn_mg_dm3: z.number().optional(),
-  // Irrigação
-  lamina_mm: z.number().optional(),
-  horas_irrigacao: z.number().optional(),
-  custo_por_hora_r: z.number().optional(),
-});
-
-type AtividadeInput = z.infer<typeof atividadeSchema>;
+type AtividadeInput = AtividadeCampoInputType;
 
 interface AtividadeDialogProps {
   open: boolean;
@@ -139,9 +74,9 @@ export function AtividadeDialog({
     });
   }, [open]);
   const methods = useForm<AtividadeInput>({
-    resolver: zodResolver(atividadeSchema),
+    resolver: zodResolver(AtividadeCampoSchema),
     defaultValues: {
-      tipo_operacao: '',
+      tipo_operacao: '' as any,
       data: new Date().toISOString().split('T')[0],
       observacoes: '',
     },
@@ -188,7 +123,7 @@ export function AtividadeDialog({
       const payload: AtividadeCampoInput = {
         ciclo_id: cicloAtivo.id,
         talhao_id: talhaoId,
-        tipo_operacao: data.tipo_operacao as any,
+        tipo_operacao: data.tipo_operacao as TipoOperacao,
         data: data.data,
         maquina_id: data.maquina_id || null,
         horas_maquina: data.horas_maquina || null,
@@ -202,9 +137,9 @@ export function AtividadeDialog({
         populacao_plantas_ha: data.populacao_plantas_ha || null,
         sacos_ha: data.sacos_ha || null,
         espacamento_entre_linhas_cm: data.espacamento_entre_linhas_cm || null,
-        categoria_pulverizacao: (data.categoria_pulverizacao as any) || null,
+        categoria_pulverizacao: (data.categoria_pulverizacao as CategoriaPulverizacao | null) || null,
         dose_valor: data.dose_valor || null,
-        dose_unidade: (data.dose_unidade as any) || null,
+        dose_unidade: (data.dose_unidade as 'L/ha' | 'kg/ha' | null) || null,
         volume_calda_l_ha: data.volume_calda_l_ha || null,
         produtividade_ton_ha: data.produtividade_ton_ha || null,
         maquina_colheita_id: data.maquina_colheita_id || null,
@@ -215,7 +150,7 @@ export function AtividadeDialog({
         horas_compactacao: data.horas_compactacao || null,
         valor_terceirizacao_r: data.valor_terceirizacao_r || null,
         custo_amostra_r: data.custo_amostra_r || null,
-        metodo_entrada: (data.metodo_entrada as any) || null,
+        metodo_entrada: (data.metodo_entrada as 'Manual' | 'Upload PDF' | null) || null,
         ph_cacl2: data.ph_cacl2 || null,
         mo_g_dm3: data.mo_g_dm3 || null,
         p_mg_dm3: data.p_mg_dm3 || null,
@@ -354,7 +289,7 @@ export function AtividadeDialog({
                 <Label htmlFor="tipo_operacao">Tipo de Operação</Label>
                 <Select
                   value={tipoOperacao || ''}
-                  onValueChange={(v) => setValue('tipo_operacao', v as any)}
+                  onValueChange={(v) => setValue('tipo_operacao', v as TipoOperacao)}
                 >
                   <SelectTrigger id="tipo_operacao">
                     <SelectValue placeholder="Selecione" />
@@ -450,7 +385,7 @@ export function AtividadeDialog({
                     <Label htmlFor="maquina_id">Máquina/Trator</Label>
                     <Select
                       value={watch('maquina_id') || ''}
-                      onValueChange={(v) => setValue('maquina_id', v as any)}
+                      onValueChange={(v) => setValue('maquina_id', v || null)}
                     >
                       <SelectTrigger id="maquina_id">
                         <SelectValue placeholder="Selecione (opcional)" />
