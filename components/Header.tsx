@@ -38,7 +38,7 @@ function capitalizeName(name: string): string {
 function getInitials(name: string): string {
   return name
     .split(' ')
-    .filter((n) => n[0] === n[0].toUpperCase()) // ignora "de", "da", etc.
+    .filter((n) => n[0] === n[0].toUpperCase())
     .slice(0, 2)
     .map((n) => n[0])
     .join('');
@@ -51,7 +51,6 @@ export function Header() {
   const [fazendaNome, setFazendaNome] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // ── Buscar nome da fazenda ───────────────────────────────────────────
   useEffect(() => {
     if (!fazendaId) return;
 
@@ -68,13 +67,11 @@ export function Header() {
     fetchFazenda();
   }, [fazendaId]);
 
-  // ── Logout ───────────────────────────────────────────────────────────
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
   };
 
-  // ── Dados do usuário ────────────────────────────────────────────────
   const rawName =
     user?.user_metadata?.nome ||
     user?.user_metadata?.full_name ||
@@ -87,10 +84,9 @@ export function Header() {
     ? getInitials(fullName)
     : displayName[0]?.toUpperCase() || 'U';
 
-  // ── Render ──────────────────────────────────────────────────────────
   return (
     <header
-      className="flex items-center p-4 bg-background/80 dark:bg-sidebar/95 backdrop-blur-md border-b border-border sticky top-0 z-40"
+      className="flex items-center p-4 bg-card/80 dark:bg-sidebar/95 backdrop-blur-md border-b border-border sticky top-0 z-40"
       role="toolbar"
       aria-label="Barra superior"
     >
@@ -107,7 +103,7 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      {/* Breadcrumbs — inline no header, só desktop */}
+      {/* Breadcrumbs */}
       <div className="flex-1 ml-4 hidden md:flex items-center overflow-hidden">
         <Breadcrumbs />
       </div>
@@ -121,7 +117,7 @@ export function Header() {
             {displayName}
           </p>
           {fazendaNome && (
-            <p className="text-xs text-primary font-medium leading-tight mt-0.5">
+            <p className="text-xs text-brand-primary font-medium leading-tight mt-0.5">
               {fazendaNome}
             </p>
           )}
@@ -133,9 +129,9 @@ export function Header() {
             className="relative h-10 w-10 rounded-2xl p-0 hover:bg-muted dark:hover:bg-muted/80 transition-colors"
             aria-label={`Menu do usuário: ${displayName}`}
           >
-            <Avatar className="h-10 w-10 rounded-2xl border-2 border-primary/20 shadow-sm">
+            <Avatar className="h-10 w-10 rounded-2xl border-2 border-primary/30 shadow-sm">
               <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt="" />
-              <AvatarFallback className="bg-muted text-primary font-bold rounded-2xl text-sm">
+              <AvatarFallback className="bg-muted text-brand-primary font-bold rounded-2xl text-sm">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -155,7 +151,7 @@ export function Header() {
                     {user?.email}
                   </p>
                   {fazendaNome && (
-                    <p className="text-xs leading-none text-primary font-medium mt-1.5">
+                    <p className="text-xs leading-none text-brand-primary font-medium mt-1.5">
                       🌱 {fazendaNome}
                     </p>
                   )}

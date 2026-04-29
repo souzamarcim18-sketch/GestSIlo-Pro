@@ -51,7 +51,6 @@ export default function DashboardPage() {
   const [proximasOperacoes, setProximasOperacoes] = useState<ProximaOperacaoComBadge[]>([]);
   const [loadingOperacoes, setLoadingOperacoes] = useState(true);
 
-  // ── Saudação dinâmica ──────────────────────────────────────────────
   const hour = new Date().getHours();
   const greeting =
     hour >= 12 && hour < 18
@@ -60,14 +59,12 @@ export default function DashboardPage() {
         ? 'Boa noite'
         : 'Bom dia';
 
-  // Nome do usuário (pega o primeiro nome para ficar mais pessoal)
   const userName =
     user?.user_metadata?.nome?.split(' ')[0] ||
     user?.user_metadata?.full_name?.split(' ')[0] ||
     'Produtor';
 
 
-  // ── Fetch de dados ─────────────────────────────────────────────────
   useEffect(() => {
     if (authLoading) return;
     const init = async () => {
@@ -120,7 +117,6 @@ export default function DashboardPage() {
               .lte('data', mesFim),
           ]);
 
-        // Silos
         const silosData = silosRes.data ?? [];
         let silosOcupacao = '—';
         let silosDetalhe = '—';
@@ -130,7 +126,6 @@ export default function DashboardPage() {
             0
           );
 
-          // Calcular estoque via movimentações
           const siloIds = silosData.map((s) => s.id);
           const movsRes = siloIds.length > 0
             ? await supabase
@@ -159,7 +154,6 @@ export default function DashboardPage() {
           silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
         }
 
-        // Talhões
         const talhoesData = talhoesRes.data ?? [];
         let talhaoArea = '—';
         if (talhoesData.length > 0) {
@@ -170,7 +164,6 @@ export default function DashboardPage() {
           talhaoArea = `${totalArea.toLocaleString('pt-BR')} ha`;
         }
 
-        // Máquinas
         const totalMaquinas = maquinasRes.count ?? 0;
         const manutencoesCount = manutRes.count ?? 0;
         let maquinasTotal = '—';
@@ -183,7 +176,6 @@ export default function DashboardPage() {
               : 'Sem manutenções pendentes';
         }
 
-        // Financeiro
         const finData = finRes.data ?? [];
         let saldoMes = '—';
         if (finData.length > 0) {
@@ -210,7 +202,6 @@ export default function DashboardPage() {
     init();
   }, [authLoading, fazendaId]);
 
-  // ── Fetch de próximas operações e alerta de silagem ──────────────────
   useEffect(() => {
     if (!fazendaId) {
       setProximasOperacoes([]);
@@ -221,10 +212,8 @@ export default function DashboardPage() {
     const loadProximasOperacoes = async () => {
       setLoadingOperacoes(true);
       try {
-        // Buscar próximas operações
         const operacoes = await getProximasOperacoes(fazendaId);
 
-        // Buscar ciclos ativos para verificar alerta de silagem
         const { data: ciclosData, error: ciclosError } = await supabase
           .from('ciclos_agricolas')
           .select('id, cultura, data_colheita_prevista, data_colheita_real')
@@ -232,10 +221,8 @@ export default function DashboardPage() {
 
         if (ciclosError) throw ciclosError;
 
-        // Verificar alerta de silagem e enriquecer operações
         let alertaSilagemAtivo = false;
         const operacoesEnriquecidas: ProximaOperacaoComBadge[] = operacoes.map((op) => {
-          // Verificar se há ciclo correspondente com alerta
           const cicloCorrespondente = (ciclosData || []).find(
             (c: any) =>
               c.data_colheita_prevista === op.data_esperada &&
@@ -254,7 +241,6 @@ export default function DashboardPage() {
           return { ...op, janelaColheita };
         });
 
-        // Exibir toast de alerta uma vez por sessão
         if (alertaSilagemAtivo && !sessionStorage.getItem('alerta_silagem_exibido')) {
           const proximoEvento = operacoesEnriquecidas.find(op => op.janelaColheita?.ativo);
           if (proximoEvento && proximoEvento.janelaColheita) {
@@ -265,7 +251,6 @@ export default function DashboardPage() {
           }
         }
 
-        // Limitar a 10 itens
         setProximasOperacoes(operacoesEnriquecidas.slice(0, 10));
       } catch (error) {
         console.error('Erro ao carregar próximas operações:', error);
@@ -278,7 +263,6 @@ export default function DashboardPage() {
     loadProximasOperacoes();
   }, [fazendaId]);
 
-  // ── Cards com navegação ────────────────────────────────────────────
   const statCards = [
     {
       title: 'Capacidade Total Silos',
@@ -286,8 +270,6 @@ export default function DashboardPage() {
       detail: stats?.silosDetalhe ?? '—',
       icon: Database,
       iconLabel: 'Ícone de silo',
-      color: 'text-secondary',
-      bg: 'bg-secondary/10',
       href: '/dashboard/silos',
     },
     {
@@ -296,8 +278,6 @@ export default function DashboardPage() {
       detail: talhoesDetail(stats),
       icon: Map,
       iconLabel: 'Ícone de talhões',
-      color: 'text-secondary',
-      bg: 'bg-secondary/10',
       href: '/dashboard/talhoes',
     },
     {
@@ -306,8 +286,6 @@ export default function DashboardPage() {
       detail: stats?.maquinasDetalhe ?? '—',
       icon: Truck,
       iconLabel: 'Ícone de frota',
-      color: 'text-status-info',
-      bg: 'bg-status-info/10',
       href: '/dashboard/frota',
     },
     {
@@ -316,8 +294,6 @@ export default function DashboardPage() {
       detail: 'Mês atual',
       icon: DollarSign,
       iconLabel: 'Ícone financeiro',
-      color: 'text-primary',
-      bg: 'bg-primary/10',
       href: '/dashboard/financeiro',
     },
   ];
@@ -327,7 +303,7 @@ export default function DashboardPage() {
 
       {/* ── Saudação ────────────────────────────────────────────────────── */}
       <div className="space-y-1 mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+        <h1 className="text-3xl md:text-4xl font-bold text-brand-deep">
           {greeting}, {userName}!
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -335,7 +311,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── Weather Widget (Full-width) ─────────────────────────────────── */}
+      {/* ── Weather Widget ─────────────────────────────────── */}
       <section aria-labelledby="weather-heading">
         <h2 id="weather-heading" className="sr-only">
           Previsão do tempo
@@ -347,77 +323,56 @@ export default function DashboardPage() {
         />
       </section>
 
-      {/* ── Stats Grid (Clicáveis) ─────────────────────────────────────── */}
+      {/* ── Stats Grid (Todos verdes) ─────────────────────────────────── */}
       <section aria-labelledby="stats-heading">
         <h2 id="stats-heading" className="sr-only">
           Indicadores gerais da propriedade
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((stat, index) => (
+          {statCards.map((stat) => (
             <button
               key={stat.title}
               onClick={() => router.push(stat.href)}
-              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-sidebar rounded-2xl"
+              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 rounded-2xl"
               aria-label={`${stat.title}: ${stat.value}. Clique para ver detalhes.`}
             >
-              {index === 0 ? (
-                // ── Card destaque (verde) ────────────────────────────────
-                <Card className="bg-primary rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow h-full">
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-primary-foreground/70 uppercase tracking-wider">
+              <Card
+                className="rounded-2xl p-6 h-full border-0 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
+                  boxShadow: '0 4px 16px rgba(0, 132, 61, 0.25)',
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
                       {stat.title}
                     </p>
                     {loading ? (
                       <div className="space-y-2">
-                        <Skeleton className="h-12 w-28 bg-primary-foreground/20" />
-                        <Skeleton className="h-4 w-32 bg-primary-foreground/20" />
+                        <Skeleton className="h-10 w-24 bg-white/20" />
+                        <Skeleton className="h-4 w-32 bg-white/20" />
                       </div>
                     ) : (
                       <>
-                        <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
+                        <p className="text-3xl md:text-4xl font-bold text-white drop-shadow-sm">
                           {stat.value}
                         </p>
-                        <p className="text-sm text-primary-foreground/80">
+                        <p className="text-xs text-white/85">
                           {stat.detail}
                         </p>
                       </>
                     )}
                   </div>
-                </Card>
-              ) : (
-                // ── Card informativo (branco) ────────────────────────────
-                <Card className="bg-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow h-full">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        {stat.title}
-                      </p>
-                      {loading ? (
-                        <div className="space-y-2">
-                          <Skeleton className="h-10 w-24" />
-                          <Skeleton className="h-4 w-32" />
-                        </div>
-                      ) : (
-                        <>
-                          <p className="text-3xl md:text-4xl font-bold text-foreground">
-                            {stat.value}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {stat.detail}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                    <div className={cn("p-3 rounded-xl", stat.bg)}>
-                      <stat.icon
-                        className={cn("h-5 w-5", stat.color)}
-                        aria-label={stat.iconLabel}
-                      />
-                    </div>
+                  <div className="p-3 rounded-xl bg-white/15 backdrop-blur-sm group-hover:bg-white/25 transition-colors">
+                    <stat.icon
+                      className="h-5 w-5 text-white"
+                      aria-label={stat.iconLabel}
+                    />
                   </div>
-                </Card>
-              )}
+                </div>
+              </Card>
             </button>
           ))}
         </div>
@@ -431,7 +386,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
+                <Calendar className="h-5 w-5 text-brand-primary" aria-hidden="true" />
               </div>
               <div>
                 <h2 id="operacoes-heading" className="text-lg font-semibold text-foreground">
@@ -466,7 +421,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {op.janelaColheita?.ativo && (
-                      <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                      <Badge className="bg-status-warning/15 text-status-warning border-status-warning/30 hover:bg-status-warning/20">
                         ⚠️ Janela de colheita
                       </Badge>
                     )}
@@ -488,66 +443,65 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        {/* Grid de Atividades Recentes + Alertas */}
+        {/* Grid de Atividades + Alertas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Atividades Recentes */}
-        <Card className="bg-card rounded-2xl p-6 shadow-sm lg:col-span-2 transition-shadow duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h2
-              id="atividades-heading"
-              className="text-lg font-semibold text-foreground"
-            >
-              Atividades Recentes
-            </h2>
-            <button
-              className="text-sm font-semibold text-primary hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1 transition-colors"
-              aria-label="Ver todas as atividades recentes"
-            >
-              Ver tudo
-            </button>
-          </div>
-
-          <div className="p-10 text-center text-muted-foreground" role="status" aria-live="polite">
-            <TrendingUp className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" aria-hidden="true" />
-            <p className="text-sm font-medium text-muted-foreground">
-              Nenhuma atividade registrada recentemente.
-            </p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              Suas últimas movimentações aparecerão aqui.
-            </p>
-          </div>
-        </Card>
-
-        {/* Sidebar Direita: Alertas */}
-        <div className="flex flex-col gap-6">
-          {/* Alertas Críticos */}
-          <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-            <h2
-              id="alertas-heading"
-              className="text-lg font-semibold text-foreground mb-4"
-            >
-              Alertas Críticos
-            </h2>
-
-            <div
-              className="flex flex-col items-center text-center"
-              role="status"
-              aria-label="Nenhum alerta crítico: tudo em ordem"
-            >
-              <div
-                className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4"
-                aria-hidden="true"
+          {/* Atividades Recentes */}
+          <Card className="bg-card rounded-2xl p-6 shadow-sm lg:col-span-2 transition-shadow duration-200 hover:shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2
+                id="atividades-heading"
+                className="text-lg font-semibold text-foreground"
               >
-                <CheckCircle2 className="w-7 h-7 text-primary" aria-hidden="true" />
-              </div>
-              <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Não há alertas críticos ou manutenções pendentes para hoje.
+                Atividades Recentes
+              </h2>
+              <button
+                className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors"
+                aria-label="Ver todas as atividades recentes"
+              >
+                Ver tudo
+              </button>
+            </div>
+
+            <div className="p-10 text-center text-muted-foreground" role="status" aria-live="polite">
+              <TrendingUp className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" aria-hidden="true" />
+              <p className="text-sm font-medium text-muted-foreground">
+                Nenhuma atividade registrada recentemente.
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                Suas últimas movimentações aparecerão aqui.
               </p>
             </div>
           </Card>
-        </div>
+
+          {/* Alertas Críticos */}
+          <div className="flex flex-col gap-6">
+            <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+              <h2
+                id="alertas-heading"
+                className="text-lg font-semibold text-foreground mb-4"
+              >
+                Alertas Críticos
+              </h2>
+
+              <div
+                className="flex flex-col items-center text-center"
+                role="status"
+                aria-label="Nenhum alerta crítico: tudo em ordem"
+              >
+                <div
+                  className="w-14 h-14 bg-status-success/15 rounded-full flex items-center justify-center mb-4"
+                  aria-hidden="true"
+                >
+                  <CheckCircle2 className="w-7 h-7 text-status-success" aria-hidden="true" />
+                </div>
+                <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Não há alertas críticos ou manutenções pendentes para hoje.
+                </p>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
@@ -562,13 +516,13 @@ function talhoesDetail(stats: DashboardStats | null): string {
 function getStatusBadgeColor(status: string): string {
   switch (status?.toLowerCase()) {
     case 'planejado':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      return 'bg-status-info/15 text-status-info border-status-info/30 hover:bg-status-info/20';
     case 'realizado':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      return 'bg-status-success/15 text-status-success border-status-success/30 hover:bg-status-success/20';
     case 'atrasado':
-      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      return 'bg-status-danger/15 text-status-danger border-status-danger/30 hover:bg-status-danger/20';
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      return 'bg-muted text-muted-foreground border-border hover:bg-muted/80';
   }
 }
 
