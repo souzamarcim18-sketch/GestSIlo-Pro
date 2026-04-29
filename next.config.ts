@@ -1,4 +1,6 @@
 import type {NextConfig} from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
+
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
@@ -83,4 +85,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default withSentryConfig(
+  withPWA(nextConfig),
+  {
+    org: 'gestsilo',
+    project: 'gestsilo-pro',
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    silent: !process.env.CI,
+    widenClientFileUpload: true,
+    hideSourceMaps: true,
+    sourcemaps: {
+      disable: !process.env.SENTRY_DSN,
+    },
+  }
+);
