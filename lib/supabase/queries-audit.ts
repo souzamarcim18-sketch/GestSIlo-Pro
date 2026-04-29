@@ -637,6 +637,31 @@ const movimentacoesInsumo = {
 
   async remove(id: string): Promise<void> {
     await getFazendaId();
+
+    // Buscar a movimentação para verificar se tem despesa_id vinculado
+    const { data: movimentacao, error: fetchError } = await supabase
+      .from('movimentacoes_insumo')
+      .select('despesa_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Se houver despesa_id, deletar o lançamento financeiro correspondente
+    if (movimentacao?.despesa_id) {
+      const { error: despesaError } = await supabase
+        .from('financeiro')
+        .delete()
+        .eq('id', movimentacao.despesa_id);
+
+      if (despesaError) {
+        throw new Error(
+          `Falha ao deletar despesa vinculada (${despesaError.message}). Operação cancelada para manter integridade.`
+        );
+      }
+    }
+
+    // Deletar a movimentação
     const { error } = await supabase
       .from('movimentacoes_insumo')
       .delete()

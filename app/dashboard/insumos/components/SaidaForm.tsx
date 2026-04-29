@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { saidaFormSchema, type SaidaFormData } from '@/lib/validations/insumos';
 import { useInsumos } from '@/lib/hooks/useInsumos';
@@ -50,6 +51,7 @@ export default function SaidaForm({
       responsavel: '',
       data: new Date().toISOString().split('T')[0],
       observacoes: '',
+      registrar_como_despesa: false,
     },
   });
 
@@ -74,6 +76,7 @@ export default function SaidaForm({
         responsavel: '',
         data: new Date().toISOString().split('T')[0],
         observacoes: '',
+        registrar_como_despesa: false,
       });
       onOpenChange(false);
       onSuccess?.();
@@ -361,6 +364,24 @@ export default function SaidaForm({
               placeholder="Notas adicionais..."
               {...form.register('observacoes')}
             />
+          </div>
+
+          {/* Registrar como Despesa */}
+          <div className="flex items-center gap-3 p-3 rounded border border-blue-200/50 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-900/30">
+            <Controller
+              name="registrar_como_despesa"
+              control={form.control}
+              render={({ field }) => (
+                <Checkbox
+                  id="registrar_como_despesa"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <Label htmlFor="registrar_como_despesa" className="cursor-pointer flex-1 mb-0">
+              Registrar como despesa no Financeiro
+            </Label>
           </div>
 
           <DialogFooter>
