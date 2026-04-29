@@ -351,7 +351,7 @@ const ciclosAgricolas = {
 
     const { data, error } = await supabase
       .from('ciclos_agricolas')
-      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade')
+      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade_ton_ha, custo_total_estimado, permite_rebrota, ativo, created_at, updated_at')
       .in('talhao_id', idsValidados)
       .order('data_plantio', { ascending: false });
     if (error) throw error;
@@ -372,7 +372,7 @@ const ciclosAgricolas = {
     const { data, error } = await supabase
       .from('ciclos_agricolas')
       .insert(payload)
-      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade')
+      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade_ton_ha, custo_total_estimado, permite_rebrota, ativo, created_at, updated_at')
       .single();
     if (error) throw error;
     return data as CicloAgricola;
@@ -384,7 +384,7 @@ const ciclosAgricolas = {
       .from('ciclos_agricolas')
       .update(payload)
       .eq('id', id)
-      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade')
+      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade_ton_ha, custo_total_estimado, permite_rebrota, ativo, created_at, updated_at')
       .single();
     if (error) throw error;
     return data as CicloAgricola;

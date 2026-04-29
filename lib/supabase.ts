@@ -93,7 +93,12 @@ export type CicloAgricola = {
   data_plantio: string;
   data_colheita_prevista: string | null;
   data_colheita_real: string | null;
-  produtividade: number | null;
+  produtividade_ton_ha: number | null;
+  custo_total_estimado?: number | null;
+  permite_rebrota: boolean;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 // ── Insumos: fonte única da verdade em types/insumos.ts ───────────────
