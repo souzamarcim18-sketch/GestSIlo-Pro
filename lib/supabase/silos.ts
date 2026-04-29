@@ -14,7 +14,7 @@ export async function updateSilo(id: string, silo: Partial<Silo>) {
     .from('silos')
     .update(silo)
     .eq('id', id)
-    .select()
+    .select('id, nome, tipo, fazenda_id, talhao_id, materia_seca_percent, insumo_lona_id, insumo_inoculante_id, cultura_ensilada, data_fechamento, data_abertura_prevista, data_abertura_real, volume_ensilado_ton_mv, comprimento_m, largura_m, altura_m, observacoes_gerais, custo_aquisicao_rs_ton')
     .single();
   if (error) throw error;
   return data as Silo;

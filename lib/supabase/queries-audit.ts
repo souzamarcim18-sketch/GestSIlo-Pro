@@ -114,7 +114,7 @@ const silos = {
     const { data, error } = await supabase
       .from('silos')
       .insert(payload)
-      .select()
+      .select('id, nome, tipo, fazenda_id, talhao_id, materia_seca_percent, insumo_lona_id, insumo_inoculante_id, cultura_ensilada, data_fechamento, data_abertura_prevista, data_abertura_real, volume_ensilado_ton_mv, comprimento_m, largura_m, altura_m, observacoes_gerais, custo_aquisicao_rs_ton')
       .single();
     if (error) throw error;
     return data as Silo;
@@ -127,7 +127,7 @@ const silos = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId) // dupla garantia além do RLS
-      .select()
+      .select('id, nome, tipo, fazenda_id, talhao_id, materia_seca_percent, insumo_lona_id, insumo_inoculante_id, cultura_ensilada, data_fechamento, data_abertura_prevista, data_abertura_real, volume_ensilado_ton_mv, comprimento_m, largura_m, altura_m, observacoes_gerais, custo_aquisicao_rs_ton')
       .single();
     if (error) throw error;
     return data as Silo;
@@ -209,7 +209,7 @@ const movimentacoesSilo = {
     const { data, error } = await supabase
       .from('movimentacoes_silo')
       .insert(payload)
-      .select()
+      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
       .single();
     if (error) throw error;
 
@@ -288,7 +288,7 @@ const talhoes = {
     const { data, error } = await supabase
       .from('talhoes')
       .insert(payload)
-      .select()
+      .select('id, nome, area_ha, tipo_solo, status, fazenda_id, observacoes')
       .single();
     if (error) throw error;
     return data as Talhao;
@@ -301,7 +301,7 @@ const talhoes = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, nome, area_ha, tipo_solo, status, fazenda_id, observacoes')
       .single();
     if (error) throw error;
     return data as Talhao;
@@ -372,7 +372,7 @@ const ciclosAgricolas = {
     const { data, error } = await supabase
       .from('ciclos_agricolas')
       .insert(payload)
-      .select()
+      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade')
       .single();
     if (error) throw error;
     return data as CicloAgricola;
@@ -384,7 +384,7 @@ const ciclosAgricolas = {
       .from('ciclos_agricolas')
       .update(payload)
       .eq('id', id)
-      .select()
+      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade')
       .single();
     if (error) throw error;
     return data as CicloAgricola;
@@ -475,7 +475,7 @@ const insumos = {
     const { data, error } = await supabase
       .from('insumos')
       .insert(payload)
-      .select()
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
     return data as Insumo;
@@ -488,7 +488,7 @@ const insumos = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
     return data as Insumo;
@@ -629,7 +629,7 @@ const movimentacoesInsumo = {
     const { data, error } = await supabase
       .from('movimentacoes_insumo')
       .insert(payload)
-      .select()
+      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
       .single();
     if (error) throw error;
     return data as MovimentacaoInsumo;
@@ -674,7 +674,7 @@ const movimentacoesInsumo = {
         origem: 'manual',
         data: new Date().toISOString().split('T')[0],
       })
-      .select()
+      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
       .single();
     if (error) throw error;
     return data as MovimentacaoInsumo;
@@ -759,7 +759,7 @@ const insumosServer = {
     const { data, error } = await supabaseServer
       .from('insumos')
       .insert(payload)
-      .select()
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
     return data as Insumo;
@@ -788,7 +788,7 @@ const insumosServer = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
     return data as Insumo;
@@ -827,7 +827,7 @@ const movimentacoesInsumoServer = {
     const { data, error } = await supabaseServer
       .from('movimentacoes_insumo')
       .insert(payload)
-      .select()
+      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
       .single();
     if (error) throw error;
     return data as MovimentacaoInsumo;
@@ -896,7 +896,7 @@ const movimentacoesInsumoServer = {
           origem: 'manual',
           data: new Date().toISOString().split('T')[0],
         })
-        .select()
+        .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
         .single();
 
       if (error) {
@@ -925,7 +925,7 @@ const financeiroServer = {
     const { data, error } = await supabaseServer
       .from('financeiro')
       .insert(payload)
-      .select()
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
       .single();
     if (error) throw error;
     return data as Financeiro;
@@ -1064,7 +1064,7 @@ const usoMaquinas = {
     const { data, error } = await supabase
       .from('uso_maquinas')
       .insert(payload)
-      .select()
+      .select('id, maquina_id, data, operador, atividade, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
       .single();
     if (error) throw error;
     return data as UsoMaquina;
@@ -1121,7 +1121,7 @@ const manutencoes = {
     const { data, error } = await supabase
       .from('manutencoes')
       .insert(payload)
-      .select()
+      .select('id, maquina_id, data, tipo, descricao, custo, proxima_manutencao, status, data_prevista, data_realizada, horimetro, proxima_manutencao_horimetro, responsavel, mao_de_obra_tipo, mao_de_obra_valor, pecas')
       .single();
     if (error) throw error;
     return data as Manutencao;
@@ -1133,7 +1133,7 @@ const manutencoes = {
       .from('manutencoes')
       .update(payload)
       .eq('id', id)
-      .select()
+      .select('id, maquina_id, data, tipo, descricao, custo, proxima_manutencao, status, data_prevista, data_realizada, horimetro, proxima_manutencao_horimetro, responsavel, mao_de_obra_tipo, mao_de_obra_valor, pecas')
       .single();
     if (error) throw error;
     return data as Manutencao;
@@ -1190,7 +1190,7 @@ const abastecimentos = {
     const { data, error } = await supabase
       .from('abastecimentos')
       .insert(payload)
-      .select()
+      .select('id, maquina_id, data, combustivel, litros, valor, hodometro, preco_litro, fornecedor, horimetro')
       .single();
     if (error) throw error;
     return data as Abastecimento;
@@ -1238,7 +1238,7 @@ const financeiro = {
     const { data, error } = await supabase
       .from('financeiro')
       .insert(payload)
-      .select()
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
       .single();
     if (error) throw error;
     return data as Financeiro;
@@ -1251,7 +1251,7 @@ const financeiro = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
       .single();
     if (error) throw error;
     return data as Financeiro;
@@ -1327,7 +1327,7 @@ const atividadesCampo = {
     const { data, error } = await supabase
       .from('atividades_campo')
       .insert(payload)
-      .select()
+      .select('id, fazenda_id, ciclo_id, talhao_id, tipo_operacao, data, maquina_id, horas_maquina, observacoes, custo_total, custo_manual, tipo_operacao_solo, insumo_id, dose_ton_ha, semente_id, populacao_plantas_ha, sacos_ha, espacamento_entre_linhas_cm, categoria_pulverizacao, dose_valor, dose_unidade, volume_calda_l_ha, produtividade_ton_ha, maquina_colheita_id, horas_colheita, maquina_transporte_id, horas_transporte, maquina_compactacao_id, horas_compactacao, valor_terceirizacao_r, permite_rebrota, custo_amostra_r, metodo_entrada, url_pdf_analise, ph_cacl2, mo_g_dm3, p_mg_dm3, k_mmolc_dm3, ca_mmolc_dm3, mg_mmolc_dm3, al_mmolc_dm3, h_al_mmolc_dm3, s_mg_dm3, b_mg_dm3, cu_mg_dm3, fe_mg_dm3, mn_mg_dm3, zn_mg_dm3, lamina_mm, horas_irrigacao, custo_por_hora_r, created_at, updated_at')
       .single();
     if (error) throw error;
     return data as AtividadeCampo;
@@ -1343,7 +1343,7 @@ const atividadesCampo = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, fazenda_id, ciclo_id, talhao_id, tipo_operacao, data, maquina_id, horas_maquina, observacoes, custo_total, custo_manual, tipo_operacao_solo, insumo_id, dose_ton_ha, semente_id, populacao_plantas_ha, sacos_ha, espacamento_entre_linhas_cm, categoria_pulverizacao, dose_valor, dose_unidade, volume_calda_l_ha, produtividade_ton_ha, maquina_colheita_id, horas_colheita, maquina_transporte_id, horas_transporte, maquina_compactacao_id, horas_compactacao, valor_terceirizacao_r, permite_rebrota, custo_amostra_r, metodo_entrada, url_pdf_analise, ph_cacl2, mo_g_dm3, p_mg_dm3, k_mmolc_dm3, ca_mmolc_dm3, mg_mmolc_dm3, al_mmolc_dm3, h_al_mmolc_dm3, s_mg_dm3, b_mg_dm3, cu_mg_dm3, fe_mg_dm3, mn_mg_dm3, zn_mg_dm3, lamina_mm, horas_irrigacao, custo_por_hora_r, created_at, updated_at')
       .single();
     if (error) throw error;
     return data as AtividadeCampo;
@@ -1383,7 +1383,7 @@ const eventosDAP = {
     const { data, error } = await supabase
       .from('eventos_dap')
       .insert(payload)
-      .select()
+      .select('id, ciclo_id, talhao_id, cultura, tipo_operacao, dias_apos_plantio, dias_apos_plantio_final, data_esperada, data_realizada, status, atividade_campo_id, created_at, updated_at')
       .single();
     if (error) throw error;
     return data as EventoDAP;
@@ -1394,7 +1394,7 @@ const eventosDAP = {
       .from('eventos_dap')
       .update(payload)
       .eq('id', id)
-      .select()
+      .select('id, ciclo_id, talhao_id, cultura, tipo_operacao, dias_apos_plantio, dias_apos_plantio_final, data_esperada, data_realizada, status, atividade_campo_id, created_at, updated_at')
       .single();
     if (error) throw error;
     return data as EventoDAP;
@@ -1476,7 +1476,7 @@ const categoriasRebanho = {
     const { data, error } = await supabase
       .from('categorias_rebanho')
       .upsert({ ...payload, fazenda_id: fazendaId })
-      .select()
+      .select('id, fazenda_id, nome, quantidade_cabecas, consumo_ms_kg_cab_dia, created_at')
       .single();
     if (error) throw error;
     return data as CategoriaRebanho;
@@ -1515,7 +1515,7 @@ const periodosConfinamento = {
     const { data, error } = await supabase
       .from('periodos_confinamento')
       .upsert({ ...payload, fazenda_id: fazendaId })
-      .select()
+      .select('id, fazenda_id, nome, data_inicio, data_fim, created_at')
       .single();
     if (error) throw error;
     return data as PeriodoConfinamento;
@@ -1554,7 +1554,7 @@ const planejamentosSilagem = {
     const { data, error } = await supabase
       .from('planejamentos_silagem')
       .insert(payload)
-      .select()
+      .select('id, fazenda_id, nome, sistema, rebanho, parametros, resultados, created_at')
       .single();
     if (error) throw error;
     return data as PlanejamentoSilagem;
@@ -1589,7 +1589,7 @@ const planejamentosSilagem = {
       .update({ nome })
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, fazenda_id, nome, sistema, rebanho, parametros, resultados, created_at')
       .single();
     if (error) throw error;
     return data as PlanejamentoSilagem;
@@ -1660,7 +1660,7 @@ const planejamentosSilagemServer = {
     const { data, error } = await supabaseServer
       .from('planejamentos_silagem')
       .insert(payload)
-      .select()
+      .select('id, fazenda_id, nome, sistema, rebanho, parametros, resultados, created_at')
       .single();
     if (error) throw error;
     return data as PlanejamentoSilagem;
@@ -1701,7 +1701,7 @@ const planejamentosSilagemServer = {
       .update({ nome })
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select()
+      .select('id, fazenda_id, nome, sistema, rebanho, parametros, resultados, created_at')
       .single();
     if (error) throw error;
     return data as PlanejamentoSilagem;
@@ -1728,7 +1728,7 @@ const avaliacoesBromatologicas = {
     const { data, error } = await supabase
       .from('avaliacoes_bromatologicas')
       .insert({ ...payload, fazenda_id: fazendaId })
-      .select()
+      .select('id, silo_id, data, momento, ms, pb, fdn, fda, amido, ndt, ph, avaliador, created_at')
       .single();
     if (error) throw error;
     return data as AvaliacaoBromatologica;
@@ -1765,7 +1765,7 @@ const avaliacoesPsps = {
     const { data, error } = await supabase
       .from('avaliacoes_psps')
       .insert({ ...payload, fazenda_id: fazendaId })
-      .select()
+      .select('id, silo_id, data, momento, peneira_19mm, peneira_8_19mm, peneira_4_8mm, peneira_fundo_4mm, tmp_mm, tamanho_teorico_corte_mm, kernel_processor, avaliador, created_at')
       .single();
     if (error) throw error;
     return data as AvaliacaoPSPS;

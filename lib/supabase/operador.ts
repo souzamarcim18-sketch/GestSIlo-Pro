@@ -11,7 +11,7 @@ export async function registrarRetiradaSilo(siloId: string, quantidade: number, 
       responsavel: responsavel,
       observacao: 'Retirada via Modo Operador'
     })
-    .select()
+    .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
     .single();
 
   if (error) throw error;
@@ -29,7 +29,7 @@ export async function registrarPerdaSilo(siloId: string, quantidade: number, tip
       responsavel: responsavel,
       observacao: `Perda: ${tipoPerda} (via Modo Operador)`
     })
-    .select()
+    .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
     .single();
 
   if (error) throw error;

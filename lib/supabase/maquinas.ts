@@ -5,7 +5,7 @@ export async function updateMaquina(id: string, maquina: Partial<Maquina>) {
     .from('maquinas')
     .update(maquina)
     .eq('id', id)
-    .select()
+    .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis')
     .single();
   if (error) throw error;
   return data as Maquina;
