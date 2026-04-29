@@ -93,7 +93,7 @@ export function MovimentacaoDialog({
       });
       setJaTemEntrada(false);
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, form, siloId]);
 
   const handleSubmit = async (data: MovimentacaoSiloInput) => {
     try {

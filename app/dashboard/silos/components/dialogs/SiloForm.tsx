@@ -145,7 +145,7 @@ export function SiloForm({
     const d = new Date(dataFechamento + 'T00:00:00');
     d.setDate(d.getDate() + 60);
     form.setValue('data_abertura_prevista', d.toISOString().slice(0, 10));
-  }, [dataFechamento]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dataFechamento, form]);
 
   const densidade = calcularDensidade(comprimento, largura, altura, volumeWatch);
   const densidadeBadge = getDensidadeBadge(densidade);
