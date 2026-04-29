@@ -7,11 +7,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import {
   Wheat,
-  Map as MapIcon,
   Tractor,
   Calculator,
   DollarSign,
-  Beef,
   FlaskConical,
   Package,
   NotebookPen,
@@ -21,10 +19,6 @@ import {
   Mail,
   Sprout,
 } from 'lucide-react';
-
-// Fundo cinza metálico padrão da página
-const BG_METAL =
-  'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -60,13 +54,10 @@ export default function LandingPage() {
   }, [user, loading, router]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-sidebar flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
 
       {/* ===== NAVBAR ===== */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-gray-400 dark:border-white/10 shadow-sm"
-        style={{ background: BG_METAL }}
-      >
+      <header className="bg-metal fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-border/60 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
@@ -79,20 +70,16 @@ export default function LandingPage() {
             />
           </div>
 
-          <nav
-            className="hidden lg:flex items-center gap-8 text-sm font-semibold dark:text-muted-foreground"
-            style={{ color: '#1a1a1a' }}
-          >
-            <a href="#funcionalidades" className="hover:text-primary transition-colors">Funcionalidades</a>
-            <a href="#beneficios" className="hover:text-primary transition-colors">Benefícios</a>
-            <a href="#planos" className="hover:text-primary transition-colors">Planos</a>
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-foreground">
+            <a href="#funcionalidades" className="hover:text-brand-primary transition-colors">Funcionalidades</a>
+            <a href="#beneficios" className="hover:text-brand-primary transition-colors">Benefícios</a>
+            <a href="#planos" className="hover:text-brand-primary transition-colors">Planos</a>
           </nav>
 
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => router.push('/login')}
-              className="hidden md:block text-sm font-semibold dark:text-muted-foreground hover:text-primary transition-colors"
-              style={{ color: '#1a1a1a' }}
+              className="hidden md:block text-sm font-semibold text-foreground hover:text-brand-primary transition-colors"
             >
               Entrar
             </button>
@@ -108,10 +95,7 @@ export default function LandingPage() {
       </header>
 
       {/* ===== HERO ===== */}
-      <section
-        className="relative min-h-[80vh] flex items-center overflow-hidden pt-20"
-        style={{ background: BG_METAL }}
-      >
+      <section className="bg-metal relative min-h-[80vh] flex items-center overflow-hidden pt-20">
         {/* Grid pattern */}
         <div className="absolute left-0 top-0 h-full w-full z-0 opacity-10">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -127,22 +111,26 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[70vh] py-12">
 
-            {/* ===== COLUNA ESQUERDA — Texto ===== */}
+            {/* COLUNA ESQUERDA — Texto */}
             <div className="flex flex-col justify-center">
               <div className="mb-8">
                 <span
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm"
-                  style={{ backgroundColor: 'rgba(0,166,81,0.15)', color: '#00843D', border: '1px solid rgba(0,166,81,0.3)' }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm border"
+                  style={{
+                    backgroundColor: 'rgba(0,166,81,0.15)',
+                    color: 'var(--brand-green-primary)',
+                    borderColor: 'rgba(0,166,81,0.3)',
+                  }}
                 >
                   Plataforma feita para o pecuarista e agricultor brasileiro
                 </span>
               </div>
 
               <h1 className="text-5xl xl:text-6xl font-extrabold leading-[1.08] tracking-tight mb-8">
-                <span style={{ color: '#1a1a1a' }}>
+                <span className="text-foreground">
                   Planeje, gerencie e<br />maximize a{' '}
                 </span>
-                <span className="relative inline-block" style={{ color: '#00843D' }}>
+                <span className="relative inline-block text-brand-primary">
                   produção
                   <svg
                     className="absolute -bottom-2 left-0 w-full"
@@ -163,20 +151,17 @@ export default function LandingPage() {
                   </svg>
                 </span>
                 <br />
-                <span style={{ color: '#2d2d2d' }}>da sua propriedade</span>
+                <span className="text-foreground/85">da sua propriedade</span>
               </h1>
 
-              <p
-                className="text-lg md:text-xl leading-relaxed mb-10 max-w-2xl"
-                style={{ color: '#2d2d2d' }}
-              >
+              <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-2xl text-foreground/80">
                 Sua propriedade merece mais do que cadernos e planilhas.
                 Controle sua silagem, suas lavouras, sua frota e seus insumos em uma plataforma feita para o
                 produtor brasileiro — do campo à gestão, com poucos cliques.
               </p>
             </div>
 
-            {/* ===== COLUNA DIREITA — Imagem ===== */}
+            {/* COLUNA DIREITA — Imagem */}
             <div className="relative hidden lg:flex items-center justify-end">
               <div className="relative w-full max-w-md">
                 <div
@@ -205,50 +190,40 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FUNCIONALIDADES ===== */}
-      <section
-        id="funcionalidades"
-        className="py-24 px-6 dark:bg-sidebar"
-        style={{ background: BG_METAL }}
-      >
+      <section id="funcionalidades" className="bg-metal py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2
-              className="text-4xl md:text-5xl font-extrabold mb-4 dark:text-foreground"
-              style={{ color: '#023c1f' }}
-            >
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-brand-deep">
               O sistema que a sua fazenda precisa
             </h2>
-            <p
-              className="text-lg max-w-xl mx-auto dark:text-muted-foreground"
-              style={{ color: '#1a1a1a' }}
-            >
+            <p className="text-lg max-w-xl mx-auto text-foreground">
               Uma plataforma completa para gestão. Do campo à administração.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Tenha controle total das suas silagens em tempo real — acompanhe entradas, saídas, volumes armazenados e a qualidade de cada lote, evitando perdas e garantindo forragem de alto valor nutricional para o seu rebanho.', color: '#023c1f', border: '#BBF7D0', iconColor: '#BBF7D0' },
-              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.', color: '#023c1f', border: '#BFDBFE', iconColor: '#BFDBFE' },
-              { Icon: Tractor, title: 'Gestão de Máquinas e Implementos', desc: 'Controle as manutenções, os abastecimentos, as horas trabalhadas e os custos operacionais.', color: '#023c1f', border: '#FED7AA', iconColor: '#FED7AA' },
-              { Icon: Calculator, title: 'Calculadoras', desc: 'Tenha nas suas mãos calculadoras que te ajudarão a tomar decisões em relação à compras de fertilizantes e calcário.', color: '#023c1f', border: '#E9D5FF', iconColor: '#E9D5FF' },
-              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'Acompanhe as receitas, as despesas, da sua propriedade com formatação em BRL e cálculos automáticos.', color: '#023c1f', border: '#FEF08A', iconColor: '#FEF08A' },
-              { Icon: NotebookPen, title: 'Planejamento de silagens', desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.', color: '#023c1f', border: '#FECACA', iconColor: '#FECACA' },
-              { Icon: Package, title: 'Gestão de Insumos', desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.', color: '#023c1f', border: '#A5F3FC', iconColor: '#A5F3FC' },
-              { Icon: BarChart3, title: 'Relatórios & Simulador', desc: 'Gere relatórios consolidados por período e simule cenários agrícolas para apoiar suas decisões estratégicas.', color: '#023c1f', border: '#DDD6FE', iconColor: '#DDD6FE' },
+              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Tenha controle total das suas silagens em tempo real — acompanhe entradas, saídas, volumes armazenados e a qualidade de cada lote, evitando perdas e garantindo forragem de alto valor nutricional para o seu rebanho.', border: '#BBF7D0', iconColor: '#BBF7D0' },
+              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.', border: '#BFDBFE', iconColor: '#BFDBFE' },
+              { Icon: Tractor, title: 'Gestão de Máquinas e Implementos', desc: 'Controle as manutenções, os abastecimentos, as horas trabalhadas e os custos operacionais.', border: '#FED7AA', iconColor: '#FED7AA' },
+              { Icon: Calculator, title: 'Calculadoras', desc: 'Tenha nas suas mãos calculadoras que te ajudarão a tomar decisões em relação à compras de fertilizantes e calcário.', border: '#E9D5FF', iconColor: '#E9D5FF' },
+              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'Acompanhe as receitas, as despesas, da sua propriedade com formatação em BRL e cálculos automáticos.', border: '#FEF08A', iconColor: '#FEF08A' },
+              { Icon: NotebookPen, title: 'Planejamento de silagens', desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.', border: '#FECACA', iconColor: '#FECACA' },
+              { Icon: Package, title: 'Gestão de Insumos', desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.', border: '#A5F3FC', iconColor: '#A5F3FC' },
+              { Icon: BarChart3, title: 'Relatórios & Simulador', desc: 'Gere relatórios consolidados por período e simule cenários agrícolas para apoiar suas decisões estratégicas.', border: '#DDD6FE', iconColor: '#DDD6FE' },
             ].map((item) => (
               <div
                 key={item.title}
-                className="rounded-2xl p-6 border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-default dark:bg-muted dark:border-border"
-                style={{ background: item.color, borderColor: item.border }}
+                className="rounded-2xl p-6 border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-default bg-brand-deep"
+                style={{ borderColor: item.border }}
               >
                 <div className="mb-4">
                   <item.Icon size={40} strokeWidth={1.8} color={item.iconColor} />
                 </div>
-                <h3 className="font-bold text-white dark:text-foreground text-lg mb-2">
+                <h3 className="font-bold text-white text-lg mb-2">
                   {item.title}
                 </h3>
-                <p className="text-gray-300 dark:text-muted-foreground text-sm leading-relaxed">
+                <p className="text-gray-300 text-sm leading-relaxed">
                   {item.desc}
                 </p>
               </div>
@@ -258,23 +233,13 @@ export default function LandingPage() {
       </section>
 
       {/* ===== BENEFÍCIOS ===== */}
-      <section
-        id="beneficios"
-        className="py-24 px-6"
-        style={{ background: BG_METAL }}
-      >
+      <section id="beneficios" className="bg-metal py-24 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <span
-              className="text-xs font-bold uppercase tracking-widest mb-4 block"
-              style={{ color: '#00843D' }}
-            >
+            <span className="text-xs font-bold uppercase tracking-widest mb-4 block text-brand-primary">
               Por que utilizar o GestSilo na sua propriedade?
             </span>
-            <h2
-              className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight"
-              style={{ color: '#023c1f' }}
-            >
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight text-brand-deep">
               Decisões mais inteligentes,<br />resultado no campo!
             </h2>
             <div className="space-y-5">
@@ -286,14 +251,17 @@ export default function LandingPage() {
               ].map((b) => (
                 <div key={b.title} className="flex items-start gap-4">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-sm"
-                    style={{ background: 'rgba(0,166,81,0.15)', border: '1px solid rgba(0,166,81,0.25)' }}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-sm border"
+                    style={{
+                      background: 'rgba(0,166,81,0.15)',
+                      borderColor: 'rgba(0,166,81,0.25)',
+                    }}
                   >
                     {b.icon}
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1" style={{ color: '#023c1f' }}>{b.title}</h4>
-                    <p className="text-sm" style={{ color: '#2d2d2d' }}>{b.desc}</p>
+                    <h4 className="font-bold mb-1 text-brand-deep">{b.title}</h4>
+                    <p className="text-sm text-foreground/80">{b.desc}</p>
                   </div>
                 </div>
               ))}
@@ -343,23 +311,13 @@ export default function LandingPage() {
       </section>
 
       {/* ===== PLANOS ===== */}
-      <section
-        id="planos"
-        className="py-24 px-6"
-        style={{ background: BG_METAL }}
-      >
+      <section id="planos" className="bg-metal py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2
-              className="text-4xl md:text-5xl font-extrabold mb-4 dark:text-foreground"
-              style={{ color: '#023c1f' }}
-            >
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-brand-deep">
               O plano certo para cada fazenda!
             </h2>
-            <p
-              className="text-lg dark:text-muted-foreground"
-              style={{ color: '#1a1a1a' }}
-            >
+            <p className="text-lg text-foreground">
               Grátis para começar. Sem surpresa e sem limites para crescer!
             </p>
           </div>
@@ -380,7 +338,7 @@ export default function LandingPage() {
                 price: 'R$ 49',
                 period: '/mês',
                 desc: 'Para gestão profissional da propriedade',
-                features: ['Silos ilimitados', 'Talhões ilimitados', 'Planejador de silagem', 'Módulo financeiro', 'Gestão de Frotas', 'Calculadoras de Calcário e de Fertilizantes' , 'Relatórios avançados', 'Suporte prioritário'],
+                features: ['Silos ilimitados', 'Talhões ilimitados', 'Planejador de silagem', 'Módulo financeiro', 'Gestão de Frotas', 'Calculadoras de Calcário e de Fertilizantes', 'Relatórios avançados', 'Suporte prioritário'],
                 cta: 'Assinar Pro',
                 highlight: true,
               },
@@ -397,11 +355,11 @@ export default function LandingPage() {
               <div
                 key={plan.name}
                 className={`rounded-2xl p-8 border-2 relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
-                  plan.highlight ? 'shadow-2xl scale-105' : 'bg-white border-gray-200'
+                  plan.highlight ? 'shadow-2xl scale-105' : 'bg-card border-border'
                 }`}
                 style={
                   plan.highlight
-                    ? { background: 'linear-gradient(145deg, #00A651, #00843D)', borderColor: '#00843D', color: 'white' }
+                    ? { background: 'linear-gradient(145deg, #00A651, #00843D)', borderColor: '#00843D' }
                     : {}
                 }
               >
@@ -413,30 +371,18 @@ export default function LandingPage() {
                     ⭐ Mais popular
                   </div>
                 )}
-                <h3
-                  className="font-bold text-xl mb-1"
-                  style={{ color: plan.highlight ? '#ffffff' : '#023c1f' }}
-                >
+                <h3 className={`font-bold text-xl mb-1 ${plan.highlight ? 'text-white' : 'text-brand-deep'}`}>
                   {plan.name}
                 </h3>
-                <p
-                  className="text-sm mb-4"
-                  style={{ color: plan.highlight ? 'rgba(255,255,255,0.85)' : '#4a4a4a' }}
-                >
+                <p className={`text-sm mb-4 ${plan.highlight ? 'text-white/85' : 'text-muted-foreground'}`}>
                   {plan.desc}
                 </p>
                 <div className="mb-6">
-                  <span
-                    className="text-4xl font-extrabold"
-                    style={{ color: plan.highlight ? '#ffffff' : '#023c1f' }}
-                  >
+                  <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-brand-deep'}`}>
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span
-                      className="text-sm ml-1"
-                      style={{ color: plan.highlight ? 'rgba(255,255,255,0.85)' : '#4a4a4a' }}
-                    >
+                    <span className={`text-sm ml-1 ${plan.highlight ? 'text-white/85' : 'text-muted-foreground'}`}>
                       {plan.period}
                     </span>
                   )}
@@ -445,15 +391,14 @@ export default function LandingPage() {
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-sm">
                       <svg
-                        className="w-4 h-4 flex-shrink-0"
+                        className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-white' : 'text-brand-primary'}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
-                        style={{ color: plan.highlight ? '#ffffff' : '#00843D' }}
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
                       </svg>
-                      <span style={{ color: plan.highlight ? 'rgba(255,255,255,0.95)' : '#2d2d2d' }}>
+                      <span className={plan.highlight ? 'text-white/95' : 'text-foreground/85'}>
                         {f}
                       </span>
                     </li>
@@ -477,11 +422,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== CTA FINAL ===== */}
-      <section
-        className="py-24 px-6 text-center relative overflow-hidden"
-        style={{ background: BG_METAL }}
-      >
-        {/* Grid decorativo sutil */}
+      <section className="bg-metal py-24 px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -494,18 +435,12 @@ export default function LandingPage() {
         </div>
 
         <div className="relative z-10 max-w-3xl mx-auto">
-          <h2
-            className="text-4xl md:text-5xl font-extrabold mb-6"
-            style={{ color: '#023c1f' }}
-          >
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-brand-deep">
             Pronto para gerenciar<br />suas silagens e sua propriedade?
           </h2>
-          <p
-            className="text-lg mb-10"
-            style={{ color: '#2d2d2d' }}
-          >
+          <p className="text-lg mb-10 text-foreground/80">
             Mais controle. Menos perdas. Mais resultados para seu rebanho e para sua propriedade.
-             </p>
+          </p>
           <button
             onClick={() => router.push('/register')}
             className="px-10 py-5 font-bold text-lg rounded-2xl shadow-2xl transition-all duration-200 hover:-translate-y-1 text-white"
@@ -513,112 +448,85 @@ export default function LandingPage() {
           >
             Solicitar meu acesso
           </button>
-          <p className="text-sm mt-4" style={{ color: '#4a4a4a' }}>
+          <p className="text-sm mt-4 text-muted-foreground">
             Solicite seu primeiro acesso, conheça e melhore sua gestão.
           </p>
         </div>
       </section>
 
-     {/* ===== FOOTER ===== */}
-<footer
-  className="py-12 px-6 border-t border-gray-400/50"
-  style={{
-    background:
-      'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)',
-  }}
->
-  <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
+      {/* ===== FOOTER ===== */}
+      <footer className="bg-metal py-12 px-6 border-t border-border/60">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
 
-    {/* ===== COLUNA 1 — Logo + copyright ===== */}
-    <div className="flex flex-col items-center md:items-start gap-3">
-      <Image
-        src="/logo_degrad-hor.png"
-        alt="GestSilo"
-        width={200}
-        height={50}
-        className="object-contain brightness-140"
-      />
-      <span
-        className="text-sm font-medium"
-        style={{ color: '#1a1a1a' }}
-      >
-        © 2026 · Todos os direitos reservados
-      </span>
-    </div>
+          {/* COLUNA 1 — Logo + copyright */}
+          <div className="flex flex-col items-center md:items-start gap-3">
+            <Image
+              src="/logo_degrad-hor.png"
+              alt="GestSilo"
+              width={200}
+              height={50}
+              className="object-contain"
+            />
+            <span className="text-sm font-medium text-foreground">
+              © 2026 · Todos os direitos reservados
+            </span>
+          </div>
 
-    {/* ===== COLUNA 2 — Contatos ===== */}
-    <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-black/30 md:pl-8">
-      <h4
-        className="text-sm font-bold uppercase tracking-wider mb-1"
-        style={{ color: '#023c1f' }}
-      >
-        Contatos
-      </h4>
+          {/* COLUNA 2 — Contatos */}
+          <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-border md:pl-8">
+            <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-brand-deep">
+              Contatos
+            </h4>
 
-      <a
-        href="https://wa.me/5531990875346"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-        style={{ color: '#1a1a1a' }}
-        aria-label="WhatsApp"
-      >
-        <Phone size={16} />
-        <span>(31) 99087-5346</span>
-      </a>
+            <a
+              href="https://wa.me/5531990875346"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-brand-primary transition-colors"
+              aria-label="WhatsApp"
+            >
+              <Phone size={16} />
+              <span>(31) 99087-5346</span>
+            </a>
 
-      <a
-        href="https://instagram.com/gestsilo"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-        style={{ color: '#1a1a1a' }}
-        aria-label="Instagram"
-      >
-        <Instagram size={16} />
-        <span>@gestsilo</span>
-      </a>
+            <a
+              href="https://instagram.com/gestsilo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-brand-primary transition-colors"
+              aria-label="Instagram"
+            >
+              <Instagram size={16} />
+              <span>@gestsilo</span>
+            </a>
 
-      <a
-        href="mailto:gestsilo.app@gmail.com"
-        className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-        style={{ color: '#1a1a1a' }}
-        aria-label="E-mail"
-      >
-        <Mail size={16} />
-        <span>gestsilo.app@gmail.com</span>
-      </a>
-    </div>
+            <a
+              href="mailto:gestsilo.app@gmail.com"
+              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-brand-primary transition-colors"
+              aria-label="E-mail"
+            >
+              <Mail size={16} />
+              <span>gestsilo.app@gmail.com</span>
+            </a>
+          </div>
 
-    {/* ===== COLUNA 3 — Links institucionais ===== */}
-    <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-black/30 md:pl-8">
-      <h4
-        className="text-sm font-bold uppercase tracking-wider mb-1"
-        style={{ color: '#023c1f' }}
-      >
-        Institucional
-      </h4>
+          {/* COLUNA 3 — Links institucionais */}
+          <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-border md:pl-8">
+            <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-brand-deep">
+              Institucional
+            </h4>
 
-      <a
-        href="#"
-        className="text-sm font-medium hover:text-primary transition-colors"
-        style={{ color: '#1a1a1a' }}
-      >
-        Privacidade
-      </a>
-      <a
-        href="#"
-        className="text-sm font-medium hover:text-primary transition-colors"
-        style={{ color: '#1a1a1a' }}
-      >
-        Termos de uso
-      </a>
-    </div>
+            <a href="#" className="text-sm font-medium text-foreground hover:text-brand-primary transition-colors">
+              Privacidade
+            </a>
+            <a href="#" className="text-sm font-medium text-foreground hover:text-brand-primary transition-colors">
+              Termos de uso
+            </a>
+          </div>
 
-  </div>
+        </div>
       </footer>
 
     </div>
   );
 }
-
