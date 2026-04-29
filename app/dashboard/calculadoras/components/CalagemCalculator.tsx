@@ -16,7 +16,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { calcularCalagem, type CalagemInput, type MetodoCalagemType } from '@/lib/calculadoras';
-import { calagemInputSchema } from '@/validators/calculadoras';
+import { calagemInputSchema } from '@/lib/validations/calculadoras';
 import { tabelaCaDesejadoUFLA } from '@/lib/calculadoras/smp-tabela';
 import { ResultCard } from './ResultCard';
 import { ExportPDFDialog } from '../dialogs';

@@ -1215,7 +1215,7 @@ function testarCombinacao3Ferts(
 }
 ```
 
-### 3.7 Arquivo: `validators/calculadoras.ts`
+### 3.7 Arquivo: `lib/validations/calculadoras.ts`
 Responsabilidade: Schemas Zod para validação de formulários
 
 ```typescript
@@ -1626,7 +1626,7 @@ export interface NPKResult
 
 ## 6. Schemas Zod
 
-Definidos em `validators/calculadoras.ts` (seção 3.7):
+Definidos em `lib/validations/calculadoras.ts` (seção 3.7):
 - `calagemInputSchema` (com transformações parse)
 - `npkInputSchema` (com transformações parse)
 - `metodosCalagemSchema` (enum)
@@ -1889,7 +1889,7 @@ Sequência que garante compilação em cada etapa:
 6. `__tests__/*.test.ts` — testes unitários
 
 ### Phase 3: Validação & PDF
-7. `validators/calculadoras.ts` — schemas Zod
+7. `lib/validations/calculadoras.ts` — schemas Zod
 8. `lib/pdf-export.ts` — jsPDF export
 
 ### Phase 4: UI

@@ -24,7 +24,7 @@ import {
   type NPKInput,
   type Fertilizante,
 } from '@/lib/calculadoras';
-import { npkInputSchema } from '@/validators/calculadoras';
+import { npkInputSchema } from '@/lib/validations/calculadoras';
 import { ResultCard } from './ResultCard';
 import { FertilizantesManager } from './FertilizantesManager';
 import { ExportPDFDialog } from '../dialogs';
