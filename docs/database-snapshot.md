@@ -96,6 +96,50 @@ Sugestão: [correção concreta]
 | Hardening RLS concluído em | Abril/2026 |
 | Multitenancy | Por `fazenda_id` (RLS) |
 | Helpers ativos | `get_minha_fazenda_id()`, `sou_gerente_ou_admin()` |
+| Tipos TypeScript | Gerados automaticamente via `npm run db:types` (v2, Abril/2026) |
+
+---
+
+## 🤖 SEÇÃO 1.1 — GERAÇÃO AUTOMÁTICA DE TIPOS TYPESCRIPT
+
+### Visão Geral
+Desde **Abril/2026**, os tipos TypeScript são gerados automaticamente do schema PostgreSQL via **Supabase CLI**. Isso garante que `types/supabase.ts` esteja sempre em sincronia com a estrutura do banco e elimina duplicação manual de tipagem.
+
+### Como Usar
+```bash
+# Gerar tipos TypeScript (compatível com bash, cmd, PowerShell)
+npm run db:types
+
+# Ou manualmente (requer Supabase CLI instalado)
+supabase gen types typescript --project-id SEU_PROJECT_ID > types/supabase.ts
+```
+
+### Quando Executar
+- ✅ Após fazer `npm install` (primeira vez)
+- ✅ Após criar ou modificar tabelas/colunas no banco
+- ✅ Após aplicar migrations (`supabase db push` ou `supabase migration up`)
+- ✅ Antes de commitar mudanças no schema
+
+### Pré-requisitos
+- Variável de ambiente `SUPABASE_PROJECT_ID` configurada em `.env.local`
+- Supabase CLI instalado: `npm install -g supabase`
+- Projeto Supabase ativo e acessível
+
+### Fluxo de Desenvolvimento Recomendado
+```
+1. Criar migration: supabase migration new meu_novo_recurso
+2. Editar SQL em supabase/migrations/XXX_meu_novo_recurso.sql
+3. Aplicar migration: supabase db push
+4. Gerar tipos: npm run db:types
+5. TypeScript atualizado automaticamente em types/supabase.ts
+```
+
+### Troubleshooting
+- **Erro: "SUPABASE_PROJECT_ID não foi definido"**
+  → Configure em `.env.local`: `SUPABASE_PROJECT_ID=seu_project_id`
+  
+- **Erro: "Supabase CLI não encontrado"**
+  → Instale globalmente: `npm install -g supabase`
 
 ---
 
@@ -1287,6 +1331,7 @@ grep -rn "\.delete(" --include="*.ts" --include="*.tsx" app/ components/ hooks/
 
 | Data | Versão | Alteração |
 |---|---|---|
+| 28/04/2026 | 1.1 | S6: Adicionado script automático de geração de tipos TypeScript (`npm run db:types`) |
 | _(preencher)_ | 1.0 | Snapshot inicial pós-hardening RLS PT-BR |
 
 ---

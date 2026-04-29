@@ -240,13 +240,14 @@ A aplicação possui um diretório estruturado de `coverage` (com relatórios em
 
 ## 14. GUIA DE ONBOARDING PARA DESENVOLVEDORES
 
-**Pré-requisitos:** Node.js (v20+) e Git.
+**Pré-requisitos:** Node.js (v20+), Git e Supabase CLI (`npm install -g supabase`).
 **Passo a Passo Local:**
 1. Clone o repositório.
 2. Rode `npm install`.
-3. Crie o arquivo `.env.local` na raiz com base no `.env.example` (necessitará das chaves `NEXT_PUBLIC_SUPABASE_URL` e `ANON_KEY`).
-4. Inicie o servidor com `npm run dev`.
-5. *(Opcional)* Se for mexer no banco, recomenda-se a instalação do Supabase CLI para rodar migrations e gerar os tipos localmente: `supabase gen types typescript --project-id XYZ > types/supabase.ts`.
+3. Crie o arquivo `.env.local` na raiz com base no `.env.example` (necessitará das chaves `NEXT_PUBLIC_SUPABASE_URL`, `ANON_KEY` e `SUPABASE_PROJECT_ID`).
+4. Gere os tipos TypeScript automaticamente com `npm run db:types` (multiplataforma: funciona em bash, cmd e PowerShell).
+5. Inicie o servidor com `npm run dev`.
+6. *(Opcional)* Para atualizar tipos após mudanças no schema: `npm run db:types` novamente.
 
 ### 14.1. Convenções de Desenvolvimento
 - **Commits:** Padrão *Conventional Commits* (`feat:`, `fix:`, `chore:`, `refactor:`).
@@ -255,7 +256,7 @@ A aplicação possui um diretório estruturado de `coverage` (com relatórios em
   1. Cria-se o script: `supabase migration new nome_da_feature`
   2. Escreve-se o SQL DDL no arquivo gerado em `supabase/migrations/`
   3. Aplica-se no banco local: `supabase db push` ou `supabase migration up`
-  4. Gera-se as tipagens TypeScript atualizadas: `supabase gen types typescript --local > types/supabase.ts`
+  4. Gera-se as tipagens TypeScript atualizadas: `npm run db:types` (multiplataforma, compatível com Windows/Mac/Linux)
 
 ## 15. REGISTROS DE DECISÕES ARQUITETURAIS (ADRs)
 
