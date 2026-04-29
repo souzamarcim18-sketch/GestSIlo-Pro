@@ -30,6 +30,7 @@ export const saidaFormSchema = z.object({
   destino_texto: z.string().optional(), // Para saídas que não têm destino fixo
   responsavel: z.string().min(1, 'Responsável obrigatório'),
   data: z.string().min(1, 'Data obrigatória'),
+  registrar_como_despesa: z.boolean(),
   observacoes: z.string().optional(),
 }).refine(
   (data) => {

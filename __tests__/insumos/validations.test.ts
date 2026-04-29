@@ -175,6 +175,7 @@ describe('saidaFormSchema', () => {
     destino_id: '550e8400-e29b-41d4-a716-446655440002',
     responsavel: 'João',
     data: '2026-04-17',
+    registrar_como_despesa: false,
   };
 
   it('aceita saída válida (happy path)', () => {
@@ -401,6 +402,7 @@ describe('Edge Cases em Validações', () => {
       valor_unitario: 999999.99,
       responsavel: 'A'.repeat(255),
       data: '2099-12-31',
+      registrar_como_despesa: false,
     });
     expect(resultado.success).toBe(true);
   });

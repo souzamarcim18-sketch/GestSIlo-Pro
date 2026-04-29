@@ -141,6 +141,7 @@ export async function deletarInsumoAction(id: string) {
 
 /**
  * Registra uma saída de insumo (com validação de estoque).
+ * Se registrar_como_despesa for true, cria automaticamente um lançamento financeiro.
  */
 export async function criarSaidaAction(formData: unknown) {
   const parsed = saidaFormSchema.parse(formData);
@@ -156,7 +157,7 @@ export async function criarSaidaAction(formData: unknown) {
       );
     }
 
-    await qServer.movimentacoesInsumo.create({
+    const movimentacao = await qServer.movimentacoesInsumo.create({
       insumo_id: parsed.insumo_id,
       tipo: 'Saída',
       quantidade: parsed.quantidade,
@@ -170,8 +171,41 @@ export async function criarSaidaAction(formData: unknown) {
       origem: 'manual',
     });
 
+    // Integração Financeiro: Se marcado, criar despesa automática
+    let despesa_id: string | null = null;
+    if (parsed.registrar_como_despesa) {
+      try {
+        const despesa = await qServer.financeiro.create({
+          categoria: 'Insumos',
+          descricao: `Saída ${parsed.tipo_saida} de ${insumo.nome}: ${parsed.quantidade} ${insumo.unidade}`,
+          valor: parsed.quantidade * (parsed.valor_unitario || insumo.custo_medio),
+          data: parsed.data,
+          tipo: 'Despesa',
+          forma_pagamento: null,
+          referencia_id: movimentacao.id,
+          referencia_tipo: null,
+        });
+
+        despesa_id = despesa.id;
+
+        // Linkar despesa à movimentação
+        const supabaseServer = await createSupabaseServerClient();
+        await supabaseServer
+          .from('movimentacoes_insumo')
+          .update({ despesa_id })
+          .eq('id', movimentacao.id);
+      } catch (despesaError) {
+        // Se falhar ao criar despesa, reverter movimentação (transação atômica)
+        console.error('Erro ao criar despesa. Revertendo movimentação.', despesaError);
+        await qServer.movimentacoesInsumo.remove(movimentacao.id);
+        throw new Error(
+          'Falha ao registrar como despesa. Operação revertida. Tente novamente.'
+        );
+      }
+    }
+
     revalidatePath('/dashboard/insumos');
-    return { success: true };
+    return { success: true, despesa_id };
   } catch (error) {
     console.error('Erro ao registrar saída:', error);
     throw error;
