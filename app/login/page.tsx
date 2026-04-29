@@ -10,10 +10,6 @@ import { Home } from 'lucide-react';
 import { AUTH_PROFILE_FETCH_TIMEOUT_MS } from '@/lib/auth/constants';
 import { authLog } from '@/lib/auth/logger';
 
-// Fundo metálico padrão da aplicação
-const BG_METAL =
-  'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)';
-
 export default function LoginPage() {
   const router = useRouter();
   const { user, profile, loading: authLoading, profileError } = useAuth();
@@ -97,14 +93,13 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="min-h-screen flex relative" style={{ background: BG_METAL }}>
+    <div className="min-h-screen flex relative bg-metal">
 
       {/* Botão Voltar */}
       <button
         onClick={() => router.push('/')}
         aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl text-sm font-semibold hover:bg-white hover:text-primary transition-all shadow-md cursor-pointer"
-        style={{ color: '#1a1a1a' }}
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-card hover:text-brand-primary transition-all shadow-md cursor-pointer"
       >
         <Home className="w-4 h-4" aria-hidden="true" />
         <span>Voltar ao Início</span>
@@ -120,7 +115,7 @@ export default function LoginPage() {
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
             <defs>
               <pattern id="grid-login" width="60" height="60" patternUnits="userSpaceOnUse">
-                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#00A651" strokeWidth="0.5" />
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--brand-green-vivid)" strokeWidth="0.5" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#grid-login)" />
@@ -142,20 +137,20 @@ export default function LoginPage() {
         <div className="relative z-10 flex-1 flex flex-col justify-center py-16">
           <div className="mb-8">
             <p className="text-5xl xl:text-6xl font-extrabold leading-tight mb-8">
-              <span style={{ color: '#1a1a1a' }}>
+              <span className="text-foreground">
                 Sua fazenda<br />
                 no próximo<br />
               </span>
-              <span style={{ color: '#00843D' }}>nível</span>
+              <span className="text-brand-primary">nível</span>
             </p>
-            <p className="text-xl leading-relaxed max-w-md" style={{ color: '#2d2d2d' }}>
+            <p className="text-xl leading-relaxed max-w-md text-foreground/80">
               Controle silos, talhões, frota, insumos e financeiro em um único lugar. Do campo ao escritório.
             </p>
           </div>
         </div>
 
         <div className="relative z-10">
-          <p className="text-sm font-medium" style={{ color: '#4a4a4a' }}>
+          <p className="text-sm font-medium text-muted-foreground">
             © 2026 GestSilo · Tecnologia para o produtor brasileiro
           </p>
         </div>
@@ -180,12 +175,12 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 p-8">
+          <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-border/60 p-8">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2" style={{ color: '#023c1f' }}>
+              <h1 className="text-3xl font-bold mb-2 text-brand-deep">
                 Bem-vindo de volta
               </h1>
-              <p className="text-base" style={{ color: '#4a4a4a' }}>
+              <p className="text-base text-muted-foreground">
                 Acesse sua conta para gerenciar sua propriedade
               </p>
             </div>
@@ -196,15 +191,14 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: '#1a1a1a' }}
+                  className="block text-sm font-semibold mb-2 text-foreground"
                 >
                   E-mail
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg
-                      className="w-5 h-5 text-gray-400"
+                      className="w-5 h-5 text-muted-foreground"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -223,9 +217,7 @@ export default function LoginPage() {
                     required
                     autoComplete="email"
                     aria-describedby={error ? 'form-error' : undefined}
-                    className="w-full pl-12 pr-4 py-4 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all text-base shadow-sm"
-                    onFocus={(e) => (e.target.style.boxShadow = '0 0 0 3px rgba(0,166,81,0.2)')}
-                    onBlur={(e) => (e.target.style.boxShadow = '')}
+                    className="w-full pl-12 pr-4 py-4 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
                   />
                 </div>
               </div>
@@ -235,15 +227,13 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between mb-2">
                   <label
                     htmlFor="password"
-                    className="block text-sm font-semibold"
-                    style={{ color: '#1a1a1a' }}
+                    className="block text-sm font-semibold text-foreground"
                   >
                     Senha
                   </label>
                   <a
                     href="/forgot-password"
-                    className="text-sm font-semibold hover:opacity-80 transition-opacity"
-                    style={{ color: '#00843D' }}
+                    className="text-sm font-semibold text-brand-primary hover:opacity-80 transition-opacity"
                   >
                     Esqueceu a senha?
                   </a>
@@ -251,7 +241,7 @@ export default function LoginPage() {
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg
-                      className="w-5 h-5 text-gray-400"
+                      className="w-5 h-5 text-muted-foreground"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -270,16 +260,14 @@ export default function LoginPage() {
                     required
                     autoComplete="current-password"
                     aria-describedby={error ? 'form-error' : undefined}
-                    className="w-full pl-12 pr-12 py-4 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all text-base shadow-sm"
-                    onFocus={(e) => (e.target.style.boxShadow = '0 0 0 3px rgba(0,166,81,0.2)')}
-                    onBlur={(e) => (e.target.style.boxShadow = '')}
+                    className="w-full pl-12 pr-12 py-4 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                     aria-pressed={showPassword}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -301,10 +289,10 @@ export default function LoginPage() {
                   id="form-error"
                   role="alert"
                   aria-live="assertive"
-                  className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl"
+                  className="flex items-center gap-3 p-4 bg-status-danger/10 border border-status-danger/30 rounded-xl"
                 >
                   <svg
-                    className="w-5 h-5 text-red-600 flex-shrink-0"
+                    className="w-5 h-5 text-status-danger flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -314,11 +302,11 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="flex-1">
-                    <p className="text-red-700 text-sm font-medium">
+                    <p className="text-status-danger text-sm font-medium">
                       {error || profileError || (timeout && 'Tempo limite ao carregar seu perfil. Tente fazer login novamente.')}
                     </p>
                     {(profileError || timeout) && (
-                      <p className="text-red-600/80 text-xs mt-1">
+                      <p className="text-status-danger/80 text-xs mt-1">
                         Contate o suporte se o problema persistir.
                       </p>
                     )}
@@ -331,13 +319,11 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 aria-busy={loading}
-                className="w-full py-4 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 mt-2"
+                className="w-full py-4 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 mt-2 hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
                 style={{
                   background: loading ? '#9CA3AF' : 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
                   boxShadow: loading ? 'none' : '0 4px 20px rgba(0,166,81,0.35)',
                 }}
-                onMouseOver={(e) => { if (!loading) e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
               >
                 {loading ? (
                   <>
@@ -366,19 +352,18 @@ export default function LoginPage() {
 
             {/* Divider */}
             <div className="flex items-center gap-4 my-8" aria-hidden="true">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-sm" style={{ color: '#6b6b6b' }}>ou</span>
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-sm text-muted-foreground">ou</span>
+              <div className="flex-1 h-px bg-border" />
             </div>
 
             {/* Cadastro */}
             <div className="text-center">
-              <p className="text-sm" style={{ color: '#4a4a4a' }}>
+              <p className="text-sm text-muted-foreground">
                 Ainda não tem uma conta?{' '}
                 <a
                   href="/register"
-                  className="font-semibold hover:opacity-80 transition-opacity"
-                  style={{ color: '#00843D' }}
+                  className="font-semibold text-brand-primary hover:opacity-80 transition-opacity"
                 >
                   Solicite seu acesso →
                 </a>
@@ -388,15 +373,15 @@ export default function LoginPage() {
 
           {/* Footer */}
           <footer className="mt-8 text-center">
-            <p className="text-xs" style={{ color: '#4a4a4a' }}>
+            <p className="text-xs text-muted-foreground">
               © 2026 GestSilo · Todos os direitos reservados
             </p>
             <nav aria-label="Links institucionais" className="flex items-center justify-center gap-4 mt-2">
-              <a href="/privacidade" className="text-xs hover:opacity-80 transition-opacity" style={{ color: '#4a4a4a' }}>Privacidade</a>
-              <span aria-hidden="true" style={{ color: '#9a9a9a' }}>·</span>
-              <a href="/termos" className="text-xs hover:opacity-80 transition-opacity" style={{ color: '#4a4a4a' }}>Termos de uso</a>
-              <span aria-hidden="true" style={{ color: '#9a9a9a' }}>·</span>
-              <a href="/suporte" className="text-xs hover:opacity-80 transition-opacity" style={{ color: '#4a4a4a' }}>Suporte</a>
+              <a href="/privacidade" className="text-xs text-muted-foreground hover:text-brand-primary transition-colors">Privacidade</a>
+              <span aria-hidden="true" className="text-muted-foreground/60">·</span>
+              <a href="/termos" className="text-xs text-muted-foreground hover:text-brand-primary transition-colors">Termos de uso</a>
+              <span aria-hidden="true" className="text-muted-foreground/60">·</span>
+              <a href="/suporte" className="text-xs text-muted-foreground hover:text-brand-primary transition-colors">Suporte</a>
             </nav>
           </footer>
 
