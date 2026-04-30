@@ -18,7 +18,6 @@ import {
   Beaker,
   Calendar,
   History,
-  CloudSun,
   HelpCircle,
   GraduationCap,
 } from 'lucide-react';
@@ -51,7 +50,6 @@ const gerencialRoutes: RouteItem[] = [
 const ferramentasRoutes: RouteItem[] = [
   { label: 'Plan. Silagem',     icon: Calculator, href: '/dashboard/planejamento-silagem' },
   { label: 'Calculadoras',      icon: Beaker,     href: '/dashboard/calculadoras'         },
-  { label: 'Previsão do tempo', icon: CloudSun,   href: '/dashboard/previsao-tempo'       },
 ];
 
 const sistemaRoutes: RouteItem[] = [
