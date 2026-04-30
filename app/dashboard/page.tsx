@@ -18,8 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { useFazendaCoordinates } from '@/hooks/useFazendaCoordinates';
-import { WeatherWidget } from '@/components/widgets';
 import { toast } from 'sonner';
 import { getProximasOperacoes } from '@/lib/supabase/talhoes';
 import type { ProximaOperacao, CicloAgricola } from '@/lib/types/talhoes';
@@ -44,7 +42,6 @@ function formatBRL(value: number): string {
 
 export default function DashboardPage() {
   const { fazendaId, loading: authLoading, user } = useAuth();
-  const { latitude, longitude, location } = useFazendaCoordinates(fazendaId);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -334,18 +331,6 @@ export default function DashboardPage() {
           Resumo da sua propriedade
         </p>
       </div>
-
-      {/* ── Weather Widget (Full-width) ─────────────────────────────────── */}
-      <section aria-labelledby="weather-heading">
-        <h2 id="weather-heading" className="sr-only">
-          Previsão do tempo
-        </h2>
-        <WeatherWidget
-          latitude={latitude}
-          longitude={longitude}
-          location={location || 'Sua fazenda'}
-        />
-      </section>
 
       {/* ── Stats Grid (Clicáveis) ─────────────────────────────────────── */}
       <section aria-labelledby="stats-heading">
