@@ -66,7 +66,7 @@ Viabilizar o cadastro inicial e contínuo de animais de um rebanho leiteiro/cort
 
 **RF-04**: Ao importar, sistema deve criar lote automaticamente se não existir (com nome "Importação YYYY-MM-DD") e atribuir animais a ele.
 
-**RF-05**: Listagem de animais deve permitir filtros: status (Ativo, Morto, Vendido, Transferido), sexo, lote, categoria, intervalo de data nascimento.
+**RF-05**: Listagem de animais deve permitir filtros: status (Ativo, Morto, Vendido), sexo, lote, categoria, intervalo de data nascimento. Apenas admin visualiza animais deletados (deleted_at IS NOT NULL) via checkbox opcional.
 
 **RF-06**: Listagem deve exibir grid com colunas: ID, Nome/Nº, Sexo, Categoria, Data Nasc., Status, Ações (Ver, Editar, Deletar).
 
@@ -208,7 +208,7 @@ Viabilizar o cadastro inicial e contínuo de animais de um rebanho leiteiro/cort
 | tipo_rebanho | Enum(leiteiro, corte) | NN, Default=leiteiro | Tipo do animal (produtor pode ter múltiplos) |
 | data_nascimento | Date | NN, ≤ hoje | Recalcula categoria ao mudar |
 | categoria | String | Computed | Calculada conforme seção 9 (tipo_rebanho + sexo + idade) |
-| status | Enum(Ativo, Morto, Vendido, Deletado) | Default=Ativo | Atualizado por eventos |
+| status | Enum(Ativo, Morto, Vendido) | NN, Default=Ativo | Atualizado por eventos; soft delete via deleted_at |
 | lote_id | UUID | FK(lotes), Nullable | Lote atual |
 | peso_atual | Numeric(6,2) | Computed | MAX peso_kg from pesos_animal |
 | mae_id | UUID | FK(animais), Nullable | Genealogia (mesma fazenda) |
@@ -245,6 +245,9 @@ Viabilizar o cadastro inicial e contínuo de animais de um rebanho leiteiro/cort
 | tipo | Enum(nascimento, pesagem, morte, venda, transferencia_lote) | NN | Tipo de evento |
 | data_evento | Date | NN, ≤ hoje | Data do registro |
 | peso_kg | Numeric(6,2) | Nullable | Obrigatório se tipo=pesagem |
+| lote_id_destino | UUID | FK(lotes), Nullable | Obrigatório se tipo=transferencia_lote |
+| comprador | Text | Nullable | Nome/empresa compradora (se venda) |
+| valor_venda | Numeric(12,2) | Nullable | Valor da venda em R$ (se venda) |
 | observacoes | Text | Nullable | Contexto do evento |
 | usuario_id | UUID | FK(profiles), NN | Quem registrou |
 | deleted_at | Timestamp | Nullable | Soft delete (admin) |
@@ -419,22 +422,22 @@ Viabilizar o cadastro inicial e contínuo de animais de um rebanho leiteiro/cort
 
 | Aspecto | Detalhe |
 |---|---|
-| **Dados** | animal_id, data_evento, observacoes (comprador, valor — opcional) |
+| **Dados** | animal_id, data_evento, comprador (texto, opcional), valor_venda (R$, opcional), observacoes (opcional) |
 | **Regras** | animal status = 'Ativo'; data ≤ hoje |
 | **Efeitos** | status → 'Vendido'; animal não pode receber novos eventos |
 | **Campos Derivados** | Nenhum |
-| **Integração Financeira** | Fase 1: dados coletados. Fase 2+: integração com financeiro (auto-lançamento) será implementada quando for pertinente |
-| **UI** | Form com campos: data venda, comprador (texto), valor (R$ — opcional) |
+| **Integração Financeira** | Fase 1: dados coletados em colunas dedicadas (comprador, valor_venda). Fase 2+: integração com financeiro (auto-lançamento) será implementada quando for pertinente |
+| **UI** | Form com campos: data venda, comprador (texto, opcional), valor_venda (R$, opcional), observações |
 
 ### Evento: Transferência de Lote
 
 | Aspecto | Detalhe |
 |---|---|
-| **Dados** | animal_id, data_evento, lote_id_destino, observacoes (motivo) |
-| **Regras** | animal status = 'Ativo'; lote_destino deve existir; data ≤ hoje |
-| **Efeitos** | status → 'Ativo' (não muda); lote_id → lote_destino |
+| **Dados** | animal_id, data_evento, lote_id_destino (FK obrigatória), observacoes (motivo, opcional) |
+| **Regras** | animal status = 'Ativo'; lote_id_destino deve existir na mesma fazenda; data ≤ hoje |
+| **Efeitos** | status → 'Ativo' (não muda); lote_id → lote_id_destino (via trigger) |
 | **Campos Derivados** | Nenhum |
-| **UI** | Form com dropdown de lotes destino + campo motivo |
+| **UI** | Form com dropdown de lotes destino + campo motivo opcional |
 
 ---
 
@@ -502,6 +505,28 @@ Categoria é computada automaticamente baseada em **sexo + idade** (derivada de 
 - Fêmea (leiteiro) nascida em 2024-01-15, hoje é 2026-04-29 → idade ≈ 2.3 anos → Categoria: Vaca
 - Macho (corte) nascido em 2025-10-01, hoje é 2026-04-29 → idade ≈ 0.5 anos → Categoria: Macho Jovem
 - Mesmo animal pode ter tipo diferente de outro da mesma fazenda
+
+---
+
+## 9.1 Estratégia de Envelhecimento Natural da Categoria
+
+**Decisão**: Categoria é recalculada via trigger SQL **no servidor** sempre que:
+1. Um novo animal é criado (INSERT)
+2. A data_nascimento de um animal é alterada (UPDATE)
+3. **Nunca** é recalculada automaticamente por cron ou view computada
+
+**Justificativa**:
+- Categoria muda apenas quando data_nascimento muda (evento raro)
+- Não é necessário cron diário que queimaria recursos
+- Trigger BEFORE INSERT/UPDATE é eficiente e determinístico
+- Produtores que querem "envelhecer" animais manualmente editar data_nascimento
+
+**Exemplos**:
+- Animal nascido em 2024-01-15 (hoje: 2026-04-29): Categoria = Vaca (idade ≈ 2.3 anos)
+- Se produtor editar data_nascimento para 2025-01-15: Categoria recalculada para Novilha (idade ≈ 1.3 anos)
+- Se não fizer nada: Categoria permanece Vaca indefinidamente (produtor controla o "envelhecimento")
+
+**Nota**: Planejamento de Silagem consumirá categoria mais recente do animal no momento da consulta; histórico de categorias não é rastreado.
 
 ---
 
@@ -615,6 +640,18 @@ As 6 questões arquiteturais foram resolvidas conforme definição do product ow
 | **Limite de Tamanho** | Sem máximo específico. Índices (fazenda_id, status, lote_id, created_at) garantem escalabilidade até 10k+ animais por fazenda. |
 | **Genealogia — Profundidade** | Apenas 2 níveis: Mãe ← Animal → Pai. Sem recursão para avós/bisavós. Simples, eficiente, evita loops. |
 | **Cores — Status** | Padrão Tailwind: Ativo=green-600, Morto=gray-500, Vendido=blue-600, Deletado=red-600. Coerente com resto do projeto. |
+
+---
+
+## 13.1 Nota sobre Soft Delete
+
+**Decisão**: O enum `status_animal` contém apenas **Ativo, Morto, Vendido**. Soft delete é implementado via coluna `deleted_at` (timestamp), não como valor de status.
+
+**Justificativa**:
+- Separação clara: `status` = ciclo de vida do animal (Ativo/Morto/Vendido); `deleted_at` = registro "apagado" por erro/operacional
+- Queries RLS simplificadas: filtro `WHERE deleted_at IS NULL OR sou_admin()` é mais semântico que status enum
+- Evita estado confuso: um animal nunca tem status="Deletado" e deleted_at=null simultaneamente
+- Admin visualiza deletados via checkbox opcional na listagem
 
 ---
 
