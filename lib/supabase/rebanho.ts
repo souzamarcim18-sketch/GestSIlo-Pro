@@ -104,12 +104,12 @@ export const animais = {
     let query = supabase
       .from('animais')
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at',
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at',
         { count: 'exact' }
       )
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
-      .order('numero_animal', { ascending: true });
+      .order('brinco', { ascending: true });
 
     if (filtros?.status) {
       query = query.eq('status', filtros.status);
@@ -141,7 +141,7 @@ export const animais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
@@ -152,16 +152,16 @@ export const animais = {
     return data as Animal;
   },
 
-  async getByNumero(numero_animal: string): Promise<Animal | null> {
+  async getByNumero(brinco: string): Promise<Animal | null> {
     const supabase = await createSupabaseServerClient();
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('fazenda_id', fazendaId)
-      .eq('numero_animal', numero_animal)
+      .eq('brinco', brinco)
       .is('deleted_at', null)
       .single();
 
@@ -180,7 +180,7 @@ export const animais = {
         peso_atual: null,
       })
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
@@ -197,7 +197,7 @@ export const animais = {
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
@@ -223,7 +223,7 @@ export const animais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('fazenda_id', fazendaId)
       .eq('status', 'Ativo')
@@ -239,11 +239,11 @@ export const animais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
-      .or(`numero_animal.ilike.%${query}%`)
+      .or(`brinco.ilike.%${query}%`)
       .limit(limite);
 
     if (error) throw error;
@@ -641,13 +641,13 @@ export const importacao = {
         const validado = animalCSVRowSchema.parse(linha);
 
         // Validar unicidade
-        const existente = await animais.getByNumero(validado.numero_animal);
+        const existente = await animais.getByNumero(validado.brinco);
         if (existente) {
           resultado.erros.push({
             linha: numeroLinha,
-            numero_animal: validado.numero_animal,
+            brinco: validado.brinco,
             status: 'erro',
-            mensagem: `Animal ${validado.numero_animal} já existe nesta fazenda`,
+            mensagem: `Animal ${validado.brinco} já existe nesta fazenda`,
           });
           continue;
         }
@@ -669,7 +669,7 @@ export const importacao = {
             } else {
               resultado.erros.push({
                 linha: numeroLinha,
-                numero_animal: validado.numero_animal,
+                brinco: validado.brinco,
                 status: 'erro',
                 mensagem: `Lote "${validado.lote}" não existe`,
               });
@@ -680,7 +680,7 @@ export const importacao = {
         }
 
         animaisParaInserir.push({
-          numero_animal: validado.numero_animal,
+          brinco: validado.brinco,
           sexo: validado.sexo,
           tipo_rebanho: validado.tipo_rebanho,
           data_nascimento: validado.data_nascimento,
@@ -692,7 +692,7 @@ export const importacao = {
         const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido';
         resultado.erros.push({
           linha: numeroLinha,
-          numero_animal: linha.numero_animal || '?',
+          brinco: linha.brinco || '?',
           status: 'erro',
           mensagem,
         });

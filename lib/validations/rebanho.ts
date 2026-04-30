@@ -4,7 +4,7 @@ import { TipoEvento } from '@/lib/types/rebanho';
 // ========== ANIMAL ==========
 
 export const criarAnimalSchema = z.object({
-  numero_animal: z
+  brinco: z
     .string()
     .min(1, 'Número do animal obrigatório')
     .max(255, 'Máximo 255 caracteres'),
@@ -181,7 +181,7 @@ export type CriarEventoInput = z.infer<typeof criarEventoSchema>;
 // ========== CSV IMPORT ==========
 
 export const animalCSVRowSchema = z.object({
-  numero_animal: z
+  brinco: z
     .string()
     .min(1, 'Número do animal obrigatório')
     .max(255),

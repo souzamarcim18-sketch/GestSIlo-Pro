@@ -1,8 +1,6 @@
 # PRD — Módulo de Rebanho — Fase 1: Fundação
 
-**Data**: 2026-04-29  
-**Status**: Em aprovação  
-**Versão**: 1.0
+**Status**: ✅ Aprovado | **Data**: 2026-04-30 | **Versão**: 1.1
 
 ---
 
@@ -508,74 +506,7 @@ Categoria é computada automaticamente baseada em **sexo + idade** (derivada de 
 
 ---
 
-## 9.1 Estratégia de Envelhecimento Natural da Categoria
-
-**Decisão**: Categoria é recalculada via trigger SQL **no servidor** sempre que:
-1. Um novo animal é criado (INSERT)
-2. A data_nascimento de um animal é alterada (UPDATE)
-3. **Nunca** é recalculada automaticamente por cron ou view computada
-
-**Justificativa**:
-- Categoria muda apenas quando data_nascimento muda (evento raro)
-- Não é necessário cron diário que queimaria recursos
-- Trigger BEFORE INSERT/UPDATE é eficiente e determinístico
-- Produtores que querem "envelhecer" animais manualmente editar data_nascimento
-
-**Exemplos**:
-- Animal nascido em 2024-01-15 (hoje: 2026-04-29): Categoria = Vaca (idade ≈ 2.3 anos)
-- Se produtor editar data_nascimento para 2025-01-15: Categoria recalculada para Novilha (idade ≈ 1.3 anos)
-- Se não fizer nada: Categoria permanece Vaca indefinidamente (produtor controla o "envelhecimento")
-
-**Nota**: Planejamento de Silagem consumirá categoria mais recente do animal no momento da consulta; histórico de categorias não é rastreado.
-
----
-
-## 10. Padrões a Seguir
-
-### Referência: app/dashboard/silos/page.tsx
-
-- Grid layout responsivo (2–3 colunas conforme viewport)
-- Cards com ícone + título + info principal
-- Botão "Novo [Recurso]" no header direito
-- Empty state com ícone decorativo + mensagem
-- Loading state com Loader2 animado
-
-### Referência: app/dashboard/silos/[id]/page.tsx
-
-- Tabs para diferentes seções de dados
-- Dialogs para criar/editar/deletar
-- useCallback com dependências corretas (não suprimir ESLint)
-- q.modulo.operacao() para acesso a dados
-
-### Referência: lib/supabase/queries-audit.ts
-
-- Export objeto `q` com módulos (q.silos, q.talhoes, etc)
-- Métodos: list(), getById(), create(), update(), remove()
-- getFazendaId() obrigatório no início de cada função
-- Select explícito de colunas (nunca select('*'))
-- Dupla garantia: eq('fazenda_id', fazendaId) + RLS
-
-### Referência: providers/AuthProvider.tsx
-
-- Perfil carregado do JWT user_metadata (rápido)
-- Sincronização em background com fetchProfile()
-- useAuth() hook para consumir contexto
-
-### Referência: middleware.ts
-
-- Validar autenticação via getUser()
-- Usar setAll()/remove() para cookies (padrão Supabase SSR)
-- Proteção de rotas /dashboard/** e /operador/**
-
-### Validação com Zod
-
-- Arquivo: lib/validations/rebanho.ts
-- Schemas: CreateAnimalSchema, CreateEventoSchema, etc
-- Mensagens em português (client UX)
-
----
-
-## 11. Permissões por Perfil
+## 10. Permissões por Perfil
 
 | Ação | Admin | Operador | Visualizador |
 |---|:---:|:---:|:---:|
@@ -608,7 +539,7 @@ Categoria é computada automaticamente baseada em **sexo + idade** (derivada de 
 
 ---
 
-## 12. Critérios de Aceite da Fase 1
+## 11. Critérios de Aceite da Fase 1
 
 - [ ] CRUD completo de animais (criar, listar, editar, deletar com soft delete)
 - [ ] Importação CSV com validação e preview
@@ -628,44 +559,17 @@ Categoria é computada automaticamente baseada em **sexo + idade** (derivada de 
 
 ---
 
-## 13. Decisões Confirmadas ✅
+## 12. Pontos em Aberto
 
-As 6 questões arquiteturais foram resolvidas conforme definição do product owner:
+Nenhum ponto em aberto. Todas as 6 decisões arquiteturais foram confirmadas:
 
-| Decisão | Escolha |
-|---|---|
-| **Tipo de Rebanho** | Múltiplos tipos por animal. Campo `tipo_rebanho` (Enum: 'leiteiro', 'corte') em tabela animais. Produtor pode ter gado leiteiro E corte na mesma fazenda. |
-| **Integração Financeira** | Dados de venda (valor, comprador) são coletados na Fase 1. Integração automática com financeiro é adiada para quando for "mais pertinente" (Fase 2 ou posterior). |
-| **CSV — Eventos Históricos** | CSV importa apenas animais atuais (numero_animal, sexo, data_nascimento, lote, raça, obs). Sem suporte a histórico de eventos ou pesagens. Tudo é lançado manualmente após importação. |
-| **Limite de Tamanho** | Sem máximo específico. Índices (fazenda_id, status, lote_id, created_at) garantem escalabilidade até 10k+ animais por fazenda. |
-| **Genealogia — Profundidade** | Apenas 2 níveis: Mãe ← Animal → Pai. Sem recursão para avós/bisavós. Simples, eficiente, evita loops. |
-| **Cores — Status** | Padrão Tailwind: Ativo=green-600, Morto=gray-500, Vendido=blue-600, Deletado=red-600. Coerente com resto do projeto. |
+- ✅ Múltiplos tipos de rebanho por animal (campo `tipo_rebanho`)
+- ✅ Integração financeira adiada para Fase 2+
+- ✅ CSV importa apenas animais atuais (sem histórico)
+- ✅ Sem máximo de animais; índices garantem escalabilidade
+- ✅ Genealogia apenas 2 níveis (Mãe ← Animal → Pai)
+- ✅ Cores padrão Tailwind (Ativo=green, Morto=gray, Vendido=blue)
 
 ---
 
-## 13.1 Nota sobre Soft Delete
-
-**Decisão**: O enum `status_animal` contém apenas **Ativo, Morto, Vendido**. Soft delete é implementado via coluna `deleted_at` (timestamp), não como valor de status.
-
-**Justificativa**:
-- Separação clara: `status` = ciclo de vida do animal (Ativo/Morto/Vendido); `deleted_at` = registro "apagado" por erro/operacional
-- Queries RLS simplificadas: filtro `WHERE deleted_at IS NULL OR sou_admin()` é mais semântico que status enum
-- Evita estado confuso: um animal nunca tem status="Deletado" e deleted_at=null simultaneamente
-- Admin visualiza deletados via checkbox opcional na listagem
-
----
-
-## 14. Pontos em Aberto (Nenhum na Fase 1)
-
-## 15. Próximas Etapas
-
-1. ✅ **PRD Aprovado** — decisões arquiteturais confirmadas (seção 13).
-2. **Design de Banco de Dados** — criar arquivo `docs/rebanho/fase-1-fundacao/02-schema-sql.md` com DDL completo, índices e triggers.
-3. **Design de API** — definir Server Actions em `app/dashboard/rebanho/actions.ts` e tipos em `lib/types/rebanho.ts`.
-4. **Validação Zod** — criar `lib/validations/rebanho.ts` com schemas para ImportarCSV, CriarAnimal, CriarEvento, etc.
-5. **Testes** — criar suite inicial em `tests/rebanho/` com casos de importação CSV, lançamento de evento, soft delete, genealogia.
-6. **Implementação** — seguir ordem: model → queries → UI → testes.
-
----
-
-**Fim do PRD — Versão 1.1 (Decisões Confirmadas)**
+**Fim do PRD — Pronto para Implementação**

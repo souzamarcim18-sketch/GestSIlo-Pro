@@ -1892,11 +1892,11 @@ const rebanho = {
       let query = supabase
         .from('animais')
         .select(
-          'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+          'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
         )
         .eq('fazenda_id', fazendaId)
         .is('deleted_at', null)
-        .order('numero_animal', { ascending: true });
+        .order('brinco', { ascending: true });
 
       if (filtros?.status) query = query.eq('status', filtros.status);
       if (filtros?.lote_id) query = query.eq('lote_id', filtros.lote_id);
@@ -1913,7 +1913,7 @@ const rebanho = {
       const { data, error } = await supabase
         .from('animais')
         .select(
-          'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+          'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
         )
         .eq('id', id)
         .eq('fazenda_id', fazendaId)
@@ -1922,15 +1922,15 @@ const rebanho = {
       return data as Animal;
     },
 
-    async getByNumero(numero_animal: string): Promise<Animal | null> {
+    async getByNumero(brinco: string): Promise<Animal | null> {
       const fazendaId = await getFazendaId();
       const { data, error } = await supabase
         .from('animais')
         .select(
-          'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+          'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
         )
         .eq('fazenda_id', fazendaId)
-        .eq('numero_animal', numero_animal)
+        .eq('brinco', brinco)
         .is('deleted_at', null)
         .single();
 
@@ -1947,7 +1947,7 @@ const rebanho = {
         .from('animais')
         .insert([payload])
         .select(
-          'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+          'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
         )
         .single();
       if (error) throw error;
@@ -1962,7 +1962,7 @@ const rebanho = {
         .eq('id', id)
         .eq('fazenda_id', fazendaId)
         .select(
-          'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+          'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
         )
         .single();
       if (error) throw error;
@@ -1984,11 +1984,11 @@ const rebanho = {
       const { data, error } = await supabase
         .from('animais')
         .select(
-          'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+          'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
         )
         .eq('fazenda_id', fazendaId)
         .is('deleted_at', null)
-        .ilike('numero_animal', `%${query}%`)
+        .ilike('brinco', `%${query}%`)
         .limit(limit);
       if (error) throw error;
       return data as Animal[];

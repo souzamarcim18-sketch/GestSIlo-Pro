@@ -29,7 +29,7 @@ export enum TipoEvento {
 export interface Animal {
   id: string;
   fazenda_id: string;
-  numero_animal: string;
+  brinco: string;
   sexo: 'Macho' | 'Fêmea';
   tipo_rebanho: TipoRebanho;
   data_nascimento: string; // ISO date
@@ -140,7 +140,7 @@ export type PesoAnimalInput = Omit<PesoAnimal, 'id' | 'fazenda_id' | 'created_at
 // ========== CSV ROW ==========
 
 export interface AnimalCSVRow {
-  numero_animal: string;
+  brinco: string;
   sexo: 'Macho' | 'Fêmea';
   data_nascimento: string; // ISO date ou DD/MM/YYYY
   tipo_rebanho?: 'leiteiro' | 'corte';
@@ -153,7 +153,7 @@ export interface AnimalCSVRow {
 
 export interface AnimalCSVValidationResult {
   linha: number;
-  numero_animal: string;
+  brinco: string;
   status: 'sucesso' | 'erro';
   mensagem?: string;
 }

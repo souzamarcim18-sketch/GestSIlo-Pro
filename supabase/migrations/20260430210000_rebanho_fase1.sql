@@ -1,13 +1,11 @@
 -- Migration: Rebanho Fase 1 - Fundação
 -- Data: 2026-04-30
 -- Descrição: Tabelas, enums, índices, RLS e triggers para módulo de Rebanho
+-- Decisões Confirmadas: campo brinco, Admin-only animais/lotes, Operador INSERT eventos, Categoria = TEXT
 
 -- ==================== ENUMS ====================
 
--- Categoria de animal (leiteiro ou corte)
-CREATE TYPE public.categoria_animal AS ENUM ('leiteiro', 'corte');
-
--- Status de animal (Ativo, Morto, Vendido)
+-- Status de animal (Ativo, Morto, Vendido) — sem 'Deletado' (soft delete via deleted_at)
 CREATE TYPE public.status_animal AS ENUM ('Ativo', 'Morto', 'Vendido');
 
 -- Tipo de evento
@@ -40,19 +38,23 @@ CREATE INDEX idx_lotes_fazenda_id ON public.lotes(fazenda_id);
 -- RLS
 ALTER TABLE public.lotes ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "lotes_select_mesma_fazenda" ON public.lotes
+-- SELECT: Todos veem lotes da fazenda
+CREATE POLICY "lotes_select" ON public.lotes
   FOR SELECT
   USING (fazenda_id = get_minha_fazenda_id());
 
+-- INSERT: Apenas Administrador
 CREATE POLICY "lotes_insert" ON public.lotes
   FOR INSERT
-  WITH CHECK (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id());
+  WITH CHECK (sou_admin() AND fazenda_id = get_minha_fazenda_id());
 
+-- UPDATE: Apenas Administrador
 CREATE POLICY "lotes_update" ON public.lotes
   FOR UPDATE
-  USING (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id())
-  WITH CHECK (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id());
+  USING (sou_admin() AND fazenda_id = get_minha_fazenda_id())
+  WITH CHECK (sou_admin() AND fazenda_id = get_minha_fazenda_id());
 
+-- DELETE: Apenas Administrador
 CREATE POLICY "lotes_delete" ON public.lotes
   FOR DELETE
   USING (sou_admin() AND fazenda_id = get_minha_fazenda_id());
@@ -62,9 +64,9 @@ CREATE POLICY "lotes_delete" ON public.lotes
 CREATE TABLE public.animais (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   fazenda_id UUID NOT NULL REFERENCES public.fazendas(id) ON DELETE CASCADE,
-  numero_animal TEXT NOT NULL,
+  brinco TEXT NOT NULL,
   sexo TEXT NOT NULL CHECK (sexo IN ('Macho', 'Fêmea')),
-  tipo_rebanho public.categoria_animal NOT NULL DEFAULT 'leiteiro',
+  tipo_rebanho TEXT NOT NULL DEFAULT 'leiteiro' CHECK (tipo_rebanho IN ('leiteiro', 'corte')),
   data_nascimento DATE NOT NULL CHECK (data_nascimento <= CURRENT_DATE),
   categoria TEXT NOT NULL DEFAULT 'Bezerro(a)',
   status public.status_animal NOT NULL DEFAULT 'Ativo',
@@ -83,20 +85,20 @@ CREATE TABLE public.animais (
 CREATE INDEX idx_animais_fazenda_id ON public.animais(fazenda_id);
 CREATE INDEX idx_animais_fazenda_status ON public.animais(fazenda_id, status) WHERE deleted_at IS NULL;
 CREATE INDEX idx_animais_lote_id ON public.animais(lote_id);
-CREATE INDEX idx_animais_numero_animal ON public.animais(fazenda_id, numero_animal);
+CREATE INDEX idx_animais_brinco ON public.animais(fazenda_id, brinco);
 CREATE INDEX idx_animais_data_nascimento ON public.animais(data_nascimento);
 CREATE INDEX idx_animais_mae_id ON public.animais(mae_id);
 CREATE INDEX idx_animais_pai_id ON public.animais(pai_id);
 
--- Partial Unique Index: numero_animal único por fazenda (apenas não-deletados)
-CREATE UNIQUE INDEX idx_animais_numero_animal_unique_not_deleted
-  ON public.animais(fazenda_id, numero_animal)
+-- Partial Unique Index: brinco único por fazenda (apenas não-deletados)
+CREATE UNIQUE INDEX idx_animais_brinco_fazenda_id_not_deleted
+  ON public.animais(fazenda_id, brinco)
   WHERE deleted_at IS NULL;
 
 -- RLS
 ALTER TABLE public.animais ENABLE ROW LEVEL SECURITY;
 
--- Política SELECT única: usuário vê animais da sua fazenda (deletados apenas se admin)
+-- SELECT: Administrador, Operador, Visualizador veem animais da fazenda (deletados apenas admin)
 CREATE POLICY "animais_select" ON public.animais
   FOR SELECT
   USING (
@@ -104,15 +106,18 @@ CREATE POLICY "animais_select" ON public.animais
     (deleted_at IS NULL OR sou_admin())
   );
 
+-- INSERT: Apenas Administrador
 CREATE POLICY "animais_insert" ON public.animais
   FOR INSERT
-  WITH CHECK (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id());
+  WITH CHECK (sou_admin() AND fazenda_id = get_minha_fazenda_id());
 
+-- UPDATE: Apenas Administrador
 CREATE POLICY "animais_update" ON public.animais
   FOR UPDATE
-  USING (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id())
-  WITH CHECK (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id());
+  USING (sou_admin() AND fazenda_id = get_minha_fazenda_id())
+  WITH CHECK (sou_admin() AND fazenda_id = get_minha_fazenda_id());
 
+-- DELETE: Apenas Administrador
 CREATE POLICY "animais_delete" ON public.animais
   FOR DELETE
   USING (sou_admin() AND fazenda_id = get_minha_fazenda_id());
@@ -157,6 +162,7 @@ CREATE INDEX idx_eventos_rebanho_data_evento ON public.eventos_rebanho(data_even
 -- RLS
 ALTER TABLE public.eventos_rebanho ENABLE ROW LEVEL SECURITY;
 
+-- SELECT: Administrador, Operador, Visualizador veem (deletados apenas admin)
 CREATE POLICY "eventos_rebanho_select" ON public.eventos_rebanho
   FOR SELECT
   USING (
@@ -164,15 +170,17 @@ CREATE POLICY "eventos_rebanho_select" ON public.eventos_rebanho
     (deleted_at IS NULL OR sou_admin())
   );
 
+-- INSERT: Administrador e Operador
 CREATE POLICY "eventos_rebanho_insert" ON public.eventos_rebanho
   FOR INSERT
   WITH CHECK (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id());
 
+-- UPDATE: Nenhum (eventos imutáveis)
 CREATE POLICY "eventos_rebanho_update" ON public.eventos_rebanho
   FOR UPDATE
-  USING (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id())
-  WITH CHECK (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id());
+  USING (FALSE);
 
+-- DELETE: Apenas Administrador
 CREATE POLICY "eventos_rebanho_delete" ON public.eventos_rebanho
   FOR DELETE
   USING (sou_admin() AND fazenda_id = get_minha_fazenda_id());
@@ -200,10 +208,12 @@ CREATE INDEX idx_pesos_animal_data_pesagem ON public.pesos_animal(animal_id, dat
 -- RLS
 ALTER TABLE public.pesos_animal ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "pesos_animal_select_mesma_fazenda" ON public.pesos_animal
+-- SELECT: Todos veem pesos da fazenda
+CREATE POLICY "pesos_animal_select" ON public.pesos_animal
   FOR SELECT
   USING (fazenda_id = get_minha_fazenda_id());
 
+-- INSERT: Administrador e Operador
 CREATE POLICY "pesos_animal_insert" ON public.pesos_animal
   FOR INSERT
   WITH CHECK (sou_gerente_ou_admin() AND fazenda_id = get_minha_fazenda_id());

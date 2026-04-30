@@ -310,7 +310,7 @@ export async function importarCSVAction(
         erros: [
           {
             linha: 0,
-            numero_animal: '',
+            brinco: '',
             status: 'erro',
             mensagem: 'Arquivo não fornecido',
           },
@@ -339,7 +339,7 @@ export async function importarCSVAction(
       erros: [
         {
           linha: 0,
-          numero_animal: '',
+          brinco: '',
           status: 'erro',
           mensagem,
         },
