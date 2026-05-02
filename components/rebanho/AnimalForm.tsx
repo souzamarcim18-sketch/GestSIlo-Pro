@@ -109,7 +109,9 @@ export function AnimalForm({
           <Label htmlFor="sexo">Sexo *</Label>
           <Select
             value={sexoWatch}
-            onValueChange={(v: string) => setValue('sexo', v as 'Macho' | 'Fêmea')}
+            onValueChange={(v) => {
+              if (v) setValue('sexo', v as 'Macho' | 'Fêmea');
+            }}
             disabled={isLoading}
           >
             <SelectTrigger id="sexo">
@@ -128,7 +130,9 @@ export function AnimalForm({
             <Label htmlFor="tipo_rebanho">Tipo de Rebanho *</Label>
             <Select
               defaultValue="leiteiro"
-              onValueChange={(v: string) => setValue('tipo_rebanho', v as 'leiteiro' | 'corte')}
+              onValueChange={(v) => {
+                if (v) setValue('tipo_rebanho', v as 'leiteiro' | 'corte');
+              }}
               disabled={isLoading}
             >
               <SelectTrigger id="tipo_rebanho">
@@ -159,7 +163,7 @@ export function AnimalForm({
       <div className="space-y-2">
         <Label htmlFor="lote_id">Lote</Label>
         <Select
-          onValueChange={(v: string) => setValue('lote_id', v ? (v as string) : null)}
+          onValueChange={(v) => setValue('lote_id', v || null)}
           disabled={isLoading}
         >
           <SelectTrigger id="lote_id">
@@ -181,7 +185,7 @@ export function AnimalForm({
         <div className="space-y-2">
           <Label htmlFor="mae_id">Mãe</Label>
           <Select
-            onValueChange={(v: string) => setValue('mae_id', v ? (v as string) : null)}
+            onValueChange={(v) => setValue('mae_id', v || null)}
             disabled={isLoading}
           >
             <SelectTrigger id="mae_id">
@@ -202,7 +206,7 @@ export function AnimalForm({
         <div className="space-y-2">
           <Label htmlFor="pai_id">Pai</Label>
           <Select
-            onValueChange={(v: string) => setValue('pai_id', v ? (v as string) : null)}
+            onValueChange={(v) => setValue('pai_id', v || null)}
             disabled={isLoading}
           >
             <SelectTrigger id="pai_id">
