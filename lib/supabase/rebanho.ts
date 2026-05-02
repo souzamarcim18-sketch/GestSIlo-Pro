@@ -512,3 +512,127 @@ export async function importarAnimaisCSV(
 
   return resultado;
 }
+
+// ---------------------------------------------------------------------------
+// FUNÇÕES DE LISTAGEM
+// ---------------------------------------------------------------------------
+
+export async function listAnimais(
+  filtros?: { status?: string; lote_id?: string; busca?: string },
+  limit: number = 50,
+  offset: number = 0
+): Promise<Animal[]> {
+  const supabase = await createSupabaseServerClient();
+  const fazendaId = await getFazendaId();
+
+  let query = supabase
+    .from('animais')
+    .select(
+      'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+    )
+    .eq('fazenda_id', fazendaId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (filtros?.status) {
+    query = query.eq('status', filtros.status);
+  }
+
+  if (filtros?.lote_id) {
+    query = query.eq('lote_id', filtros.lote_id);
+  }
+
+  if (filtros?.busca) {
+    query = query.ilike('numero_animal', `%${filtros.busca}%`);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return (data || []).map(d => ({ ...d, brinco: d.numero_animal } as Animal));
+}
+
+export async function listLotes(
+  limit: number = 50,
+  offset: number = 0
+): Promise<Lote[]> {
+  const supabase = await createSupabaseServerClient();
+  const fazendaId = await getFazendaId();
+
+  const { data, error } = await supabase
+    .from('lotes')
+    .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
+    .eq('fazenda_id', fazendaId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+  return (data as Lote[]) || [];
+}
+
+export async function listEventosPorAnimal(animalId: string): Promise<EventoRebanho[]> {
+  const supabase = await createSupabaseServerClient();
+  const fazendaId = await getFazendaId();
+
+  const { data, error } = await supabase
+    .from('eventos_rebanho')
+    .select(
+      'id, fazenda_id, animal_id, tipo, data_evento, peso_kg, lote_id_destino, comprador, valor_venda, observacoes, usuario_id, deleted_at, created_at, updated_at'
+    )
+    .eq('animal_id', animalId)
+    .eq('fazenda_id', fazendaId)
+    .is('deleted_at', null)
+    .order('data_evento', { ascending: false });
+
+  if (error) throw error;
+  return (data as EventoRebanho[]) || [];
+}
+
+export async function listPesosPorAnimal(animalId: string): Promise<PesoAnimal[]> {
+  const supabase = await createSupabaseServerClient();
+  const fazendaId = await getFazendaId();
+
+  const { data, error } = await supabase
+    .from('pesos_animal')
+    .select('id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at')
+    .eq('animal_id', animalId)
+    .eq('fazenda_id', fazendaId)
+    .order('data_pesagem', { ascending: false });
+
+  if (error) throw error;
+  return (data as PesoAnimal[]) || [];
+}
+
+export async function countAnimaisEmLote(loteId: string): Promise<number> {
+  const supabase = await createSupabaseServerClient();
+  const fazendaId = await getFazendaId();
+
+  const { count, error } = await supabase
+    .from('animais')
+    .select('id', { count: 'exact', head: true })
+    .eq('lote_id', loteId)
+    .eq('fazenda_id', fazendaId)
+    .is('deleted_at', null);
+
+  if (error) throw error;
+  return count || 0;
+}
+
+export async function listAnimaisEmLote(loteId: string): Promise<Animal[]> {
+  const supabase = await createSupabaseServerClient();
+  const fazendaId = await getFazendaId();
+
+  const { data, error } = await supabase
+    .from('animais')
+    .select(
+      'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+    )
+    .eq('lote_id', loteId)
+    .eq('fazenda_id', fazendaId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(d => ({ ...d, brinco: d.numero_animal } as Animal));
+}
