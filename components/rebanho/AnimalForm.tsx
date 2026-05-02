@@ -163,7 +163,7 @@ export function AnimalForm({
       <div className="space-y-2">
         <Label htmlFor="lote_id">Lote</Label>
         <Select
-          onValueChange={(v) => setValue('lote_id', v || null)}
+          onValueChange={(v) => setValue('lote_id', (v as string) || null)}
           disabled={isLoading}
         >
           <SelectTrigger id="lote_id">
@@ -185,7 +185,7 @@ export function AnimalForm({
         <div className="space-y-2">
           <Label htmlFor="mae_id">Mãe</Label>
           <Select
-            onValueChange={(v) => setValue('mae_id', v || null)}
+            onValueChange={(v) => setValue('mae_id', (v as string) || null)}
             disabled={isLoading}
           >
             <SelectTrigger id="mae_id">
@@ -206,7 +206,7 @@ export function AnimalForm({
         <div className="space-y-2">
           <Label htmlFor="pai_id">Pai</Label>
           <Select
-            onValueChange={(v) => setValue('pai_id', v || null)}
+            onValueChange={(v) => setValue('pai_id', (v as string) || null)}
             disabled={isLoading}
           >
             <SelectTrigger id="pai_id">
