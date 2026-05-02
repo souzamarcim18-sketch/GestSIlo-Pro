@@ -21,6 +21,7 @@ import {
   CloudSun,
   HelpCircle,
   GraduationCap,
+  PawPrint,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +44,7 @@ type RouteItem = {
 const gerencialRoutes: RouteItem[] = [
   { label: 'Silos',       icon: Database,      href: '/dashboard/silos',                          badge: null },
   { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes',                        badge: null },
+  { label: 'Rebanho',     icon: PawPrint,      href: '/dashboard/rebanho',                        badge: null },
   { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
   { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: 'comingSoon' },
   { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },

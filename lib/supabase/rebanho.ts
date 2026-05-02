@@ -71,15 +71,15 @@ const queryAnimais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('fazenda_id', fazendaId)
-      .eq('numero_animal', brinco)
+      .eq('brinco', brinco)
       .is('deleted_at', null)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return (data && { ...data, brinco: data.numero_animal } as Animal) || null;
+    return (data as Animal) || null;
   },
 
   async getById(id: string): Promise<Animal> {
@@ -88,7 +88,7 @@ const queryAnimais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
@@ -96,10 +96,10 @@ const queryAnimais = {
       .single();
 
     if (error) throw error;
-    return { ...data, brinco: data.numero_animal } as Animal;
+    return data as Animal;
   },
 
-  async create(payload: Omit<CriarAnimalInput, 'brinco'> & { numero_animal: string }): Promise<Animal> {
+  async create(payload: CriarAnimalInput): Promise<Animal> {
     const supabase = await createSupabaseServerClient();
     await getFazendaId();
     const { data, error } = await supabase
@@ -110,12 +110,12 @@ const queryAnimais = {
         peso_atual: null,
       })
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
     if (error) throw error;
-    return { ...data, brinco: data.numero_animal } as Animal;
+    return data as Animal;
   },
 
   async update(id: string, payload: EditarAnimalInput): Promise<Animal> {
@@ -127,12 +127,12 @@ const queryAnimais = {
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .select(
-        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
     if (error) throw error;
-    return { ...data, brinco: data.numero_animal } as Animal;
+    return data as Animal;
   },
 
   async softDelete(id: string): Promise<void> {
@@ -285,10 +285,7 @@ export async function criarAnimal(formData: CriarAnimalInput): Promise<{ id: str
     throw new Error(`Animal com brinco ${formData.brinco} já existe nesta fazenda.`);
   }
 
-  const animal = await queryAnimais.create({
-    ...formData,
-    numero_animal: formData.brinco,
-  });
+  const animal = await queryAnimais.create(formData);
 
   return { id: animal.id };
 }
@@ -416,7 +413,7 @@ export async function importarAnimaisCSV(
     erros: [],
   };
 
-  const animaisParaInserir: Array<Omit<CriarAnimalInput, 'brinco'> & { numero_animal: string }> = [];
+  const animaisParaInserir: CriarAnimalInput[] = [];
   let loteAutomatico: Lote | null = null;
 
   for (let i = 0; i < linhas.length; i++) {
@@ -464,13 +461,8 @@ export async function importarAnimaisCSV(
       }
 
       animaisParaInserir.push({
-        numero_animal: validado.brinco,
-        sexo: validado.sexo,
-        tipo_rebanho: validado.tipo_rebanho,
-        data_nascimento: validado.data_nascimento,
+        ...validado,
         lote_id: loteId,
-        raca: validado.raca || null,
-        observacoes: validado.observacoes || null,
       });
     } catch (erro) {
       const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido';
@@ -528,7 +520,7 @@ export async function listAnimais(
   let query = supabase
     .from('animais')
     .select(
-      'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+      'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
     )
     .eq('fazenda_id', fazendaId)
     .is('deleted_at', null)
@@ -544,13 +536,13 @@ export async function listAnimais(
   }
 
   if (filtros?.busca) {
-    query = query.ilike('numero_animal', `%${filtros.busca}%`);
+    query = query.ilike('brinco', `%${filtros.busca}%`);
   }
 
   const { data, error } = await query;
 
   if (error) throw error;
-  return (data || []).map(d => ({ ...d, brinco: d.numero_animal } as Animal));
+  return (data as Animal[]) || [];
 }
 
 export async function listLotes(
@@ -626,7 +618,7 @@ export async function listAnimaisEmLote(loteId: string): Promise<Animal[]> {
   const { data, error } = await supabase
     .from('animais')
     .select(
-      'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+      'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
     )
     .eq('lote_id', loteId)
     .eq('fazenda_id', fazendaId)
@@ -634,5 +626,13 @@ export async function listAnimaisEmLote(loteId: string): Promise<Animal[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []).map(d => ({ ...d, brinco: d.numero_animal } as Animal));
+  return (data as Animal[]) || [];
+}
+
+export async function getLoteById(loteId: string): Promise<Lote | null> {
+  try {
+    return await queryLotes.getById(loteId);
+  } catch {
+    return null;
+  }
 }
