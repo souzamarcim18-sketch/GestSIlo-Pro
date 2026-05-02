@@ -77,11 +77,6 @@ export default function RebanhosPage() {
     return () => clearTimeout(timer);
   }, [authLoading, fetchData]);
 
-  const breadcrumbs = [
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Rebanho', href: '/dashboard/rebanho' },
-  ];
-
   return (
     <div className="p-6 md:p-8">
       <div className="space-y-6">

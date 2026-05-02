@@ -21,44 +21,9 @@ import {
 import { TipoEvento } from '@/lib/types/rebanho';
 
 // ---------------------------------------------------------------------------
-// Helper interno — nunca exportar diretamente
+// Nota: RLS + get_minha_fazenda_id() via JWT já garantem multi-tenancy.
+// Não precisa buscar fazenda_id explicitamente em cada query.
 // ---------------------------------------------------------------------------
-
-const fazendaIdCache = new Map<string, { value: string; expiresAt: number }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
-
-async function getFazendaId(): Promise<string> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new Error('Usuário não autenticado. Faça login novamente.');
-  }
-
-  const cached = fazendaIdCache.get(user.id);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.value;
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('fazenda_id')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !profile?.fazenda_id) {
-    throw new Error(
-      'Perfil sem fazenda associada. Conclua o cadastro antes de continuar.'
-    );
-  }
-
-  const fazendaId = profile.fazenda_id as string;
-  fazendaIdCache.set(user.id, { value: fazendaId, expiresAt: Date.now() + CACHE_TTL_MS });
-  return fazendaId;
-}
 
 // ---------------------------------------------------------------------------
 // QUERIES — ANIMAIS
@@ -67,13 +32,11 @@ async function getFazendaId(): Promise<string> {
 const queryAnimais = {
   async getByBrinco(brinco: string): Promise<Animal | null> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('animais')
       .select(
         'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
-      .eq('fazenda_id', fazendaId)
       .eq('brinco', brinco)
       .is('deleted_at', null)
       .single();
@@ -84,14 +47,12 @@ const queryAnimais = {
 
   async getById(id: string): Promise<Animal> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('animais')
       .select(
         'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('id', id)
-      .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
       .single();
 
@@ -101,7 +62,6 @@ const queryAnimais = {
 
   async create(payload: CriarAnimalInput): Promise<Animal> {
     const supabase = await createSupabaseServerClient();
-    await getFazendaId();
     const { data, error } = await supabase
       .from('animais')
       .insert({
@@ -120,12 +80,10 @@ const queryAnimais = {
 
   async update(id: string, payload: EditarAnimalInput): Promise<Animal> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('animais')
       .update(payload)
       .eq('id', id)
-      .eq('fazenda_id', fazendaId)
       .select(
         'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
@@ -137,12 +95,10 @@ const queryAnimais = {
 
   async softDelete(id: string): Promise<void> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
     const { error } = await supabase
       .from('animais')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('fazenda_id', fazendaId);
+      .eq('id', id);
 
     if (error) throw error;
   },
@@ -155,11 +111,9 @@ const queryAnimais = {
 const queryLotes = {
   async getByNome(nome: string): Promise<Lote | null> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('lotes')
       .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
-      .eq('fazenda_id', fazendaId)
       .eq('nome', nome)
       .single();
 
@@ -169,12 +123,10 @@ const queryLotes = {
 
   async getById(id: string): Promise<Lote> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('lotes')
       .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
       .eq('id', id)
-      .eq('fazenda_id', fazendaId)
       .single();
 
     if (error) throw error;
@@ -183,7 +135,6 @@ const queryLotes = {
 
   async create(payload: CriarLoteInput): Promise<Lote> {
     const supabase = await createSupabaseServerClient();
-    await getFazendaId();
     const { data, error } = await supabase
       .from('lotes')
       .insert(payload)
@@ -196,12 +147,10 @@ const queryLotes = {
 
   async update(id: string, payload: Partial<CriarLoteInput>): Promise<Lote> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('lotes')
       .update(payload)
       .eq('id', id)
-      .eq('fazenda_id', fazendaId)
       .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
       .single();
 
@@ -211,13 +160,11 @@ const queryLotes = {
 
   async delete(id: string): Promise<void> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
 
     const { count, error: checkError } = await supabase
       .from('animais')
       .select('id', { count: 'exact', head: true })
       .eq('lote_id', id)
-      .eq('fazenda_id', fazendaId)
       .eq('status', 'Ativo')
       .is('deleted_at', null);
 
@@ -229,8 +176,7 @@ const queryLotes = {
     const { error } = await supabase
       .from('lotes')
       .delete()
-      .eq('id', id)
-      .eq('fazenda_id', fazendaId);
+      .eq('id', id);
 
     if (error) throw error;
   },
@@ -243,13 +189,11 @@ const queryLotes = {
 const queryEventos = {
   async create(payload: CriarEventoInput & { usuario_id: string }): Promise<EventoRebanho> {
     const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
 
     const { data: animal, error: animalError } = await supabase
       .from('animais')
       .select('id, status')
       .eq('id', payload.animal_id)
-      .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
       .single();
 
@@ -515,14 +459,12 @@ export async function listAnimais(
   offset: number = 0
 ): Promise<Animal[]> {
   const supabase = await createSupabaseServerClient();
-  const fazendaId = await getFazendaId();
 
   let query = supabase
     .from('animais')
     .select(
       'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
     )
-    .eq('fazenda_id', fazendaId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
@@ -550,12 +492,10 @@ export async function listLotes(
   offset: number = 0
 ): Promise<Lote[]> {
   const supabase = await createSupabaseServerClient();
-  const fazendaId = await getFazendaId();
 
   const { data, error } = await supabase
     .from('lotes')
     .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
-    .eq('fazenda_id', fazendaId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -565,7 +505,6 @@ export async function listLotes(
 
 export async function listEventosPorAnimal(animalId: string): Promise<EventoRebanho[]> {
   const supabase = await createSupabaseServerClient();
-  const fazendaId = await getFazendaId();
 
   const { data, error } = await supabase
     .from('eventos_rebanho')
@@ -573,7 +512,6 @@ export async function listEventosPorAnimal(animalId: string): Promise<EventoReba
       'id, fazenda_id, animal_id, tipo, data_evento, peso_kg, lote_id_destino, comprador, valor_venda, observacoes, usuario_id, deleted_at, created_at, updated_at'
     )
     .eq('animal_id', animalId)
-    .eq('fazenda_id', fazendaId)
     .is('deleted_at', null)
     .order('data_evento', { ascending: false });
 
@@ -583,13 +521,11 @@ export async function listEventosPorAnimal(animalId: string): Promise<EventoReba
 
 export async function listPesosPorAnimal(animalId: string): Promise<PesoAnimal[]> {
   const supabase = await createSupabaseServerClient();
-  const fazendaId = await getFazendaId();
 
   const { data, error } = await supabase
     .from('pesos_animal')
     .select('id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at')
     .eq('animal_id', animalId)
-    .eq('fazenda_id', fazendaId)
     .order('data_pesagem', { ascending: false });
 
   if (error) throw error;
@@ -598,13 +534,11 @@ export async function listPesosPorAnimal(animalId: string): Promise<PesoAnimal[]
 
 export async function countAnimaisEmLote(loteId: string): Promise<number> {
   const supabase = await createSupabaseServerClient();
-  const fazendaId = await getFazendaId();
 
   const { count, error } = await supabase
     .from('animais')
     .select('id', { count: 'exact', head: true })
     .eq('lote_id', loteId)
-    .eq('fazenda_id', fazendaId)
     .is('deleted_at', null);
 
   if (error) throw error;
@@ -613,7 +547,6 @@ export async function countAnimaisEmLote(loteId: string): Promise<number> {
 
 export async function listAnimaisEmLote(loteId: string): Promise<Animal[]> {
   const supabase = await createSupabaseServerClient();
-  const fazendaId = await getFazendaId();
 
   const { data, error } = await supabase
     .from('animais')
@@ -621,7 +554,6 @@ export async function listAnimaisEmLote(loteId: string): Promise<Animal[]> {
       'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
     )
     .eq('lote_id', loteId)
-    .eq('fazenda_id', fazendaId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
 

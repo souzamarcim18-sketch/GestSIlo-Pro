@@ -58,12 +58,6 @@ export default function LotesPage() {
     fetchData();
   }, [authLoading, fetchData]);
 
-  const breadcrumbs = [
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Rebanho', href: '/dashboard/rebanho' },
-    { label: 'Lotes', href: '/dashboard/rebanho/lotes' },
-  ];
-
   return (
     <div className="p-6 md:p-8">
       <div className="space-y-6">

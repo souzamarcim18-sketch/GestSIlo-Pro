@@ -172,7 +172,10 @@ export default function LoteDetailPage() {
             </div>
             {isAdmin && (
               <div className="space-x-2">
-                <Button variant="outline">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(`/dashboard/rebanho/lotes/${loteId}/editar`)}
+                >
                   <Edit className="mr-2 h-4 w-4" />
                   Editar
                 </Button>
