@@ -6,7 +6,7 @@ import { TipoEvento } from '@/lib/types/rebanho';
 export const criarAnimalSchema = z.object({
   brinco: z
     .string()
-    .min(1, 'Número do animal obrigatório')
+    .min(1, 'Brinco do animal obrigatório')
     .max(255, 'Máximo 255 caracteres'),
   sexo: z.enum(['Macho', 'Fêmea'], { message: 'Sexo deve ser Macho ou Fêmea' }),
   tipo_rebanho: z

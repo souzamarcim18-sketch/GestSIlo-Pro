@@ -1,20 +1,21 @@
 'use server';
 
 import { createSupabaseServerClient } from './server';
+import { sou_admin, getCurrentUserId } from '@/lib/auth/helpers';
 import type {
   Animal,
   Lote,
   EventoRebanho,
   PesoAnimal,
   LoteInput,
-  EventoRebanhoInput,
-  PesoAnimalInput,
   CSVImportResult,
 } from '@/lib/types/rebanho';
 import {
   animalCSVRowSchema,
   type CriarAnimalInput,
   type EditarAnimalInput,
+  type CriarLoteInput,
+  type EditarLoteInput,
   type CriarEventoInput,
 } from '@/lib/validations/rebanho';
 import { TipoEvento } from '@/lib/types/rebanho';
@@ -26,11 +27,6 @@ import { TipoEvento } from '@/lib/types/rebanho';
 const fazendaIdCache = new Map<string, { value: string; expiresAt: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
-/**
- * Busca o fazenda_id do usuário logado a partir do seu profile.
- * Lança erro se não houver sessão ou se o profile não tiver fazenda associada.
- * Cacheia o resultado por 5 minutos para evitar queries desnecessárias.
- */
 async function getFazendaId(): Promise<string> {
   const supabase = await createSupabaseServerClient();
   const {
@@ -42,7 +38,6 @@ async function getFazendaId(): Promise<string> {
     throw new Error('Usuário não autenticado. Faça login novamente.');
   }
 
-  // Verificar cache
   const cached = fazendaIdCache.get(user.id);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.value;
@@ -65,74 +60,26 @@ async function getFazendaId(): Promise<string> {
   return fazendaId;
 }
 
-/**
- * Busca o user_id do usuário logado.
- */
-async function getUserId(): Promise<string> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new Error('Usuário não autenticado.');
-  }
-
-  return user.id;
-}
-
 // ---------------------------------------------------------------------------
-// ANIMAIS
+// QUERIES — ANIMAIS
 // ---------------------------------------------------------------------------
 
-export const animais = {
-  async list(
-    filtros?: {
-      status?: string;
-      lote_id?: string;
-      categoria?: string;
-      sexo?: string;
-    },
-    pagina: number = 1,
-    limite: number = 50
-  ): Promise<{ dados: Animal[]; total: number }> {
+const queryAnimais = {
+  async getByBrinco(brinco: string): Promise<Animal | null> {
     const supabase = await createSupabaseServerClient();
     const fazendaId = await getFazendaId();
-    const offset = (pagina - 1) * limite;
-
-    let query = supabase
+    const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at',
-        { count: 'exact' }
+        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('fazenda_id', fazendaId)
+      .eq('numero_animal', brinco)
       .is('deleted_at', null)
-      .order('brinco', { ascending: true });
+      .single();
 
-    if (filtros?.status) {
-      query = query.eq('status', filtros.status);
-    }
-    if (filtros?.lote_id) {
-      query = query.eq('lote_id', filtros.lote_id);
-    }
-    if (filtros?.categoria) {
-      query = query.eq('categoria', filtros.categoria);
-    }
-    if (filtros?.sexo) {
-      query = query.eq('sexo', filtros.sexo);
-    }
-
-    query = query.range(offset, offset + limite - 1);
-
-    const { data, error, count } = await query;
-    if (error) throw error;
-
-    return {
-      dados: (data as Animal[]) || [],
-      total: count || 0,
-    };
+    if (error && error.code !== 'PGRST116') throw error;
+    return (data && { ...data, brinco: data.numero_animal } as Animal) || null;
   },
 
   async getById(id: string): Promise<Animal> {
@@ -141,7 +88,7 @@ export const animais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
@@ -149,27 +96,10 @@ export const animais = {
       .single();
 
     if (error) throw error;
-    return data as Animal;
+    return { ...data, brinco: data.numero_animal } as Animal;
   },
 
-  async getByNumero(brinco: string): Promise<Animal | null> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('animais')
-      .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
-      )
-      .eq('fazenda_id', fazendaId)
-      .eq('brinco', brinco)
-      .is('deleted_at', null)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-    return (data as Animal) || null;
-  },
-
-  async create(payload: CriarAnimalInput): Promise<Animal> {
+  async create(payload: Omit<CriarAnimalInput, 'brinco'> & { numero_animal: string }): Promise<Animal> {
     const supabase = await createSupabaseServerClient();
     await getFazendaId();
     const { data, error } = await supabase
@@ -180,12 +110,12 @@ export const animais = {
         peso_atual: null,
       })
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
     if (error) throw error;
-    return data as Animal;
+    return { ...data, brinco: data.numero_animal } as Animal;
   },
 
   async update(id: string, payload: EditarAnimalInput): Promise<Animal> {
@@ -197,15 +127,15 @@ export const animais = {
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, numero_animal, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
     if (error) throw error;
-    return data as Animal;
+    return { ...data, brinco: data.numero_animal } as Animal;
   },
 
-  async remove(id: string): Promise<void> {
+  async softDelete(id: string): Promise<void> {
     const supabase = await createSupabaseServerClient();
     const fazendaId = await getFazendaId();
     const { error } = await supabase
@@ -216,96 +146,25 @@ export const animais = {
 
     if (error) throw error;
   },
-
-  async listAtivos(): Promise<Animal[]> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('animais')
-      .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
-      )
-      .eq('fazenda_id', fazendaId)
-      .eq('status', 'Ativo')
-      .is('deleted_at', null);
-
-    if (error) throw error;
-    return (data as Animal[]) || [];
-  },
-
-  async search(query: string, limite: number = 10): Promise<Animal[]> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('animais')
-      .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
-      )
-      .eq('fazenda_id', fazendaId)
-      .is('deleted_at', null)
-      .or(`brinco.ilike.%${query}%`)
-      .limit(limite);
-
-    if (error) throw error;
-    return (data as Animal[]) || [];
-  },
-
-  async countPorStatus(): Promise<Record<string, number>> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('animais')
-      .select('status')
-      .eq('fazenda_id', fazendaId)
-      .is('deleted_at', null);
-
-    if (error) throw error;
-
-    const counts: Record<string, number> = {
-      Ativo: 0,
-      Morto: 0,
-      Vendido: 0,
-    };
-
-    (data as Pick<Animal, 'status'>[]).forEach((animal) => {
-      if (animal.status in counts) {
-        counts[animal.status]++;
-      }
-    });
-
-    return counts;
-  },
 };
 
 // ---------------------------------------------------------------------------
-// LOTES
+// QUERIES — LOTES
 // ---------------------------------------------------------------------------
 
-export const lotes = {
-  async list(
-    pagina: number = 1,
-    limite: number = 50
-  ): Promise<{ dados: Lote[]; total: number }> {
+const queryLotes = {
+  async getByNome(nome: string): Promise<Lote | null> {
     const supabase = await createSupabaseServerClient();
     const fazendaId = await getFazendaId();
-    const offset = (pagina - 1) * limite;
-
-    const { data, error, count } = await supabase
+    const { data, error } = await supabase
       .from('lotes')
-      .select(
-        'id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at',
-        { count: 'exact' }
-      )
+      .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
       .eq('fazenda_id', fazendaId)
-      .order('nome', { ascending: true })
-      .range(offset, offset + limite - 1);
+      .eq('nome', nome)
+      .single();
 
-    if (error) throw error;
-
-    return {
-      dados: (data as Lote[]) || [],
-      total: count || 0,
-    };
+    if (error && error.code !== 'PGRST116') throw error;
+    return (data as Lote) || null;
   },
 
   async getById(id: string): Promise<Lote> {
@@ -322,21 +181,7 @@ export const lotes = {
     return data as Lote;
   },
 
-  async getByNome(nome: string): Promise<Lote | null> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('lotes')
-      .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
-      .eq('fazenda_id', fazendaId)
-      .eq('nome', nome)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-    return (data as Lote) || null;
-  },
-
-  async create(payload: LoteInput): Promise<Lote> {
+  async create(payload: CriarLoteInput): Promise<Lote> {
     const supabase = await createSupabaseServerClient();
     await getFazendaId();
     const { data, error } = await supabase
@@ -349,7 +194,7 @@ export const lotes = {
     return data as Lote;
   },
 
-  async update(id: string, payload: Partial<LoteInput>): Promise<Lote> {
+  async update(id: string, payload: Partial<CriarLoteInput>): Promise<Lote> {
     const supabase = await createSupabaseServerClient();
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
@@ -364,11 +209,10 @@ export const lotes = {
     return data as Lote;
   },
 
-  async remove(id: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const supabase = await createSupabaseServerClient();
     const fazendaId = await getFazendaId();
 
-    // Validar que lote não tem animais ativos
     const { count, error: checkError } = await supabase
       .from('animais')
       .select('id', { count: 'exact', head: true })
@@ -390,112 +234,17 @@ export const lotes = {
 
     if (error) throw error;
   },
-
-  async countAnimaisAtivos(lote_id: string): Promise<number> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { count, error } = await supabase
-      .from('animais')
-      .select('id', { count: 'exact', head: true })
-      .eq('lote_id', lote_id)
-      .eq('fazenda_id', fazendaId)
-      .eq('status', 'Ativo')
-      .is('deleted_at', null);
-
-    if (error) throw error;
-    return count || 0;
-  },
 };
 
 // ---------------------------------------------------------------------------
-// EVENTOS
+// QUERIES — EVENTOS
 // ---------------------------------------------------------------------------
 
-export const eventos = {
-  async listPorAnimal(animal_id: string): Promise<EventoRebanho[]> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('eventos_rebanho')
-      .select(
-        'id, fazenda_id, animal_id, tipo, data_evento, peso_kg, lote_id_destino, comprador, valor_venda, observacoes, usuario_id, deleted_at, created_at, updated_at'
-      )
-      .eq('fazenda_id', fazendaId)
-      .eq('animal_id', animal_id)
-      .is('deleted_at', null)
-      .order('data_evento', { ascending: false });
-
-    if (error) throw error;
-    return (data as EventoRebanho[]) || [];
-  },
-
-  async list(
-    filtros?: {
-      tipo?: string;
-      data_inicio?: string;
-      data_fim?: string;
-    },
-    pagina: number = 1,
-    limite: number = 50
-  ): Promise<{ dados: EventoRebanho[]; total: number }> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const offset = (pagina - 1) * limite;
-
-    let query = supabase
-      .from('eventos_rebanho')
-      .select(
-        'id, fazenda_id, animal_id, tipo, data_evento, peso_kg, lote_id_destino, comprador, valor_venda, observacoes, usuario_id, deleted_at, created_at, updated_at',
-        { count: 'exact' }
-      )
-      .eq('fazenda_id', fazendaId)
-      .is('deleted_at', null);
-
-    if (filtros?.tipo) {
-      query = query.eq('tipo', filtros.tipo);
-    }
-    if (filtros?.data_inicio) {
-      query = query.gte('data_evento', filtros.data_inicio);
-    }
-    if (filtros?.data_fim) {
-      query = query.lte('data_evento', filtros.data_fim);
-    }
-
-    query = query
-      .order('data_evento', { ascending: false })
-      .range(offset, offset + limite - 1);
-
-    const { data, error, count } = await query;
-    if (error) throw error;
-
-    return {
-      dados: (data as EventoRebanho[]) || [],
-      total: count || 0,
-    };
-  },
-
-  async getById(id: string): Promise<EventoRebanho> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('eventos_rebanho')
-      .select(
-        'id, fazenda_id, animal_id, tipo, data_evento, peso_kg, lote_id_destino, comprador, valor_venda, observacoes, usuario_id, deleted_at, created_at, updated_at'
-      )
-      .eq('id', id)
-      .eq('fazenda_id', fazendaId)
-      .is('deleted_at', null)
-      .single();
-
-    if (error) throw error;
-    return data as EventoRebanho;
-  },
-
+const queryEventos = {
   async create(payload: CriarEventoInput & { usuario_id: string }): Promise<EventoRebanho> {
     const supabase = await createSupabaseServerClient();
     const fazendaId = await getFazendaId();
 
-    // Validar que animal existe e pertence à fazenda
     const { data: animal, error: animalError } = await supabase
       .from('animais')
       .select('id, status')
@@ -519,71 +268,109 @@ export const eventos = {
     if (error) throw error;
     return data as EventoRebanho;
   },
-
-  async remove(id: string): Promise<void> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { error } = await supabase
-      .from('eventos_rebanho')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('fazenda_id', fazendaId);
-
-    if (error) throw error;
-  },
 };
 
 // ---------------------------------------------------------------------------
-// PESOS
+// FUNÇÕES DE DOMÍNIO — ANIMAIS
 // ---------------------------------------------------------------------------
 
-export const pesos = {
-  async listPorAnimal(animal_id: string): Promise<PesoAnimal[]> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('pesos_animal')
-      .select('id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at')
-      .eq('fazenda_id', fazendaId)
-      .eq('animal_id', animal_id)
-      .order('data_pesagem', { ascending: false });
+export async function criarAnimal(formData: CriarAnimalInput): Promise<{ id: string }> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem criar animais.');
+  }
 
-    if (error) throw error;
-    return (data as PesoAnimal[]) || [];
-  },
+  const existente = await queryAnimais.getByBrinco(formData.brinco);
+  if (existente) {
+    throw new Error(`Animal com brinco ${formData.brinco} já existe nesta fazenda.`);
+  }
 
-  async getUltimoPeso(animal_id: string): Promise<PesoAnimal | null> {
-    const supabase = await createSupabaseServerClient();
-    const fazendaId = await getFazendaId();
-    const { data, error } = await supabase
-      .from('pesos_animal')
-      .select('id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at')
-      .eq('fazenda_id', fazendaId)
-      .eq('animal_id', animal_id)
-      .order('data_pesagem', { ascending: false })
-      .limit(1)
-      .single();
+  const animal = await queryAnimais.create({
+    ...formData,
+    numero_animal: formData.brinco,
+  });
 
-    if (error && error.code !== 'PGRST116') throw error;
-    return (data as PesoAnimal) || null;
-  },
+  return { id: animal.id };
+}
 
-  async create(payload: PesoAnimalInput): Promise<PesoAnimal> {
-    const supabase = await createSupabaseServerClient();
-    await getFazendaId();
-    const { data, error } = await supabase
-      .from('pesos_animal')
-      .insert(payload)
-      .select('id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at')
-      .single();
+export async function editarAnimal(
+  id: string,
+  formData: EditarAnimalInput
+): Promise<{ success: boolean }> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem editar animais.');
+  }
 
-    if (error) throw error;
-    return data as PesoAnimal;
-  },
-};
+  await queryAnimais.update(id, formData);
+  return { success: true };
+}
+
+export async function deletarAnimal(id: string): Promise<{ success: boolean }> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem deletar animais.');
+  }
+
+  await queryAnimais.softDelete(id);
+  return { success: true };
+}
 
 // ---------------------------------------------------------------------------
-// Helper: Parse CSV simples
+// FUNÇÕES DE DOMÍNIO — LOTES
+// ---------------------------------------------------------------------------
+
+export async function criarLote(formData: CriarLoteInput): Promise<{ id: string }> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem criar lotes.');
+  }
+
+  const lote = await queryLotes.create(formData);
+  return { id: lote.id };
+}
+
+export async function editarLote(
+  id: string,
+  formData: EditarLoteInput
+): Promise<{ success: boolean }> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem editar lotes.');
+  }
+
+  await queryLotes.update(id, formData);
+  return { success: true };
+}
+
+export async function deletarLote(id: string): Promise<{ success: boolean }> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem deletar lotes.');
+  }
+
+  await queryLotes.delete(id);
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// FUNÇÕES DE DOMÍNIO — EVENTOS
+// ---------------------------------------------------------------------------
+
+export async function registrarEvento(
+  formData: CriarEventoInput
+): Promise<{ id: string }> {
+  const userId = await getCurrentUserId();
+  const evento = await queryEventos.create({
+    ...formData,
+    usuario_id: userId,
+  });
+
+  return { id: evento.id };
+}
+
+// ---------------------------------------------------------------------------
+// FUNÇÕES DE DOMÍNIO — IMPORTAÇÃO CSV
 // ---------------------------------------------------------------------------
 
 function parseCSV(csv: string): Record<string, string>[] {
@@ -610,124 +397,118 @@ function parseCSV(csv: string): Record<string, string>[] {
   return resultado;
 }
 
-// ---------------------------------------------------------------------------
-// IMPORTAÇÃO CSV
-// ---------------------------------------------------------------------------
+export async function importarAnimaisCSV(
+  arquivo: File,
+  criarLoteAutomatico: boolean = true
+): Promise<CSVImportResult> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem importar animais.');
+  }
 
-export const importacao = {
-  async importarCSV(
-    arquivo: File,
-    criarLoteAutomatico: boolean = true
-  ): Promise<CSVImportResult> {
-    const fazendaId = await getFazendaId();
-    const userId = await getUserId();
+  const userId = await getCurrentUserId();
+  const conteudoArquivo = await arquivo.text();
+  const linhas = parseCSV(conteudoArquivo);
 
-    const conteudoArquivo = await arquivo.text();
-    const linhas = parseCSV(conteudoArquivo);
-    const resultado: CSVImportResult = {
-      total_linhas: linhas.length,
-      importados: 0,
-      erros: [],
-    };
+  const resultado: CSVImportResult = {
+    total_linhas: linhas.length,
+    importados: 0,
+    erros: [],
+  };
 
-    const animaisParaInserir: CriarAnimalInput[] = [];
-    let loteAutomatico: Lote | null = null;
+  const animaisParaInserir: Array<Omit<CriarAnimalInput, 'brinco'> & { numero_animal: string }> = [];
+  let loteAutomatico: Lote | null = null;
 
-    for (let i = 0; i < linhas.length; i++) {
-      const linha = linhas[i];
-      const numeroLinha = i + 2; // +2 porque header é linha 1, dados começam em 2
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i];
+    const numeroLinha = i + 2;
 
-      try {
-        const validado = animalCSVRowSchema.parse(linha);
+    try {
+      const validado = animalCSVRowSchema.parse(linha);
 
-        // Validar unicidade
-        const existente = await animais.getByNumero(validado.brinco);
-        if (existente) {
-          resultado.erros.push({
-            linha: numeroLinha,
-            brinco: validado.brinco,
-            status: 'erro',
-            mensagem: `Animal ${validado.brinco} já existe nesta fazenda`,
-          });
-          continue;
-        }
-
-        // Resolver ou criar lote
-        let loteId: string | null = null;
-        if (validado.lote) {
-          let lote = await lotes.getByNome(validado.lote);
-          if (!lote) {
-            if (criarLoteAutomatico) {
-              if (!loteAutomatico) {
-                const dataHoje = new Date().toISOString().split('T')[0];
-                loteAutomatico = await lotes.create({
-                  nome: `Importação ${dataHoje}`,
-                  descricao: 'Lote criado automaticamente durante importação CSV',
-                });
-              }
-              lote = loteAutomatico;
-            } else {
-              resultado.erros.push({
-                linha: numeroLinha,
-                brinco: validado.brinco,
-                status: 'erro',
-                mensagem: `Lote "${validado.lote}" não existe`,
-              });
-              continue;
-            }
-          }
-          loteId = lote.id;
-        }
-
-        animaisParaInserir.push({
-          brinco: validado.brinco,
-          sexo: validado.sexo,
-          tipo_rebanho: validado.tipo_rebanho,
-          data_nascimento: validado.data_nascimento,
-          lote_id: loteId,
-          raca: validado.raca || null,
-          observacoes: validado.observacoes || null,
-        });
-      } catch (erro) {
-        const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido';
+      const existente = await queryAnimais.getByBrinco(validado.brinco);
+      if (existente) {
         resultado.erros.push({
           linha: numeroLinha,
-          brinco: linha.brinco || '?',
+          brinco: validado.brinco,
           status: 'erro',
-          mensagem,
+          mensagem: `Animal com brinco ${validado.brinco} já existe.`,
         });
+        continue;
       }
-    }
 
-    // Bulk insert em transação atômica
-    if (animaisParaInserir.length > 0) {
-      try {
-        for (const animalPayload of animaisParaInserir) {
-          const animal = await animais.create(animalPayload);
-
-          // Criar evento de "nascimento" para cada animal
-          await eventos.create({
-            animal_id: animal.id,
-            tipo: TipoEvento.NASCIMENTO,
-            data_evento: animal.data_nascimento,
-            observacoes: 'Evento de nascimento importado via CSV',
-            usuario_id: userId,
-          });
-
-          resultado.importados++;
+      let loteId: string | null = null;
+      if (validado.lote) {
+        let lote = await queryLotes.getByNome(validado.lote);
+        if (!lote) {
+          if (criarLoteAutomatico) {
+            if (!loteAutomatico) {
+              const dataHoje = new Date().toISOString().split('T')[0];
+              loteAutomatico = await queryLotes.create({
+                nome: `Importação ${dataHoje}`,
+                descricao: 'Lote criado automaticamente durante importação CSV',
+              });
+            }
+            lote = loteAutomatico;
+          } else {
+            resultado.erros.push({
+              linha: numeroLinha,
+              brinco: validado.brinco,
+              status: 'erro',
+              mensagem: `Lote "${validado.lote}" não existe.`,
+            });
+            continue;
+          }
         }
-
-        if (loteAutomatico) {
-          resultado.lote_criado_id = loteAutomatico.id;
-          resultado.lote_criado_nome = loteAutomatico.nome;
-        }
-      } catch (erro) {
-        throw new Error(
-          `Falha ao inserir animais: ${erro instanceof Error ? erro.message : 'Erro desconhecido'}`
-        );
+        loteId = lote.id;
       }
-    }
 
-    return resultado;
-  },
-};
+      animaisParaInserir.push({
+        numero_animal: validado.brinco,
+        sexo: validado.sexo,
+        tipo_rebanho: validado.tipo_rebanho,
+        data_nascimento: validado.data_nascimento,
+        lote_id: loteId,
+        raca: validado.raca || null,
+        observacoes: validado.observacoes || null,
+      });
+    } catch (erro) {
+      const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido';
+      resultado.erros.push({
+        linha: numeroLinha,
+        brinco: linha.brinco || '?',
+        status: 'erro',
+        mensagem,
+      });
+    }
+  }
+
+  if (animaisParaInserir.length > 0) {
+    try {
+      for (const animalPayload of animaisParaInserir) {
+        const animal = await queryAnimais.create(animalPayload);
+
+        await queryEventos.create({
+          animal_id: animal.id,
+          tipo: TipoEvento.NASCIMENTO,
+          data_evento: animal.data_nascimento,
+          observacoes: 'Evento de nascimento importado via CSV',
+          usuario_id: userId,
+        });
+
+        resultado.importados++;
+      }
+
+      if (loteAutomatico) {
+        resultado.lote_criado_id = loteAutomatico.id;
+        resultado.lote_criado_nome = loteAutomatico.nome;
+      }
+    } catch (erro) {
+      throw new Error(
+        `Falha ao inserir animais: ${erro instanceof Error ? erro.message : 'Erro desconhecido'}`
+      );
+    }
+  }
+
+  return resultado;
+}
