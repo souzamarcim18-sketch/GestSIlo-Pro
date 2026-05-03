@@ -32,6 +32,62 @@ export async function sou_admin(): Promise<boolean> {
 }
 
 /**
+ * Verifica se o usuário logado é Operador.
+ */
+export async function sou_operador(): Promise<boolean> {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error('Usuário não autenticado.');
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('perfil')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error('Perfil não encontrado.');
+  }
+
+  return profile.perfil === 'Operador';
+}
+
+/**
+ * Verifica se o usuário logado é Operador ou Administrador.
+ */
+export async function sou_operador_ou_admin(): Promise<boolean> {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error('Usuário não autenticado.');
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('perfil')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error('Perfil não encontrado.');
+  }
+
+  return profile.perfil === 'Operador' || profile.perfil === 'Administrador';
+}
+
+/**
  * Obtém o user_id do usuário logado.
  * Lança erro se não autenticado.
  */
