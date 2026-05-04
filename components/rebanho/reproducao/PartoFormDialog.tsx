@@ -26,6 +26,8 @@ import { Loader2, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarPartoSchema, type CriarPartoInput } from '@/lib/validations/rebanho-reproducao';
 import { lancarPartoAction } from '@/app/dashboard/rebanho/reproducao/actions';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
+import { saveEventoLocal } from '@/lib/db/eventosRebanho';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface PartoFormDialogProps {
@@ -48,6 +50,7 @@ export function PartoFormDialog({
   onSuccess,
 }: PartoFormDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const {
     register,
@@ -84,11 +87,34 @@ export function PartoFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await lancarPartoAction(data);
-      if (!result.success) {
-        throw new Error(result.erro || 'Erro desconhecido');
+      if (isOnline) {
+        const result = await lancarPartoAction(data);
+        if (!result.success) {
+          throw new Error(result.erro || 'Erro desconhecido');
+        }
+        toast.success('Parto registrado com sucesso');
+      } else {
+        await saveEventoLocal(
+          'parto',
+          data.animal_id,
+          data.data_evento,
+          data,
+          'rpc_lancar_parto',
+          {
+            p_animal_id: data.animal_id,
+            p_data_evento: data.data_evento,
+            p_tipo_parto: data.tipo_parto,
+            p_usuario_id: null,
+            p_gemelar: data.gemelar ?? false,
+            p_natimorto: data.natimorto ?? false,
+            p_observacoes: data.observacoes ?? null,
+            p_crias: data.crias ?? [],
+          }
+        );
+        toast.success('Parto salvo localmente — será sincronizado quando houver conexão', {
+          icon: '📵',
+        });
       }
-      toast.success('Parto registrado com sucesso');
       reset();
       onOpenChange(false);
       onSuccess();

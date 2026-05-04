@@ -1,13 +1,14 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getDb } from './localDb';
 
-export type TableName = 
-  | 'movimentacoes_silo' 
-  | 'atividades_campo' 
-  | 'movimentacoes_insumo' 
-  | 'financeiro' 
-  | 'uso_maquinas' 
-  | 'abastecimentos';
+export type TableName =
+  | 'movimentacoes_silo'
+  | 'atividades_campo'
+  | 'movimentacoes_insumo'
+  | 'financeiro'
+  | 'uso_maquinas'
+  | 'abastecimentos'
+  | 'eventos_rebanho';
 
 export type Operation = 'INSERT' | 'UPDATE' | 'DELETE';
 
@@ -16,7 +17,7 @@ export async function enqueue(tabela: TableName, operacao: Operation, payload: a
   if (!db) return;
 
   const timestamp = Date.now();
-  
+
   // Salva na fila de sincronização
   await db.add('sync_queue', {
     tabela,
@@ -32,6 +33,33 @@ export async function enqueue(tabela: TableName, operacao: Operation, payload: a
     await db.delete(tabela, payload.id);
   } else if (operacao === 'UPDATE' && payload.id) {
     await db.put(tabela, payload);
+  }
+}
+
+export async function enqueueRpc(
+  rpcName: string,
+  params: Record<string, any>,
+  localPayload?: { tabela: 'eventos_rebanho'; data: any }
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  const timestamp = Date.now();
+
+  // Salva na fila de sincronização com operacao='RPC'
+  await db.add('sync_queue', {
+    tabela: localPayload?.tabela || 'eventos_rebanho',
+    operacao: 'RPC',
+    payload: {
+      rpc: rpcName,
+      params,
+    },
+    timestamp,
+  });
+
+  // Se houver payload local, salva no cache para otimismo da UI
+  if (localPayload?.data && localPayload.data.id) {
+    await db.put(localPayload.tabela, localPayload.data);
   }
 }
 
@@ -52,7 +80,7 @@ export async function syncAll(supabase: SupabaseClient) {
   for (const action of actions) {
     try {
       let result;
-      
+
       if (action.operacao === 'INSERT') {
         result = await supabase.from(action.tabela).insert(action.payload);
       } else if (action.operacao === 'UPDATE') {
@@ -61,6 +89,9 @@ export async function syncAll(supabase: SupabaseClient) {
         result = await supabase.from(action.tabela).update(data).eq('id', id);
       } else if (action.operacao === 'DELETE') {
         result = await supabase.from(action.tabela).delete().eq('id', action.payload.id);
+      } else if (action.operacao === 'RPC') {
+        const { rpc, params } = action.payload;
+        result = await supabase.rpc(rpc, params);
       }
 
       if (result?.error) {

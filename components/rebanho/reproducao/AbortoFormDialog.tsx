@@ -18,7 +18,11 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarAbortoSchema, type CriarAbortoInput } from '@/lib/validations/rebanho-reproducao';
 import { lancarAbortoAction } from '@/app/dashboard/rebanho/reproducao/actions';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
+import { enqueue } from '@/lib/db/syncQueue';
+import { getDb } from '@/lib/db/localDb';
 import type { Animal } from '@/lib/types/rebanho';
+import type { EventoReprodutivoLocal } from '@/lib/db/eventosRebanho';
 
 interface AbortoFormDialogProps {
   animal: Animal;
@@ -34,6 +38,7 @@ export function AbortoFormDialog({
   onSuccess,
 }: AbortoFormDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const {
     register,
@@ -55,11 +60,37 @@ export function AbortoFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await lancarAbortoAction(data);
-      if (!result.success) {
-        throw new Error(result.erro || 'Erro desconhecido');
+      if (isOnline) {
+        const result = await lancarAbortoAction(data);
+        if (!result.success) {
+          throw new Error(result.erro || 'Erro desconhecido');
+        }
+        toast.success('Aborto registrado com sucesso');
+      } else {
+        const db = await getDb();
+        if (!db) throw new Error('Armazenamento local não disponível');
+
+        const eventoId = crypto.randomUUID();
+        const evento: EventoReprodutivoLocal = {
+          id: eventoId,
+          animal_id: data.animal_id,
+          tipo_evento: 'aborto',
+          data_evento: data.data_evento,
+          payload: data,
+          _sync_status: 'pending',
+          _created_at: Date.now(),
+        };
+        await db.put('eventos_rebanho', evento);
+
+        await enqueue('eventos_rebanho', 'INSERT', {
+          id: eventoId,
+          ...data,
+        });
+
+        toast.success('Aborto salvo localmente — será sincronizado quando houver conexão', {
+          icon: '📵',
+        });
       }
-      toast.success('Aborto registrado com sucesso');
       reset();
       onOpenChange(false);
       onSuccess();

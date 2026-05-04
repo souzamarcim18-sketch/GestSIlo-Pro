@@ -17,6 +17,7 @@ export interface Reprodutor {
 
 // Tipos de Eventos Reprodutivos (alinhados com eventos_rebanho.tipo_cobertura CHECK)
 export interface EventoCobertura {
+  id: string;
   animal_id: string;
   tipo: 'cobertura';
   data_evento: string;
@@ -27,6 +28,7 @@ export interface EventoCobertura {
 }
 
 export interface EventoDiagnostico {
+  id: string;
   animal_id: string;
   tipo: 'diagnostico_prenhez';
   data_evento: string;
@@ -39,6 +41,7 @@ export interface EventoDiagnostico {
 }
 
 export interface EventoParto {
+  id: string;
   animal_id: string;
   tipo: 'parto';
   data_evento: string;
@@ -57,6 +60,7 @@ export interface EventoParto {
 }
 
 export interface EventoSecagem {
+  id: string;
   animal_id: string;
   tipo: 'secagem';
   data_evento: string;
@@ -64,6 +68,7 @@ export interface EventoSecagem {
 }
 
 export interface EventoAborto {
+  id: string;
   animal_id: string;
   tipo: 'aborto';
   data_evento: string;
@@ -73,6 +78,7 @@ export interface EventoAborto {
 }
 
 export interface EventoDescarte {
+  id: string;
   animal_id: string;
   tipo: 'descarte';
   data_evento: string;

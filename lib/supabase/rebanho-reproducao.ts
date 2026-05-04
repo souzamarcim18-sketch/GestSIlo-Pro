@@ -1,5 +1,3 @@
-'use server';
-
 import { createSupabaseServerClient } from './server';
 import type {
   Reprodutor,
@@ -302,6 +300,7 @@ export const queryEventosRebanho = {
       .select(
         'id, animal_id, tipo, data_evento, tipo_cobertura, reprodutor_id, metodo_diagnostico, resultado_prenhez, motivo_descarte, observacoes, created_at'
       )
+      .eq('fazenda_id', fazenda_id)
       .gte('data_evento', inicio)
       .lte('data_evento', fim)
       .is('deleted_at', null);
@@ -514,8 +513,8 @@ export const queryEventosPartoCrias = {
 // ========== PARÂMETROS REPRODUTIVOS ==========
 
 export const queryParametrosReprodutivos = {
-  /** Busca parâmetros de uma fazenda (retorna 1 registro ou null) */
-  async get(fazenda_id: string): Promise<ParametrosReprodutivosFazenda | null> {
+  /** Busca parâmetros de uma fazenda (retorna 1 registro ou null) - RLS filtra automaticamente */
+  async get(): Promise<ParametrosReprodutivosFazenda | null> {
     const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
@@ -523,21 +522,19 @@ export const queryParametrosReprodutivos = {
       .select(
         'id, fazenda_id, dias_gestacao, dias_seca, pve_dias, coberturas_para_repetidora, janela_repetidora_dias, meta_taxa_prenhez_pct, meta_psm_dias, meta_iep_dias, created_at, updated_at'
       )
-      .eq('fazenda_id', fazenda_id)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
     return (data as ParametrosReprodutivosFazenda) || null;
   },
 
-  /** Atualiza parâmetros reprodutivos de uma fazenda */
-  async update(fazenda_id: string, payload: Partial<AtualizarParametrosReprodutivosInput>): Promise<ParametrosReprodutivosFazenda> {
+  /** Atualiza parâmetros reprodutivos de uma fazenda - RLS filtra automaticamente */
+  async update(payload: Partial<AtualizarParametrosReprodutivosInput>): Promise<ParametrosReprodutivosFazenda> {
     const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
       .from('parametros_reprodutivos_fazenda')
       .update(payload)
-      .eq('fazenda_id', fazenda_id)
       .select(
         'id, fazenda_id, dias_gestacao, dias_seca, pve_dias, coberturas_para_repetidora, janela_repetidora_dias, meta_taxa_prenhez_pct, meta_psm_dias, meta_iep_dias, created_at, updated_at'
       )

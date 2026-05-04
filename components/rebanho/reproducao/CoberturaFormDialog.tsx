@@ -25,6 +25,9 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarCoberturaSchema, type CriarCoberturaInput } from '@/lib/validations/rebanho-reproducao';
 import { lancarCoberturaAction } from '@/app/dashboard/rebanho/reproducao/actions';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
+import { enqueue } from '@/lib/db/syncQueue';
+import { getDb } from '@/lib/db/localDb';
 import type { Reprodutor } from '@/lib/types/rebanho-reproducao';
 import type { Animal } from '@/lib/types/rebanho';
 
@@ -55,6 +58,7 @@ export function CoberturaFormDialog({
 }: CoberturaFormDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [repSearch, setRepSearch] = useState('');
+  const isOnline = useOnlineStatus();
 
   const {
     register,
@@ -88,11 +92,36 @@ export function CoberturaFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await lancarCoberturaAction(data);
-      if (!result.success) {
-        throw new Error(result.erro || 'Erro desconhecido');
+      if (isOnline) {
+        const result = await lancarCoberturaAction(data);
+        if (!result.success) {
+          throw new Error(result.erro || 'Erro desconhecido');
+        }
+        toast.success('Cobertura registrada com sucesso');
+      } else {
+        const db = await getDb();
+        if (!db) throw new Error('Armazenamento local não disponível');
+
+        const eventoId = crypto.randomUUID();
+        await db.put('eventos_rebanho', {
+          id: eventoId,
+          animal_id: data.animal_id,
+          tipo_evento: 'cobertura',
+          data_evento: data.data_evento,
+          payload: data,
+          _sync_status: 'pending',
+          _created_at: Date.now(),
+        });
+
+        await enqueue('eventos_rebanho', 'INSERT', {
+          id: eventoId,
+          ...data,
+        });
+
+        toast.success('Cobertura salva localmente — será sincronizada quando houver conexão', {
+          icon: '📵',
+        });
       }
-      toast.success('Cobertura registrada com sucesso');
       reset();
       onOpenChange(false);
       onSuccess();

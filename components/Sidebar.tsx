@@ -22,6 +22,9 @@ import {
   HelpCircle,
   GraduationCap,
   PawPrint,
+  Heart,
+  Dna,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +69,12 @@ const sistemaRoutes: RouteItem[] = [
   { label: 'Assessoria agronômica', icon: GraduationCap, href: '/dashboard/assessoria',    badge: 'comingSoon' },
 ];
 
+const rebanhoSubRoutes: RouteItem[] = [
+  { label: 'Reprodução',    icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos',     badge: null },
+  { label: 'Reprodutores',  icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores', badge: null },
+  { label: 'Parâmetros',    icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros',   badge: null },
+];
+
 interface SidebarProps {
   onNavigate?: () => void;
 }
@@ -104,6 +113,58 @@ function NavItem({
             aria-hidden="true"
             className={cn(
               'h-4 w-4 transition-colors flex-shrink-0',
+              isActive ? 'text-brand-primary' : 'text-foreground/60 dark:text-sidebar-foreground'
+            )}
+          />
+          <span>{label}</span>
+        </span>
+        {badge === 'comingSoon' && (
+          <Badge
+            variant="outline"
+            className="text-[10px] ml-1 bg-status-warning/15 text-status-warning border-status-warning/30"
+          >
+            Em breve
+          </Badge>
+        )}
+      </Link>
+    </li>
+  );
+}
+
+function SubNavItem({
+  href,
+  icon: Icon,
+  label,
+  isActive,
+  onNavigate,
+  badge,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  isActive: boolean;
+  onNavigate?: () => void;
+  badge?: 'comingSoon' | null;
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        onClick={onNavigate}
+        prefetch={false}
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 pl-8 pr-3',
+          isActive
+            ? 'bg-gradient-to-r from-primary/25 to-primary/10 text-brand-deep shadow-sm border border-primary/40 dark:text-foreground dark:border-primary/40'
+            : 'text-foreground/70 hover:bg-white/60 hover:text-brand-deep dark:text-muted-foreground dark:hover:bg-muted/80 dark:hover:text-foreground',
+        )}
+      >
+        <span className="flex items-center gap-2">
+          <Icon
+            aria-hidden="true"
+            className={cn(
+              'h-3 w-3 transition-colors flex-shrink-0',
               isActive ? 'text-brand-primary' : 'text-foreground/60 dark:text-sidebar-foreground'
             )}
           />
@@ -190,15 +251,31 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
               </div>
               <ul className="space-y-0.5 list-none">
                 {gerencialRoutes.map((route) => (
-                  <NavItem
-                    key={route.href}
-                    href={route.href}
-                    icon={route.icon}
-                    label={route.label}
-                    isActive={pathname === route.href}
-                    onNavigate={onNavigate}
-                    badge={route.badge}
-                  />
+                  <div key={route.href}>
+                    <NavItem
+                      href={route.href}
+                      icon={route.icon}
+                      label={route.label}
+                      isActive={pathname === route.href}
+                      onNavigate={onNavigate}
+                      badge={route.badge}
+                    />
+                    {route.label === 'Rebanho' && pathname.startsWith('/dashboard/rebanho') && (
+                      <ul className="space-y-0.5 list-none mt-1">
+                        {rebanhoSubRoutes.map((subRoute) => (
+                          <SubNavItem
+                            key={subRoute.href}
+                            href={subRoute.href}
+                            icon={subRoute.icon}
+                            label={subRoute.label}
+                            isActive={pathname.startsWith(subRoute.href)}
+                            onNavigate={onNavigate}
+                            badge={subRoute.badge}
+                          />
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 ))}
               </ul>
             </div>

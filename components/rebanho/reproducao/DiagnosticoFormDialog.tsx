@@ -25,6 +25,9 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarDiagnosticoSchema, type CriarDiagnosticoInput } from '@/lib/validations/rebanho-reproducao';
 import { lancarDiagnosticoAction } from '@/app/dashboard/rebanho/reproducao/actions';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
+import { enqueue } from '@/lib/db/syncQueue';
+import { getDb } from '@/lib/db/localDb';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface DiagnosticoFormDialogProps {
@@ -55,6 +58,7 @@ export function DiagnosticoFormDialog({
   onSuccess,
 }: DiagnosticoFormDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const {
     register,
@@ -79,11 +83,36 @@ export function DiagnosticoFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await lancarDiagnosticoAction(data);
-      if (!result.success) {
-        throw new Error(result.erro || 'Erro desconhecido');
+      if (isOnline) {
+        const result = await lancarDiagnosticoAction(data);
+        if (!result.success) {
+          throw new Error(result.erro || 'Erro desconhecido');
+        }
+        toast.success('Diagnóstico registrado com sucesso');
+      } else {
+        const db = await getDb();
+        if (!db) throw new Error('Armazenamento local não disponível');
+
+        const eventoId = crypto.randomUUID();
+        await db.put('eventos_rebanho', {
+          id: eventoId,
+          animal_id: data.animal_id,
+          tipo_evento: 'diagnostico',
+          data_evento: data.data_evento,
+          payload: data,
+          _sync_status: 'pending',
+          _created_at: Date.now(),
+        });
+
+        await enqueue('eventos_rebanho', 'INSERT', {
+          id: eventoId,
+          ...data,
+        });
+
+        toast.success('Diagnóstico salvo localmente — será sincronizado quando houver conexão', {
+          icon: '📵',
+        });
       }
-      toast.success('Diagnóstico registrado com sucesso');
       reset();
       onOpenChange(false);
       onSuccess();
