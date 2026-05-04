@@ -186,6 +186,7 @@ export const queryEventosRebanho = {
       p_natimorto: payload.natimorto || false,
       p_observacoes: payload.observacoes || null,
       p_crias: payload.crias || [],
+      p_bypass_justificativa: payload.bypass_justificativa || null,
     });
 
     if (error) throw error;

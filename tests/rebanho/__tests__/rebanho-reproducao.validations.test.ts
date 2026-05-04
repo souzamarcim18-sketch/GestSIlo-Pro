@@ -581,3 +581,56 @@ describe('Validações Rebanho Reprodução — Integridade', () => {
     expect(result.success).toBe(true);
   });
 });
+
+// ========== TESTES DE BYPASS_JUSTIFICATIVA (5) ==========
+
+describe('Validações Rebanho Reprodução — bypass_justificativa no Parto', () => {
+  const partoBaseValido = {
+    animal_id: validUUID,
+    tipo: 'parto',
+    tipo_parto: 'normal',
+    data_evento: pastDate.toISOString().split('T')[0],
+    gemelar: false,
+    natimorto: false,
+    crias: [{ sexo: 'Fêmea', vivo: true }],
+  };
+
+  it('aceita bypass_justificativa null', () => {
+    const result = criarPartoSchema.safeParse({
+      ...partoBaseValido,
+      bypass_justificativa: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('aceita bypass_justificativa undefined', () => {
+    const result = criarPartoSchema.safeParse(partoBaseValido);
+    expect(result.success).toBe(true);
+  });
+
+  it('rejeita bypass_justificativa com menos de 10 chars', () => {
+    const result = criarPartoSchema.safeParse({
+      ...partoBaseValido,
+      bypass_justificativa: 'curto',
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toContain('mínimo 10');
+  });
+
+  it('aceita bypass_justificativa válido (>= 10 chars)', () => {
+    const result = criarPartoSchema.safeParse({
+      ...partoBaseValido,
+      bypass_justificativa: 'Animal comprado prenhe sem histórico no sistema.',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejeita bypass_justificativa com mais de 500 chars', () => {
+    const result = criarPartoSchema.safeParse({
+      ...partoBaseValido,
+      bypass_justificativa: 'a'.repeat(501),
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toContain('Máximo 500');
+  });
+});

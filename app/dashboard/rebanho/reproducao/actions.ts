@@ -150,14 +150,29 @@ export async function lancarPartoAction(
     const ultimoDiag = await queryEventosRebanho.getUltimoDiagnosticoPositivo(parsed.animal_id, 295);
     const temPrenhez = !!ultimoDiag;
 
-    if (!temPrenhez && !admin) {
-      return {
-        success: false,
-        erro: 'Apenas administradores podem lançar parto sem prenhez confirmada.',
-      };
+    if (!temPrenhez) {
+      // Sem prenhez confirmada
+      if (!admin) {
+        return {
+          success: false,
+          erro: 'Apenas administradores podem lançar parto sem prenhez confirmada.',
+        };
+      }
+
+      // Admin tentando registrar parto sem prenhez → bypass_justificativa obrigatório
+      const bypass = parsed.bypass_justificativa?.trim() || '';
+      if (bypass.length < 10) {
+        return {
+          success: false,
+          erro: 'Justificativa obrigatória (mínimo 10 caracteres) para registrar parto sem prenhez confirmada.',
+        };
+      }
+    } else {
+      // Tem prenhez confirmada → ignorar bypass_justificativa mesmo se preenchido
+      parsed.bypass_justificativa = null;
     }
 
-    // RPC orquestra parto + crias em transação atômica
+    // RPC orquestra parto + crias em transação atômica (com bypass_justificativa se fornecido)
     const resultado = await queryEventosRebanho.registrarParto(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
