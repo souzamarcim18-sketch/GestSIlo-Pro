@@ -195,7 +195,7 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
 
   it('parâmetros reprodutivos: aceita datas no passado (sem validação de data)', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_ideal_intervalo_partos: 400,
+      meta_iep_dias: 400,
     });
     expect(result.success).toBe(true);
   });
@@ -336,9 +336,9 @@ describe('Validações Rebanho Reprodução — Enums Inválidos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('parâmetros: dias_ideal_intervalo_partos fora do range (min)', () => {
+  it('parâmetros: meta_iep_dias fora do range (min)', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_ideal_intervalo_partos: 260,
+      meta_iep_dias: 260,
     });
     expect(result.success).toBe(false);
   });
@@ -416,17 +416,17 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('parâmetros: dias_ideal_intervalo_partos < 350', () => {
+  it('parâmetros: meta_iep_dias < 350', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_ideal_intervalo_partos: 349,
+      meta_iep_dias: 349,
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toContain('>= 350');
   });
 
-  it('parâmetros: dias_ideal_intervalo_partos > 450', () => {
+  it('parâmetros: meta_iep_dias > 450', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_ideal_intervalo_partos: 451,
+      meta_iep_dias: 451,
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toContain('<= 450');
@@ -566,9 +566,9 @@ describe('Validações Rebanho Reprodução — Integridade', () => {
     expect(result.success).toBe(false);
   });
 
-  it('parâmetros: dias_ideal_intervalo_partos deve ser inteiro', () => {
+  it('parâmetros: meta_iep_dias deve ser inteiro', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_ideal_intervalo_partos: 400.5,
+      meta_iep_dias: 400.5,
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toContain('inteiro');

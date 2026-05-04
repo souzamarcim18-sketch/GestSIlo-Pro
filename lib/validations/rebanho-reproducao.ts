@@ -239,7 +239,7 @@ export const atualizarParametrosReprodutivosSchema = z.object({
     .min(0, 'Deve ser >= 0')
     .max(100, 'Deve ser <= 100')
     .optional(),
-  dias_ideal_intervalo_partos: z
+  meta_iep_dias: z
     .number()
     .int('Deve ser um número inteiro')
     .min(350, 'Deve ser >= 350')
