@@ -141,8 +141,8 @@ export async function lancarDiagnosticoAction(
         animal_id: parsed.animal_id,
         tipo: 'diagnostico_prenhez',
         data_evento: parsed.data_evento,
-        metodo_diagnostico: parsed.metodo_diagnostico,
-        resultado_prenhez: parsed.resultado_prenhez,
+        metodo: parsed.metodo,
+        resultado: parsed.resultado,
         idade_gestacional_dias: parsed.idade_gestacional_dias || null,
         observacoes: parsed.observacoes || null,
         usuario_id: userId,
@@ -181,7 +181,7 @@ export async function lancarPartoAction(
       .select('id', { count: 'exact', head: true })
       .eq('animal_id', parsed.animal_id)
       .eq('tipo', 'diagnostico_prenhez')
-      .eq('resultado_prenhez', 'positivo')
+      .eq('resultado', 'positivo')
       .gte('data_evento', new Date(new Date().setDate(new Date().getDate() - 295)).toISOString().split('T')[0]);
 
     const temPrenhez = (prenheCount || 0) > 0;
@@ -316,7 +316,7 @@ export async function lancarDescarteAction(
         animal_id: parsed.animal_id,
         tipo: 'descarte',
         data_evento: parsed.data_evento,
-        motivo_descarte: parsed.motivo_descarte,
+        motivo: parsed.motivo,
         observacoes: parsed.observacoes || null,
         usuario_id: userId,
       })

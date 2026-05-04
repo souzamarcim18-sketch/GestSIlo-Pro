@@ -22,6 +22,7 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
   it('cobertura: válida com todos os campos', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'cobertura',
       tipo_cobertura: 'monta_natural',
       data_evento: pastDate.toISOString().split('T')[0],
       reprodutor_id: validUUID,
@@ -33,8 +34,9 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
   it('diagnóstico: válido com idade gestacional', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo_diagnostico: 'ultrassom',
-      resultado_prenhez: 'positivo',
+      tipo: 'diagnostico_prenhez',
+      metodo: 'ultrassom',
+      resultado: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: 45,
     });
@@ -44,9 +46,11 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
   it('parto: válido não gemelar com 1 cria', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'normal',
       data_evento: pastDate.toISOString().split('T')[0],
       gemelar: false,
+      natimorto: false,
       crias: [{ sexo: 'Fêmea', vivo: true }],
     });
     expect(result.success).toBe(true);
@@ -55,9 +59,11 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
   it('parto: válido gemelar com 2 crias', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'distocico',
       data_evento: pastDate.toISOString().split('T')[0],
       gemelar: true,
+      natimorto: false,
       crias: [
         { sexo: 'Macho', peso_kg: 35, vivo: true },
         { sexo: 'Fêmea', peso_kg: 32, vivo: true },
@@ -69,6 +75,7 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
   it('secagem: válida', () => {
     const result = criarSecagemSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'secagem',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(true);
@@ -77,6 +84,7 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
   it('aborto: válido com idade gestacional', () => {
     const result = criarAbortoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'aborto',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: 120,
       causa_aborto: 'Infecção uterina',
@@ -87,7 +95,8 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
   it('descarte: válido com motivo', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
-      motivo_descarte: 'idade',
+      tipo: 'descarte',
+      motivo: 'idade',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(true);
@@ -114,8 +123,10 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
   it('cobertura: rejeita data futura', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: validUUID,
-      tipo_cobertura: 'ia_convencional',
+      tipo: 'cobertura',
+      tipo_cobertura: 'ia_fresco',
       data_evento: futureStr,
+      reprodutor_id: validUUID,
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toContain('não futura');
@@ -124,8 +135,9 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
   it('diagnóstico: rejeita data futura', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo_diagnostico: 'palpacao',
-      resultado_prenhez: 'negativo',
+      tipo: 'diagnostico_prenhez',
+      metodo: 'palpacao',
+      resultado: 'negativo',
       data_evento: futureStr,
     });
     expect(result.success).toBe(false);
@@ -134,8 +146,11 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
   it('parto: rejeita data futura', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'normal',
       data_evento: futureStr,
+      gemelar: false,
+      natimorto: false,
       crias: [{ sexo: 'Fêmea', vivo: true }],
     });
     expect(result.success).toBe(false);
@@ -144,6 +159,7 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
   it('secagem: rejeita data futura', () => {
     const result = criarSecagemSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'secagem',
       data_evento: futureStr,
     });
     expect(result.success).toBe(false);
@@ -152,6 +168,7 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
   it('aborto: rejeita data futura', () => {
     const result = criarAbortoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'aborto',
       data_evento: futureStr,
     });
     expect(result.success).toBe(false);
@@ -160,7 +177,8 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
   it('descarte: rejeita data futura', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
-      motivo_descarte: 'reprodutivo',
+      tipo: 'descarte',
+      motivo: 'idade',
       data_evento: futureStr,
     });
     expect(result.success).toBe(false);
@@ -177,7 +195,7 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
 
   it('parâmetros reprodutivos: aceita datas no passado (sem validação de data)', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_gestacao: 283,
+      dias_ideal_intervalo_partos: 400,
     });
     expect(result.success).toBe(true);
   });
@@ -194,10 +212,10 @@ describe('Validações Rebanho Reprodução — Campos Obrigatórios', () => {
     expect(result.success).toBe(false);
   });
 
-  it('diagnóstico: metodo_diagnostico obrigatório', () => {
+  it('diagnóstico: metodo obrigatório', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      resultado_prenhez: 'positivo',
+      resultado: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
@@ -226,7 +244,7 @@ describe('Validações Rebanho Reprodução — Campos Obrigatórios', () => {
     expect(result.success).toBe(false);
   });
 
-  it('descarte: motivo_descarte obrigatório', () => {
+  it('descarte: motivo obrigatório', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
       data_evento: pastDate.toISOString().split('T')[0],
@@ -261,21 +279,21 @@ describe('Validações Rebanho Reprodução — Enums Inválidos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('diagnóstico: metodo_diagnostico inválido', () => {
+  it('diagnóstico: metodo inválido', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo_diagnostico: 'xray',
-      resultado_prenhez: 'positivo',
+      metodo: 'xray',
+      resultado: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
   });
 
-  it('diagnóstico: resultado_prenhez inválido', () => {
+  it('diagnóstico: resultado inválido', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo_diagnostico: 'ultrassom',
-      resultado_prenhez: 'talvez',
+      metodo: 'ultrassom',
+      resultado: 'talvez',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
@@ -291,10 +309,10 @@ describe('Validações Rebanho Reprodução — Enums Inválidos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('descarte: motivo_descarte inválido', () => {
+  it('descarte: motivo inválido', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
-      motivo_descarte: 'falta_de_leite',
+      motivo: 'falta_de_leite',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
@@ -318,9 +336,9 @@ describe('Validações Rebanho Reprodução — Enums Inválidos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('parâmetros: dias_gestacao fora do range (min)', () => {
+  it('parâmetros: dias_ideal_intervalo_partos fora do range (min)', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_gestacao: 260,
+      dias_ideal_intervalo_partos: 260,
     });
     expect(result.success).toBe(false);
   });
@@ -332,20 +350,22 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
   it('diagnóstico: idade_gestacional > 300', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo_diagnostico: 'ultrassom',
-      resultado_prenhez: 'positivo',
+      tipo: 'diagnostico_prenhez',
+      metodo: 'ultrassom',
+      resultado: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: 301,
     });
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('máxima');
+    expect(result.error?.issues[0].message).toContain('<= 300');
   });
 
   it('diagnóstico: idade_gestacional < 0', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo_diagnostico: 'palpacao',
-      resultado_prenhez: 'negativo',
+      tipo: 'diagnostico_prenhez',
+      metodo: 'palpacao',
+      resultado: 'negativo',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: -1,
     });
@@ -355,6 +375,7 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
   it('aborto: idade_gestacional > 300', () => {
     const result = criarAbortoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'aborto',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: 350,
     });
@@ -364,8 +385,11 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
   it('parto: peso_kg <= 0', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'normal',
       data_evento: pastDate.toISOString().split('T')[0],
+      gemelar: false,
+      natimorto: false,
       crias: [{ sexo: 'Macho', peso_kg: 0, vivo: true }],
     });
     expect(result.success).toBe(false);
@@ -374,8 +398,11 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
   it('parto: peso_kg negativo', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'normal',
       data_evento: pastDate.toISOString().split('T')[0],
+      gemelar: false,
+      natimorto: false,
       crias: [{ sexo: 'Fêmea', peso_kg: -10, vivo: true }],
     });
     expect(result.success).toBe(false);
@@ -389,20 +416,20 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('parâmetros: dias_gestacao < 270', () => {
+  it('parâmetros: dias_ideal_intervalo_partos < 350', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_gestacao: 269,
+      dias_ideal_intervalo_partos: 349,
     });
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('Mínimo');
+    expect(result.error?.issues[0].message).toContain('>= 350');
   });
 
-  it('parâmetros: dias_gestacao > 295', () => {
+  it('parâmetros: dias_ideal_intervalo_partos > 450', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_gestacao: 296,
+      dias_ideal_intervalo_partos: 451,
     });
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('Máximo');
+    expect(result.error?.issues[0].message).toContain('<= 450');
   });
 });
 
@@ -412,9 +439,11 @@ describe('Validações Rebanho Reprodução — Parto Gemelar', () => {
   it('parto gemelar=true com 2 crias: válido', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'normal',
       data_evento: pastDate.toISOString().split('T')[0],
       gemelar: true,
+      natimorto: false,
       crias: [
         { sexo: 'Macho', vivo: true },
         { sexo: 'Fêmea', vivo: true },
@@ -426,9 +455,11 @@ describe('Validações Rebanho Reprodução — Parto Gemelar', () => {
   it('parto gemelar=true com 1 cria: inválido', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'normal',
       data_evento: pastDate.toISOString().split('T')[0],
       gemelar: true,
+      natimorto: false,
       crias: [{ sexo: 'Macho', vivo: true }],
     });
     expect(result.success).toBe(false);
@@ -438,9 +469,11 @@ describe('Validações Rebanho Reprodução — Parto Gemelar', () => {
   it('parto gemelar=false com 1 cria: válido', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'cesariana',
       data_evento: pastDate.toISOString().split('T')[0],
       gemelar: false,
+      natimorto: false,
       crias: [{ sexo: 'Fêmea', vivo: true }],
     });
     expect(result.success).toBe(true);
@@ -449,9 +482,11 @@ describe('Validações Rebanho Reprodução — Parto Gemelar', () => {
   it('parto gemelar=false com 2 crias: inválido', () => {
     const result = criarPartoSchema.safeParse({
       animal_id: validUUID,
+      tipo: 'parto',
       tipo_parto: 'normal',
       data_evento: pastDate.toISOString().split('T')[0],
       gemelar: false,
+      natimorto: false,
       crias: [
         { sexo: 'Macho', vivo: true },
         { sexo: 'Fêmea', vivo: true },
@@ -468,9 +503,11 @@ describe('Validações Rebanho Reprodução — Limites de String', () => {
   it('cobertura: observacoes > 500 caracteres', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: validUUID,
-      tipo_cobertura: 'ia_convencional',
+      tipo: 'cobertura',
+      tipo_cobertura: 'ia_fresco',
       data_evento: pastDate.toISOString().split('T')[0],
-      observacoes: 'a'.repeat(501),
+      reprodutor_id: validUUID,
+      observacoes: 'a'.repeat(1001),
     });
     expect(result.success).toBe(false);
   });
@@ -486,8 +523,9 @@ describe('Validações Rebanho Reprodução — Limites de String', () => {
   it('diagnóstico: observacoes = 500 (no limit)', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo_diagnostico: 'ultrassom',
-      resultado_prenhez: 'positivo',
+      tipo: 'diagnostico_prenhez',
+      metodo: 'ultrassom',
+      resultado: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
       observacoes: 'a'.repeat(500),
     });
@@ -508,8 +546,10 @@ describe('Validações Rebanho Reprodução — Integridade', () => {
   it('animal_id deve ser UUID válido', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: 'not-a-uuid',
+      tipo: 'cobertura',
       tipo_cobertura: 'monta_natural',
       data_evento: pastDate.toISOString().split('T')[0],
+      reprodutor_id: validUUID,
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toContain('inválido');
@@ -518,16 +558,17 @@ describe('Validações Rebanho Reprodução — Integridade', () => {
   it('reprodutor_id deve ser UUID válido quando preenchido', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: validUUID,
-      tipo_cobertura: 'ia_convencional',
+      tipo: 'cobertura',
+      tipo_cobertura: 'ia_fresco',
       data_evento: pastDate.toISOString().split('T')[0],
       reprodutor_id: 'invalid-uuid',
     });
     expect(result.success).toBe(false);
   });
 
-  it('parâmetros: dias_seca deve ser inteiro', () => {
+  it('parâmetros: dias_ideal_intervalo_partos deve ser inteiro', () => {
     const result = atualizarParametrosReprodutivosSchema.safeParse({
-      dias_seca: 45.5,
+      dias_ideal_intervalo_partos: 400.5,
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toContain('inteiro');
