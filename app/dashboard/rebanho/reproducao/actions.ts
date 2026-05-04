@@ -21,7 +21,11 @@ import {
   type CriarDescarteInput,
   type AtualizarParametrosReprodutivosInput,
 } from '@/lib/validations/rebanho-reproducao';
-import { queryReprodutores, queryParametrosReprodutivos } from '@/lib/supabase/rebanho-reproducao';
+import {
+  queryReprodutores,
+  queryParametrosReprodutivos,
+  queryEventosRebanho,
+} from '@/lib/supabase/rebanho-reproducao';
 
 // ========== REPRODUTOR ==========
 
@@ -97,25 +101,10 @@ export async function lancarCoberturaAction(
     const parsed = criarCoberturaSchema.parse(formData);
     const userId = await getCurrentUserId();
 
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from('eventos_rebanho')
-      .insert({
-        animal_id: parsed.animal_id,
-        tipo: 'cobertura',
-        data_evento: parsed.data_evento,
-        tipo_cobertura: parsed.tipo_cobertura,
-        reprodutor_id: parsed.reprodutor_id || null,
-        observacoes: parsed.observacoes || null,
-        usuario_id: userId,
-      })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    const resultado = await queryEventosRebanho.registrarCobertura(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
-    return { success: true, evento_id: data.id };
+    return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, erro: mensagem };
@@ -134,26 +123,10 @@ export async function lancarDiagnosticoAction(
     const parsed = criarDiagnosticoSchema.parse(formData);
     const userId = await getCurrentUserId();
 
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from('eventos_rebanho')
-      .insert({
-        animal_id: parsed.animal_id,
-        tipo: 'diagnostico_prenhez',
-        data_evento: parsed.data_evento,
-        metodo_diagnostico: parsed.metodo_diagnostico,
-        resultado_prenhez: parsed.resultado_prenhez,
-        idade_gestacional_dias: parsed.idade_gestacional_dias || null,
-        observacoes: parsed.observacoes || null,
-        usuario_id: userId,
-      })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    const resultado = await queryEventosRebanho.registrarDiagnostico(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
-    return { success: true, evento_id: data.id };
+    return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, erro: mensagem };
@@ -173,18 +146,9 @@ export async function lancarPartoAction(
     const userId = await getCurrentUserId();
     const admin = await sou_admin();
 
-    const supabase = await createSupabaseServerClient();
-
-    // Validar prenhez confirmada
-    const { count: prenheCount } = await supabase
-      .from('eventos_rebanho')
-      .select('id', { count: 'exact', head: true })
-      .eq('animal_id', parsed.animal_id)
-      .eq('tipo', 'diagnostico_prenhez')
-      .eq('resultado', 'positivo')
-      .gte('data_evento', new Date(new Date().setDate(new Date().getDate() - 295)).toISOString().split('T')[0]);
-
-    const temPrenhez = (prenheCount || 0) > 0;
+    // Validar prenhez confirmada nos últimos 295 dias
+    const ultimoDiag = await queryEventosRebanho.getUltimoDiagnosticoPositivo(parsed.animal_id, 295);
+    const temPrenhez = !!ultimoDiag;
 
     if (!temPrenhez && !admin) {
       return {
@@ -193,31 +157,14 @@ export async function lancarPartoAction(
       };
     }
 
-    // Chamar RPC para parto com transação
-    const { data: resultado, error } = await supabase.rpc('rpc_lancar_parto', {
-      p_animal_id: parsed.animal_id,
-      p_data_evento: parsed.data_evento,
-      p_tipo_parto: parsed.tipo_parto,
-      p_usuario_id: userId,
-      p_gemelar: parsed.gemelar || false,
-      p_natimorto: parsed.natimorto || false,
-      p_observacoes: parsed.observacoes || null,
-      p_crias: parsed.crias || [],
-    });
-
-    if (error) throw new Error(error.message || 'Erro ao lançar parto');
-
-    // RPC retorna SETOF/TABLE → data vem como array
-    const registro = resultado?.[0];
-    if (!registro) {
-      throw new Error('RPC executou mas não retornou dados do parto.');
-    }
+    // RPC orquestra parto + crias em transação atômica
+    const resultado = await queryEventosRebanho.registrarParto(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
     return {
       success: true,
-      evento_id: registro.evento_id,
-      bezerros_criados: registro.bezerros_criados ?? 0,
+      evento_id: resultado.evento_id,
+      bezerros_criados: resultado.bezerros_criados,
     };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -237,23 +184,10 @@ export async function lancarSecagemAction(
     const parsed = criarSecagemSchema.parse(formData);
     const userId = await getCurrentUserId();
 
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from('eventos_rebanho')
-      .insert({
-        animal_id: parsed.animal_id,
-        tipo: 'secagem',
-        data_evento: parsed.data_evento,
-        observacoes: parsed.observacoes || null,
-        usuario_id: userId,
-      })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    const resultado = await queryEventosRebanho.registrarSecagem(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
-    return { success: true, evento_id: data.id };
+    return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, erro: mensagem };
@@ -272,25 +206,10 @@ export async function lancarAbortoAction(
     const parsed = criarAbortoSchema.parse(formData);
     const userId = await getCurrentUserId();
 
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from('eventos_rebanho')
-      .insert({
-        animal_id: parsed.animal_id,
-        tipo: 'aborto',
-        data_evento: parsed.data_evento,
-        idade_gestacional_dias: parsed.idade_gestacional_dias || null,
-        causa_aborto: parsed.causa_aborto || null,
-        observacoes: parsed.observacoes || null,
-        usuario_id: userId,
-      })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    const resultado = await queryEventosRebanho.registrarAborto(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
-    return { success: true, evento_id: data.id };
+    return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, erro: mensagem };
@@ -309,24 +228,10 @@ export async function lancarDescarteAction(
     const parsed = criarDescarteSchema.parse(formData);
     const userId = await getCurrentUserId();
 
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from('eventos_rebanho')
-      .insert({
-        animal_id: parsed.animal_id,
-        tipo: 'descarte',
-        data_evento: parsed.data_evento,
-        motivo_descarte: parsed.motivo_descarte,
-        observacoes: parsed.observacoes || null,
-        usuario_id: userId,
-      })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    const resultado = await queryEventosRebanho.registrarDescarte(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
-    return { success: true, evento_id: data.id };
+    return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, erro: mensagem };
@@ -341,26 +246,18 @@ export async function deletarEventoReprodutivo(id: string): Promise<{ success: b
     }
 
     const userId = await getCurrentUserId();
-    const supabase = await createSupabaseServerClient();
 
     // Buscar evento para auditoria
-    const { data: evento, error: getError } = await supabase
-      .from('eventos_rebanho')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (getError) throw getError;
+    const evento = await queryEventosRebanho.getById(id);
+    if (!evento) {
+      return { success: false, erro: 'Evento não encontrado.' };
+    }
 
     // Soft delete
-    const { error: deleteError } = await supabase
-      .from('eventos_rebanho')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (deleteError) throw deleteError;
+    await queryEventosRebanho.softDelete(id);
 
     // Registrar em audit_log
+    const supabase = await createSupabaseServerClient();
     await supabase.from('audit_log').insert({
       tabela: 'eventos_rebanho',
       registro_id: id,
@@ -401,7 +298,8 @@ export async function atualizarParametrosReprodutivosAction(
 
     if (!profile?.fazenda_id) throw new Error('Fazenda não encontrada.');
 
-    await queryParametrosReprodutivos.update(profile.fazenda_id, parsed as AtualizarParametrosReprodutivosInput);
+    // Upsert para criar ou atualizar parâmetros
+    await queryParametrosReprodutivos.upsert(profile.fazenda_id, parsed as AtualizarParametrosReprodutivosInput);
 
     revalidatePath('/dashboard/rebanho/reproducao');
     return { success: true };
