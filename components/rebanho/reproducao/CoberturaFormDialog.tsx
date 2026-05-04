@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarCoberturaSchema, type CriarCoberturaInput } from '@/lib/validations/rebanho-reproducao';
+import { lancarCoberturaAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Reprodutor } from '@/lib/types/rebanho-reproducao';
 import type { Animal } from '@/lib/types/rebanho';
 
@@ -86,7 +87,10 @@ export function CoberturaFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: Implementar createCoberturaAction
+      const result = await lancarCoberturaAction(data);
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
       toast.success('Cobertura registrada com sucesso');
       reset();
       onOpenChange(false);

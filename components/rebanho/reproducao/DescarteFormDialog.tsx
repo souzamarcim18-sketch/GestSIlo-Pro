@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarDescarteSchema, type CriarDescarteInput } from '@/lib/validations/rebanho-reproducao';
+import { lancarDescarteAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface DescarteFormDialogProps {
@@ -71,7 +72,10 @@ export function DescarteFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: Implementar createDescarteAction
+      const result = await lancarDescarteAction(data);
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
       toast.success('Descarte registrado com sucesso');
       reset();
       onOpenChange(false);

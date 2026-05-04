@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarSecagemSchema, type CriarSecagemInput } from '@/lib/validations/rebanho-reproducao';
+import { lancarSecagemAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface SecagemFormDialogProps {
@@ -52,7 +53,10 @@ export function SecagemFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: Implementar createSecagemAction
+      const result = await lancarSecagemAction(data);
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
       toast.success('Secagem registrada com sucesso');
       reset();
       onOpenChange(false);

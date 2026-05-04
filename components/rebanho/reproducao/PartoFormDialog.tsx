@@ -25,6 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarPartoSchema, type CriarPartoInput } from '@/lib/validations/rebanho-reproducao';
+import { lancarPartoAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface PartoFormDialogProps {
@@ -83,7 +84,10 @@ export function PartoFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: Implementar createPartoAction
+      const result = await lancarPartoAction(data);
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
       toast.success('Parto registrado com sucesso');
       reset();
       onOpenChange(false);

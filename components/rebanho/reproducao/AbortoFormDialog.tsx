@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarAbortoSchema, type CriarAbortoInput } from '@/lib/validations/rebanho-reproducao';
+import { lancarAbortoAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface AbortoFormDialogProps {
@@ -54,7 +55,10 @@ export function AbortoFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: Implementar createAbortoAction
+      const result = await lancarAbortoAction(data);
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
       toast.success('Aborto registrado com sucesso');
       reset();
       onOpenChange(false);

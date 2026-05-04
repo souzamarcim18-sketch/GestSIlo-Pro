@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { deletarReprodutorAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Reprodutor } from '@/lib/types/rebanho-reproducao';
 
 interface ReprodutorListemProps {
@@ -68,7 +69,10 @@ export function ReprodutorListagem({
 
     setIsDeleting(id);
     try {
-      // TODO: Implementar deleteReprodutorAction
+      const result = await deletarReprodutorAction(id);
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
       toast.success('Reprodutor deletado com sucesso');
       onDelete(id);
     } catch (error) {

@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarReprodutorSchema, type CriarReprodutorInput } from '@/lib/validations/rebanho-reproducao';
+import { criarReprodutorAction, editarReprodutorAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Reprodutor } from '@/lib/types/rebanho-reproducao';
 
 interface ReprodutorFormDialogProps {
@@ -78,7 +79,14 @@ export function ReprodutorFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: Implementar createReprodutorAction ou updateReprodutorAction
+      const result = reprodutor
+        ? await editarReprodutorAction(reprodutor.id, data)
+        : await criarReprodutorAction(data);
+
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
+
       const message = reprodutor ? 'Reprodutor atualizado com sucesso' : 'Reprodutor criado com sucesso';
       toast.success(message);
       reset();

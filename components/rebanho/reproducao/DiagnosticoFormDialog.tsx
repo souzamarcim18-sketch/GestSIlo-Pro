@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarDiagnosticoSchema, type CriarDiagnosticoInput } from '@/lib/validations/rebanho-reproducao';
+import { lancarDiagnosticoAction } from '@/app/dashboard/rebanho/reproducao/actions';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface DiagnosticoFormDialogProps {
@@ -76,7 +77,10 @@ export function DiagnosticoFormDialog({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: Implementar createDiagnosticoAction
+      const result = await lancarDiagnosticoAction(data);
+      if (!result.success) {
+        throw new Error(result.erro || 'Erro desconhecido');
+      }
       toast.success('Diagnóstico registrado com sucesso');
       reset();
       onOpenChange(false);
