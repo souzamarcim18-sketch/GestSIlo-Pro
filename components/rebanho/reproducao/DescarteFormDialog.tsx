@@ -34,12 +34,13 @@ interface DescarteFormDialogProps {
   onSuccess: () => void;
 }
 
+// Bate com MotivoDescarteEnum (banco: eventos_rebanho.motivo_descarte)
 const motivosMap = {
-  infertilidade: 'Infertilidade',
-  mastite_cronica: 'Mastite Crônica',
   idade: 'Idade',
-  problema_cascos: 'Problema nos Cascos',
-  comportamento_agressivo: 'Comportamento Agressivo',
+  reprodutivo: 'Problema Reprodutivo',
+  sanitario: 'Problema Sanitário',
+  producao: 'Problema de Produção',
+  aprumos: 'Problema nos Aprumos',
   outro: 'Outro',
 };
 
@@ -64,7 +65,7 @@ export function DescarteFormDialog({
       animal_id: animal.id,
       tipo: 'descarte',
       data_evento: new Date().toISOString().split('T')[0],
-      motivo: 'infertilidade',
+      motivo_descarte: 'outro',
       observacoes: '',
     },
   });
@@ -87,7 +88,7 @@ export function DescarteFormDialog({
     }
   });
 
-  const motivoValue = watch('motivo');
+  const motivoDescarteValue = watch('motivo_descarte');
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -115,13 +116,13 @@ export function DescarteFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="motivo">Motivo do Descarte *</Label>
+            <Label htmlFor="motivo_descarte">Motivo do Descarte *</Label>
             <Select
-              value={motivoValue}
-              onValueChange={(v) => setValue('motivo', v as any)}
+              value={motivoDescarteValue}
+              onValueChange={(v) => setValue('motivo_descarte', v as any)}
               disabled={isLoading}
             >
-              <SelectTrigger id="motivo" className="h-12">
+              <SelectTrigger id="motivo_descarte" className="h-12">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -132,8 +133,8 @@ export function DescarteFormDialog({
                 ))}
               </SelectContent>
             </Select>
-            {errors.motivo && (
-              <p className="text-sm text-red-600">{errors.motivo.message}</p>
+            {errors.motivo_descarte && (
+              <p className="text-sm text-red-600">{errors.motivo_descarte.message}</p>
             )}
           </div>
 

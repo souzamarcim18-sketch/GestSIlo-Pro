@@ -50,7 +50,8 @@ export const criarCoberturaSchema = z.object({
       const date = new Date(val);
       return date <= new Date() && !isNaN(date.getTime());
     }, 'Data do evento deve ser válida e não futura'),
-  tipo_cobertura: z.enum(['monta_natural', 'ia_fresco', 'ia_congelado', 'transferencia_embriao', 'coleta_embriao', 'outro'], {
+  // Bate com CHECK em eventos_rebanho.tipo_cobertura
+  tipo_cobertura: z.enum(['monta_natural', 'ia_convencional', 'iatf', 'tetf', 'fiv', 'repasse'], {
     message: 'Tipo de cobertura inválido'
   }),
   reprodutor_id: z.string().min(1, 'Reprodutor obrigatório').uuid('Reprodutor inválido'),
@@ -74,10 +75,12 @@ export const criarDiagnosticoSchema = z.object({
       const date = new Date(val);
       return date <= new Date() && !isNaN(date.getTime());
     }, 'Data do evento deve ser válida e não futura'),
-  metodo: z.enum(['palpacao', 'ultrassom', 'dosagem_prog'], {
+  // Bate com CHECK em eventos_rebanho.metodo_diagnostico
+  metodo_diagnostico: z.enum(['palpacao', 'ultrassom', 'sangue'], {
     message: 'Método de diagnóstico inválido'
   }),
-  resultado: z.enum(['positivo', 'negativo', 'inconclusivo'], {
+  // Bate com CHECK em eventos_rebanho.resultado_prenhez (trigger usa 'duvidoso')
+  resultado_prenhez: z.enum(['positivo', 'negativo', 'duvidoso'], {
     message: 'Resultado inválido'
   }),
   idade_gestacional_dias: z
@@ -131,6 +134,13 @@ export const criarPartoSchema = z.object({
   observacoes: z
     .string()
     .max(1000, 'Máximo 1000 caracteres')
+    .optional()
+    .nullable(),
+  // Obrigatório se não há prenhez confirmada (bypass de admin)
+  bypass_justificativa: z
+    .string()
+    .min(10, 'Justificativa deve ter no mínimo 10 caracteres')
+    .max(500, 'Máximo 500 caracteres')
     .optional()
     .nullable(),
 }).refine(
@@ -214,7 +224,8 @@ export const criarDescarteSchema = z.object({
       const date = new Date(val);
       return date <= new Date() && !isNaN(date.getTime());
     }, 'Data do evento deve ser válida e não futura'),
-  motivo: z.enum(['infertilidade', 'mastite_cronica', 'idade', 'problema_cascos', 'comportamento_agressivo', 'outro'], {
+  // Bate com CHECK em eventos_rebanho.motivo_descarte
+  motivo_descarte: z.enum(['idade', 'reprodutivo', 'sanitario', 'producao', 'aprumos', 'outro'], {
     message: 'Motivo de descarte inválido'
   }),
   observacoes: z
@@ -228,28 +239,55 @@ export type CriarDescarteInput = z.infer<typeof criarDescarteSchema>;
 
 // ========== PARÂMETROS REPRODUTIVOS ==========
 
+// Bate com tabela parametros_reprodutivos_fazenda (Seção 1.5)
 export const atualizarParametrosReprodutivosSchema = z.object({
+  dias_gestacao: z
+    .number()
+    .int('Deve ser um número inteiro')
+    .min(270, 'Deve ser >= 270')
+    .max(295, 'Deve ser <= 295')
+    .optional(),
+  dias_seca: z
+    .number()
+    .int('Deve ser um número inteiro')
+    .min(30, 'Deve ser >= 30')
+    .max(90, 'Deve ser <= 90')
+    .optional(),
+  pve_dias: z
+    .number()
+    .int('Deve ser um número inteiro')
+    .min(30, 'Deve ser >= 30')
+    .max(120, 'Deve ser <= 120')
+    .optional(),
+  coberturas_para_repetidora: z
+    .number()
+    .int('Deve ser um número inteiro')
+    .min(2, 'Deve ser >= 2')
+    .max(5, 'Deve ser <= 5')
+    .optional(),
+  janela_repetidora_dias: z
+    .number()
+    .int('Deve ser um número inteiro')
+    .min(90, 'Deve ser >= 90')
+    .max(365, 'Deve ser <= 365')
+    .optional(),
   meta_taxa_prenhez_pct: z
     .number()
-    .min(0, 'Deve ser >= 0')
+    .int('Deve ser um número inteiro')
+    .min(50, 'Deve ser >= 50')
     .max(100, 'Deve ser <= 100')
     .optional(),
-  meta_taxa_parto_pct: z
+  meta_psm_dias: z
     .number()
-    .min(0, 'Deve ser >= 0')
-    .max(100, 'Deve ser <= 100')
+    .int('Deve ser um número inteiro')
+    .min(50, 'Deve ser >= 50')
+    .max(120, 'Deve ser <= 120')
     .optional(),
   meta_iep_dias: z
     .number()
     .int('Deve ser um número inteiro')
     .min(350, 'Deve ser >= 350')
     .max(450, 'Deve ser <= 450')
-    .optional(),
-  dias_ideal_lactacao: z
-    .number()
-    .int('Deve ser um número inteiro')
-    .min(250, 'Deve ser >= 250')
-    .max(350, 'Deve ser <= 350')
     .optional(),
 });
 

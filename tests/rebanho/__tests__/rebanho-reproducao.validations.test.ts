@@ -35,8 +35,8 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
       tipo: 'diagnostico_prenhez',
-      metodo: 'ultrassom',
-      resultado: 'positivo',
+      metodo_diagnostico: 'ultrassom',
+      resultado_prenhez: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: 45,
     });
@@ -96,7 +96,7 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
       tipo: 'descarte',
-      motivo: 'idade',
+      motivo_descarte: 'idade',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(true);
@@ -124,7 +124,7 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: validUUID,
       tipo: 'cobertura',
-      tipo_cobertura: 'ia_fresco',
+      tipo_cobertura: 'monta_natural',
       data_evento: futureStr,
       reprodutor_id: validUUID,
     });
@@ -136,8 +136,8 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
       tipo: 'diagnostico_prenhez',
-      metodo: 'palpacao',
-      resultado: 'negativo',
+      metodo_diagnostico: 'palpacao',
+      resultado_prenhez: 'negativo',
       data_evento: futureStr,
     });
     expect(result.success).toBe(false);
@@ -178,7 +178,7 @@ describe('Validações Rebanho Reprodução — Data Futura Rejeitada', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
       tipo: 'descarte',
-      motivo: 'idade',
+      motivo_descarte: 'idade',
       data_evento: futureStr,
     });
     expect(result.success).toBe(false);
@@ -212,10 +212,10 @@ describe('Validações Rebanho Reprodução — Campos Obrigatórios', () => {
     expect(result.success).toBe(false);
   });
 
-  it('diagnóstico: metodo obrigatório', () => {
+  it('diagnóstico: metodo_diagnostico obrigatório', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      resultado: 'positivo',
+      resultado_prenhez: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
@@ -244,7 +244,7 @@ describe('Validações Rebanho Reprodução — Campos Obrigatórios', () => {
     expect(result.success).toBe(false);
   });
 
-  it('descarte: motivo obrigatório', () => {
+  it('descarte: motivo_descarte obrigatório', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
       data_evento: pastDate.toISOString().split('T')[0],
@@ -279,21 +279,21 @@ describe('Validações Rebanho Reprodução — Enums Inválidos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('diagnóstico: metodo inválido', () => {
+  it('diagnóstico: metodo_diagnostico inválido', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo: 'xray',
-      resultado: 'positivo',
+      metodo_diagnostico: 'xray',
+      resultado_prenhez: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
   });
 
-  it('diagnóstico: resultado inválido', () => {
+  it('diagnóstico: resultado_prenhez inválido', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
-      metodo: 'ultrassom',
-      resultado: 'talvez',
+      metodo_diagnostico: 'ultrassom',
+      resultado_prenhez: 'talvez',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
@@ -309,10 +309,10 @@ describe('Validações Rebanho Reprodução — Enums Inválidos', () => {
     expect(result.success).toBe(false);
   });
 
-  it('descarte: motivo inválido', () => {
+  it('descarte: motivo_descarte inválido', () => {
     const result = criarDescarteSchema.safeParse({
       animal_id: validUUID,
-      motivo: 'falta_de_leite',
+      motivo_descarte: 'falta_de_leite',
       data_evento: pastDate.toISOString().split('T')[0],
     });
     expect(result.success).toBe(false);
@@ -351,8 +351,8 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
       tipo: 'diagnostico_prenhez',
-      metodo: 'ultrassom',
-      resultado: 'positivo',
+      metodo_diagnostico: 'ultrassom',
+      resultado_prenhez: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: 301,
     });
@@ -364,8 +364,8 @@ describe('Validações Rebanho Reprodução — Limites Numéricos', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
       tipo: 'diagnostico_prenhez',
-      metodo: 'palpacao',
-      resultado: 'negativo',
+      metodo_diagnostico: 'palpacao',
+      resultado_prenhez: 'negativo',
       data_evento: pastDate.toISOString().split('T')[0],
       idade_gestacional_dias: -1,
     });
@@ -500,11 +500,11 @@ describe('Validações Rebanho Reprodução — Parto Gemelar', () => {
 // ========== TESTES ADICIONAIS DE STRING/LENGTH (4) ==========
 
 describe('Validações Rebanho Reprodução — Limites de String', () => {
-  it('cobertura: observacoes > 500 caracteres', () => {
+  it('cobertura: observacoes > 1000 caracteres', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: validUUID,
       tipo: 'cobertura',
-      tipo_cobertura: 'ia_fresco',
+      tipo_cobertura: 'monta_natural',
       data_evento: pastDate.toISOString().split('T')[0],
       reprodutor_id: validUUID,
       observacoes: 'a'.repeat(1001),
@@ -520,14 +520,14 @@ describe('Validações Rebanho Reprodução — Limites de String', () => {
     expect(result.success).toBe(false);
   });
 
-  it('diagnóstico: observacoes = 500 (no limit)', () => {
+  it('diagnóstico: observacoes = 1000 (max)', () => {
     const result = criarDiagnosticoSchema.safeParse({
       animal_id: validUUID,
       tipo: 'diagnostico_prenhez',
-      metodo: 'ultrassom',
-      resultado: 'positivo',
+      metodo_diagnostico: 'ultrassom',
+      resultado_prenhez: 'positivo',
       data_evento: pastDate.toISOString().split('T')[0],
-      observacoes: 'a'.repeat(500),
+      observacoes: 'a'.repeat(1000),
     });
     expect(result.success).toBe(true);
   });
@@ -559,7 +559,7 @@ describe('Validações Rebanho Reprodução — Integridade', () => {
     const result = criarCoberturaSchema.safeParse({
       animal_id: validUUID,
       tipo: 'cobertura',
-      tipo_cobertura: 'ia_fresco',
+      tipo_cobertura: 'monta_natural',
       data_evento: pastDate.toISOString().split('T')[0],
       reprodutor_id: 'invalid-uuid',
     });

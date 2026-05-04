@@ -36,13 +36,14 @@ interface CoberturaFormDialogProps {
   onSuccess: () => void;
 }
 
+// Bate com TipoCoberturaEnum (banco: eventos_rebanho.tipo_cobertura)
 const tiposCoberturaMap = {
   monta_natural: 'Monta Natural',
-  ia_fresco: 'IA Sêmen Fresco',
-  ia_congelado: 'IA Sêmen Congelado',
-  transferencia_embriao: 'Transferência de Embrião',
-  coleta_embriao: 'Coleta de Embrião',
-  outro: 'Outro',
+  ia_convencional: 'IA Convencional',
+  iatf: 'IATF',
+  tetf: 'TETF',
+  fiv: 'FIV',
+  repasse: 'Repasse',
 };
 
 export function CoberturaFormDialog({

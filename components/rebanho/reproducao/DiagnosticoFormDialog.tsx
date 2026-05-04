@@ -34,16 +34,18 @@ interface DiagnosticoFormDialogProps {
   onSuccess: () => void;
 }
 
+// Bate com MetodoDiagnosticoEnum (banco: eventos_rebanho.metodo_diagnostico)
 const metodosMap = {
   palpacao: 'Palpação',
   ultrassom: 'Ultrassom',
-  dosagem_prog: 'Dosagem Progesterona',
+  sangue: 'Dosagem de Sangue',
 };
 
+// Bate com ResultadoDiagnosticoEnum (banco: eventos_rebanho.resultado_prenhez)
 const resultadosMap = {
   positivo: 'Positivo',
   negativo: 'Negativo',
-  inconclusivo: 'Inconclusivo',
+  duvidoso: 'Duvidoso',
 };
 
 export function DiagnosticoFormDialog({
@@ -67,8 +69,8 @@ export function DiagnosticoFormDialog({
       animal_id: animal.id,
       tipo: 'diagnostico_prenhez',
       data_evento: new Date().toISOString().split('T')[0],
-      metodo: 'palpacao',
-      resultado: 'positivo',
+      metodo_diagnostico: 'palpacao',
+      resultado_prenhez: 'positivo',
       idade_gestacional_dias: undefined,
       observacoes: '',
     },
@@ -92,8 +94,8 @@ export function DiagnosticoFormDialog({
     }
   });
 
-  const metodoValue = watch('metodo');
-  const resultadoValue = watch('resultado');
+  const metodoValue = watch('metodo_diagnostico');
+  const resultadoValue = watch('resultado_prenhez');
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -121,13 +123,13 @@ export function DiagnosticoFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="metodo">Método *</Label>
+            <Label htmlFor="metodo_diagnostico">Método *</Label>
             <Select
               value={metodoValue}
-              onValueChange={(v) => setValue('metodo', v as any)}
+              onValueChange={(v) => setValue('metodo_diagnostico', v as any)}
               disabled={isLoading}
             >
-              <SelectTrigger id="metodo" className="h-12">
+              <SelectTrigger id="metodo_diagnostico" className="h-12">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -138,19 +140,19 @@ export function DiagnosticoFormDialog({
                 ))}
               </SelectContent>
             </Select>
-            {errors.metodo && (
-              <p className="text-sm text-red-600">{errors.metodo.message}</p>
+            {errors.metodo_diagnostico && (
+              <p className="text-sm text-red-600">{errors.metodo_diagnostico.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="resultado">Resultado *</Label>
+            <Label htmlFor="resultado_prenhez">Resultado *</Label>
             <Select
               value={resultadoValue}
-              onValueChange={(v) => setValue('resultado', v as any)}
+              onValueChange={(v) => setValue('resultado_prenhez', v as any)}
               disabled={isLoading}
             >
-              <SelectTrigger id="resultado" className="h-12">
+              <SelectTrigger id="resultado_prenhez" className="h-12">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -161,8 +163,8 @@ export function DiagnosticoFormDialog({
                 ))}
               </SelectContent>
             </Select>
-            {errors.resultado && (
-              <p className="text-sm text-red-600">{errors.resultado.message}</p>
+            {errors.resultado_prenhez && (
+              <p className="text-sm text-red-600">{errors.resultado_prenhez.message}</p>
             )}
           </div>
 
