@@ -39,6 +39,8 @@ export function WizardContainer() {
     sistema: null,
     rebanho: {},
     parametros: null,
+    dataAlvo: null,
+    rebanhoSnapshot: null,
   });
   const [resultados, setResultados] = useState<ResultadosPlanejamento | null>(null);
   const [alertas, setAlertas] = useState<AlertaPlanejamento[]>([]);
@@ -84,7 +86,7 @@ export function WizardContainer() {
     setEtapaAtual(2);
   };
 
-  const handleNextEtapa2 = (rebanho: Record<string, number>) => {
+  const handleNextEtapa2 = (rebanho: Record<string, number>, dataAlvo: Date, snapshot?: any) => {
     const validacao = Etapa2RebanhoSchema.safeParse({ rebanho });
     if (!validacao.success) {
       const errosMap: Record<string, string> = {};
@@ -104,6 +106,8 @@ export function WizardContainer() {
     setWizard((prev) => ({
       ...prev,
       rebanho,
+      dataAlvo,
+      rebanhoSnapshot: snapshot || null,
     }));
     setErros({});
     setEtapaAtual(3);
@@ -208,12 +212,49 @@ export function WizardContainer() {
         }))
         .filter((cat) => cat.quantidade_cabecas > 0);
 
+      // Determinar modo e calcular rebanho_snapshot
+      let modo: 'PROJETADO' | 'PROJETADO_EDITADO' | 'MANUAL' = 'MANUAL';
+      let usuario_editou = false;
+
+      const composicaoSnapshot = rebanhoArray.map((cat) => ({
+        categoria_id: cat.id,
+        quantidade: cat.quantidade_cabecas,
+      }));
+
+      const totalCabecas = Object.values(wizard.rebanho).reduce((a, b) => a + b, 0);
+
+      if (wizard.rebanhoSnapshot) {
+        // Rebanho foi detectado e projetado
+        const estadoInicial = wizard.rebanhoSnapshot.composicao.reduce(
+          (acc: Record<string, number>, item) => {
+            acc[item.categoria_id] = item.quantidade;
+            return acc;
+          },
+          {}
+        );
+
+        // Comparar estado inicial com atual
+        usuario_editou = JSON.stringify(estadoInicial) !== JSON.stringify(wizard.rebanho);
+        modo = usuario_editou ? 'PROJETADO_EDITADO' : 'PROJETADO';
+      }
+
+      const rebanhoSnapshot = {
+        modo,
+        usuario_editou,
+        composicao: composicaoSnapshot,
+        total_cabecas: totalCabecas,
+        partos_inclusos: wizard.rebanhoSnapshot?.partos_inclusos || 0,
+        data_calculo: wizard.rebanhoSnapshot?.data_calculo || new Date().toISOString(),
+        data_projecao: wizard.dataAlvo?.toISOString() || new Date().toISOString(),
+      };
+
       const payload = {
         nome,
         sistema: wizard.sistema,
         rebanho: rebanhoArray,
         parametros: wizard.parametros,
         resultados,
+        rebanho_snapshot: rebanhoSnapshot,
       };
 
       // Chamar Server Action para salvar
@@ -232,6 +273,8 @@ export function WizardContainer() {
         sistema: null,
         rebanho: {},
         parametros: null,
+        dataAlvo: null,
+        rebanhoSnapshot: null,
       });
       setResultados(null);
       setAlertas([]);
@@ -263,7 +306,7 @@ export function WizardContainer() {
         {etapaAtual === 2 && (
           <Etapa2Rebanho
             wizard={wizard}
-            onNext={handleNextEtapa2}
+            onNext={(rebanho, dataAlvo, snapshot) => handleNextEtapa2(rebanho, dataAlvo, snapshot)}
             onBack={handleBackEtapa}
             errors={erros}
           />

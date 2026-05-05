@@ -2,13 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { qServer } from '@/lib/supabase/queries-audit';
-import type { PlanejamentoSilagem } from '@/lib/types/planejamento-silagem';
+import type { PlanejamentoSilagem, RebanhoSnapshot } from '@/lib/types/planejamento-silagem';
 
 /**
  * Server Action para salvar um novo planejamento de silagem.
  */
 export async function savePlanejamentoAction(
-  payload: Omit<PlanejamentoSilagem, 'id' | 'created_at' | 'fazenda_id'>
+  payload: Omit<PlanejamentoSilagem, 'id' | 'created_at' | 'fazenda_id'> & {
+    rebanho_snapshot?: RebanhoSnapshot;
+  }
 ): Promise<{ success: boolean; data?: PlanejamentoSilagem; error?: string }> {
   try {
     const result = await qServer.planejamentosSilagem.create(payload as any);
@@ -20,6 +22,20 @@ export async function savePlanejamentoAction(
   } catch (error) {
     console.error('Erro ao salvar planejamento:', error);
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
+
+    // Detectar erro de coluna inexistente
+    if (
+      mensagem.includes('rebanho_snapshot') ||
+      mensagem.includes('column') ||
+      mensagem.includes('does not exist')
+    ) {
+      return {
+        success: false,
+        error:
+          'Coluna rebanho_snapshot não existe. Execute:\nALTER TABLE planejamentos_silagem ADD COLUMN rebanho_snapshot JSONB;',
+      };
+    }
+
     return {
       success: false,
       error: mensagem,

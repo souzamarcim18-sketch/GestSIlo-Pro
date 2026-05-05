@@ -16,6 +16,7 @@ import {
   DefinicaoSistema,
 } from '@/lib/types/planejamento-silagem';
 import { LIMITES_ALERTAS } from '@/lib/constants/planejamento-silagem';
+import type { CategoriaProjetada } from '@/lib/types/rebanho';
 
 /**
  * Calcula dados ajustados para cada categoria aplicando fatores do sistema.
@@ -307,4 +308,49 @@ export function gerarAlertasDinamicos(
   }
 
   return alertas;
+}
+
+/**
+ * Mapeia categorias projetadas do rebanho para categorias pré-definidas do planejamento.
+ * Usa normalização (lowercase, sem acento, sem espaço) para fazer match por nome.
+ * Retorna quantidades mapeadas e lista de categorias não mapeadas.
+ */
+export function mapearCategoriasProjetadas(
+  categoriasProjetadas: CategoriaProjetada[],
+  tipoRebanho: 'Leite' | 'Corte',
+  categoriasPreDefinidas: CategoriaPreDefinida[]
+): { mapeadas: Record<string, number>; naoMapeadas: string[] } {
+  const mapeadas: Record<string, number> = {};
+  const naoMapeadas: string[] = [];
+
+  // Normalizar função
+  const normalizar = (texto: string): string => {
+    return texto
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '') // Remove acentos
+      .replace(/\s+/g, ''); // Remove espaços
+  };
+
+  // Criar mapa de categorias pré-definidas normalizadas
+  const mapaPredefinidas: Record<string, CategoriaPreDefinida> = {};
+  categoriasPreDefinidas.forEach((cat) => {
+    const chaveNormalizada = normalizar(cat.nome);
+    mapaPredefinidas[chaveNormalizada] = cat;
+  });
+
+  // Tentar mapear cada categoria projetada
+  for (const catProjetada of categoriasProjetadas) {
+    const chaveNormalizada = normalizar(catProjetada.nome);
+    const catMatched = mapaPredefinidas[chaveNormalizada];
+
+    if (catMatched) {
+      mapeadas[catMatched.id] = catProjetada.quantidade_projetada;
+    } else {
+      naoMapeadas.push(catProjetada.nome);
+    }
+  }
+
+  return { mapeadas, naoMapeadas };
 }

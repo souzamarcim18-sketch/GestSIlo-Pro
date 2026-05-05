@@ -1731,6 +1731,7 @@ export type Database = {
           nome: string
           parametros: Json
           rebanho: Json
+          rebanho_snapshot: Json | null
           resultados: Json
           sistema: Json
           updated_at: string | null
@@ -1742,6 +1743,7 @@ export type Database = {
           nome: string
           parametros: Json
           rebanho: Json
+          rebanho_snapshot?: Json | null
           resultados: Json
           sistema: Json
           updated_at?: string | null
@@ -1753,6 +1755,7 @@ export type Database = {
           nome?: string
           parametros?: Json
           rebanho?: Json
+          rebanho_snapshot?: Json | null
           resultados?: Json
           sistema?: Json
           updated_at?: string | null
@@ -2253,6 +2256,7 @@ export type Database = {
       rpc_lancar_parto: {
         Args: {
           p_animal_id: string
+          p_bypass_justificativa?: string
           p_crias?: Json
           p_data_evento: string
           p_gemelar?: boolean

@@ -9,6 +9,10 @@ import type {
   PesoAnimal,
   LoteInput,
   CSVImportResult,
+  DeteccaoRebanho,
+  RebanhoProjetado,
+  CategoriaProjetada,
+  RebanhoSnapshot,
 } from '@/lib/types/rebanho';
 import {
   animalCSVRowSchema,
@@ -567,4 +571,342 @@ export async function getLoteById(loteId: string): Promise<Lote | null> {
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// FUNÇÕES DE PROJEÇÃO — DETECÇÃO E CÁLCULO (FASE 3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Detecta se existe rebanho na fazenda com tratamento robusto de erros.
+ * Retorna DeteccaoRebanho com status da detecção.
+ * Nunca lança exceção.
+ */
+export async function detectarRebanho(): Promise<DeteccaoRebanho> {
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    const { data, error, status } = await supabase
+      .from('animais')
+      .select('id, created_at, data_nascimento')
+      .is('deleted_at', null)
+      .limit(1);
+
+    // Erro 403 = RLS bloqueou (sem acesso à fazenda)
+    if (error && status === 403) {
+      return {
+        rebanho_detectado: false,
+        razao: 'sem_acesso',
+      };
+    }
+
+    // Outro erro
+    if (error) {
+      return {
+        rebanho_detectado: false,
+        razao: 'nenhum',
+      };
+    }
+
+    // Sucesso vazio
+    if (!data || data.length === 0) {
+      return {
+        rebanho_detectado: false,
+        razao: 'vazio',
+      };
+    }
+
+    // Sucesso com dados — buscar data mais recente
+    const { data: animais } = await supabase
+      .from('animais')
+      .select('created_at')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const dataUltimo = animais?.[0]?.created_at
+      ? new Date(animais[0].created_at)
+      : undefined;
+
+    return {
+      rebanho_detectado: true,
+      data_ultimo_animal: dataUltimo,
+    };
+  } catch {
+    // Nunca lançar exceção
+    return {
+      rebanho_detectado: false,
+      razao: 'nenhum',
+    };
+  }
+}
+
+/**
+ * Projeta o rebanho para uma data alvo, calculando categorias e bezerros previstos.
+ * Retorna RebanhoProjetado com composição projetada ou vazio em caso de erro.
+ * Lança Error se dataAlvo está no passado. Nunca lança exceção para outros erros.
+ */
+export async function projetarRebanho(dataAlvo: Date): Promise<RebanhoProjetado> {
+  const now = new Date();
+
+  // Validação: dataAlvo não pode estar no passado
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  if (dataAlvo < hoje) {
+    throw new Error('dataAlvo não pode estar no passado');
+  }
+
+  // Estrutura de retorno vazio para erros
+  const rebanhoVazio: RebanhoProjetado = {
+    data_alvo: dataAlvo,
+    data_calculo: now,
+    categorias: [],
+    composicao: {},
+    total_cabecas: 0,
+    fatores_aplicados: {
+      partos_confirmados: 0,
+      mudancas_categoria: 0,
+      descartes: 0,
+      avisos: [],
+    },
+    toSnapshot(): RebanhoSnapshot {
+      return {
+        data_calculo: now.toISOString(),
+        data_projecao: dataAlvo.toISOString(),
+        composicao: {},
+        total_cabecas: 0,
+        total_animais_base: 0,
+        partos_inclusos_na_projecao: 0,
+        mudancas_categoria_inclusos: 0,
+        descartes_inclusos: 0,
+        tipo_rebanho: 'Leite',
+        modo: 'PROJETADO',
+        usuario_editou: false,
+        versao_algoritmo: '1.0',
+      };
+    },
+  };
+
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    // 1. Buscar todos animais ativos
+    const { data: animais, error: animalError } = await supabase
+      .from('animais')
+      .select(
+        'id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status_reprodutivo, is_reprodutor'
+      )
+      .eq('status', 'Ativo')
+      .is('deleted_at', null);
+
+    if (animalError || !animais) {
+      return rebanhoVazio;
+    }
+
+    if (animais.length === 0) {
+      return rebanhoVazio;
+    }
+
+    // 2. Calcular categoria para cada animal na dataAlvo
+    type AnimalComCategoria = typeof animais[0] & { categoria_projetada: string };
+    const animaisComProjecao: AnimalComCategoria[] = animais.map((animal) => ({
+      ...animal,
+      categoria_projetada: calcularCategoriaEmData(animal, dataAlvo),
+    }));
+
+    // 3. Buscar coberturas com partos previstos
+    const { data: coberturas, error: coberturasError } = await supabase
+      .from('eventos_rebanho')
+      .select('id, animal_id, data_evento, gemelar')
+      .eq('tipo', 'cobertura')
+      .gte('data_evento', new Date('2020-01-01').toISOString().split('T')[0])
+      .lte('data_evento', dataAlvo.toISOString().split('T')[0]);
+
+    if (coberturasError) {
+      return rebanhoVazio;
+    }
+
+    // 4. Buscar eventos de parto para saber quais coberturas já resultaram em parto
+    const { data: partos, error: partosError } = await supabase
+      .from('eventos_rebanho')
+      .select('animal_id, data_evento')
+      .eq('tipo', 'parto');
+
+    if (partosError) {
+      return rebanhoVazio;
+    }
+
+    // Construir mapa de animais com partos
+    const animaisComParto = new Set(partos?.map((p) => p.animal_id) ?? []);
+
+    // 5. Calcular bezerros previstos a partir de coberturas sem parto
+    const bezerrosPorAnimal: Record<string, number> = {};
+
+    if (coberturas) {
+      for (const cobertura of coberturas) {
+        // Cobertura + 283 dias = data_parto_previsto
+        const dataParta = new Date(cobertura.data_evento);
+        dataParta.setDate(dataParta.getDate() + 283);
+
+        // Se parto previsto <= dataAlvo E animal NÃO tem parto registrado
+        if (dataParta <= dataAlvo && !animaisComParto.has(cobertura.animal_id)) {
+          const quantidade = cobertura.gemelar ? 2 : 1;
+          bezerrosPorAnimal[cobertura.animal_id] =
+            (bezerrosPorAnimal[cobertura.animal_id] ?? 0) + quantidade;
+        }
+      }
+    }
+
+    // 6. Agrupar por categoria e contar
+    const composicao: Record<string, number> = {};
+    let totalCabecas = 0;
+    let partosPrevistosCount = 0;
+
+    for (const animal of animaisComProjecao) {
+      const cat = animal.categoria_projetada;
+      composicao[cat] = (composicao[cat] ?? 0) + 1;
+      totalCabecas += 1;
+
+      // Adicionar bezerros previstos
+      const bezerros = bezerrosPorAnimal[animal.id] ?? 0;
+      if (bezerros > 0) {
+        composicao['Bezerro(a)'] = (composicao['Bezerro(a)'] ?? 0) + bezerros;
+        totalCabecas += bezerros;
+        partosPrevistosCount += 1;
+      }
+    }
+
+    // 7. Construir array de categorias com variação
+    const categorias: CategoriaProjetada[] = [];
+    const quantidadeAtualPorCategoria: Record<string, number> = {};
+
+    for (const animal of animais) {
+      quantidadeAtualPorCategoria[animal.categoria] =
+        (quantidadeAtualPorCategoria[animal.categoria] ?? 0) + 1;
+    }
+
+    for (const [catId, quantidadeProjetada] of Object.entries(composicao)) {
+      const quantidadeAtual = quantidadeAtualPorCategoria[catId] ?? 0;
+      const variacao = quantidadeProjetada - quantidadeAtual;
+
+      categorias.push({
+        id: catId.toLowerCase().replace(/\s+/g, '_'),
+        nome: catId,
+        quantidade_atual: quantidadeAtual,
+        quantidade_projetada: quantidadeProjetada,
+        variacao,
+      });
+    }
+
+    // 8. Retornar RebanhoProjetado completo
+    const resultado: RebanhoProjetado = {
+      data_alvo: dataAlvo,
+      data_calculo: now,
+      categorias,
+      composicao,
+      total_cabecas: totalCabecas,
+      fatores_aplicados: {
+        partos_confirmados: partosPrevistosCount,
+        mudancas_categoria: 0,
+        descartes: 0,
+        avisos: [],
+      },
+      toSnapshot(): RebanhoSnapshot {
+        return {
+          data_calculo: now.toISOString(),
+          data_projecao: dataAlvo.toISOString(),
+          composicao,
+          total_cabecas: totalCabecas,
+          total_animais_base: animais.length,
+          partos_inclusos_na_projecao: partosPrevistosCount,
+          mudancas_categoria_inclusos: 0,
+          descartes_inclusos: 0,
+          tipo_rebanho: animais[0]?.tipo_rebanho === 'leiteiro' ? 'Leite' : 'Corte',
+          modo: 'PROJETADO',
+          usuario_editou: false,
+          versao_algoritmo: '1.0',
+        };
+      },
+    };
+
+    return resultado;
+  } catch {
+    // Nunca lançar exceção
+    return rebanhoVazio;
+  }
+}
+
+/**
+ * Calcula a categoria de um animal em uma data específica.
+ * Implementa a mesma lógica do trigger recalcular_categoria_animal.
+ */
+function calcularCategoriaEmData(
+  animal: {
+    sexo: string;
+    tipo_rebanho: string;
+    data_nascimento: string;
+    status_reprodutivo: string | null;
+    is_reprodutor: boolean;
+  },
+  dataAlvo: Date
+): string {
+  const dataNasc = new Date(animal.data_nascimento);
+  const idadeAnos =
+    (dataAlvo.getTime() - dataNasc.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+
+  if (animal.tipo_rebanho === 'leiteiro') {
+    if (idadeAnos < 0.25) {
+      return 'Bezerra';
+    } else if (idadeAnos < 1) {
+      return animal.sexo === 'Macho' ? 'Bezerro' : 'Bezerra';
+    } else if (idadeAnos < 2) {
+      if (animal.sexo === 'Fêmea') {
+        return animal.status_reprodutivo === 'prenha'
+          ? 'Novilha Prenha'
+          : 'Novilha';
+      } else {
+        return 'Novilho';
+      }
+    } else {
+      if (animal.sexo === 'Fêmea') {
+        switch (animal.status_reprodutivo) {
+          case 'lactacao':
+            return 'Vaca em Lactação';
+          case 'seca':
+            return 'Vaca Seca';
+          case 'prenha':
+            return 'Vaca Prenha';
+          default:
+            return 'Vaca Vazia';
+        }
+      } else {
+        return animal.is_reprodutor ? 'Touro' : 'Novilho';
+      }
+    }
+  } else if (animal.tipo_rebanho === 'corte') {
+    if (idadeAnos < 0.25) {
+      return 'Bezerra';
+    } else if (idadeAnos < 1) {
+      return animal.sexo === 'Macho' ? 'Bezerro' : 'Bezerra';
+    } else if (idadeAnos < 2) {
+      return animal.sexo === 'Macho' ? 'Novilho' : 'Novilha';
+    } else {
+      if (animal.sexo === 'Macho') {
+        if (animal.is_reprodutor) {
+          return 'Touro';
+        } else {
+          return animal.status_reprodutivo === 'descartada'
+            ? 'Boi Descartado'
+            : 'Boi';
+        }
+      } else {
+        return animal.status_reprodutivo === 'descartada'
+          ? 'Fêmea Descartada'
+          : 'Vaca Matriz';
+      }
+    }
+  }
+
+  return 'Desconhecido';
 }

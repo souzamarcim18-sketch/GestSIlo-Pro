@@ -2,6 +2,7 @@
 
 export type TipoRebanho = 'Leite' | 'Corte';
 export type SistemaProducao = 'pasto' | 'semiconfinado' | 'confinado';
+export type ModoSnapshotRebanho = 'PROJETADO' | 'PROJETADO_EDITADO' | 'MANUAL';
 
 export interface DefinicaoSistema {
   tipo_rebanho: TipoRebanho;
@@ -32,10 +33,22 @@ export interface ParametrosPlanejamento {
   taxa_retirada_kg_m2_dia: number; // 200-350
 }
 
+export interface RebanhoSnapshot {
+  modo: ModoSnapshotRebanho;
+  usuario_editou: boolean;
+  composicao: Array<{ categoria_id: string; quantidade: number }>;
+  total_cabecas: number;
+  partos_inclusos: number;
+  data_calculo: string;
+  data_projecao: string;
+}
+
 export interface WizardState {
   sistema: DefinicaoSistema | null;
   rebanho: Record<string, number>;           // {categoryId: quantidade}
   parametros: ParametrosPlanejamento | null;
+  dataAlvo: Date | null;
+  rebanhoSnapshot: RebanhoSnapshot | null;
 }
 
 export interface CategoriaCalculo extends CategoriaComQuantidade {
@@ -69,5 +82,6 @@ export interface PlanejamentoSilagem {
   rebanho: CategoriaComQuantidade[];
   parametros: ParametrosPlanejamento;
   resultados: ResultadosPlanejamento;
+  rebanho_snapshot?: RebanhoSnapshot;
   created_at: string;
 }

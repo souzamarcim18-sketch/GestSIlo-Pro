@@ -178,3 +178,55 @@ export interface EventoRebanhoSyncQueue {
   criado_em: number; // timestamp ms
   enviado_em?: number;
 }
+
+// ========== PROJEÇÃO DE REBANHO (FASE 3) ==========
+
+export interface CategoriaProjetada {
+  id: string;
+  nome: string;
+  quantidade_atual: number;
+  quantidade_projetada: number;
+  variacao: number;
+  alteracoes?: {
+    partos_novos?: number;
+    mudancas_categoria?: number;
+    descartes?: number;
+  };
+}
+
+export interface RebanhoSnapshot {
+  data_calculo: string; // ISO 8601
+  data_projecao: string; // ISO 8601
+  composicao: Record<string, number>;
+  total_cabecas: number;
+  total_animais_base: number;
+  partos_inclusos_na_projecao: number;
+  mudancas_categoria_inclusos: number;
+  descartes_inclusos: number;
+  tipo_rebanho: 'Leite' | 'Corte';
+  modo: 'PROJETADO' | 'MANUAL';
+  usuario_editou: boolean;
+  avisos?: string[];
+  versao_algoritmo: string;
+}
+
+export interface RebanhoProjetado {
+  data_alvo: Date;
+  data_calculo: Date;
+  categorias: CategoriaProjetada[];
+  composicao: Record<string, number>;
+  total_cabecas: number;
+  fatores_aplicados: {
+    partos_confirmados: number;
+    mudancas_categoria: number;
+    descartes: number;
+    avisos: string[];
+  };
+  toSnapshot(): RebanhoSnapshot;
+}
+
+export interface DeteccaoRebanho {
+  rebanho_detectado: boolean;
+  data_ultimo_animal?: Date;
+  razao?: 'vazio' | 'sem_acesso' | 'nenhum';
+}
