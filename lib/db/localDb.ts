@@ -26,8 +26,9 @@ interface GestSiloDB extends DBSchema {
       tipo_evento: 'cobertura' | 'diagnostico' | 'parto' | 'desmame' | 'secagem' | 'aborto' | 'descarte';
       data_evento: string;
       payload: Record<string, any>;
-      _sync_status: 'pending' | 'synced' | 'error';
+      _sync_status: 'pending' | 'synced' | 'error' | 'pendente_revisao';
       _created_at: number;
+      _conflict_motivo?: string;
     };
     indexes: {
       'by-animal': string;

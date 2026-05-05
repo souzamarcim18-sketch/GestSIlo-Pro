@@ -30,14 +30,22 @@ export function useSyncOnReconnect(): UseSyncOnReconnectResult {
 
     try {
       const supabase = getSupabaseClient();
-      await syncAll(supabase);
+      const result = await syncAll(supabase);
 
       setLastSyncAt(new Date());
       retryCount.current = 0;
-      toast.success('Sincronização concluída');
+
+      // Mostrar toast apenas se houver eventos sincronizados
+      if (result.sincronizados > 0) {
+        toast.success(
+          `${result.sincronizados} evento${result.sincronizados > 1 ? 's' : ''} sincronizado${result.sincronizados > 1 ? 's' : ''}`
+        );
+      }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('[useSyncOnReconnect] Sync concluído com sucesso');
+        console.log(
+          `[useSyncOnReconnect] Sync concluído: ${result.sincronizados} sincronizados, ${result.conflitos} conflitos`
+        );
       }
     } catch (err) {
       retryCount.current += 1;

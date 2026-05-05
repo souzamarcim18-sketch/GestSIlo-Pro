@@ -566,3 +566,212 @@ export const queryParametrosReprodutivos = {
     return data as ParametrosReprodutivosFazenda;
   },
 };
+
+// ========== INDICADORES E DASHBOARD ==========
+
+export const queryIndicadoresReprodutivos = {
+  /** Busca contagem de animais por status reprodutivo */
+  async getContagemPorStatus(
+    fazenda_id: string
+  ): Promise<{ vazia: number; inseminada: number; prenha: number; lactacao: number; seca: number; descartada: number }> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data, error } = await supabase
+      .from('animais')
+      .select('status_reprodutivo')
+      .eq('fazenda_id', fazenda_id)
+      .is('deleted_at', null);
+
+    if (error) throw error;
+
+    const contagem = {
+      vazia: 0,
+      inseminada: 0,
+      prenha: 0,
+      lactacao: 0,
+      seca: 0,
+      descartada: 0,
+    };
+
+    (data || []).forEach((animal: any) => {
+      const status = animal.status_reprodutivo as keyof typeof contagem;
+      if (status in contagem) {
+        contagem[status]++;
+      }
+    });
+
+    return contagem;
+  },
+
+  /** Busca taxa de prenhez (animais prenhos / total aptos) */
+  async getTaxaPrenhez(fazenda_id: string): Promise<number> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data, error } = await supabase
+      .from('animais')
+      .select('status_reprodutivo')
+      .eq('fazenda_id', fazenda_id)
+      .is('deleted_at', null);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) return 0;
+
+    const prenhas = data.filter((a: any) => a.status_reprodutivo === 'prenha').length;
+    const aptos = data.filter((a: any) => a.status_reprodutivo !== 'descartada').length;
+
+    if (aptos === 0) return 0;
+    return Math.round((prenhas / aptos) * 100);
+  },
+
+  /** Busca PSM médio (Período de Serviço Médio) - dias entre cobertura e diagnóstico positivo */
+  async getPSMMedia(fazenda_id: string): Promise<number | null> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: eventos, error } = await supabase
+      .from('eventos_rebanho')
+      .select('animal_id, tipo, data_evento, resultado_prenhez')
+      .eq('fazenda_id', fazenda_id)
+      .in('tipo', ['cobertura', 'diagnostico_prenhez'])
+      .is('deleted_at', null)
+      .order('animal_id')
+      .order('data_evento');
+
+    if (error) throw error;
+    if (!eventos || eventos.length === 0) return null;
+
+    const psms: number[] = [];
+    const eventoPorAnimal: Record<string, any[]> = {};
+
+    (eventos || []).forEach((e: any) => {
+      if (!eventoPorAnimal[e.animal_id]) {
+        eventoPorAnimal[e.animal_id] = [];
+      }
+      eventoPorAnimal[e.animal_id].push(e);
+    });
+
+    Object.entries(eventoPorAnimal).forEach(([, eventoList]) => {
+      for (let i = 0; i < eventoList.length - 1; i++) {
+        const evt = eventoList[i];
+        const prox = eventoList[i + 1];
+        if (evt.tipo === 'cobertura' && prox.tipo === 'diagnostico_prenhez' && prox.resultado_prenhez === 'positivo') {
+          const dias = Math.floor((new Date(prox.data_evento).getTime() - new Date(evt.data_evento).getTime()) / (1000 * 60 * 60 * 24));
+          if (dias > 0 && dias < 100) {
+            psms.push(dias);
+          }
+        }
+      }
+    });
+
+    if (psms.length === 0) return null;
+    return Math.round(psms.reduce((a, b) => a + b, 0) / psms.length);
+  },
+
+  /** Busca IEP médio (Intervalo Entre Partos) - dias entre partos sucessivos */
+  async getIEPMedia(fazenda_id: string): Promise<number | null> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: partos, error } = await supabase
+      .from('eventos_rebanho')
+      .select('animal_id, data_evento')
+      .eq('fazenda_id', fazenda_id)
+      .eq('tipo', 'parto')
+      .is('deleted_at', null)
+      .order('animal_id')
+      .order('data_evento');
+
+    if (error) throw error;
+    if (!partos || partos.length < 2) return null;
+
+    const partosPorAnimal: Record<string, any[]> = {};
+
+    (partos || []).forEach((p: any) => {
+      if (!partosPorAnimal[p.animal_id]) {
+        partosPorAnimal[p.animal_id] = [];
+      }
+      partosPorAnimal[p.animal_id].push(p);
+    });
+
+    const ieps: number[] = [];
+
+    Object.entries(partosPorAnimal).forEach(([, partoList]) => {
+      for (let i = 0; i < partoList.length - 1; i++) {
+        const dias = Math.floor(
+          (new Date(partoList[i + 1].data_evento).getTime() - new Date(partoList[i].data_evento).getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+        if (dias > 300 && dias < 500) {
+          ieps.push(dias);
+        }
+      }
+    });
+
+    if (ieps.length === 0) return null;
+    return Math.round(ieps.reduce((a, b) => a + b, 0) / ieps.length);
+  },
+};
+
+// ========== REPETIDORAS ==========
+
+export interface AnimalRepetidora {
+  id: string;
+  brinco: string;
+  nome: string | null;
+  lote_id: string | null;
+  coberturas_count: number;
+  ultima_cobertura_data: string | null;
+}
+
+export const queryRepetidoras = {
+  async list(fazenda_id: string): Promise<AnimalRepetidora[]> {
+    const supabase = await createSupabaseServerClient();
+
+    // Buscar animais repetidores
+    const { data: animais, error } = await supabase
+      .from('animais')
+      .select('id, brinco, nome, lote_id')
+      .eq('fazenda_id', fazenda_id)
+      .eq('flag_repetidora', true)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!animais?.length) return [];
+
+    // Buscar coberturas dos últimos 180 dias para esses animais
+    const animalIds = animais.map(a => a.id);
+    const janela = new Date();
+    janela.setDate(janela.getDate() - 180);
+    const dataJanela = janela.toISOString().split('T')[0];
+
+    const { data: coberturas, error: cobError } = await supabase
+      .from('eventos_rebanho')
+      .select('animal_id, data_evento')
+      .eq('fazenda_id', fazenda_id)
+      .in('animal_id', animalIds)
+      .eq('tipo', 'cobertura')
+      .is('deleted_at', null)
+      .gte('data_evento', dataJanela)
+      .order('data_evento', { ascending: false });
+
+    if (cobError) throw cobError;
+
+    // Agregar por animal_id
+    const coberturasMap = new Map<string, { count: number; ultima: string | null }>();
+    for (const cob of coberturas ?? []) {
+      const curr = coberturasMap.get(cob.animal_id);
+      if (!curr) {
+        coberturasMap.set(cob.animal_id, { count: 1, ultima: cob.data_evento });
+      } else {
+        curr.count += 1;
+        if (!curr.ultima || cob.data_evento > curr.ultima) curr.ultima = cob.data_evento;
+      }
+    }
+
+    return animais.map(a => ({
+      ...a,
+      coberturas_count: coberturasMap.get(a.id)?.count ?? 0,
+      ultima_cobertura_data: coberturasMap.get(a.id)?.ultima ?? null,
+    }));
+  },
+};

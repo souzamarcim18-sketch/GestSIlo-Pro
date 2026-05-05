@@ -63,22 +63,80 @@ export async function enqueueRpc(
   }
 }
 
-export async function syncAll(supabase: SupabaseClient) {
+async function detectarConflito(
+  supabase: SupabaseClient,
+  tabela: string,
+  payload: any
+): Promise<{ conflito: boolean; motivo?: string }> {
+  if (tabela !== 'eventos_rebanho') return { conflito: false };
+
+  const animalId = payload?.animal_id;
+  if (!animalId) return { conflito: false };
+
+  try {
+    const { data } = await supabase
+      .from('animais')
+      .select('id, status')
+      .eq('id', animalId)
+      .single();
+
+    if (data?.status && ['Morto', 'Vendido'].includes(data.status)) {
+      return { conflito: true, motivo: `animal_${data.status.toLowerCase()}` };
+    }
+  } catch (err) {
+    // Em caso de erro ao buscar animal, considerar como sem conflito
+  }
+
+  return { conflito: false };
+}
+
+export async function syncAll(supabase: SupabaseClient): Promise<{ sincronizados: number; conflitos: number }> {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return { sincronizados: 0, conflitos: 0 };
 
   const tx = db.transaction('sync_queue', 'readwrite');
   const store = tx.objectStore('sync_queue');
   const actions = await store.getAll();
 
-  if (actions.length === 0) return;
+  if (actions.length === 0) return { sincronizados: 0, conflitos: 0 };
 
   if (process.env.NODE_ENV === 'development') {
     console.log(`[SyncQueue] Sincronizando ${actions.length} ações pendentes...`);
   }
 
+  let sincronizados = 0;
+  let conflitos = 0;
+
   for (const action of actions) {
     try {
+      // Verificar conflitos para eventos_rebanho
+      const conflito = await detectarConflito(supabase, action.tabela, action.payload);
+
+      if (conflito.conflito) {
+        // Marcar evento como pendente_revisao no IndexedDB (eventos_rebanho cache)
+        if (action.tabela === 'eventos_rebanho') {
+          try {
+            const eventoId = action.payload?.id;
+            if (eventoId) {
+              const evento = await db.get('eventos_rebanho', eventoId);
+              if (evento) {
+                evento._sync_status = 'pendente_revisao';
+                evento._conflict_motivo = conflito.motivo;
+                await db.put('eventos_rebanho', evento);
+              }
+            }
+          } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('[SyncQueue] Erro ao marcar conflito em eventos_rebanho:', err);
+            }
+          }
+        }
+        conflitos++;
+        // Remove da fila sem tentar enviar
+        await db.delete('sync_queue', action.id!);
+        continue;
+      }
+
       let result;
 
       if (action.operacao === 'INSERT') {
@@ -101,6 +159,7 @@ export async function syncAll(supabase: SupabaseClient) {
       } else {
         // Sucesso, remove da fila
         await db.delete('sync_queue', action.id!);
+        sincronizados++;
       }
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
@@ -110,6 +169,8 @@ export async function syncAll(supabase: SupabaseClient) {
       break;
     }
   }
+
+  return { sincronizados, conflitos };
 }
 
 export async function getSyncStatus() {
@@ -118,4 +179,12 @@ export async function getSyncStatus() {
 
   const count = await db.count('sync_queue');
   return { pendentes: count };
+}
+
+export async function getSyncConflitos() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conflitos = await db.getAllFromIndex('eventos_rebanho', 'by-sync-status', 'pendente_revisao');
+  return conflitos || [];
 }
