@@ -341,6 +341,45 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 ### 🧮 Calculadoras Agronômicas
 - Calagem, adubação NPK, fertilizantes
 
+### 🐄 Rebanho
+**Tabelas do banco**: `animais`, `lotes`, `eventos_rebanho`, `pesos_animal`
+
+**Categorias de animais** (por tipo_rebanho):
+- Leiteiro: Bezerro/Bezerra, Novilha/Novilho, Vaca em Lactação, Vaca Seca, Vaca Prenha, Vaca Vazia, Touro
+- Corte: Bezerro/Bezerra, Novilha/Novilho, Vaca Matriz, Boi, Boi Descartado, Fêmea Descartada, Touro
+
+**Tipos de eventos**: nascimento, pesagem, morte, venda, transferencia_lote, cobertura, parto
+
+**Permissões por perfil**:
+- **Admin**: criar/editar/deletar animais e lotes; registrar todos eventos
+- **Operador**: registrar eventos (pesagem, morte, venda, transferência); consultar dados
+- **Visualizador**: consultar apenas
+
+**Integração**: Planejamento de Silagem utiliza `rebanho_snapshot` (composição, total cabeças, tipo)
+
+**Indicadores Zootécnicos** (14+ cálculos):
+- GMD (Ganho Médio Diário): (Peso_Final - Peso_Inicial) / dias
+- Taxa Natalidade: bezerros nascidos / fêmeas aptas ×100
+- Taxa Mortalidade: geral e bezerros <desmame
+- Taxa Prenhez: fêmeas com status reprodutivo 'prenha'
+- IEP (Intervalo Entre Partos): média histórico 12 meses
+- IPP (Idade Primeira Parição): novilhas com primeiro parto
+- Taxa Descarte: fêmeas/machos descartados
+- Composição: % por categoria (soma 100%)
+- Filtros por tipo_rebanho, período custom, comparativo lotes
+
+**Arquivos principais**:
+- `lib/supabase/rebanho.ts` — queries animais/lotes/eventos, importação CSV
+- `lib/types/rebanho.ts` — tipos Animal, Lote, EventoRebanho, RebanhoSnapshot
+- `lib/validations/rebanho.ts` — schemas Zod para criar/editar entidades
+- `lib/services/indicadores-rebanho.ts` — funções cálculo indicadores
+- `app/dashboard/rebanho/page.tsx` — página RSC principal
+- `app/dashboard/rebanho/actions.ts` — Server Actions (filtros, exports CSV/PDF)
+
+**Testes**: 41+ novos (lib indicadores + actions + RLS), fixture com 10 animais/30 pesagens/5 partos
+
+**Performance**: cache 5min indicadores, exports <3s, Recharts <1s para 500+ animais
+
 ### 🔮 Em Breve (badge no Sidebar)
 - Assessoria Agronômica
 - Produtos (grãos, origem animal, forragens)
