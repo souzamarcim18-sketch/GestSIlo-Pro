@@ -918,6 +918,7 @@ export type Database = {
           peso_kg: number | null
           reprodutor_id: string | null
           resultado_prenhez: string | null
+          sexo_crias: string | null
           tipo: Database["public"]["Enums"]["tipo_evento_rebanho"]
           tipo_cobertura: string | null
           tipo_parto: string | null
@@ -946,6 +947,7 @@ export type Database = {
           peso_kg?: number | null
           reprodutor_id?: string | null
           resultado_prenhez?: string | null
+          sexo_crias?: string | null
           tipo: Database["public"]["Enums"]["tipo_evento_rebanho"]
           tipo_cobertura?: string | null
           tipo_parto?: string | null
@@ -974,6 +976,7 @@ export type Database = {
           peso_kg?: number | null
           reprodutor_id?: string | null
           resultado_prenhez?: string | null
+          sexo_crias?: string | null
           tipo?: Database["public"]["Enums"]["tipo_evento_rebanho"]
           tipo_cobertura?: string | null
           tipo_parto?: string | null
@@ -1029,6 +1032,7 @@ export type Database = {
           longitude: number | null
           nome: string
           owner_id: string
+          tipo_exploracao: string | null
         }
         Insert: {
           area_total?: number | null
@@ -1039,6 +1043,7 @@ export type Database = {
           longitude?: number | null
           nome: string
           owner_id?: string
+          tipo_exploracao?: string | null
         }
         Update: {
           area_total?: number | null
@@ -1049,6 +1054,7 @@ export type Database = {
           longitude?: number | null
           nome?: string
           owner_id?: string
+          tipo_exploracao?: string | null
         }
         Relationships: []
       }
@@ -2204,6 +2210,7 @@ export type Database = {
           longitude: number | null
           nome: string
           owner_id: string
+          tipo_exploracao: string | null
         }
         SetofOptions: {
           from: "*"

@@ -1,0 +1,122 @@
+import { z } from 'zod';
+
+// ========== PERÍODO DE ANÁLISE ==========
+
+export const periodoAnaliseSchema = z
+  .object({
+    data_inicial: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inicial deve estar em formato ISO YYYY-MM-DD'),
+    data_final: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data final deve estar em formato ISO YYYY-MM-DD'),
+  })
+  .refine(
+    (data) => new Date(data.data_final) >= new Date(data.data_inicial),
+    {
+      message: 'Data final deve ser igual ou posterior à data inicial',
+      path: ['data_final'],
+    }
+  )
+  .refine(
+    (data) => {
+      const diasDecorridos = Math.abs(
+        (new Date(data.data_final).getTime() - new Date(data.data_inicial).getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
+      return diasDecorridos <= 5 * 365; // 5 anos
+    },
+    {
+      message: 'Período máximo permitido é de 5 anos',
+      path: ['data_final'],
+    }
+  );
+
+export type PeriodoAnalise = z.infer<typeof periodoAnaliseSchema>;
+
+// ========== FILTROS DE CONSULTA DE INDICADORES ==========
+
+export const filtroIndicadoresSchema = z.object({
+  fazenda_id: z.string().uuid('fazenda_id deve ser um UUID válido'),
+  periodo: periodoAnaliseSchema,
+  tipo_rebanho: z
+    .enum(['leiteiro', 'corte'], {
+      message: 'tipo_rebanho deve ser "leiteiro" ou "corte"',
+    })
+    .optional(),
+  lote_id: z.string().uuid('lote_id deve ser um UUID válido').optional(),
+});
+
+export type FiltroIndicadores = z.infer<typeof filtroIndicadoresSchema>;
+
+// ========== OUTPUT DE TAXA (NUMERADOR / DENOMINADOR) ==========
+
+export const indicadorTaxaSchema = z.object({
+  numerador: z.number().nonnegative('Numerador deve ser ≥ 0'),
+  denominador: z.number().nonnegative('Denominador deve ser ≥ 0'),
+  taxa_percentual: z.number().nonnegative('Taxa percentual deve ser ≥ 0'),
+});
+
+export type IndicadorTaxa = z.infer<typeof indicadorTaxaSchema>;
+
+// ========== OUTPUT DE GMD INDIVIDUAL ==========
+
+export const indicadorGMDSchema = z.object({
+  animal_id: z.string().uuid('animal_id deve ser um UUID válido'),
+  peso_inicial: z.number().positive('Peso inicial deve ser > 0'),
+  peso_final: z.number().positive('Peso final deve ser > 0'),
+  data_inicial: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inicial deve estar em formato ISO YYYY-MM-DD'),
+  data_final: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data final deve estar em formato ISO YYYY-MM-DD'),
+  dias: z.number().int('Dias deve ser um número inteiro').positive('Dias deve ser > 0'),
+  ganho_total_kg: z.number('Ganho total deve ser um número (pode ser negativo)'),
+  gmd_kg_dia: z.number('GMD deve ser um número (pode ser negativo)'),
+});
+
+export type IndicadorGMD = z.infer<typeof indicadorGMDSchema>;
+
+// ========== OUTPUT DE COMPOSIÇÃO ==========
+
+export const composicaoRebanhoSchema = z.object({
+  total: z.number().int().nonnegative('Total deve ser ≥ 0'),
+  por_categoria: z.record(z.string(), z.number().int().nonnegative('Valor por categoria deve ser ≥ 0')),
+  por_sexo: z.object({
+    machos: z.number().int().nonnegative('Machos deve ser ≥ 0'),
+    femeas: z.number().int().nonnegative('Fêmeas deve ser ≥ 0'),
+  }),
+  por_vocacao: z.object({
+    leiteiro: z.number().int().nonnegative('Leiteiro deve ser ≥ 0'),
+    corte: z.number().int().nonnegative('Corte deve ser ≥ 0'),
+  }),
+});
+
+export type ComposicaoRebanho = z.infer<typeof composicaoRebanhoSchema>;
+
+// ========== GMD MÉDIO (CONSOLIDADO) ==========
+
+export const gmdMedioSchema = z.object({
+  gmd_medio: z.number().nullable(),
+  animais_com_gmd: z.number().int().nonnegative('Animais com GMD deve ser ≥ 0'),
+  animais_sem_dados: z.number().int().nonnegative('Animais sem dados deve ser ≥ 0'),
+});
+
+export type GMDMedio = z.infer<typeof gmdMedioSchema>;
+
+// ========== RESPONSE CONSOLIDADA DA API ==========
+
+export const respostaIndicadoresSchema = z.object({
+  composicao: composicaoRebanhoSchema,
+  taxa_natalidade: indicadorTaxaSchema,
+  taxa_mortalidade: indicadorTaxaSchema,
+  taxa_mortalidade_bezerros: indicadorTaxaSchema,
+  taxa_desfrute: indicadorTaxaSchema,
+  taxa_descarte: indicadorTaxaSchema,
+  gmd_medio: gmdMedioSchema,
+  periodo: periodoAnaliseSchema,
+  gerado_em: z.string().datetime(),
+});
+
+export type RespostaIndicadores = z.infer<typeof respostaIndicadoresSchema>;
