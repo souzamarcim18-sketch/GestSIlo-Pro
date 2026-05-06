@@ -13,6 +13,7 @@ export const filtrosIndicadoresSchema = z
     lotes: z.array(z.string().uuid()).optional(),
     categorias: z.array(z.string()).optional(),
   })
+  .strict() // RLS-First: rejeita campos desconhecidos (ex: fazenda_id)
   .refine(
     (data) => data.periodo !== 'custom' || (data.dataInicio && data.dataFim),
     { message: 'dataInicio e dataFim são obrigatórios se periodo = custom', path: ['dataInicio'] }
@@ -57,21 +58,6 @@ export const periodoAnaliseSchema = z
   );
 
 export type PeriodoAnalise = z.infer<typeof periodoAnaliseSchema>;
-
-// ========== FILTROS DE CONSULTA DE INDICADORES (LEGADO) ==========
-
-export const filtroIndicadoresSchema = z.object({
-  fazenda_id: z.string().uuid('fazenda_id deve ser um UUID válido').optional(),
-  periodo: periodoAnaliseSchema,
-  tipo_rebanho: z
-    .enum(['leiteiro', 'corte'], {
-      message: 'tipo_rebanho deve ser "leiteiro" ou "corte"',
-    })
-    .optional(),
-  lote_id: z.string().uuid('lote_id deve ser um UUID válido').optional(),
-});
-
-export type FiltroIndicadores = z.infer<typeof filtroIndicadoresSchema>;
 
 // ========== OUTPUT DE TAXA (NUMERADOR / DENOMINADOR) ==========
 

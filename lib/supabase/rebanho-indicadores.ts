@@ -2,7 +2,18 @@
 
 import { createSupabaseServerClient } from './server';
 import type { Animal, EventoRebanho, PesoAnimal } from '@/lib/types/rebanho';
-import type { FiltroIndicadores } from '@/lib/validations/indicadores-rebanho';
+
+// Tipo para período de busca (compatível com ambos os fluxos)
+interface PeriodoBusca {
+  data_inicial: string;
+  data_final: string;
+}
+
+interface FiltroBusca {
+  periodo: PeriodoBusca;
+  tipo_rebanho?: string;
+  lote_id?: string;
+}
 
 /**
  * Busca eventos do rebanho em um período, com filtros opcionais
@@ -10,7 +21,7 @@ import type { FiltroIndicadores } from '@/lib/validations/indicadores-rebanho';
  * RLS + get_minha_fazenda_id() garantem multi-tenancy
  */
 export async function buscarEventosNoPeriodo(
-  filtro: FiltroIndicadores
+  filtro: FiltroBusca
 ): Promise<EventoRebanho[]> {
   const supabase = await createSupabaseServerClient();
 
@@ -42,7 +53,7 @@ export async function buscarEventosNoPeriodo(
  * Retorna pesagens ordenadas cronologicamente (ASC) para cálculo de GMD
  */
 export async function buscarPesosNoPeriodo(
-  filtro: FiltroIndicadores
+  filtro: FiltroBusca
 ): Promise<PesoAnimal[]> {
   const supabase = await createSupabaseServerClient();
 
@@ -69,7 +80,7 @@ export async function buscarPesosNoPeriodo(
  * RLS garante que apenas animais da fazenda sejam retornados
  */
 export async function buscarAnimaisFiltrados(
-  filtro: FiltroIndicadores
+  filtro: FiltroBusca
 ): Promise<Animal[]> {
   const supabase = await createSupabaseServerClient();
 
