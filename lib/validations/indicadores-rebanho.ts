@@ -1,6 +1,30 @@
 import { z } from 'zod';
 
-// ========== PERÍODO DE ANÁLISE ==========
+// ========== PERÍODOS PRESET & CUSTOM (SPEC) ==========
+
+export const periodoPresetSchema = z.enum(['30d', '90d', '365d', 'safra', 'custom']);
+export type PeriodoPreset = z.infer<typeof periodoPresetSchema>;
+
+export const filtrosIndicadoresSchema = z
+  .object({
+    periodo: periodoPresetSchema,
+    dataInicio: z.date().optional(),
+    dataFim: z.date().optional(),
+    lotes: z.array(z.string().uuid()).optional(),
+    categorias: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => data.periodo !== 'custom' || (data.dataInicio && data.dataFim),
+    { message: 'dataInicio e dataFim são obrigatórios se periodo = custom', path: ['dataInicio'] }
+  )
+  .refine(
+    (data) => !data.dataInicio || !data.dataFim || data.dataFim >= data.dataInicio,
+    { message: 'dataFim deve ser >= dataInicio', path: ['dataFim'] }
+  );
+
+export type FiltrosIndicadoresValidados = z.infer<typeof filtrosIndicadoresSchema>;
+
+// ========== PERÍODO DE ANÁLISE (LEGADO) ==========
 
 export const periodoAnaliseSchema = z
   .object({
@@ -34,10 +58,10 @@ export const periodoAnaliseSchema = z
 
 export type PeriodoAnalise = z.infer<typeof periodoAnaliseSchema>;
 
-// ========== FILTROS DE CONSULTA DE INDICADORES ==========
+// ========== FILTROS DE CONSULTA DE INDICADORES (LEGADO) ==========
 
 export const filtroIndicadoresSchema = z.object({
-  fazenda_id: z.string().uuid('fazenda_id deve ser um UUID válido'),
+  fazenda_id: z.string().uuid('fazenda_id deve ser um UUID válido').optional(),
   periodo: periodoAnaliseSchema,
   tipo_rebanho: z
     .enum(['leiteiro', 'corte'], {
