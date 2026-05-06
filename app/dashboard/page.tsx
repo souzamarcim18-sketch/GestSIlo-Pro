@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Database,
@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useFazendaCoordinates } from '@/hooks/useFazendaCoordinates';
-import { WeatherWidget } from '@/components/widgets';
+import { WeatherWidget, MiniCardRebanho } from '@/components/widgets';
 import { toast } from 'sonner';
 import { getProximasOperacoes } from '@/lib/supabase/talhoes';
 import type { ProximaOperacao, CicloAgricola } from '@/lib/types/talhoes';
@@ -375,6 +375,41 @@ export default function DashboardPage() {
               </Card>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* ── Mini-Card Rebanho ────────────────────────────────────────── */}
+      <section aria-labelledby="rebanho-heading">
+        <h2 id="rebanho-heading" className="sr-only">
+          Indicadores do rebanho
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Suspense
+            fallback={
+              <Card
+                className="rounded-2xl p-6 h-full border-0"
+                style={{
+                  background: 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
+                  boxShadow: '0 4px 16px rgba(0, 132, 61, 0.25)',
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                      Rebanho
+                    </p>
+                    <div className="space-y-2">
+                      <Skeleton className="h-10 w-24 bg-white/20" />
+                      <Skeleton className="h-4 w-32 bg-white/20" />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            }
+          >
+            <MiniCardRebanho />
+          </Suspense>
         </div>
       </section>
 

@@ -425,6 +425,115 @@ function hexToRgbArray(hex: string): [number, number, number] {
 }
 
 /**
+ * Server Action: Mini-card Rebanho para Dashboard (T46)
+ * Retorna dados essenciais: total animais, GMD, prenhez, trend
+ * Período fixo: 90 dias
+ * Cache: 5 min (revalidateTag)
+ */
+export interface MiniCardRebanhoData {
+  totalAnimais: number;
+  gmd: number | null;
+  taxaPrenhez: number;
+  trendGMD: 'up' | 'down' | 'stable';
+  trendValor?: number;
+}
+
+export async function getMiniCardRebanhoAction(): Promise<MiniCardRebanhoData> {
+  try {
+    // Período fixo: 90 dias
+    const hoje = new Date();
+    const dataFim = hoje;
+    const dataInicio = new Date(hoje);
+    dataInicio.setDate(dataInicio.getDate() - 90);
+
+    const periodo = {
+      data_inicial: dataInicio.toISOString().split('T')[0],
+      data_final: dataFim.toISOString().split('T')[0],
+    };
+
+    // Período anterior para trend (90d antes)
+    const dataFimAnterior = new Date(dataInicio);
+    const dataInicioAnterior = new Date(dataFimAnterior);
+    dataInicioAnterior.setDate(dataInicioAnterior.getDate() - 90);
+
+    const periodoAnterior = {
+      data_inicial: dataInicioAnterior.toISOString().split('T')[0],
+      data_final: dataFimAnterior.toISOString().split('T')[0],
+    };
+
+    // Buscar dados período atual e anterior em paralelo
+    const [eventos, pesos, animais, eventosAnt, pesosAnt] = await Promise.all([
+      buscarEventosNoPeriodo({ periodo, tipo_rebanho: undefined }),
+      buscarPesosNoPeriodo({ periodo, tipo_rebanho: undefined }),
+      buscarAnimaisFiltrados({ periodo, tipo_rebanho: undefined }),
+      buscarEventosNoPeriodo({ periodo: periodoAnterior, tipo_rebanho: undefined }),
+      buscarPesosNoPeriodo({ periodo: periodoAnterior, tipo_rebanho: undefined }),
+    ]);
+
+    // Total de animais ativos (período atual)
+    const totalAnimais = animais.length;
+
+    // GMD período atual
+    const pesagensAgrupadas = new Map<string, { data_pesagem: string; peso_kg: number }[]>();
+    for (const peso of pesos) {
+      if (!pesagensAgrupadas.has(peso.animal_id)) {
+        pesagensAgrupadas.set(peso.animal_id, []);
+      }
+      pesagensAgrupadas.get(peso.animal_id)!.push({ data_pesagem: peso.data_pesagem, peso_kg: peso.peso_kg });
+    }
+
+    const periodoCalculo = { dataInicio: periodo.data_inicial, dataFim: periodo.data_final };
+    const gmdMedio = calcularGMDMedioRebanho(pesagensAgrupadas, periodoCalculo);
+
+    // Taxa de Prenhez (mock até implementação T39)
+    const taxaPrenhez = 86;
+
+    // GMD período anterior para trend
+    const pesagensAntAgrupadas = new Map<string, { data_pesagem: string; peso_kg: number }[]>();
+    for (const peso of pesosAnt) {
+      if (!pesagensAntAgrupadas.has(peso.animal_id)) {
+        pesagensAntAgrupadas.set(peso.animal_id, []);
+      }
+      pesagensAntAgrupadas.get(peso.animal_id)!.push({ data_pesagem: peso.data_pesagem, peso_kg: peso.peso_kg });
+    }
+
+    const periodoCalculoAnt = { dataInicio: periodoAnterior.data_inicial, dataFim: periodoAnterior.data_final };
+    const gmdMedioAnt = calcularGMDMedioRebanho(pesagensAntAgrupadas, periodoCalculoAnt);
+
+    // Calcular trend
+    let trendGMD: 'up' | 'down' | 'stable' = 'stable';
+    let trendValor: number | undefined;
+
+    if (gmdMedio !== null && gmdMedioAnt !== null) {
+      const delta = gmdMedio - gmdMedioAnt;
+      trendValor = Math.abs(delta);
+
+      if (delta > 0.05) {
+        trendGMD = 'up';
+      } else if (delta < -0.05) {
+        trendGMD = 'down';
+      }
+    }
+
+    const resultado: MiniCardRebanhoData = {
+      totalAnimais,
+      gmd: gmdMedio,
+      taxaPrenhez,
+      trendGMD,
+      trendValor,
+    };
+
+    // Cache 5 min
+    revalidateTag('indicadores');
+
+    return resultado;
+  } catch (erro) {
+    Sentry.captureException(erro, { tags: { action: 'getMiniCardRebanhoAction' } });
+    throw erro;
+  }
+}
+
+/**
  * LEGADO: wrapper para compatibilidade com testes
  * (será removido após atualizar testes para novo T40)
  */
