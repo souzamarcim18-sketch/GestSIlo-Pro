@@ -533,31 +533,3 @@ export async function getMiniCardRebanhoAction(): Promise<MiniCardRebanhoData> {
   }
 }
 
-/**
- * LEGADO: wrapper para compatibilidade com testes
- * (será removido após atualizar testes para novo T40)
- */
-export type ResultadoIndicadores =
-  | { ok: true; dados: any }
-  | { ok: false; erro: string; campos?: Record<string, string[]> };
-
-export async function obterIndicadoresZootecnicos(filtroBruto: unknown): Promise<ResultadoIndicadores> {
-  try {
-    const { filtroIndicadoresSchema: legacySchema } = await import('@/lib/validations/indicadores-rebanho');
-    const resultado = legacySchema.safeParse(filtroBruto);
-    if (!resultado.success) {
-      return {
-        ok: false,
-        erro: 'Filtros inválidos',
-        campos: resultado.error.flatten().fieldErrors,
-      };
-    }
-    // Delegar para nova implementação
-    return { ok: true, dados: {} };
-  } catch (erro) {
-    return {
-      ok: false,
-      erro: erro instanceof Error ? erro.message : 'Erro desconhecido',
-    };
-  }
-}
