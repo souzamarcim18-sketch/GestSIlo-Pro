@@ -344,8 +344,8 @@ export function FormEventoSanitario({
               {...register('vacina_nome')}
               disabled={isLoading}
             />
-            {errors.vacina_nome && (
-              <p className="text-sm text-red-600">{errors.vacina_nome.message}</p>
+            {errors.vacina_nome?.message && (
+              <p className="text-sm text-red-600">{String(errors.vacina_nome.message)}</p>
             )}
           </div>
 

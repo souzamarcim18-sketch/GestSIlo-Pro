@@ -48,7 +48,7 @@ export async function criarEventoSanitarioAction(
     };
   } catch (error) {
     if (error instanceof ZodError) {
-      const mensagem = error.errors.map((e) => e.message).join('; ');
+      const mensagem = error.issues.map((e) => e.message).join('; ');
       return { success: false, error: mensagem };
     }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -70,7 +70,7 @@ export async function editarEventoSanitarioAction(
     return { success: true, data: resultado };
   } catch (error) {
     if (error instanceof ZodError) {
-      const mensagem = error.errors.map((e) => e.message).join('; ');
+      const mensagem = error.issues.map((e) => e.message).join('; ');
       return { success: false, error: mensagem };
     }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';

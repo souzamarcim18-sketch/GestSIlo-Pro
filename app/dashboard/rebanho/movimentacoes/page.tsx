@@ -51,7 +51,7 @@ export default function MovimentacoesPage() {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState<TipoMovimentacao | ''>('');
-  const [loteFiltro, setLoteFiltro] = useState('');
+  const [loteFiltro, setLoteFiltro] = useState<string | null>('');
   const [buscaBrinco, setBuscaBrinco] = useState('');
 
   const isAdmin = profile?.perfil === 'Administrador';
