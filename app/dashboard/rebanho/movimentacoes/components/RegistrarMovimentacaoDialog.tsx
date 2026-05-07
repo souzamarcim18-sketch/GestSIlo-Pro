@@ -51,17 +51,17 @@ export default function RegistrarMovimentacaoDialog({
 
   // Form fields
   const [dataEvento, setDataEvento] = useState(new Date().toISOString().split('T')[0]);
-  const [fornecedor, setFornecedor] = useState('');
+  const [fornecedor, setFornecedor] = useState<string | null>('');
   const [pesoEntrada, setPesoEntrada] = useState('');
   const [valorPago, setValorPago] = useState('');
-  const [comprador, setComprador] = useState('');
+  const [comprador, setComprador] = useState<string | null>('');
   const [pesoSaida, setPesoSaida] = useState('');
   const [valorRecebido, setValorRecebido] = useState('');
-  const [causaMorte, setCausaMorte] = useState('');
-  const [motivoDescarte, setMotivoDescarte] = useState('');
+  const [causaMorte, setCausaMorte] = useState<string | null>('');
+  const [motivoDescarte, setMotivoDescarte] = useState<string | null>('');
   const [pesoAbate, setPesoAbate] = useState('');
   const [rendimentoCarcaca, setRendimentoCarcaca] = useState('52');
-  const [loteDestino, setLoteDestino] = useState('');
+  const [loteDestino, setLoteDestino] = useState<string | null>('');
   const [observacoes, setObservacoes] = useState('');
   const [vendaEmLote, setVendaEmLote] = useState(false);
   const [transferenciaEmLote, setTransferenciaEmLote] = useState(false);
@@ -146,17 +146,17 @@ export default function RegistrarMovimentacaoDialog({
         animal_id: animalSelecionado ?? undefined,
         animal_ids: animaisSelecionados.length > 0 ? animaisSelecionados : animalSelecionado ? [animalSelecionado] : [],
         data_evento: dataEvento,
-        fornecedor,
+        fornecedor: fornecedor ?? undefined,
         peso_entrada_kg: pesoEntrada ? parseFloat(pesoEntrada) : undefined,
         valor_pago: valorPago ? parseFloat(valorPago) : undefined,
-        comprador,
+        comprador: comprador ?? undefined,
         peso_saida_kg: pesoSaida ? parseFloat(pesoSaida) : undefined,
         valor_recebido: valorRecebido ? parseFloat(valorRecebido) : undefined,
-        causa_morte: causaMorte,
-        motivo_descarte: motivoDescarte,
+        causa_morte: causaMorte ?? undefined,
+        motivo_descarte: motivoDescarte ?? undefined,
         peso_abate_kg: pesoAbate ? parseFloat(pesoAbate) : undefined,
         rendimento_carcaca_pct: rendimentoCarcaca ? parseFloat(rendimentoCarcaca) : undefined,
-        lote_destino_id: loteDestino,
+        lote_destino_id: loteDestino ?? undefined,
         observacoes,
       };
 
