@@ -1,33 +1,24 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 
-export function useLocalStorage(key: string, initialValue: string) {
-  const [storedValue, setStoredValue] = useState(initialValue);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
+export function useLocalStorage<T>(key: string, initialValue: T) {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === 'undefined') return initialValue;
     try {
       const item = window.localStorage.getItem(key);
-      if (item) {
-        setStoredValue(item);
-      }
-    } catch (error) {
-      console.error('Error reading from localStorage:', error);
+      return item ? (JSON.parse(item) as T) : initialValue;
+    } catch {
+      return initialValue;
     }
-  }, [key]);
+  });
 
-  const setValue = (value: string) => {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
-      setStoredValue(value);
-      if (isMounted) {
-        window.localStorage.setItem(key, value);
-      }
-    } catch (error) {
-      console.error('Error writing to localStorage:', error);
+      window.localStorage.setItem(key, JSON.stringify(storedValue));
+    } catch {
+      // localStorage indisponível (modo privado, etc.)
     }
-  };
+  }, [key, storedValue]);
 
-  return [storedValue, setValue] as const;
+  return [storedValue, setStoredValue] as const;
 }

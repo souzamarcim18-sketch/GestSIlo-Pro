@@ -264,7 +264,7 @@ export default function RegistrarMovimentacaoDialog({
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      O nascimento é registrado automaticamente ao cadastrar um novo animal com origem "Nascido na propriedade".
+                      O nascimento é registrado automaticamente ao cadastrar um novo animal com origem &quot;Nascido na propriedade&quot;.
                       Use este registro apenas para nascimentos ocorridos antes da implantação do sistema.
                     </AlertDescription>
                   </Alert>

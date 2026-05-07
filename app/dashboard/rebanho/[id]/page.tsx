@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -98,6 +98,27 @@ function DesempenhoCorteContent({ animal, pesos }: { animal: Animal; pesos: Peso
   const pesoAlvo = 480;
   const diasAbate = calcularProjecaoAbate(animal.peso_atual, gmdUltimas, pesoAlvo);
   const arrobas = calcularArrobasEstimadas(animal.peso_atual, 0.52);
+  const currentTimeRef = useRef<number>(0);
+  const [dataAbateEstimada, setDataAbateEstimada] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentTimeRef.current === 0) {
+      currentTimeRef.current = Date.now();
+      if (diasAbate) {
+        setDataAbateEstimada(
+          new Date(currentTimeRef.current + diasAbate * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')
+        );
+      } else {
+        setDataAbateEstimada(null);
+      }
+    } else if (diasAbate) {
+      setDataAbateEstimada(
+        new Date(currentTimeRef.current + diasAbate * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')
+      );
+    } else {
+      setDataAbateEstimada(null);
+    }
+  }, [diasAbate]);
 
   const getGmdColor = (gmd: number | null) => {
     if (gmd === null) return 'bg-muted text-muted-foreground';
@@ -172,10 +193,7 @@ function DesempenhoCorteContent({ animal, pesos }: { animal: Animal; pesos: Peso
             </div>
             {diasAbate && animal.peso_atual ? (
               <p className="text-xs text-muted-foreground">
-                {new Date(Date.now() + diasAbate * 24 * 60 * 60 * 1000).toLocaleDateString(
-                  'pt-BR'
-                )}{' '}
-                (Peso-alvo: {pesoAlvo}kg)
+                {dataAbateEstimada} (Peso-alvo: {pesoAlvo}kg)
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">

@@ -68,7 +68,7 @@ export default async function CortePage() {
           <Card className="bg-muted/50 p-8 text-center">
             <CardTitle className="mb-2">Nenhum animal de corte cadastrado</CardTitle>
             <CardDescription>
-              Crie um animal com tipo de rebanho "Corte" ou "Dupla Aptidão" para começar a acompanhar.
+              Crie um animal com tipo de rebanho &quot;Corte&quot; ou &quot;Dupla Aptidão&quot; para começar a acompanhar.
             </CardDescription>
           </Card>
         ) : (
