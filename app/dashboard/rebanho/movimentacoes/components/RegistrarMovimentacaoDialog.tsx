@@ -143,8 +143,8 @@ export default function RegistrarMovimentacaoDialog({
     try {
       const payload = {
         tipo,
-        animal_id: animalSelecionado,
-        animal_ids: animaisSelecionados.length > 0 ? animaisSelecionados : [animalSelecionado],
+        animal_id: animalSelecionado ?? undefined,
+        animal_ids: animaisSelecionados.length > 0 ? animaisSelecionados : animalSelecionado ? [animalSelecionado] : [],
         data_evento: dataEvento,
         fornecedor,
         peso_entrada_kg: pesoEntrada ? parseFloat(pesoEntrada) : undefined,
