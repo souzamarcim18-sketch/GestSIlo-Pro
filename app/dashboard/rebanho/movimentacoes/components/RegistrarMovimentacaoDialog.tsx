@@ -45,7 +45,7 @@ export default function RegistrarMovimentacaoDialog({
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
-  const [animalSelecionado, setAnimalSelecionado] = useState('');
+  const [animalSelecionado, setAnimalSelecionado] = useState<string | null>('');
   const [animalEmLote, setAnimalEmLote] = useState(false);
   const [animaisSelecionados, setAnimaisSelecionados] = useState<string[]>([]);
 
