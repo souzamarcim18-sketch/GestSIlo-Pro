@@ -71,7 +71,7 @@ export default async function LeiteiraPage() {
         </div>
 
         {/* KPIs */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Produção Hoje</CardTitle>
@@ -118,6 +118,21 @@ export default async function LeiteiraPage() {
               <p className="text-xs text-muted-foreground mt-1">
                 {animalEmSeco.length} em seco
               </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Eficiência Alimentar
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Disponível após configurar consumo no módulo de Silos
+              </p>
+              {/* TODO: integrar com módulo de silos quando query de consumo estiver disponível */}
+              {/* Ref: SPEC-rebanho.md Seção 8 — Integrações com GestSilo */}
             </CardContent>
           </Card>
         </div>

@@ -2,8 +2,22 @@ import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type FiltrosIndicadores, type TipoExploracao } from '@/types/rebanho-indicadores';
+import { listAlertasVacinacao } from '@/lib/supabase/rebanho-sanitario';
+import {
+  listAnimaisComPartoPrevisto,
+  listVacasSecasComPartoPrevisto,
+  listAnimaisSemPesagem,
+  type AlertaAnimal,
+} from '@/lib/supabase/rebanho-indicadores';
 import IndicadoresClient from './IndicadoresClient';
 import IndicadoresSkeleton from './components/IndicadoresSkeleton';
+
+export interface AlertasRebanho {
+  vacinacoes: Awaited<ReturnType<typeof listAlertasVacinacao>>;
+  partosPrevistos: AlertaAnimal[];
+  vacasSecasComParto: AlertaAnimal[];
+  semPesagem: AlertaAnimal[];
+}
 
 export const metadata = {
   title: 'Indicadores Zootécnicos | GestSilo Pro',
@@ -22,8 +36,15 @@ export default async function IndicadoresPage(props: PageProps) {
     redirect('/login');
   }
 
-  // Fetch tipo_exploracao e lotes da fazenda
-  const [fazendaRes, lotesRes] = await Promise.all([
+  // Fetch tipo_exploracao, lotes da fazenda, e alertas
+  const [
+    fazendaRes,
+    lotesRes,
+    alertasVacinacao,
+    partosPrevistos,
+    vacasSecasComParto,
+    semPesagem,
+  ] = await Promise.all([
     supabase
       .from('fazendas')
       .select('tipo_exploracao')
@@ -32,6 +53,10 @@ export default async function IndicadoresPage(props: PageProps) {
       .from('lotes')
       .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
       .order('nome', { ascending: true }),
+    listAlertasVacinacao(30),
+    listAnimaisComPartoPrevisto(30),
+    listVacasSecasComPartoPrevisto(15),
+    listAnimaisSemPesagem(60),
   ]);
 
   if (fazendaRes.error) {
@@ -40,6 +65,14 @@ export default async function IndicadoresPage(props: PageProps) {
 
   const tipoExploracao: TipoExploracao = (fazendaRes.data?.tipo_exploracao || 'MISTO') as TipoExploracao;
   const lotes = (lotesRes.data as any[]) || [];
+
+  // Preparar alertas para passar ao componente cliente
+  const alertas: AlertasRebanho = {
+    vacinacoes: alertasVacinacao || [],
+    partosPrevistos: partosPrevistos || [],
+    vacasSecasComParto: vacasSecasComParto || [],
+    semPesagem: semPesagem || [],
+  };
 
   // Parse searchParams para filtros iniciais
   const searchParams = await props.searchParams;
@@ -63,6 +96,7 @@ export default async function IndicadoresPage(props: PageProps) {
           initialFiltros={initFiltros}
           tipoExploracao={tipoExploracao}
           lotes={lotes}
+          alertas={alertas}
         />
       </Suspense>
     </div>

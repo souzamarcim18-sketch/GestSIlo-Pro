@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Filter, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, Loader2, BarChart3, Heart, Milk, Scale, Stethoscope, ArrowRightLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
@@ -120,6 +121,46 @@ export default function RebanhosPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Navegação Rápida */}
+        <div className="flex gap-2 flex-wrap">
+          <Link href="/dashboard/rebanho/indicadores">
+            <Button variant="outline" size="sm">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Dashboard
+            </Button>
+          </Link>
+          <Link href="/dashboard/rebanho/reproducao/eventos">
+            <Button variant="outline" size="sm">
+              <Heart className="mr-2 h-4 w-4" />
+              Reprodução
+            </Button>
+          </Link>
+          <Link href="/dashboard/rebanho/leiteira">
+            <Button variant="outline" size="sm">
+              <Milk className="mr-2 h-4 w-4" />
+              Leiteira
+            </Button>
+          </Link>
+          <Link href="/dashboard/rebanho/corte">
+            <Button variant="outline" size="sm">
+              <Scale className="mr-2 h-4 w-4" />
+              Corte
+            </Button>
+          </Link>
+          <Link href="/dashboard/rebanho/sanidade">
+            <Button variant="outline" size="sm">
+              <Stethoscope className="mr-2 h-4 w-4" />
+              Sanidade
+            </Button>
+          </Link>
+          <Link href="/dashboard/rebanho/movimentacoes">
+            <Button variant="outline" size="sm">
+              <ArrowRightLeft className="mr-2 h-4 w-4" />
+              Movimentações
+            </Button>
+          </Link>
         </div>
 
         {/* Filtros */}

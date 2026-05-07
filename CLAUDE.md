@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 237 testes passando (inclui suite de auditoria RLS em `tests/security/`)
+- **Testes**: Vitest — 646 testes passando (inclui suite de auditoria RLS em `tests/security/`)
 
 ---
 
@@ -88,7 +88,14 @@ sou_gerente_ou_admin() → boolean
 ```
 
 ### Tabelas Principais
-`silos`, `talhoes`, `maquinas`, `financeiro`, `profiles`, `fazendas`, `insumos`, `movimentacoes_insumo`, `ciclos_agricolas`, `atividades_campo`, `planejamentos_silagem`, `planos_manutencao`, `manutencoes`, `abastecimentos`, `uso_maquinas`
+`silos`, `talhoes`, `maquinas`, `financeiro`, `profiles`, `fazendas`,
+`insumos`, `movimentacoes_insumo`, `ciclos_agricolas`, `atividades_campo`,
+`planejamentos_silagem`, `planos_manutencao`, `manutencoes`,
+`abastecimentos`, `uso_maquinas`,
+`animais`, `lotes`, `eventos_rebanho`, `pesos_animal`, `reprodutores`,
+`lactacoes`, `producoes_leiteiras`, `eventos_sanitarios`,
+`eventos_parto_crias`, `parametros_reprodutivos_fazenda`,
+`categorias_rebanho`
 
 ### Índices Existentes (criados em 29/04/2026)
 - `idx_planos_manutencao_fazenda_id`
@@ -124,7 +131,21 @@ app/
 │   ├── produtos/                    # Em breve (badge no Sidebar)
 │   ├── suporte/
 │   ├── configuracoes/
-│   └── onboarding/
+│   ├── onboarding/
+│   └── rebanho/
+│       ├── page.tsx                 # Listagem geral com filtros
+│       ├── actions.ts               # Server Actions (criar/editar animal, lote)
+│       ├── novo/page.tsx            # Cadastro de animal
+│       ├── [id]/page.tsx            # Ficha do animal (abas: geral, pesagens, reprodução, leiteira, sanidade, histórico, corte)
+│       ├── [id]/editar/page.tsx
+│       ├── lotes/
+│       ├── importar/
+│       ├── indicadores/page.tsx     # Dashboard geral + 4 alertas proativos
+│       ├── reproducao/              # Calendário reprodutivo + eventos + indicadores + parâmetros + repetidoras + reprodutores
+│       ├── leiteira/page.tsx        # Dashboard leiteiro + registro de produção
+│       ├── corte/page.tsx           # Dashboard de corte + pesagem em lote + projeção de abate
+│       ├── sanidade/page.tsx        # Alertas sanitários + calendário + registro de eventos
+│       └── movimentacoes/page.tsx   # Movimentações consolidadas (entradas/saídas/transferências)
 ├── login/
 ├── register/
 ├── forgot-password/
@@ -147,7 +168,12 @@ lib/
 │   ├── financeiro.ts
 │   ├── fazenda.ts
 │   ├── operador.ts
-│   └── configuracoes.ts
+│   ├── configuracoes.ts
+│   ├── rebanho.ts                   # Queries animais, lotes, eventos, pesos, importação CSV
+│   ├── rebanho-leiteira.ts          # Queries producoes_leiteiras
+│   ├── rebanho-sanitario.ts         # Queries eventos_sanitarios + listAlertasSanitarios()
+│   ├── rebanho-movimentacoes.ts     # Queries de movimentações consolidadas
+│   └── rebanho-indicadores.ts       # Queries de alertas: partos, pesagens, vacas secas
 ├── sentry/
 │   └── allowlist.ts                 # Padrões de dados sensíveis filtrados do Sentry
 ├── auth/
@@ -300,7 +326,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 237+ testes passam e build não tem erros TypeScript
+4. Confirmar que 646+ testes passam e build não tem erros TypeScript
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -341,44 +367,60 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 ### 🧮 Calculadoras Agronômicas
 - Calagem, adubação NPK, fertilizantes
 
-### 🐄 Rebanho
-**Tabelas do banco**: `animais`, `lotes`, `eventos_rebanho`, `pesos_animal`
+### 🐄 Rebanho (100% implementado — 2026-05-07)
+
+**Tabelas do banco**:
+`animais`, `lotes`, `eventos_rebanho`, `pesos_animal`, `reprodutores`,
+`lactacoes`, `producoes_leiteiras`, `eventos_sanitarios`,
+`eventos_parto_crias`, `parametros_reprodutivos_fazenda`, `categorias_rebanho`
+
+**Tipos de rebanho suportados**: `leiteiro`, `corte`, `dupla_aptidao`
 
 **Categorias de animais** (por tipo_rebanho):
-- Leiteiro: Bezerro/Bezerra, Novilha/Novilho, Vaca em Lactação, Vaca Seca, Vaca Prenha, Vaca Vazia, Touro
+- Leiteiro/dupla_aptidao: Bezerro/Bezerra, Novilha (Prenha), Novilho, Vaca em Lactação, Vaca Seca, Vaca Prenha, Vaca Vazia, Touro
 - Corte: Bezerro/Bezerra, Novilha/Novilho, Vaca Matriz, Boi, Boi Descartado, Fêmea Descartada, Touro
 
-**Tipos de eventos**: nascimento, pesagem, morte, venda, transferencia_lote, cobertura, parto
+**Status do animal** (enum `status_animal`): `Ativo`, `Morto`, `Vendido`, `Descartado`
+
+**Tipos de eventos** (`eventos_rebanho.tipo`):
+nascimento, pesagem, morte, venda, transferencia_lote, cobertura,
+diagnostico_prenhez, parto, secagem, aborto, descarte, desmame
+
+**Eventos sanitários** (`eventos_sanitarios.tipo`):
+vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 
 **Permissões por perfil**:
-- **Admin**: criar/editar/deletar animais e lotes; registrar todos eventos
-- **Operador**: registrar eventos (pesagem, morte, venda, transferência); consultar dados
+- **Admin**: CRUD completo de animais, lotes e todos os eventos; deletar produções e sanitários
+- **Operador**: criar/editar animais; registrar todos os eventos; editar produção leiteira e sanitários
 - **Visualizador**: consultar apenas
 
-**Integração**: Planejamento de Silagem utiliza `rebanho_snapshot` (composição, total cabeças, tipo)
+**Sub-módulos**:
+- **Indicadores** (`/indicadores`): dashboard geral, KPIs, 4 alertas proativos (vacinações, partos, sem pesagem, vacas secas)
+- **Reprodução** (`/reproducao`): 9 tipos de evento reprodutivo, calendário, IEP, taxa de prenhez, DG, IATF
+- **Leiteira** (`/leiteira`): registro individual/coletivo, curva de lactação, gráfico 30 dias, ranking top 10 vacas
+- **Corte** (`/corte`): GMD, arrobas projetadas, projeção de abate, pesagem em lote, gráfico evolução/lote
+- **Sanidade** (`/sanidade`): vacinação/vermifugação/tratamento/exame, registro em lote, calendário sanitário, alertas
+- **Movimentações** (`/movimentacoes`): entradas (nascimento/compra), saídas (venda/morte/descarte/abate), transferência entre lotes, KPIs, export CSV
 
-**Indicadores Zootécnicos** (14+ cálculos):
-- GMD (Ganho Médio Diário): (Peso_Final - Peso_Inicial) / dias
-- Taxa Natalidade: bezerros nascidos / fêmeas aptas ×100
-- Taxa Mortalidade: geral e bezerros <desmame
-- Taxa Prenhez: fêmeas com status reprodutivo 'prenha'
-- IEP (Intervalo Entre Partos): média histórico 12 meses
-- IPP (Idade Primeira Parição): novilhas com primeiro parto
-- Taxa Descarte: fêmeas/machos descartados
-- Composição: % por categoria (soma 100%)
-- Filtros por tipo_rebanho, período custom, comparativo lotes
+**Integração pendente**: Eficiência Alimentar (litros/kg MS) — aguarda query de consumo do módulo de Silos (TODO em `leiteira/page.tsx`, ref: SPEC-rebanho.md Seção 8)
 
 **Arquivos principais**:
-- `lib/supabase/rebanho.ts` — queries animais/lotes/eventos, importação CSV
-- `lib/types/rebanho.ts` — tipos Animal, Lote, EventoRebanho, RebanhoSnapshot
-- `lib/validations/rebanho.ts` — schemas Zod para criar/editar entidades
-- `lib/services/indicadores-rebanho.ts` — funções cálculo indicadores
-- `app/dashboard/rebanho/page.tsx` — página RSC principal
-- `app/dashboard/rebanho/actions.ts` — Server Actions (filtros, exports CSV/PDF)
+- `lib/supabase/rebanho.ts` — queries animais/lotes/eventos/pesos/importação CSV
+- `lib/supabase/rebanho-leiteira.ts` — queries producoes_leiteiras
+- `lib/supabase/rebanho-sanitario.ts` — queries eventos_sanitarios
+- `lib/supabase/rebanho-movimentacoes.ts` — queries movimentações consolidadas
+- `lib/types/rebanho.ts` — Animal, Lote, EventoRebanho, StatusAnimal, TipoRebanho
+- `lib/types/rebanho-leiteira.ts` — ProducaoLeiteira, IndicadoresLeiteiros
+- `lib/types/rebanho-sanitario.ts` — EventoSanitario (discriminated union por tipo)
+- `lib/validations/rebanho.ts` — schemas Zod (animal, lote, pesagem, produção, sanitário)
+- `lib/calculos/indicadores-rebanho.ts` — GMD, IEP, arrobas, projeção de abate, taxa de concepção
+- `app/dashboard/rebanho/actions.ts` — Server Actions gerais
+- `app/dashboard/rebanho/sanidade/actions.ts` — Server Actions sanitários
+- `app/dashboard/rebanho/movimentacoes/actions.ts` — Server Actions movimentações
+- `app/dashboard/rebanho/leiteira/actions.ts` — Server Actions produção leiteira
+- `app/dashboard/rebanho/corte/actions.ts` — pesagem em lote
 
-**Testes**: 41+ novos (lib indicadores + actions + RLS), fixture com 10 animais/30 pesagens/5 partos
-
-**Performance**: cache 5min indicadores, exports <3s, Recharts <1s para 500+ animais
+**Testes**: 646 passando (inclui rebanho)
 
 ### 🔮 Em Breve (badge no Sidebar)
 - Assessoria Agronômica

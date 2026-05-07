@@ -1632,32 +1632,66 @@ useEffect(() => {
 
 ---
 
-### Phase 8 — Movimentações (1 sessão)
+### Phase 8 — Movimentações (1 sessão) ✅ Implementado
 
 **Arquivos tocados:**
-- `app/dashboard/rebanho/movimentacoes/page.tsx` (criar)
-- `lib/supabase/rebanho.ts` — adicionar `listMovimentacoes`
+- `lib/supabase/rebanho-movimentacoes.ts` (criado)
+- `app/dashboard/rebanho/movimentacoes/page.tsx` (criado)
+- `app/dashboard/rebanho/movimentacoes/components/RegistrarMovimentacaoDialog.tsx` (criado)
+- `app/dashboard/rebanho/movimentacoes/actions.ts` (criado)
+- `app/dashboard/rebanho/[id]/page.tsx` — adicionada aba Histórico de Movimentações
+- `lib/utils.ts` — adicionadas funções `formatDate()` e `formatBRL()`
 
-**Dependências:** Nenhuma além do Phase 2 para tipos
+**Dependências:** Atendidas — Phase 2 (tipos) + `eventos_rebanho` existente
 
-**Verificar antes de começar:**
-- Confirmar que `eventos_rebanho` tem as colunas necessárias para listagem completa
-- Verificar permissões: Operador pode ver movimentações?
+**Verificações finalizadas:**
+- ✅ Build sem erros TypeScript (npm run build)
+- ✅ Todos os 646 testes passando (npm run test)
+- ✅ Página de movimentações carrega com KPIs (entradas, saídas, saldo, valor vendas)
+- ✅ Dialog de registro com tipos dinâmicos funcionando
+- ✅ 7 tipos de movimentações implementados: nascimento, compra, venda, morte, descarte, abate próprio, transferência
+- ✅ Aba de histórico adicionada na ficha do animal
+- ✅ RLS policies aplicadas via JWT (multi-tenancy garantida)
+- ✅ Paginação e filtros na listagem consolidada
+- ✅ Export CSV funcional
 
 ---
 
-### Phase 9 — Dashboard + Alertas (1 sessão)
+### Phase 9 — Dashboard + Alertas [✅ Implementado]
 
 **Arquivos tocados:**
-- `app/dashboard/rebanho/indicadores/page.tsx` — adicionar seção de alertas
-- `lib/supabase/rebanho-sanitario.ts` — query `listAlertasVacinacao` (criada na Phase 7)
-- `lib/supabase/rebanho-indicadores.ts` — adicionar query `listAnimaisSemPesagem`
+- `components/Sidebar.tsx` — remover badges 'comingSoon' das 4 rotas
+- `app/dashboard/rebanho/page.tsx` — adicionar barra de navegação rápida com 6 links
+- `lib/supabase/rebanho-indicadores.ts` — adicionar 3 novas funções de alertas + interface AlertaAnimal
+- `app/dashboard/rebanho/indicadores/page.tsx` — buscar alertas no servidor + interface AlertasRebanho
+- `app/dashboard/rebanho/indicadores/IndicadoresClient.tsx` — renderizar seção de alertas com 4 cards colapsáveis
+- `app/dashboard/rebanho/leiteira/page.tsx` — adicionar card placeholder eficiência alimentar + TODO comment
+- `hooks/useBreadcrumbData.ts` — adicionar `rebanho` e `lotes` no tableMap + 16 slugs novos no formatModuleLabel
+- `app/dashboard/rebanho/leiteira/loading.tsx` — criar skeleton loader (novo arquivo)
+- `app/dashboard/rebanho/corte/loading.tsx` — criar skeleton loader (novo arquivo)
+- `app/dashboard/rebanho/sanidade/loading.tsx` — criar skeleton loader (novo arquivo)
+
+**Implementação concluída em 2026-05-07**
 
 **Dependências:** Phase 7 (alertas sanitários) + Phase 4 (alertas reprodutivos: partos previstos)
 
-**Verificar antes de começar:**
-- `eventos_sanitarios` populada com dados de teste
-- Confirmar que `animais.data_parto_previsto` é atualizado pelo trigger
+**Alertas implementados:**
+1. **Vacinações próximas/vencidas** (30 dias) — usa `listAlertasVacinacao(30)` de rebanho-sanitario.ts
+2. **Partos previstos** (30 dias) — usa `listAnimaisComPartoPrevisto(30)` — NOVA
+3. **Vacas secas com parto** (15 dias) — usa `listVacasSecasComPartoPrevisto(15)` — NOVA
+4. **Sem pesagem** (60+ dias) — usa `listAnimaisSemPesagem(60)` — NOVA
+
+**Cada alerta:**
+- Renderizado em Card colapsável com borda colorida e badge numérico
+- Apenas exibido se count > 0
+- Lista de animais com links para ficha individual (`/rebanho/[id]`)
+- CTA específico: link para `/reproducao/eventos` (partos) ou para ficha individual (pesagem)
+
+**Polimento geral:**
+- Sidebar: 4 badges "comingSoon" removidos (Leiteira, Corte, Sanidade, Movimentações)
+- Breadcrumbs: agora reconhece animais (brinco) e lotes em URLs dinâmicas
+- Loading states: 3 skeleton loaders criados para as páginas RSC
+- Eficiência alimentar: card placeholder aguardando integração com silos
 
 ---
 

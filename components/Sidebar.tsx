@@ -76,10 +76,10 @@ const rebanhoSubRoutes: RouteItem[] = [
   { label: 'Reprodução',     icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos'      },
   { label: 'Reprodutores',   icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores' },
   { label: 'Parâmetros',     icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros'   },
-  { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira',               badge: 'comingSoon' },
-  { label: 'Corte',          icon: Scale,               href: '/dashboard/rebanho/corte',                  badge: 'comingSoon' },
-  { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade',               badge: 'comingSoon' },
-  { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes',          badge: 'comingSoon' },
+  { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira'                },
+  { label: 'Corte',          icon: Scale,               href: '/dashboard/rebanho/corte'                   },
+  { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade'                },
+  { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes'           },
 ];
 
 interface SidebarProps {

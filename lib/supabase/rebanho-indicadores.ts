@@ -3,6 +3,16 @@
 import { createSupabaseServerClient } from './server';
 import type { Animal, EventoRebanho, PesoAnimal } from '@/lib/types/rebanho';
 
+// Interface para alertas de animais
+export interface AlertaAnimal {
+  id: string;
+  brinco: string;
+  nome: string | null;
+  categoria: string | null;
+  lote_id: string | null;
+  data_parto_previsto?: string | null;
+}
+
 // Tipo para período de busca (compatível com ambos os fluxos)
 interface PeriodoBusca {
   data_inicial: string;
@@ -124,4 +134,105 @@ export async function buscarEventosPartos(): Promise<EventoRebanho[]> {
 
   if (error) throw error;
   return (data as EventoRebanho[]) || [];
+}
+
+/**
+ * Busca animais com parto previsto nos próximos N dias
+ * Útil para alertas de parto próximo
+ */
+export async function listAnimaisComPartoPrevisto(
+  dias: number = 30
+): Promise<AlertaAnimal[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const dataHoje = new Date().toISOString().split('T')[0];
+  const dataLimite = new Date();
+  dataLimite.setDate(dataLimite.getDate() + dias);
+  const dataLimiteStr = dataLimite.toISOString().split('T')[0];
+
+  const { data, error } = await supabase
+    .from('animais')
+    .select(
+      'id, brinco, nome, categoria, data_parto_previsto, lote_id'
+    )
+    .eq('status', 'Ativo')
+    .is('deleted_at', null)
+    .gte('data_parto_previsto', dataHoje)
+    .lte('data_parto_previsto', dataLimiteStr)
+    .order('data_parto_previsto', { ascending: true });
+
+  if (error) throw error;
+  return (data as AlertaAnimal[]) || [];
+}
+
+/**
+ * Busca vacas secas com parto previsto nos próximos N dias
+ * Subset do alerta anterior, filtrado por categoria
+ */
+export async function listVacasSecasComPartoPrevisto(
+  dias: number = 15
+): Promise<AlertaAnimal[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const dataHoje = new Date().toISOString().split('T')[0];
+  const dataLimite = new Date();
+  dataLimite.setDate(dataLimite.getDate() + dias);
+  const dataLimiteStr = dataLimite.toISOString().split('T')[0];
+
+  const { data, error } = await supabase
+    .from('animais')
+    .select(
+      'id, brinco, nome, categoria, data_parto_previsto, lote_id'
+    )
+    .eq('status', 'Ativo')
+    .is('deleted_at', null)
+    .in('categoria', ['Vaca Seca', 'Vaca seca'])
+    .gte('data_parto_previsto', dataHoje)
+    .lte('data_parto_previsto', dataLimiteStr)
+    .order('data_parto_previsto', { ascending: true });
+
+  if (error) throw error;
+  return (data as AlertaAnimal[]) || [];
+}
+
+/**
+ * Busca animais sem pesagem há N+ dias
+ * Útil para alertas de monitoramento de peso
+ */
+export async function listAnimaisSemPesagem(
+  dias: number = 60
+): Promise<AlertaAnimal[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const dataLimite = new Date();
+  dataLimite.setDate(dataLimite.getDate() - dias);
+  const dataLimiteStr = dataLimite.toISOString().split('T')[0];
+
+  // Passo 1: Buscar IDs de animais com pesagem recente
+  const { data: pesagensRecentes, error: pesagemError } = await supabase
+    .from('pesos_animal')
+    .select('animal_id', { count: 'exact' })
+    .gte('data_pesagem', dataLimiteStr);
+
+  if (pesagemError) throw pesagemError;
+
+  const idsComPesagem = (pesagensRecentes || []).map(p => p.animal_id);
+
+  // Passo 2: Buscar animais ativos que NÃO estão no passo 1
+  let query = supabase
+    .from('animais')
+    .select(
+      'id, brinco, nome, categoria, lote_id'
+    )
+    .eq('status', 'Ativo')
+    .is('deleted_at', null);
+
+  if (idsComPesagem.length > 0) {
+    query = query.not('id', 'in', `(${idsComPesagem.join(',')})`);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return (data as AlertaAnimal[]) || [];
 }

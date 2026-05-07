@@ -31,6 +31,7 @@ import {
   listAnimais,
   listLotes,
 } from '@/lib/supabase/rebanho';
+import { queryMovimentacoes, type MovimentacaoListItem } from '@/lib/supabase/rebanho-movimentacoes';
 import { AbaProducaoLeiteira } from '@/components/rebanho/AbaProducaoLeiteira';
 import { AbaSanidade } from '@/components/rebanho/AbaSanidade';
 import { deletarAnimalAction } from '../actions';
@@ -40,7 +41,57 @@ import {
   calcularProjecaoAbate,
   calcularArrobasEstimadas,
 } from '@/lib/calculos/indicadores-rebanho';
+import { formatDate } from '@/lib/utils';
 import type { Animal, EventoRebanho, PesoAnimal, Lote } from '@/lib/types/rebanho';
+
+function getBadgeColorMovimentacao(tipo: string): string {
+  switch (tipo) {
+    case 'nascimento':
+      return 'bg-green-100 text-green-800';
+    case 'compra':
+      return 'bg-blue-100 text-blue-800';
+    case 'venda':
+      return 'bg-emerald-100 text-emerald-800';
+    case 'morte':
+      return 'bg-red-100 text-red-800';
+    case 'descarte':
+      return 'bg-orange-100 text-orange-800';
+    case 'transferencia_lote':
+      return 'bg-gray-100 text-gray-800';
+    case 'abate_proprio':
+      return 'bg-purple-100 text-purple-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+function getTipoLabelMovimentacao(tipo: string): string {
+  const labels: Record<string, string> = {
+    nascimento: 'Nascimento',
+    compra: 'Compra',
+    venda: 'Venda',
+    morte: 'Morte',
+    descarte: 'Descarte',
+    transferencia_lote: 'Transferência',
+    abate_proprio: 'Abate Próprio',
+  };
+  return labels[tipo] || tipo;
+}
+
+function getDetalhesMovimentacao(mov: MovimentacaoListItem): string {
+  switch (mov.tipo) {
+    case 'venda':
+      return `Comprador: ${mov.comprador}`;
+    case 'morte':
+      return `Causa: ${mov.observacoes || ''}`;
+    case 'transferencia_lote':
+      return `Lote: ${mov.lote_nome}`;
+    case 'descarte':
+      return `Motivo: ${mov.motivo_descarte}`;
+    default:
+      return mov.observacoes || '—';
+  }
+}
 
 function DesempenhoCorteContent({ animal, pesos }: { animal: Animal; pesos: PesoAnimal[] }) {
   const gmdUltimas = calcularGMDUltimasDuas(pesos);
@@ -149,6 +200,7 @@ export default function AnimalDetailPage() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [eventos, setEventos] = useState<EventoRebanho[]>([]);
   const [pesos, setPesos] = useState<PesoAnimal[]>([]);
+  const [movimentacoes, setMovimentacoes] = useState<MovimentacaoListItem[]>([]);
   const [mae, setMae] = useState<Animal | null>(null);
   const [pai, setPai] = useState<Animal | null>(null);
   const [lote, setLote] = useState<Lote | null>(null);
@@ -180,13 +232,15 @@ export default function AnimalDetailPage() {
       setAllAnimals(animaisList);
       setAllLotes(lotesList);
 
-      const [eventosData, pesosData] = await Promise.all([
+      const [eventosData, pesosData, movimentacoesData] = await Promise.all([
         listEventosPorAnimal(animalId),
         listPesosPorAnimal(animalId),
+        queryMovimentacoes.getHistoricoAnimal(animalId),
       ]);
 
       setEventos(eventosData);
       setPesos(pesosData);
+      setMovimentacoes(movimentacoesData);
 
       if (animalData.mae_id) {
         const maeData = animaisList.find((a) => a.id === animalData.mae_id);
@@ -345,6 +399,7 @@ export default function AnimalDetailPage() {
         <Tabs defaultValue="eventos">
           <TabsList className="bg-muted">
             <TabsTrigger value="eventos">Histórico de Eventos</TabsTrigger>
+            <TabsTrigger value="movimentacoes">Movimentações</TabsTrigger>
             <TabsTrigger value="pesos">Pesagens</TabsTrigger>
             {(mae || pai) && <TabsTrigger value="genealogia">Genealogia</TabsTrigger>}
             {animal.sexo === 'Fêmea' && ['leiteiro', 'dupla_aptidao'].includes(animal.tipo_rebanho) && (
@@ -386,6 +441,50 @@ export default function AnimalDetailPage() {
                                 : evento.observacoes || '—'}
                             </TableCell>
                             <TableCell className="text-sm">—</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="movimentacoes" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de Movimentações</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {movimentacoes.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">Nenhuma movimentação registrada</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Detalhes</TableHead>
+                          <TableHead>Valor</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {movimentacoes.map((mov) => (
+                          <TableRow key={mov.id}>
+                            <TableCell>{formatDate(mov.data_evento)}</TableCell>
+                            <TableCell>
+                              <Badge className={getBadgeColorMovimentacao(mov.tipo)}>
+                                {getTipoLabelMovimentacao(mov.tipo)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                              {getDetalhesMovimentacao(mov)}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {mov.tipo === 'venda' && mov.valor_venda ? `R$ ${mov.valor_venda.toFixed(2)}` : '—'}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

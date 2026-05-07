@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Download, RotateCw } from 'lucide-react';
+import Link from 'next/link';
+import { Download, RotateCw, AlertCircle, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import type { Lote } from '@/lib/types/rebanho';
@@ -12,6 +14,7 @@ import type {
   FiltrosIndicadores,
   IndicadorRebanho,
 } from '@/types/rebanho-indicadores';
+import type { AlertasRebanho } from './page';
 import { FiltrosIndicadores as FiltrosComponent } from './components/FiltrosIndicadores';
 import { CardIndicador } from './components/CardIndicador';
 import {
@@ -149,7 +152,8 @@ export default function IndicadoresClient({
   initialFiltros,
   tipoExploracao,
   lotes,
-}: IndicadoresClientProps & { lotes: Lote[] }) {
+  alertas,
+}: IndicadoresClientProps & { lotes: Lote[]; alertas: AlertasRebanho }) {
   const [filtros, setFiltros] = useState<FiltrosIndicadores>(initialFiltros);
   const [isLoading, setIsLoading] = useState(false);
   const [indicadores, setIndicadores] = useState<IndicadorRebanho>(getMockIndicadores());
@@ -239,6 +243,151 @@ export default function IndicadoresClient({
         lotes={lotes}
         isLoading={isLoading}
       />
+
+      {/* Seção de Alertas */}
+      {(alertas.vacinacoes.length > 0 ||
+        alertas.partosPrevistos.length > 0 ||
+        alertas.vacasSecasComParto.length > 0 ||
+        alertas.semPesagem.length > 0) && (
+        <div className="space-y-3">
+          {/* Alerta 1: Vacinações */}
+          {alertas.vacinacoes.length > 0 && (
+            <Card className="border-l-4 border-l-amber-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                    <CardTitle className="text-base">Vacinações Próximas/Vencidas</CardTitle>
+                    <Badge variant="destructive" className="ml-2">
+                      {alertas.vacinacoes.length}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {alertas.vacinacoes.map((alerta: any) => (
+                    <Link
+                      key={alerta.id}
+                      href={`/dashboard/rebanho/${alerta.animal_id}`}
+                      className="block p-2 rounded border border-amber-200 hover:bg-amber-50 transition-colors"
+                    >
+                      <p className="text-sm font-medium">
+                        {alerta.animais?.brinco || 'N/A'} - {alerta.vacina_nome}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {alerta.dias_para_vencimento} dias
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Alerta 2: Partos Previstos */}
+          {alertas.partosPrevistos.length > 0 && (
+            <Card className="border-l-4 border-l-blue-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-blue-600" />
+                    <CardTitle className="text-base">Partos Previstos (30 dias)</CardTitle>
+                    <Badge variant="secondary" className="ml-2">
+                      {alertas.partosPrevistos.length}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {alertas.partosPrevistos.map((alerta: any) => (
+                    <Link
+                      key={alerta.id}
+                      href={`/dashboard/rebanho/${alerta.id}`}
+                      className="block p-2 rounded border border-blue-200 hover:bg-blue-50 transition-colors"
+                    >
+                      <p className="text-sm font-medium">{alerta.brinco} {alerta.nome && `- ${alerta.nome}`}</p>
+                      <p className="text-xs text-gray-600">
+                        {alerta.categoria} • {alerta.data_parto_previsto}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+                <Link href="/dashboard/rebanho/reproducao/eventos">
+                  <Button variant="outline" size="sm" className="mt-3 w-full">
+                    Ver calendário reprodutivo
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Alerta 3: Sem Pesagem */}
+          {alertas.semPesagem.length > 0 && (
+            <Card className="border-l-4 border-l-red-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <CardTitle className="text-base">Sem Pesagem há 60+ Dias</CardTitle>
+                    <Badge variant="destructive" className="ml-2">
+                      {alertas.semPesagem.length}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {alertas.semPesagem.map((alerta: any) => (
+                    <Link
+                      key={alerta.id}
+                      href={`/dashboard/rebanho/${alerta.id}`}
+                      className="block p-2 rounded border border-red-200 hover:bg-red-50 transition-colors"
+                    >
+                      <p className="text-sm font-medium">{alerta.brinco} {alerta.nome && `- ${alerta.nome}`}</p>
+                      <p className="text-xs text-gray-600">{alerta.categoria}</p>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Alerta 4: Vacas Secas com Parto */}
+          {alertas.vacasSecasComParto.length > 0 && (
+            <Card className="border-l-4 border-l-orange-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-orange-600" />
+                    <CardTitle className="text-base">Vacas Secas com Parto em 15 dias</CardTitle>
+                    <Badge className="ml-2 bg-orange-100 text-orange-800">
+                      {alertas.vacasSecasComParto.length}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {alertas.vacasSecasComParto.map((alerta: any) => (
+                    <Link
+                      key={alerta.id}
+                      href={`/dashboard/rebanho/${alerta.id}`}
+                      className="block p-2 rounded border border-orange-200 hover:bg-orange-50 transition-colors"
+                    >
+                      <p className="text-sm font-medium">{alerta.brinco} {alerta.nome && `- ${alerta.nome}`}</p>
+                      <p className="text-xs text-gray-600">
+                        Parto: {alerta.data_parto_previsto}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Grid de Cards Indicadores */}
       <Card>
