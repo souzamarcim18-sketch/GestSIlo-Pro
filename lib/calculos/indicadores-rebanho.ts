@@ -10,6 +10,7 @@
  */
 
 import type { Animal, TipoEvento, EventoRebanho, PesoAnimal } from '@/lib/types/rebanho';
+import type { IndicadoresLeiteiros } from '@/lib/types/rebanho-leiteira';
 
 // ========== CATEGORIAS (STRINGS EXATAS DO TRIGGER recalcular_categoria_animal) ==========
 
@@ -423,4 +424,59 @@ export function calcularIntervaloEntrePartos(
   }
 
   return Math.round(intervalos.reduce((a, b) => a + b, 0) / intervalos.length);
+}
+
+// ========== INDICADORES LEITEIROS ==========
+
+/**
+ * Calcula indicadores leiteiros para a fazenda em um período
+ * Funções de cálculo puro — dados já filtrados vêm do Supabase
+ */
+export function calcularIndicadoresLeiteiros(
+  animaisAtivos: Pick<Animal, 'id' | 'sexo' | 'categoria' | 'tipo_rebanho' | 'status_reprodutivo' | 'data_ultimo_parto'>[],
+  producoes: Array<{ volume_litros: number; data: string }>,
+  lactacoes: Array<{ data_inicio_parto: string; data_fim_secagem: string | null }>,
+  diasPeriodo: number
+): IndicadoresLeiteiros {
+  // Contar vacas em lactação
+  const vacasEmLactacao = animaisAtivos.filter(
+    (a) => a.sexo === 'Fêmea' && a.status_reprodutivo === 'lactacao'
+  ).length;
+
+  // Contar fêmeas adultas (vacas)
+  const femeaAdultas = animaisAtivos.filter((a) => a.sexo === 'Fêmea' && isVaca(a.categoria)).length;
+
+  // Produção total e média
+  const producaoTotal = producoes.reduce((acc, p) => acc + p.volume_litros, 0);
+  const producaoMediaDiaria = diasPeriodo > 0 ? producaoTotal / diasPeriodo : 0;
+  const producaoMediaPorVaca = vacasEmLactacao > 0 ? producaoTotal / diasPeriodo / vacasEmLactacao : 0;
+
+  // Duração média das lactações encerradas
+  const durcoesLactacoes: number[] = [];
+  lactacoes.forEach((lac) => {
+    if (lac.data_fim_secagem) {
+      const dataInicio = new Date(lac.data_inicio_parto);
+      const dataFim = new Date(lac.data_fim_secagem);
+      const dias = (dataFim.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24);
+      if (dias > 0) {
+        durcoesLactacoes.push(Math.round(dias));
+      }
+    }
+  });
+  const duracaoMediaLactacoes = durcoesLactacoes.length > 0
+    ? durcoesLactacoes.reduce((a, b) => a + b, 0) / durcoesLactacoes.length
+    : 0;
+
+  // Percentual de vacas em lactação
+  const percentualEmLactacao = femeaAdultas > 0 ? (vacasEmLactacao / femeaAdultas) * 100 : 0;
+
+  return {
+    producao_media_diaria_litros: parseFloat(producaoMediaDiaria.toFixed(2)),
+    producao_total_periodo_litros: parseFloat(producaoTotal.toFixed(2)),
+    vacas_em_lactacao: vacasEmLactacao,
+    producao_media_por_vaca: parseFloat(producaoMediaPorVaca.toFixed(2)),
+    duracao_media_lactacoes_dias: parseFloat(duracaoMediaLactacoes.toFixed(1)),
+    percentual_vacas_em_lactacao: parseFloat(percentualEmLactacao.toFixed(1)),
+    eficiencia_alimentar_litros_por_kg_ms: null, // Será integrado com silos em fase posterior
+  };
 }

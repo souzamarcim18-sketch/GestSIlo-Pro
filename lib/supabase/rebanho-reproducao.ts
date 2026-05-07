@@ -709,6 +709,182 @@ export const queryIndicadoresReprodutivos = {
     if (ieps.length === 0) return null;
     return Math.round(ieps.reduce((a, b) => a + b, 0) / ieps.length);
   },
+
+  /** Taxa de Concepção IA — (diagnósticos positivos / total de IAs) × 100 */
+  async getTaxaConcepçãoIA(fazenda_id: string): Promise<number | null> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: eventos, error } = await supabase
+      .from('eventos_rebanho')
+      .select('animal_id, tipo, tipo_cobertura, data_evento, resultado_prenhez')
+      .eq('fazenda_id', fazenda_id)
+      .in('tipo', ['cobertura', 'diagnostico_prenhez'])
+      .is('deleted_at', null)
+      .order('animal_id')
+      .order('data_evento');
+
+    if (error) throw error;
+    if (!eventos || eventos.length === 0) return null;
+
+    const eventoPorAnimal: Record<string, any[]> = {};
+    (eventos || []).forEach((e: any) => {
+      if (!eventoPorAnimal[e.animal_id]) {
+        eventoPorAnimal[e.animal_id] = [];
+      }
+      eventoPorAnimal[e.animal_id].push(e);
+    });
+
+    let totalIAs = 0;
+    let concepcoes = 0;
+
+    Object.entries(eventoPorAnimal).forEach(([, eventoList]) => {
+      for (let i = 0; i < eventoList.length - 1; i++) {
+        const evt = eventoList[i];
+        const prox = eventoList[i + 1];
+        if (
+          evt.tipo === 'cobertura' &&
+          (evt.tipo_cobertura === 'ia_convencional' || evt.tipo_cobertura === 'iatf') &&
+          prox.tipo === 'diagnostico_prenhez'
+        ) {
+          totalIAs++;
+          const dias = Math.floor(
+            (new Date(prox.data_evento).getTime() - new Date(evt.data_evento).getTime()) /
+              (1000 * 60 * 60 * 24)
+          );
+          if (dias > 0 && dias <= 45 && prox.resultado_prenhez === 'positivo') {
+            concepcoes++;
+          }
+        }
+      }
+    });
+
+    if (totalIAs === 0) return null;
+    return Math.round((concepcoes / totalIAs) * 100);
+  },
+
+  /** Dias em Aberto — média de dias entre último parto e hoje para vacas em lactação */
+  async getDiasEmAberto(fazenda_id: string): Promise<{ media_dias: number | null; animais_count: number }> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: vacas, error } = await supabase
+      .from('animais')
+      .select('id, data_ultimo_parto')
+      .eq('fazenda_id', fazenda_id)
+      .eq('sexo', 'Fêmea')
+      .eq('status', 'Ativo')
+      .eq('status_reprodutivo', 'lactacao')
+      .is('deleted_at', null);
+
+    if (error) throw error;
+    if (!vacas || vacas.length === 0) return { media_dias: null, animais_count: 0 };
+
+    const diasEmAberto: number[] = [];
+    const hoje = new Date();
+
+    vacas.forEach((v: any) => {
+      if (v.data_ultimo_parto) {
+        const dias = Math.floor(
+          (hoje.getTime() - new Date(v.data_ultimo_parto).getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+        if (dias > 0 && dias < 2000) {
+          diasEmAberto.push(dias);
+        }
+      }
+    });
+
+    if (diasEmAberto.length === 0) return { media_dias: null, animais_count: vacas.length };
+    const media = Math.round(diasEmAberto.reduce((a, b) => a + b, 0) / diasEmAberto.length);
+    return { media_dias: media, animais_count: vacas.length };
+  },
+
+  /** Taxa de Serviço — (total de coberturas) / (fêmeas aptas) × 100 */
+  async getTaxaServiço(fazenda_id: string): Promise<number | null> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: femeas, error: errFemeas } = await supabase
+      .from('animais')
+      .select('id, status_reprodutivo')
+      .eq('fazenda_id', fazenda_id)
+      .eq('sexo', 'Fêmea')
+      .eq('status', 'Ativo')
+      .is('deleted_at', null);
+
+    if (errFemeas) throw errFemeas;
+
+    const femeAsAptas = (femeas || []).filter((f: any) =>
+      ['vazia', 'lactacao', 'seca'].includes(f.status_reprodutivo)
+    );
+
+    if (femeAsAptas.length === 0) return null;
+
+    const femeasIds = femeAsAptas.map((f: any) => f.id);
+
+    const { data: coberturas, error: errCoberturas } = await supabase
+      .from('eventos_rebanho')
+      .select('animal_id')
+      .eq('fazenda_id', fazenda_id)
+      .in('animal_id', femeasIds)
+      .eq('tipo', 'cobertura')
+      .is('deleted_at', null);
+
+    if (errCoberturas) throw errCoberturas;
+
+    const totalCoberturas = coberturas?.length || 0;
+    return Math.round((totalCoberturas / femeAsAptas.length) * 100);
+  },
+
+  /** Idade Primeira Parição — média de idade (em meses) das novilhas no primeiro parto */
+  async getIdadePrimeiraPariçao(fazenda_id: string): Promise<number | null> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: partos, error } = await supabase
+      .from('eventos_rebanho')
+      .select('animal_id, data_evento')
+      .eq('fazenda_id', fazenda_id)
+      .eq('tipo', 'parto')
+      .is('deleted_at', null)
+      .order('animal_id')
+      .order('data_evento');
+
+    if (error) throw error;
+    if (!partos || partos.length === 0) return null;
+
+    // Para cada animal, pegar PRIMEIRO parto
+    const primeirPartosPorAnimal: Record<string, any> = {};
+    (partos || []).forEach((p: any) => {
+      if (!primeirPartosPorAnimal[p.animal_id]) {
+        primeirPartosPorAnimal[p.animal_id] = p;
+      }
+    });
+
+    // Buscar data_nascimento desses animais
+    const animalIds = Object.keys(primeirPartosPorAnimal);
+    const { data: animais, error: errAnimais } = await supabase
+      .from('animais')
+      .select('id, data_nascimento')
+      .in('id', animalIds)
+      .is('deleted_at', null);
+
+    if (errAnimais) throw errAnimais;
+
+    const idades: number[] = [];
+    (animais || []).forEach((a: any) => {
+      const parto = primeirPartosPorAnimal[a.id];
+      if (a.data_nascimento && parto) {
+        const meses = Math.floor(
+          (new Date(parto.data_evento).getTime() - new Date(a.data_nascimento).getTime()) /
+            (1000 * 60 * 60 * 24 * 30.44)
+        );
+        if (meses > 18 && meses < 48) {
+          idades.push(meses);
+        }
+      }
+    });
+
+    if (idades.length === 0) return null;
+    return Math.round(idades.reduce((a, b) => a + b, 0) / idades.length);
+  },
 };
 
 // ========== REPETIDORAS ==========

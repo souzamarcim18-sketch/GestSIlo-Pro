@@ -1,0 +1,186 @@
+'use server';
+
+import { createSupabaseServerClient } from './server';
+import { getCurrentUserId } from '@/lib/auth/helpers';
+import type { ProducaoLeiteira, ProducaoLeiteiraInput } from '@/lib/types/rebanho-leiteira';
+
+// ========== CRIAR PRODUÇÃO LEITEIRA ==========
+
+export async function criarProducaoLeiteira(
+  payload: ProducaoLeiteiraInput
+): Promise<ProducaoLeiteira> {
+  const supabase = await createSupabaseServerClient();
+  const usuarioId = await getCurrentUserId();
+
+  const { data, error } = await supabase
+    .from('producoes_leiteiras')
+    .insert({
+      ...payload,
+      usuario_id: usuarioId,
+    })
+    .select(
+      'id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at'
+    )
+    .single();
+
+  if (error) throw error;
+  return data as ProducaoLeiteira;
+}
+
+// ========== LISTAR POR ANIMAL ==========
+
+export async function listProducoesLeiteiras(
+  animalId: string,
+  limit: number = 30,
+  offset: number = 0
+): Promise<ProducaoLeiteira[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('producoes_leiteiras')
+    .select(
+      'id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at'
+    )
+    .eq('animal_id', animalId)
+    .order('data', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+  return (data as ProducaoLeiteira[]) || [];
+}
+
+// ========== LISTAR POR PERÍODO COM DADOS DO ANIMAL ==========
+
+export async function listProducoesLeiteirasNoPeriodo(
+  dataInicio: string,
+  dataFim: string
+): Promise<
+  Array<
+    ProducaoLeiteira & {
+      animal_brinco: string;
+      animal_nome: string | null;
+      animal_status_reprodutivo: string | null;
+      animal_lote_id: string | null;
+    }
+  >
+> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('producoes_leiteiras')
+    .select(
+      `id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at,
+       animais:animal_id(brinco, nome, status_reprodutivo, lote_id)`
+    )
+    .gte('data', dataInicio)
+    .lte('data', dataFim)
+    .order('data', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    fazenda_id: row.fazenda_id,
+    animal_id: row.animal_id,
+    data: row.data,
+    turno: row.turno,
+    volume_litros: row.volume_litros,
+    observacoes: row.observacoes,
+    usuario_id: row.usuario_id,
+    created_at: row.created_at,
+    animal_brinco: row.animais?.brinco || '',
+    animal_nome: row.animais?.nome || null,
+    animal_status_reprodutivo: row.animais?.status_reprodutivo || null,
+    animal_lote_id: row.animais?.lote_id || null,
+  }));
+}
+
+// ========== TOTAL POR PERÍODO ==========
+
+export async function totalProducaoLeiteiraPeriodo(
+  dataInicio: string,
+  dataFim: string
+): Promise<{
+  total_litros: number;
+  por_animal: Array<{
+    animal_id: string;
+    brinco: string;
+    nome: string | null;
+    total_litros: number;
+  }>;
+}> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('producoes_leiteiras')
+    .select(
+      `animal_id, volume_litros,
+       animais:animal_id(brinco, nome)`
+    )
+    .gte('data', dataInicio)
+    .lte('data', dataFim);
+
+  if (error) throw error;
+
+  const porAnimal: Record<
+    string,
+    { brinco: string; nome: string | null; total: number }
+  > = {};
+  let totalLitros = 0;
+
+  (data || []).forEach((row: any) => {
+    totalLitros += row.volume_litros;
+    if (!porAnimal[row.animal_id]) {
+      porAnimal[row.animal_id] = {
+        brinco: row.animais?.brinco || '',
+        nome: row.animais?.nome || null,
+        total: 0,
+      };
+    }
+    porAnimal[row.animal_id].total += row.volume_litros;
+  });
+
+  return {
+    total_litros: totalLitros,
+    por_animal: Object.entries(porAnimal).map(([animalId, info]) => ({
+      animal_id: animalId,
+      brinco: info.brinco,
+      nome: info.nome,
+      total_litros: info.total,
+    })),
+  };
+}
+
+// ========== DELETAR PRODUÇÃO ==========
+
+export async function deletarProducaoLeiteira(id: string): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('producoes_leiteiras')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+// ========== EDITAR PRODUÇÃO ==========
+
+export async function editarProducaoLeiteira(
+  id: string,
+  payload: Partial<Pick<ProducaoLeiteira, 'volume_litros' | 'turno' | 'observacoes'>>
+): Promise<ProducaoLeiteira> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('producoes_leiteiras')
+    .update(payload)
+    .eq('id', id)
+    .select(
+      'id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at'
+    )
+    .single();
+
+  if (error) throw error;
+  return data as ProducaoLeiteira;
+}

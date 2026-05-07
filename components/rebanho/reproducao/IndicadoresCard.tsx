@@ -10,6 +10,10 @@ interface IndicadoresCardProps {
   taxaPrenhez: number;
   psmMedia: number | null;
   iepMedia: number | null;
+  taxaConcepçaoIA: number | null;
+  diasEmAberto: { media_dias: number | null; animais_count: number };
+  taxaServiço: number | null;
+  idadePrimeiraPariçao: number | null;
   contagemPorStatus: {
     vazia: number;
     inseminada: number;
@@ -43,12 +47,17 @@ export function IndicadoresCard({
   taxaPrenhez,
   psmMedia,
   iepMedia,
+  taxaConcepçaoIA,
+  diasEmAberto,
+  taxaServiço,
+  idadePrimeiraPariçao,
   contagemPorStatus,
   parametros,
 }: IndicadoresCardProps) {
   const metaTaxaPrenhez = parametros?.meta_taxa_prenhez_pct ?? 85;
   const metaPSM = parametros?.meta_psm_dias ?? 90;
   const metaIEP = parametros?.meta_iep_dias ?? 400;
+  const metaDiasAberto = parametros?.meta_psm_dias ?? 90;
 
   const barProgressTaxaPrenhez = useMemo(() => {
     const ratio = taxaPrenhez / metaTaxaPrenhez;
@@ -78,7 +87,7 @@ export function IndicadoresCard({
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Card 1: Taxa de Prenhez */}
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
@@ -143,6 +152,76 @@ export function IndicadoresCard({
                 </>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Card 4: Taxa de Concepção IA */}
+        <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Taxa de Concepção IA</p>
+              <p className="text-4xl font-bold mt-2">{taxaConcepçaoIA !== null ? `${taxaConcepçaoIA}%` : '—'}</p>
+              <p className="text-xs text-muted-foreground mt-1">Diagnósticos positivos após IA</p>
+            </div>
+            {taxaConcepçaoIA !== null && (
+              <p className="text-xs text-muted-foreground">
+                {taxaConcepçaoIA >= 50 ? '✓ Bom resultado' : '⚠ Verificar técnica'}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Card 5: Dias em Aberto */}
+        <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Dias em Aberto</p>
+              <p className="text-4xl font-bold mt-2">
+                {diasEmAberto.media_dias !== null ? diasEmAberto.media_dias : '—'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {diasEmAberto.animais_count} vaca(s) em lactação
+              </p>
+            </div>
+            {diasEmAberto.media_dias !== null && (
+              <p className="text-xs text-muted-foreground">
+                {diasEmAberto.media_dias <= metaDiasAberto ? '✓ Abaixo da meta' : '⚠ Acima da meta'}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Card 6: Taxa de Serviço */}
+        <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Taxa de Serviço</p>
+              <p className="text-4xl font-bold mt-2">{taxaServiço !== null ? `${taxaServiço}%` : '—'}</p>
+              <p className="text-xs text-muted-foreground mt-1">Coberturas / fêmeas aptas</p>
+            </div>
+            {taxaServiço !== null && (
+              <p className="text-xs text-muted-foreground">
+                {taxaServiço >= 100 ? '✓ Boa cobertura' : '⚠ Verificar'}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Card 7: Idade Primeira Parição */}
+        <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Idade Primeira Parição</p>
+              <p className="text-4xl font-bold mt-2">
+                {idadePrimeiraPariçao !== null ? `${idadePrimeiraPariçao}m` : '—'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Idade média em meses</p>
+            </div>
+            {idadePrimeiraPariçao !== null && (
+              <p className="text-xs text-muted-foreground">
+                {idadePrimeiraPariçao <= 28 ? '✓ Ideal' : '⚠ Acima da meta'}
+              </p>
+            )}
           </div>
         </div>
       </div>

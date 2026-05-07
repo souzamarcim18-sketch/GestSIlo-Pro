@@ -31,6 +31,7 @@ import {
   listAnimais,
   listLotes,
 } from '@/lib/supabase/rebanho';
+import { AbaProducaoLeiteira } from '@/components/rebanho/AbaProducaoLeiteira';
 import { deletarAnimalAction } from '../actions';
 import type { Animal, EventoRebanho, PesoAnimal, Lote } from '@/lib/types/rebanho';
 
@@ -237,6 +238,9 @@ export default function AnimalDetailPage() {
             <TabsTrigger value="eventos">Histórico de Eventos</TabsTrigger>
             <TabsTrigger value="pesos">Pesagens</TabsTrigger>
             {(mae || pai) && <TabsTrigger value="genealogia">Genealogia</TabsTrigger>}
+            {animal.sexo === 'Fêmea' && ['leiteiro', 'dupla_aptidao'].includes(animal.tipo_rebanho) && (
+              <TabsTrigger value="producao-leiteira">Produção Leiteira</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="eventos" className="mt-6">
@@ -352,6 +356,16 @@ export default function AnimalDetailPage() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+          )}
+
+          {animal.sexo === 'Fêmea' && ['leiteiro', 'dupla_aptidao'].includes(animal.tipo_rebanho) && (
+            <TabsContent value="producao-leiteira" className="mt-6">
+              <AbaProducaoLeiteira
+                animal={animal}
+                isAdmin={isAdmin}
+                canRegister={canRegisterEvent}
+              />
             </TabsContent>
           )}
         </Tabs>

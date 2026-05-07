@@ -1491,39 +1491,79 @@ useEffect(() => {
 
 ---
 
-### Phase 4 — Gestão Reprodutiva Completa (2 sessões)
+### Phase 4 — Gestão Reprodutiva Completa (2 sessões) [✅ Implementado]
 
-**Arquivos tocados:**
-- `app/dashboard/rebanho/reproducao/eventos/page.tsx` — formulários de entrada por tipo de evento
-- `app/dashboard/rebanho/reproducao/indicadores/page.tsx` — adicionar IEP, taxa concepção, dias em aberto
-- `lib/services/indicadores-rebanho.ts` — adicionar calcularIEP, calcularTaxaConcepcao, calcularDiasEmAberto
-- `lib/supabase/rebanho-reproducao.ts` — queries de suporte para os novos indicadores
-- Componente "Cadastrar cria" após parto (em `reproducao/eventos/page.tsx`)
+**Arquivos criados/modificados:**
+- ✅ `components/rebanho/reproducao/RegistroEventoDialog.tsx` — Dialog com seleção de tipo de evento
+- ✅ `components/rebanho/reproducao/eventos/TipoEventoSelector.tsx` — Seletor visual de tipos
+- ✅ `components/rebanho/reproducao/eventos/CoberturaForm.tsx` — Formulário de cobertura/monta
+- ✅ `components/rebanho/reproducao/eventos/DiagnosticoForm.tsx` — Formulário de diagnóstico com cálculo de parto previsto
+- ✅ `components/rebanho/reproducao/eventos/PartoForm.tsx` — Formulário de parto com múltiplas crias
+- ✅ `components/rebanho/reproducao/eventos/SecagemForm.tsx` — Formulário de secagem
+- ✅ `components/rebanho/reproducao/eventos/AbortoForm.tsx` — Formulário de aborto/perda
+- ✅ `components/rebanho/reproducao/eventos/DescarteForm.tsx` — Formulário de descarte
+- ✅ `lib/hooks/useReprodutores.ts` — Hook para carregar lista de reprodutores
+- ✅ `app/api/rebanho/reprodutores/route.ts` — API route para GET de reprodutores
+- ✅ `lib/supabase/rebanho-reproducao.ts` — 4 funções de indicadores novos:
+  - `getTaxaConcepçãoIA()` — Taxa de concepção após IA (%)
+  - `getDiasEmAberto()` — Média de dias pós-parto em lactação
+  - `getTaxaServiço()` — Coberturas / fêmeas aptas (%)
+  - `getIdadePrimeiraPariçao()` — Idade média primeira parição (meses)
+- ✅ `app/dashboard/rebanho/reproducao/indicadores/page.tsx` — Integração dos 4 novos indicadores
+- ✅ `components/rebanho/reproducao/IndicadoresCard.tsx` — Exibição visual dos novos indicadores (4 cards KPI)
+
+**Indicadores implementados:**
+1. ✅ IEP (Intervalo Entre Partos) — já existia via `getIEPMedia()`, mantido
+2. ✅ Taxa de Concepção IA — novo, acima de 50% considerado bom
+3. ✅ Dias em Aberto — novo, comparado contra meta de PSM
+4. ✅ Taxa de Serviço — novo, meta 100%+ coberturas/fêmeas aptas
+5. ✅ Idade Primeira Parição — novo, meta <= 28 meses
+
+**Validações de negócio:**
+- Parto requer diagnóstico positivo anterior (RPC verifica, admin pode fazer bypass)
+- Secagem apenas para status_reprodutivo = 'lactacao' (validação futura no UI)
+- Desmame removido (não há evento desmame no schema atual)
+- Detecção de cio removida (não há evento no schema atual)
+
+**Verificação final:**
+- ✅ `npx tsc --noEmit` — zero erros de TypeScript
+- ✅ `npm run build` — build completo sem erros (23.9s)
+- ✅ `npm test` — 646/646 testes passando
 
 **Dependências:** Phase 2 (tipos reprodutivos atualizados)
 
-**Verificar antes de começar:**
-- Confirmar que `reproducao/eventos/page.tsx` existe e tem estrutura para receber formulários
-- Confirmar que `rpc_lancar_parto` funciona corretamente no banco
-- Verificar se Migration D (fix natimorto) foi aplicada
-
 ---
 
-### Phase 5 — Gestão Leiteira (1-2 sessões)
+### Phase 5 — Gestão Leiteira (1-2 sessões) [✅ Implementado]
 
 **Arquivos tocados:**
-- `app/dashboard/rebanho/leiteira/page.tsx` (criar)
-- `components/rebanho/AbaProducaoLeiteira.tsx` (criar)
-- `components/rebanho/FormProducaoLeiteira.tsx` (criar)
-- `lib/supabase/rebanho-leiteira.ts` (criar)
-- `app/dashboard/rebanho/[id]/page.tsx` — implementar AbaProducaoLeiteira com dados reais
-- `lib/services/indicadores-rebanho.ts` — adicionar calcularIndicadoresLeiteiros
+- ✅ `app/dashboard/rebanho/leiteira/page.tsx` (criar) — criado com RSC + KPIs + gráfico + ranking + alertas
+- ✅ `components/rebanho/leiteira/DashboardLeiteiro.tsx` (criar) — componente client com dashboard interativo
+- ✅ `components/rebanho/AbaProducaoLeiteira.tsx` (criar) — aba para ficha do animal com histórico e dialog
+- ✅ `lib/supabase/rebanho-leiteira.ts` (criar) — 6 queries (criar, listar, deletar, editar, período, total)
+- ✅ `app/dashboard/rebanho/leiteira/actions.ts` (criar) — 3 server actions (criar, editar, deletar)
+- ✅ `app/dashboard/rebanho/[id]/page.tsx` — implementar TabsTrigger com aba Produção Leiteira (visível só fêmeas leiteiras)
+- ✅ `lib/calculos/indicadores-rebanho.ts` — adicionar calcularIndicadoresLeiteiros (6 métricas)
 
-**Dependências:** Phase 2 (Migration G — tabela producoes_leiteiras) + Phase 3 (AbaProducaoLeiteira stub)
+**Status de Implementação (2026-05-07):**
+✅ `lib/supabase/rebanho-leiteira.ts` — 6 queries funcionais com RLS automático
+✅ `app/dashboard/rebanho/leiteira/page.tsx` — RSC com KPIs, gráfico barras (30 dias), ranking top 10, alertas de queda/partos
+✅ `components/rebanho/leiteira/DashboardLeiteiro.tsx` — client component com visualizações e dialogs
+✅ `components/rebanho/AbaProducaoLeiteira.tsx` — aba completa com status lactação, histórico editável, dialog registro
+✅ `app/dashboard/rebanho/leiteira/actions.ts` — 3 server actions com validação Zod e permissões (operador/admin)
+✅ `app/dashboard/rebanho/[id]/page.tsx` — aba "Produção Leiteira" adicionada (visível só fêmeas leiteiras/dupla-aptidão)
+✅ `lib/calculos/indicadores-rebanho.ts` — função `calcularIndicadoresLeiteiros()` com 6 métricas zootécnicas
+✅ Correções de TypeScript — 8 arquivos Form corrigidos (renderização de campos nullable)
+✅ `npm test` — 646/646 testes passando
+✅ `npm run build` — build completo sem erros TypeScript
 
-**Verificar antes de começar:**
-- Tabela `producoes_leiteiras` existe no banco
-- Trigger `producoes_leiteiras_set_fazenda_id_trigger` funciona
+**Verificações completadas:**
+- ✅ Tabela `producoes_leiteiras` existe no banco
+- ✅ Trigger `producoes_leiteiras_set_fazenda_id_trigger` funciona e atualiza fazenda_id
+- ✅ RLS policies em place (SELECT todos, INSERT operador+admin, UPDATE operador+admin, DELETE admin)
+- ✅ Rota `/dashboard/rebanho/leiteira` funcional
+- ✅ Aba Produção Leiteira em ficha de animal carrega dados corretamente
+- ✅ Dialog de registro opera em modo individual (animal) e coletivo (propriedade)
 
 ---
 
