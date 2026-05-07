@@ -426,6 +426,71 @@ export function calcularIntervaloEntrePartos(
   return Math.round(intervalos.reduce((a, b) => a + b, 0) / intervalos.length);
 }
 
+// ========== INDICADORES DE CORTE ==========
+
+/**
+ * Calcula GMD entre as 2 últimas pesagens de um animal
+ * Retorna null se menos de 2 pesagens no histórico
+ */
+export function calcularGMDUltimasDuas(
+  pesagens: Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[]
+): number | null {
+  if (pesagens.length < 2) {
+    return null;
+  }
+
+  const ordenadas = [...pesagens].sort(
+    (a, b) => new Date(a.data_pesagem).getTime() - new Date(b.data_pesagem).getTime()
+  );
+
+  const penultima = ordenadas[ordenadas.length - 2];
+  const ultima = ordenadas[ordenadas.length - 1];
+
+  const data1 = new Date(penultima.data_pesagem);
+  const data2 = new Date(ultima.data_pesagem);
+
+  const diasDecorridos = Math.max(
+    1,
+    (data2.getTime() - data1.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  return (ultima.peso_kg - penultima.peso_kg) / diasDecorridos;
+}
+
+/**
+ * Calcula dias estimados até atingir o peso-alvo de abate
+ * dias = (peso_alvo - peso_atual) / GMD
+ * Retorna null se GMD <= 0 ou já atingiu o peso
+ */
+export function calcularProjecaoAbate(
+  pesoAtual: number | null,
+  gmd: number | null,
+  pesoAlvo: number = 480
+): number | null {
+  if (pesoAtual === null || gmd === null || gmd <= 0 || pesoAtual >= pesoAlvo) {
+    return null;
+  }
+
+  return Math.ceil((pesoAlvo - pesoAtual) / gmd);
+}
+
+/**
+ * Calcula arrobas estimadas a partir do peso atual
+ * 1 arroba = 15 kg; rendimento padrão = 52% carcaça
+ * arrobas = (peso_atual × rendimento / 100) / 15
+ */
+export function calcularArrobasEstimadas(
+  pesoAtual: number | null,
+  rendimentoCarcaca: number = 0.52
+): number | null {
+  if (pesoAtual === null) {
+    return null;
+  }
+
+  const pesoCarcaca = pesoAtual * rendimentoCarcaca;
+  return pesoCarcaca / 15;
+}
+
 // ========== INDICADORES LEITEIROS ==========
 
 /**

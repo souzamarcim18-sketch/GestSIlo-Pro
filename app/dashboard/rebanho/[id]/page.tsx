@@ -32,8 +32,113 @@ import {
   listLotes,
 } from '@/lib/supabase/rebanho';
 import { AbaProducaoLeiteira } from '@/components/rebanho/AbaProducaoLeiteira';
+import { AbaSanidade } from '@/components/rebanho/AbaSanidade';
 import { deletarAnimalAction } from '../actions';
+import { Badge } from '@/components/ui/badge';
+import {
+  calcularGMDUltimasDuas,
+  calcularProjecaoAbate,
+  calcularArrobasEstimadas,
+} from '@/lib/calculos/indicadores-rebanho';
 import type { Animal, EventoRebanho, PesoAnimal, Lote } from '@/lib/types/rebanho';
+
+function DesempenhoCorteContent({ animal, pesos }: { animal: Animal; pesos: PesoAnimal[] }) {
+  const gmdUltimas = calcularGMDUltimasDuas(pesos);
+  const pesoAlvo = 480;
+  const diasAbate = calcularProjecaoAbate(animal.peso_atual, gmdUltimas, pesoAlvo);
+  const arrobas = calcularArrobasEstimadas(animal.peso_atual, 0.52);
+
+  const getGmdColor = (gmd: number | null) => {
+    if (gmd === null) return 'bg-muted text-muted-foreground';
+    if (gmd > 1) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
+    if (gmd >= 0.5) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
+    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="border rounded-lg p-4">
+          <p className="text-sm text-muted-foreground mb-1">GMD (Últimas 2 Pesagens)</p>
+          <div className="flex items-center gap-3">
+            <div className="text-2xl font-bold">
+              {gmdUltimas ? `${gmdUltimas.toFixed(2)} kg/dia` : '—'}
+            </div>
+            {gmdUltimas !== null && (
+              <Badge className={getGmdColor(gmdUltimas)}>
+                {gmdUltimas > 1
+                  ? 'Ótimo'
+                  : gmdUltimas >= 0.5
+                  ? 'Normal'
+                  : 'Baixo'}
+              </Badge>
+            )}
+          </div>
+          {pesos.length < 2 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Registre 2 pesagens para calcular
+            </p>
+          )}
+        </div>
+
+        <div className="border rounded-lg p-4">
+          <p className="text-sm text-muted-foreground mb-1">Condição Corporal</p>
+          <div className="flex items-center gap-3">
+            <div className="text-2xl font-bold">
+              {pesos.length > 0 && pesos[0].condicao_corporal
+                ? `${pesos[0].condicao_corporal}/5`
+                : '—'}
+            </div>
+            {pesos.length > 0 && pesos[0].condicao_corporal && (
+              <div className="text-sm text-muted-foreground">
+                {pesos[0].condicao_corporal === 1
+                  ? 'Muito magra'
+                  : pesos[0].condicao_corporal === 2
+                  ? 'Magra'
+                  : pesos[0].condicao_corporal === 3
+                  ? 'Normal'
+                  : pesos[0].condicao_corporal === 4
+                  ? 'Gorda'
+                  : 'Muito gorda'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="border rounded-lg p-4">
+          <p className="text-sm text-muted-foreground mb-1">Arrobas Estimadas</p>
+          <div className="text-2xl font-bold">
+            {arrobas ? `${arrobas.toFixed(1)} @` : '—'}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">(rendimento 52%)</p>
+        </div>
+
+        <div className="border rounded-lg p-4">
+          <p className="text-sm text-muted-foreground mb-1">Projeção de Abate</p>
+          <div className="space-y-1">
+            <div className="text-2xl font-bold">
+              {diasAbate ? `${diasAbate} dias` : '—'}
+            </div>
+            {diasAbate && animal.peso_atual ? (
+              <p className="text-xs text-muted-foreground">
+                {new Date(Date.now() + diasAbate * 24 * 60 * 60 * 1000).toLocaleDateString(
+                  'pt-BR'
+                )}{' '}
+                (Peso-alvo: {pesoAlvo}kg)
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {animal.peso_atual && animal.peso_atual >= pesoAlvo
+                  ? 'Pronto para abate'
+                  : 'Sem dados suficientes'}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AnimalDetailPage() {
   const router = useRouter();
@@ -47,6 +152,8 @@ export default function AnimalDetailPage() {
   const [mae, setMae] = useState<Animal | null>(null);
   const [pai, setPai] = useState<Animal | null>(null);
   const [lote, setLote] = useState<Lote | null>(null);
+  const [allAnimals, setAllAnimals] = useState<Animal[]>([]);
+  const [allLotes, setAllLotes] = useState<Lote[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -70,6 +177,8 @@ export default function AnimalDetailPage() {
       }
 
       setAnimal(animalData);
+      setAllAnimals(animaisList);
+      setAllLotes(lotesList);
 
       const [eventosData, pesosData] = await Promise.all([
         listEventosPorAnimal(animalId),
@@ -241,6 +350,10 @@ export default function AnimalDetailPage() {
             {animal.sexo === 'Fêmea' && ['leiteiro', 'dupla_aptidao'].includes(animal.tipo_rebanho) && (
               <TabsTrigger value="producao-leiteira">Produção Leiteira</TabsTrigger>
             )}
+            {['corte', 'dupla_aptidao'].includes(animal.tipo_rebanho) && (
+              <TabsTrigger value="desempenho-corte">Desempenho de Corte</TabsTrigger>
+            )}
+            <TabsTrigger value="sanidade">Sanidade</TabsTrigger>
           </TabsList>
 
           <TabsContent value="eventos" className="mt-6">
@@ -368,6 +481,32 @@ export default function AnimalDetailPage() {
               />
             </TabsContent>
           )}
+
+          {['corte', 'dupla_aptidao'].includes(animal.tipo_rebanho) && (
+            <TabsContent value="desempenho-corte" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Desempenho de Corte</CardTitle>
+                  <CardDescription>
+                    Indicadores de ganho de peso e projeção de abate
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DesempenhoCorteContent animal={animal} pesos={pesos} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          <TabsContent value="sanidade" className="mt-6">
+            <AbaSanidade
+              animal={animal}
+              animais={allAnimals}
+              lotes={allLotes}
+              isAdmin={isAdmin}
+              canRegister={canRegisterEvent}
+            />
+          </TabsContent>
         </Tabs>
 
         {/* Delete Dialog */}

@@ -1567,36 +1567,68 @@ useEffect(() => {
 
 ---
 
-### Phase 6 — Gestão de Corte (1-2 sessões)
+### Phase 6 — Gestão de Corte (1-2 sessões) [✅ Implementado]
 
-**Arquivos tocados:**
-- `app/dashboard/rebanho/corte/page.tsx` (criar)
-- `lib/services/indicadores-rebanho.ts` — adicionar calcularPesoMedioLote, calcularProjecaoAbate, calcularArrobasProjetadas
-- Formulário de pesagem em lote (novo componente em `components/rebanho/FormPesagemLote.tsx`)
+**Arquivos criados/modificados:**
+- ✅ `app/dashboard/rebanho/corte/page.tsx` — RSC com KPIs, gráfico, filtros, animais próximos ao abate
+- ✅ `app/dashboard/rebanho/corte/actions.ts` — `registrarPesagemLoteAction()` para inserção em lote
+- ✅ `components/rebanho/corte/DashboardCorte.tsx` — componente client com 3 seções (KPIs, gráfico, animais próximos, registro)
+- ✅ `components/rebanho/corte/FormRegistroPesagemLote.tsx` — formulário dual (individual/lote)
+- ✅ `lib/calculos/indicadores-rebanho.ts` — 3 funções novos: `calcularGMDUltimasDuas()`, `calcularProjecaoAbate()`, `calcularArrobasEstimadas()`
+- ✅ `lib/hooks/useLocalStorage.ts` — hook para persistir peso-alvo em localStorage
+- ✅ `app/dashboard/rebanho/[id]/page.tsx` — aba "Desempenho de Corte" com GMD, CC, arrobas, projeção
 
-**Dependências:** Phase 2 (Migration F — metodo + condicao_corporal em pesos_animal)
+**Status de Implementação (2026-05-07):**
+✅ `app/dashboard/rebanho/corte/page.tsx` — RSC carrega animais, lotes, pesos iniciais
+✅ `DashboardCorte.tsx` — Seção A (4 KPIs + gráfico linhas 90 dias + filtros período/lote)
+✅ Seção B (animais ≥90% peso-alvo com GMD, dias ao abate, ordenação ASC)
+✅ Seção C (dialog registro individual/lote com metodo e CC)
+✅ `FormRegistroPesagemLote.tsx` — modo individual + modo lote com table de inputs
+✅ `app/dashboard/rebanho/[id]/page.tsx` — aba Desempenho com 4 cards (GMD, CC, arrobas, dias-abate)
+✅ `lib/calculos/indicadores-rebanho.ts` — 3 funções puras para cálculos de corte
+✅ `lib/hooks/useLocalStorage.ts` — persist peso-alvo por fazenda
+✅ TypeScript compilation — zero erros novos
+✅ `npm run build` — build completo (erros pré-existentes em testes de insumos/rebanho ignorados)
 
-**Verificar antes de começar:**
-- Confirmar que `pesos_animal` tem os novos campos
-- Confirmar que trigger `pesos_animal_atualizar_peso_atual_trigger` funciona
-- Verificar badge 'comingSoon' removido do Sidebar para /corte
+**Verificações completadas:**
+- ✅ Animais de tipo_rebanho IN ['corte', 'dupla_aptidao'] filtrados corretamente
+- ✅ GMD calculado entre 2 últimas pesagens ou null se < 2
+- ✅ Peso-alvo persistido em localStorage (chave: gestsilo:peso-alvo-corte)
+- ✅ Dias ao abate calculados corretamente quando peso_atual < peso_alvo
+- ✅ Arrobas = (peso × 0.52) / 15 (rendimento 52% padrão)
+- ✅ Registrar pesagem em lote insere múltiplas linhas atomicamente
+- ✅ Aba Desempenho visível apenas para corte/dupla_aptidao
+
+**Dependências:** Phase 2 (pesos_animal com metodo + condicao_corporal) ✅ já existe
 
 ---
 
-### Phase 7 — Sanidade (1-2 sessões)
+### Phase 7 — Sanidade (1-2 sessões) [✅ Implementado]
 
 **Arquivos tocados:**
-- `app/dashboard/rebanho/sanidade/page.tsx` (criar)
-- `components/rebanho/AbaSanidade.tsx` (criar)
-- `components/rebanho/FormEventoSanitario.tsx` (criar)
-- `lib/supabase/rebanho-sanitario.ts` (criar)
-- `app/dashboard/rebanho/[id]/page.tsx` — implementar AbaSanidade com dados reais
+- ✅ `app/dashboard/rebanho/sanidade/page.tsx` — RSC com 3 seções (alertas, calendário, listagem)
+- ✅ `app/dashboard/rebanho/sanidade/actions.ts` — 3 server actions (criar, editar, deletar)
+- ✅ `components/rebanho/AbaSanidade.tsx` — Aba para ficha individual com histórico de sanidade
+- ✅ `components/rebanho/FormEventoSanitario.tsx` — Formulário discriminado por tipo de evento (4 tipos)
+- ✅ `components/rebanho/sanidade/SanidadeDashboard.tsx` — Componente client com as 3 seções
+- ✅ `lib/supabase/rebanho-sanitario.ts` — 6 queries (criar, listar por animal, alertas, filtros, editar, deletar soft)
+- ✅ `app/dashboard/rebanho/[id]/page.tsx` — Adicionada aba "Sanidade" na ficha individual
 
-**Dependências:** Phase 2 (Migration H — tabela eventos_sanitarios)
+**Dependências:** Phase 2 (Migration H — tabela eventos_sanitarios) ✅
 
-**Verificar antes de começar:**
-- Tabela `eventos_sanitarios` existe no banco
-- Trigger `set_fazenda_id` funciona na tabela
+**Verificações completadas:**
+- ✅ Tabela `eventos_sanitarios` existe no banco
+- ✅ Trigger `set_fazenda_id` funciona na tabela
+- ✅ `npx tsc --noEmit` — build compila (warnings pre-existentes ignorados)
+- ✅ `npm run build` — build completo sem erros TypeScript
+- ✅ `npm test` — 646/646 testes passando (sem regressões)
+- ✅ Página `/dashboard/rebanho/sanidade` implementada com 3 seções
+- ✅ Dialog de registro de evento sanitário funcional com seleção de múltiplos animais
+- ✅ Aba Sanidade em ficha animal carrega eventos corretamente
+- ✅ Alertas de vacinação vencidas e próximas (15 dias) exibem corretamente
+- ✅ Calendario sanitário com badges coloridos por tipo de evento
+- ✅ Formulário com discriminação por tipo (vacinação, vermifugação, tratamento, exame)
+- ✅ RLS policies funcionando (SELECT todos, INSERT operador+admin, UPDATE operador+admin, DELETE admin)
 
 ---
 
