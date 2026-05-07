@@ -24,6 +24,10 @@ import {
   Heart,
   Dna,
   SlidersHorizontal,
+  Milk,
+  Scale,
+  Stethoscope,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -68,9 +72,14 @@ const sistemaRoutes: RouteItem[] = [
 ];
 
 const rebanhoSubRoutes: RouteItem[] = [
-  { label: 'Reprodução',    icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos',     badge: null },
-  { label: 'Reprodutores',  icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores', badge: null },
-  { label: 'Parâmetros',    icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros',   badge: null },
+  { label: 'Indicadores',    icon: BarChart3,          href: '/dashboard/rebanho/indicadores'             },
+  { label: 'Reprodução',     icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos'      },
+  { label: 'Reprodutores',   icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores' },
+  { label: 'Parâmetros',     icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros'   },
+  { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira',               badge: 'comingSoon' },
+  { label: 'Corte',          icon: Scale,               href: '/dashboard/rebanho/corte',                  badge: 'comingSoon' },
+  { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade',               badge: 'comingSoon' },
+  { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes',          badge: 'comingSoon' },
 ];
 
 interface SidebarProps {

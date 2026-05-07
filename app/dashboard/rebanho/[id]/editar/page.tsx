@@ -31,6 +31,7 @@ export default function EditarAnimalPage() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [animaisParaGenealgia, setAnimaisParaGenealgia] = useState<Animal[]>([]);
+  const [loteId, setLoteId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,6 +69,12 @@ export default function EditarAnimalPage() {
 
     loadData();
   }, [authLoading, profile, router, animalId]);
+
+  useEffect(() => {
+    if (lotes.length > 0 && animal) {
+      setLoteId(animal.lote_id || '');
+    }
+  }, [lotes, animal]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -168,11 +175,12 @@ export default function EditarAnimalPage() {
                   <Label htmlFor="lote_id">Lote</Label>
                   <Select
                     name="lote_id"
-                    defaultValue={animal.lote_id || ''}
+                    value={loteId}
+                    onValueChange={(value) => setLoteId(value || '')}
                     disabled={isSubmitting}
                   >
                     <SelectTrigger id="lote_id" className="mt-1">
-                      <SelectValue />
+                      <SelectValue placeholder="Sem lote" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Sem lote</SelectItem>

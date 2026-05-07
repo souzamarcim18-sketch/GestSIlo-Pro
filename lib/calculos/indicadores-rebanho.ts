@@ -76,8 +76,8 @@ export function isVacaMatriz(categoria: string): boolean {
 export interface ComposicaoRebanho {
   total: number;
   por_categoria: Record<string, number>;
-  por_sexo: { machos: number; femeas: number };
-  por_vocacao: { leiteiro: number; corte: number };
+  por_sexo: { Macho: number; Fêmea: number };
+  por_vocacao: { leiteiro: number; corte: number; dupla_aptidao: number };
 }
 
 export function calcularComposicaoRebanho(
@@ -86,8 +86,8 @@ export function calcularComposicaoRebanho(
   const resultado: ComposicaoRebanho = {
     total: animaisAtivos.length,
     por_categoria: {},
-    por_sexo: { machos: 0, femeas: 0 },
-    por_vocacao: { leiteiro: 0, corte: 0 },
+    por_sexo: { Macho: 0, Fêmea: 0 },
+    por_vocacao: { leiteiro: 0, corte: 0, dupla_aptidao: 0 },
   };
 
   for (const animal of animaisAtivos) {
@@ -96,8 +96,7 @@ export function calcularComposicaoRebanho(
       (resultado.por_categoria[animal.categoria] || 0) + 1;
 
     // Por sexo
-    const sexoKey = animal.sexo === 'Macho' ? 'machos' : 'femeas';
-    resultado.por_sexo[sexoKey]++;
+    resultado.por_sexo[animal.sexo]++;
 
     // Por vocação
     resultado.por_vocacao[animal.tipo_rebanho]++;

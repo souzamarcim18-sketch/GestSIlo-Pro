@@ -7,6 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
@@ -78,6 +85,21 @@ export default function NovoLotePage() {
                   disabled={isSubmitting}
                   className="mt-1"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="tipo_rebanho">Tipo do Lote</Label>
+                <Select name="tipo_rebanho">
+                  <SelectTrigger id="tipo_rebanho" disabled={isSubmitting}>
+                    <SelectValue placeholder="Sem tipo definido" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem tipo definido</SelectItem>
+                    <SelectItem value="leiteiro">Leiteiro</SelectItem>
+                    <SelectItem value="corte">Corte</SelectItem>
+                    <SelectItem value="misto">Misto</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

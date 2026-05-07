@@ -39,7 +39,7 @@ const queryAnimais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, nome, sexo, tipo_rebanho, data_nascimento, data_nascimento_estimada, categoria, status, lote_id, peso_atual, peso_nascimento, mae_id, pai_id, raca, observacoes, sisbov_crbio, origem, foto_url, status_reprodutivo, data_ultimo_parto, data_parto_previsto, data_proxima_secagem, escore_condicao_corporal, flag_repetidora, is_reprodutor, reprodutor_vinculado_id, deleted_at, created_at, updated_at'
       )
       .eq('brinco', brinco)
       .is('deleted_at', null)
@@ -54,7 +54,7 @@ const queryAnimais = {
     const { data, error } = await supabase
       .from('animais')
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, nome, sexo, tipo_rebanho, data_nascimento, data_nascimento_estimada, categoria, status, lote_id, peso_atual, peso_nascimento, mae_id, pai_id, raca, observacoes, sisbov_crbio, origem, foto_url, status_reprodutivo, data_ultimo_parto, data_parto_previsto, data_proxima_secagem, escore_condicao_corporal, flag_repetidora, is_reprodutor, reprodutor_vinculado_id, deleted_at, created_at, updated_at'
       )
       .eq('id', id)
       .is('deleted_at', null)
@@ -74,7 +74,7 @@ const queryAnimais = {
         peso_atual: null,
       })
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, nome, sexo, tipo_rebanho, data_nascimento, data_nascimento_estimada, categoria, status, lote_id, peso_atual, peso_nascimento, mae_id, pai_id, raca, observacoes, sisbov_crbio, origem, foto_url, status_reprodutivo, data_ultimo_parto, data_parto_previsto, data_proxima_secagem, escore_condicao_corporal, flag_repetidora, is_reprodutor, reprodutor_vinculado_id, deleted_at, created_at, updated_at'
       )
       .single();
 
@@ -89,7 +89,7 @@ const queryAnimais = {
       .update(payload)
       .eq('id', id)
       .select(
-        'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, brinco, nome, sexo, tipo_rebanho, data_nascimento, data_nascimento_estimada, categoria, status, lote_id, peso_atual, peso_nascimento, mae_id, pai_id, raca, observacoes, sisbov_crbio, origem, foto_url, status_reprodutivo, data_ultimo_parto, data_parto_previsto, data_proxima_secagem, escore_condicao_corporal, flag_repetidora, is_reprodutor, reprodutor_vinculado_id, deleted_at, created_at, updated_at'
       )
       .single();
 
@@ -117,7 +117,7 @@ const queryLotes = {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from('lotes')
-      .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
       .eq('nome', nome)
       .single();
 
@@ -129,7 +129,7 @@ const queryLotes = {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from('lotes')
-      .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
       .eq('id', id)
       .single();
 
@@ -142,7 +142,7 @@ const queryLotes = {
     const { data, error } = await supabase
       .from('lotes')
       .insert(payload)
-      .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
       .single();
 
     if (error) throw error;
@@ -155,7 +155,7 @@ const queryLotes = {
       .from('lotes')
       .update(payload)
       .eq('id', id)
-      .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
       .single();
 
     if (error) throw error;
@@ -410,6 +410,7 @@ export async function importarAnimaisCSV(
 
       animaisParaInserir.push({
         ...validado,
+        data_nascimento_estimada: validado.data_nascimento_estimada ?? false,
         lote_id: loteId,
       });
     } catch (erro) {
@@ -458,7 +459,7 @@ export async function importarAnimaisCSV(
 // ---------------------------------------------------------------------------
 
 export async function listAnimais(
-  filtros?: { status?: string; lote_id?: string; busca?: string },
+  filtros?: { status?: string; lote_id?: string; busca?: string; tipo_rebanho?: string; sexo?: string },
   limit: number = 50,
   offset: number = 0
 ): Promise<Animal[]> {
@@ -467,7 +468,7 @@ export async function listAnimais(
   let query = supabase
     .from('animais')
     .select(
-      'id, fazenda_id, brinco, sexo, tipo_rebanho, data_nascimento, categoria, status, lote_id, peso_atual, mae_id, pai_id, raca, observacoes, deleted_at, created_at, updated_at'
+      'id, fazenda_id, brinco, nome, sexo, tipo_rebanho, data_nascimento, data_nascimento_estimada, categoria, status, lote_id, peso_atual, peso_nascimento, mae_id, pai_id, raca, observacoes, sisbov_crbio, origem, foto_url, status_reprodutivo, data_ultimo_parto, data_parto_previsto, data_proxima_secagem, escore_condicao_corporal, flag_repetidora, is_reprodutor, reprodutor_vinculado_id, deleted_at, created_at, updated_at'
     )
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
@@ -479,6 +480,14 @@ export async function listAnimais(
 
   if (filtros?.lote_id) {
     query = query.eq('lote_id', filtros.lote_id);
+  }
+
+  if (filtros?.tipo_rebanho) {
+    query = query.eq('tipo_rebanho', filtros.tipo_rebanho);
+  }
+
+  if (filtros?.sexo) {
+    query = query.eq('sexo', filtros.sexo);
   }
 
   if (filtros?.busca) {
@@ -499,7 +508,7 @@ export async function listLotes(
 
   const { data, error } = await supabase
     .from('lotes')
-    .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
+    .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -528,7 +537,7 @@ export async function listPesosPorAnimal(animalId: string): Promise<PesoAnimal[]
 
   const { data, error } = await supabase
     .from('pesos_animal')
-    .select('id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at')
+    .select('id, fazenda_id, animal_id, data_pesagem, peso_kg, metodo, condicao_corporal, observacoes, created_at')
     .eq('animal_id', animalId)
     .order('data_pesagem', { ascending: false });
 

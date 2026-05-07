@@ -36,6 +36,7 @@ const statusVariant = {
   Ativo: 'bg-green-100 text-green-800',
   Morto: 'bg-red-100 text-red-800',
   Vendido: 'bg-orange-100 text-orange-800',
+  Descartado: 'bg-gray-100 text-gray-800',
 } as const;
 
 export function AnimaisList({ animais, perfil, onRefresh }: AnimaisListProps) {

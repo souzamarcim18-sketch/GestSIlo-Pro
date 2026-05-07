@@ -150,7 +150,7 @@ describe('rebanho.validations', () => {
     const validBase = {
       animal_id: '550e8400-e29b-41d4-a716-446655440000',
       tipo: TipoEvento.PESAGEM as const,
-      data_evento: '2026-01-01',
+      data_evento: '2025-01-01',
     };
 
     it('rejeita peso negativo', () => {

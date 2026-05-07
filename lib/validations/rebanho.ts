@@ -4,32 +4,27 @@ import { TipoEvento } from '@/lib/types/rebanho';
 // ========== ANIMAL ==========
 
 export const criarAnimalSchema = z.object({
-  brinco: z
-    .string()
-    .min(1, 'Brinco do animal obrigatório')
-    .max(255, 'Máximo 255 caracteres'),
-  sexo: z.enum(['Macho', 'Fêmea'], { message: 'Sexo deve ser Macho ou Fêmea' }),
+  brinco: z.string().min(1, 'Brinco obrigatório').max(255),
+  nome: z.string().max(255).optional().nullable(),
+  sexo: z.enum(['Macho', 'Fêmea'], { message: 'Sexo inválido' }),
   tipo_rebanho: z
-    .enum(['leiteiro', 'corte'], { message: 'Tipo de rebanho inválido' })
+    .enum(['leiteiro', 'corte', 'dupla_aptidao'], {
+      message: 'Tipo de rebanho inválido',
+    })
     .default('leiteiro'),
-  data_nascimento: z
-    .string()
-    .refine((val) => {
-      const date = new Date(val);
-      return date <= new Date() && !isNaN(date.getTime());
-    }, 'Data de nascimento deve ser válida e não futura'),
-  lote_id: z.string().uuid('Lote inválido').nullable().optional(),
-  mae_id: z.string().uuid('Mãe inválida').nullable().optional(),
-  pai_id: z.string().uuid('Pai inválido').nullable().optional(),
-  raca: z
-    .string()
-    .max(255, 'Máximo 255 caracteres')
-    .optional()
-    .nullable(),
-  observacoes: z
-    .string()
-    .optional()
-    .nullable(),
+  data_nascimento: z.string().refine((val) => {
+    const d = new Date(val);
+    return !isNaN(d.getTime()) && d <= new Date();
+  }, 'Data deve ser válida e não futura'),
+  data_nascimento_estimada: z.boolean().default(false),
+  lote_id: z.string().uuid().nullable().optional(),
+  mae_id: z.string().uuid().nullable().optional(),
+  pai_id: z.string().uuid().nullable().optional(),
+  raca: z.string().max(255).optional().nullable(),
+  origem: z.enum(['nascido', 'comprado']).optional().nullable(),
+  peso_nascimento: z.number().positive().max(200).optional().nullable(),
+  sisbov_crbio: z.string().max(100).optional().nullable(),
+  observacoes: z.string().optional().nullable(),
 });
 
 export const editarAnimalSchema = z.object({
@@ -63,15 +58,9 @@ export type EditarAnimalInput = z.infer<typeof editarAnimalSchema>;
 // ========== LOTE ==========
 
 export const criarLoteSchema = z.object({
-  nome: z
-    .string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(255, 'Máximo 255 caracteres'),
-  descricao: z
-    .string()
-    .max(500, 'Máximo 500 caracteres')
-    .optional()
-    .nullable(),
+  nome: z.string().min(2, 'Mínimo 2 caracteres').max(255),
+  descricao: z.string().max(500).optional().nullable(),
+  tipo_rebanho: z.enum(['leiteiro', 'corte', 'misto']).optional().nullable(),
 });
 
 export const editarLoteSchema = criarLoteSchema;
@@ -98,18 +87,15 @@ export type CriarEventoNascimentoInput = z.infer<typeof criarEventoNascimentoSch
 // ========== EVENTOS — PESAGEM ==========
 
 export const criarEventoPesagemSchema = z.object({
-  animal_id: z.string().uuid('Animal inválido'),
+  animal_id: z.string().uuid(),
   tipo: z.literal(TipoEvento.PESAGEM),
-  data_evento: z
-    .string()
-    .refine((val) => {
-      const date = new Date(val);
-      return date <= new Date() && !isNaN(date.getTime());
-    }, 'Data do evento deve ser válida e não futura'),
-  peso_kg: z
-    .number()
-    .positive('Peso deve ser maior que 0')
-    .max(2000, 'Peso máximo: 2000 kg'),
+  data_evento: z.string().refine((val) => {
+    const d = new Date(val);
+    return !isNaN(d.getTime()) && d <= new Date();
+  }, 'Data deve ser válida e não futura'),
+  peso_kg: z.number().positive('Peso deve ser maior que 0').max(2000),
+  metodo: z.enum(['balanca', 'estimativa_visual']).optional(),
+  condicao_corporal: z.number().int().min(1).max(5).optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });
 
@@ -178,6 +164,78 @@ export const criarEventoSchema = z.union([
 
 export type CriarEventoInput = z.infer<typeof criarEventoSchema>;
 
+// ========== PRODUÇÃO LEITEIRA ==========
+
+export const criarProducaoLeiteiraSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  data: z.string().refine((val) => {
+    const d = new Date(val);
+    return !isNaN(d.getTime()) && d <= new Date();
+  }, 'Data inválida ou futura'),
+  turno: z.enum(['manha', 'tarde', 'noite', 'dia_inteiro'], {
+    message: 'Turno inválido',
+  }),
+  volume_litros: z.number().positive('Volume deve ser > 0').max(100),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarProducaoLeiteiraInput = z.infer<typeof criarProducaoLeiteiraSchema>;
+
+// ========== EVENTOS SANITÁRIOS ==========
+
+export const criarEventoSanitarioSchema = z.discriminatedUnion('tipo', [
+  // Vacinação
+  z.object({
+    tipo: z.literal('vacinacao'),
+    animal_id: z.string().uuid(),
+    data_evento: z.string().refine((v) => !isNaN(new Date(v).getTime())),
+    vacina_nome: z.string().min(1, 'Nome da vacina obrigatório').max(255),
+    dose: z.string().min(1).max(100),
+    via_aplicacao: z.enum(['subcutanea', 'intramuscular', 'intranasal', 'oral', 'topica']),
+    lote_produto: z.string().max(100).optional().nullable(),
+    data_proxima_dose: z.string().optional().nullable(),
+    responsavel: z.string().max(255).optional().nullable(),
+    observacoes: z.string().optional().nullable(),
+  }),
+  // Vermifugação
+  z.object({
+    tipo: z.literal('vermifugacao'),
+    animal_id: z.string().uuid(),
+    data_evento: z.string().refine((v) => !isNaN(new Date(v).getTime())),
+    vacina_nome: z.string().min(1, 'Nome do produto obrigatório').max(255),
+    via_aplicacao: z.enum(['subcutanea', 'intramuscular', 'intranasal', 'oral', 'topica']),
+    lote_produto: z.string().max(100).optional().nullable(),
+    data_proxima_dose: z.string().optional().nullable(),
+    responsavel: z.string().max(255).optional().nullable(),
+    observacoes: z.string().optional().nullable(),
+  }),
+  // Tratamento veterinário
+  z.object({
+    tipo: z.literal('tratamento_veterinario'),
+    animal_id: z.string().uuid(),
+    data_evento: z.string().refine((v) => !isNaN(new Date(v).getTime())),
+    diagnostico: z.string().min(1, 'Diagnóstico obrigatório').max(500),
+    medicamento: z.string().min(1, 'Medicamento obrigatório').max(255),
+    duracao_dias: z.number().int().positive().optional().nullable(),
+    resultado: z.enum(['cura', 'melhora', 'sem_resposta', 'obito', 'em_tratamento']).optional().nullable(),
+    responsavel: z.string().max(255).optional().nullable(),
+    observacoes: z.string().optional().nullable(),
+  }),
+  // Exame laboratorial
+  z.object({
+    tipo: z.literal('exame_laboratorial'),
+    animal_id: z.string().uuid(),
+    data_evento: z.string().refine((v) => !isNaN(new Date(v).getTime())),
+    tipo_exame: z.string().min(1, 'Tipo de exame obrigatório').max(255),
+    resultado: z.string().max(500).optional().nullable(),
+    numero_protocolo: z.string().max(100).optional().nullable(),
+    responsavel: z.string().max(255).optional().nullable(),
+    observacoes: z.string().optional().nullable(),
+  }),
+]);
+
+export type CriarEventoSanitarioInput = z.infer<typeof criarEventoSanitarioSchema>;
+
 // ========== CSV IMPORT ==========
 
 export const animalCSVRowSchema = z.object({
@@ -207,8 +265,9 @@ export const animalCSVRowSchema = z.object({
       const [d, m, y] = val.split('/');
       return `${y}-${m}-${d}`;
     }),
+  data_nascimento_estimada: z.boolean().default(false).optional(),
   tipo_rebanho: z
-    .enum(['leiteiro', 'corte'])
+    .enum(['leiteiro', 'corte', 'dupla_aptidao'])
     .default('leiteiro'),
   lote: z.string().optional().nullable(),
   raca: z.string().max(255).optional().nullable(),

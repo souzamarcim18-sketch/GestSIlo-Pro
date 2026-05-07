@@ -43,6 +43,10 @@ export default function RebanhosPage() {
   const [busca, setBusca] = useState('');
   const [filtroStatus, setFiltroStatus] = useState<string | null>(null);
   const [filtroLote, setFiltroLote] = useState<string | null>(null);
+  const [filtroTipo, setFiltroTipo] = useState<string | null>(null);
+  const [filtroSexo, setFiltroSexo] = useState<string | null>(null);
+  const [filtroCategoria, setFiltroCategoria] = useState<string | null>(null);
+  const [categorias, setCategorias] = useState<Set<string>>(new Set());
 
   const isAdmin = profile?.perfil === 'Administrador';
 
@@ -54,6 +58,8 @@ export default function RebanhosPage() {
           {
             status: filtroStatus ? filtroStatus : undefined,
             lote_id: filtroLote ? filtroLote : undefined,
+            tipo_rebanho: filtroTipo ? filtroTipo : undefined,
+            sexo: filtroSexo ? filtroSexo : undefined,
             busca: busca || undefined,
           },
           100,
@@ -64,12 +70,19 @@ export default function RebanhosPage() {
 
       setAnimais(animaisData);
       setLotes(lotesData);
+
+      const categoriasSet = new Set(animaisData.map(a => a.categoria).filter(c => c));
+      setCategorias(categoriasSet);
     } catch (err) {
       toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  }, [filtroStatus, filtroLote, busca]);
+  }, [filtroStatus, filtroLote, filtroTipo, filtroSexo, busca]);
+
+  const animaisFiltrados = filtroCategoria
+    ? animais.filter(a => a.categoria === filtroCategoria)
+    : animais;
 
   useEffect(() => {
     if (authLoading) return;
@@ -115,7 +128,7 @@ export default function RebanhosPage() {
             <CardTitle className="text-lg">Filtros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-6">
               <div>
                 <label className="text-sm font-medium">Buscar por Brinco</label>
                 <Input
@@ -127,7 +140,7 @@ export default function RebanhosPage() {
               </div>
               <div>
                 <label className="text-sm font-medium">Status</label>
-                <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                <Select value={filtroStatus || ''} onValueChange={(val) => setFiltroStatus(val || null)}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
@@ -136,12 +149,56 @@ export default function RebanhosPage() {
                     <SelectItem value="Ativo">Ativo</SelectItem>
                     <SelectItem value="Morto">Morto</SelectItem>
                     <SelectItem value="Vendido">Vendido</SelectItem>
+                    <SelectItem value="Descartado">Descartado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Tipo Rebanho</label>
+                <Select value={filtroTipo || ''} onValueChange={(val) => setFiltroTipo(val || null)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="leiteiro">Leiteiro</SelectItem>
+                    <SelectItem value="corte">Corte</SelectItem>
+                    <SelectItem value="dupla_aptidao">Dupla Aptidão</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Sexo</label>
+                <Select value={filtroSexo || ''} onValueChange={(val) => setFiltroSexo(val || null)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="Macho">Macho</SelectItem>
+                    <SelectItem value="Fêmea">Fêmea</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Categoria</label>
+                <Select value={filtroCategoria || ''} onValueChange={(val) => setFiltroCategoria(val || null)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    {Array.from(categorias).sort().map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <label className="text-sm font-medium">Lote</label>
-                <Select value={filtroLote} onValueChange={setFiltroLote}>
+                <Select value={filtroLote || ''} onValueChange={(val) => setFiltroLote(val || null)}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
@@ -166,7 +223,7 @@ export default function RebanhosPage() {
               <div className="flex items-center justify-center h-96">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : animais.length === 0 ? (
+            ) : animaisFiltrados.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-96 text-center">
                 <p className="text-muted-foreground mb-4">Nenhum animal encontrado</p>
                 {isAdmin && (
@@ -190,7 +247,7 @@ export default function RebanhosPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {animais.map((animal) => (
+                    {animaisFiltrados.map((animal) => (
                       <TableRow
                         key={animal.id}
                         onClick={() => router.push(`/dashboard/rebanho/${animal.id}`)}
@@ -242,7 +299,7 @@ export default function RebanhosPage() {
         </Card>
 
         <p className="text-sm text-muted-foreground">
-          Total de {animais.length} animal(is) encontrado(s)
+          Total de {animaisFiltrados.length} animal(is) encontrado(s)
         </p>
       </div>
     </div>

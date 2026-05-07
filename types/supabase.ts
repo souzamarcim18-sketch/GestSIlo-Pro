@@ -90,6 +90,7 @@ export type Database = {
           categoria: string
           created_at: string
           data_nascimento: string
+          data_nascimento_estimada: boolean
           data_parto_previsto: string | null
           data_proxima_secagem: string | null
           data_ultimo_parto: string | null
@@ -97,17 +98,22 @@ export type Database = {
           escore_condicao_corporal: number | null
           fazenda_id: string
           flag_repetidora: boolean | null
+          foto_url: string | null
           id: string
           is_reprodutor: boolean
           lote_id: string | null
           mae_id: string | null
+          nome: string | null
           numero_animal: string
           observacoes: string | null
+          origem: string | null
           pai_id: string | null
           peso_atual: number | null
+          peso_nascimento: number | null
           raca: string | null
           reprodutor_vinculado_id: string | null
           sexo: string
+          sisbov_crbio: string | null
           status: Database["public"]["Enums"]["status_animal"]
           status_reprodutivo: string | null
           tipo_rebanho: Database["public"]["Enums"]["categoria_animal"]
@@ -118,6 +124,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           data_nascimento: string
+          data_nascimento_estimada?: boolean
           data_parto_previsto?: string | null
           data_proxima_secagem?: string | null
           data_ultimo_parto?: string | null
@@ -125,17 +132,22 @@ export type Database = {
           escore_condicao_corporal?: number | null
           fazenda_id: string
           flag_repetidora?: boolean | null
+          foto_url?: string | null
           id?: string
           is_reprodutor?: boolean
           lote_id?: string | null
           mae_id?: string | null
+          nome?: string | null
           numero_animal: string
           observacoes?: string | null
+          origem?: string | null
           pai_id?: string | null
           peso_atual?: number | null
+          peso_nascimento?: number | null
           raca?: string | null
           reprodutor_vinculado_id?: string | null
           sexo: string
+          sisbov_crbio?: string | null
           status?: Database["public"]["Enums"]["status_animal"]
           status_reprodutivo?: string | null
           tipo_rebanho?: Database["public"]["Enums"]["categoria_animal"]
@@ -146,6 +158,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           data_nascimento?: string
+          data_nascimento_estimada?: boolean
           data_parto_previsto?: string | null
           data_proxima_secagem?: string | null
           data_ultimo_parto?: string | null
@@ -153,17 +166,22 @@ export type Database = {
           escore_condicao_corporal?: number | null
           fazenda_id?: string
           flag_repetidora?: boolean | null
+          foto_url?: string | null
           id?: string
           is_reprodutor?: boolean
           lote_id?: string | null
           mae_id?: string | null
+          nome?: string | null
           numero_animal?: string
           observacoes?: string | null
+          origem?: string | null
           pai_id?: string | null
           peso_atual?: number | null
+          peso_nascimento?: number | null
           raca?: string | null
           reprodutor_vinculado_id?: string | null
           sexo?: string
+          sisbov_crbio?: string | null
           status?: Database["public"]["Enums"]["status_animal"]
           status_reprodutivo?: string | null
           tipo_rebanho?: Database["public"]["Enums"]["categoria_animal"]
@@ -1022,6 +1040,103 @@ export type Database = {
           },
         ]
       }
+      eventos_sanitarios: {
+        Row: {
+          animal_id: string
+          created_at: string
+          data_evento: string
+          data_proxima_dose: string | null
+          deleted_at: string | null
+          diagnostico: string | null
+          dose: string | null
+          duracao_dias: number | null
+          fazenda_id: string
+          id: string
+          lote_produto: string | null
+          medicamento: string | null
+          numero_protocolo: string | null
+          observacoes: string | null
+          responsavel: string | null
+          resultado: string | null
+          tipo: string
+          tipo_exame: string | null
+          updated_at: string
+          usuario_id: string
+          vacina_nome: string | null
+          via_aplicacao: string | null
+        }
+        Insert: {
+          animal_id: string
+          created_at?: string
+          data_evento: string
+          data_proxima_dose?: string | null
+          deleted_at?: string | null
+          diagnostico?: string | null
+          dose?: string | null
+          duracao_dias?: number | null
+          fazenda_id: string
+          id?: string
+          lote_produto?: string | null
+          medicamento?: string | null
+          numero_protocolo?: string | null
+          observacoes?: string | null
+          responsavel?: string | null
+          resultado?: string | null
+          tipo: string
+          tipo_exame?: string | null
+          updated_at?: string
+          usuario_id: string
+          vacina_nome?: string | null
+          via_aplicacao?: string | null
+        }
+        Update: {
+          animal_id?: string
+          created_at?: string
+          data_evento?: string
+          data_proxima_dose?: string | null
+          deleted_at?: string | null
+          diagnostico?: string | null
+          dose?: string | null
+          duracao_dias?: number | null
+          fazenda_id?: string
+          id?: string
+          lote_produto?: string | null
+          medicamento?: string | null
+          numero_protocolo?: string | null
+          observacoes?: string | null
+          responsavel?: string | null
+          resultado?: string | null
+          tipo?: string
+          tipo_exame?: string | null
+          updated_at?: string
+          usuario_id?: string
+          vacina_nome?: string | null
+          via_aplicacao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_sanitarios_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_sanitarios_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_sanitarios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fazendas: {
         Row: {
           area_total: number | null
@@ -1267,6 +1382,7 @@ export type Database = {
           fazenda_id: string
           id: string
           nome: string
+          tipo_rebanho: string | null
           updated_at: string
         }
         Insert: {
@@ -1276,6 +1392,7 @@ export type Database = {
           fazenda_id: string
           id?: string
           nome: string
+          tipo_rebanho?: string | null
           updated_at?: string
         }
         Update: {
@@ -1285,6 +1402,7 @@ export type Database = {
           fazenda_id?: string
           id?: string
           nome?: string
+          tipo_rebanho?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1687,28 +1805,34 @@ export type Database = {
       pesos_animal: {
         Row: {
           animal_id: string
+          condicao_corporal: number | null
           created_at: string
           data_pesagem: string
           fazenda_id: string
           id: string
+          metodo: string
           observacoes: string | null
           peso_kg: number
         }
         Insert: {
           animal_id: string
+          condicao_corporal?: number | null
           created_at?: string
           data_pesagem: string
           fazenda_id: string
           id?: string
+          metodo?: string
           observacoes?: string | null
           peso_kg: number
         }
         Update: {
           animal_id?: string
+          condicao_corporal?: number | null
           created_at?: string
           data_pesagem?: string
           fazenda_id?: string
           id?: string
+          metodo?: string
           observacoes?: string | null
           peso_kg?: number
         }
@@ -1826,6 +1950,64 @@ export type Database = {
             columns: ["maquina_id"]
             isOneToOne: false
             referencedRelation: "maquinas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      producoes_leiteiras: {
+        Row: {
+          animal_id: string
+          created_at: string
+          data: string
+          fazenda_id: string
+          id: string
+          observacoes: string | null
+          turno: string
+          usuario_id: string
+          volume_litros: number
+        }
+        Insert: {
+          animal_id: string
+          created_at?: string
+          data: string
+          fazenda_id: string
+          id?: string
+          observacoes?: string | null
+          turno: string
+          usuario_id: string
+          volume_litros: number
+        }
+        Update: {
+          animal_id?: string
+          created_at?: string
+          data?: string
+          fazenda_id?: string
+          id?: string
+          observacoes?: string | null
+          turno?: string
+          usuario_id?: string
+          volume_litros?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producoes_leiteiras_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producoes_leiteiras_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producoes_leiteiras_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2281,8 +2463,8 @@ export type Database = {
       sou_gerente_ou_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      categoria_animal: "leiteiro" | "corte"
-      status_animal: "Ativo" | "Morto" | "Vendido"
+      categoria_animal: "leiteiro" | "corte" | "dupla_aptidao"
+      status_animal: "Ativo" | "Morto" | "Vendido" | "Descartado"
       tipo_evento_rebanho:
         | "nascimento"
         | "pesagem"
@@ -2422,8 +2604,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      categoria_animal: ["leiteiro", "corte"],
-      status_animal: ["Ativo", "Morto", "Vendido"],
+      categoria_animal: ["leiteiro", "corte", "dupla_aptidao"],
+      status_animal: ["Ativo", "Morto", "Vendido", "Descartado"],
       tipo_evento_rebanho: [
         "nascimento",
         "pesagem",

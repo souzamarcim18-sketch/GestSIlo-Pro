@@ -294,6 +294,8 @@ export default function AnimalDetailPage() {
                         <TableRow>
                           <TableHead>Data</TableHead>
                           <TableHead>Peso</TableHead>
+                          <TableHead>Método</TableHead>
+                          <TableHead>CC</TableHead>
                           <TableHead>Observações</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -302,6 +304,12 @@ export default function AnimalDetailPage() {
                           <TableRow key={peso.id}>
                             <TableCell>{new Date(peso.data_pesagem).toLocaleDateString('pt-BR')}</TableCell>
                             <TableCell className="font-medium">{peso.peso_kg} kg</TableCell>
+                            <TableCell className="text-sm">
+                              {peso.metodo === 'balanca' ? 'Balança' : 'Estimativa visual'}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {peso.condicao_corporal ? `${peso.condicao_corporal}/5` : '—'}
+                            </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {peso.observacoes || '—'}
                             </TableCell>

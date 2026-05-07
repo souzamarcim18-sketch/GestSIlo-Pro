@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import {
   criarAnimalSchema,
   editarAnimalSchema,
@@ -39,6 +40,10 @@ export async function criarAnimalAction(
     revalidatePath('/dashboard/rebanho');
     return { success: true, animal_id: resultado.id };
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const mensagem = error.issues.map((e) => e.message).join('; ');
+      return { success: false, error: mensagem };
+    }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, error: mensagem };
   }
@@ -54,6 +59,10 @@ export async function editarAnimalAction(
     revalidatePath('/dashboard/rebanho');
     return { success: true };
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const mensagem = error.issues.map((e) => e.message).join('; ');
+      return { success: false, error: mensagem };
+    }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, error: mensagem };
   }
@@ -83,6 +92,10 @@ export async function criarLoteAction(
     revalidatePath('/dashboard/rebanho');
     return { success: true, lote_id: resultado.id };
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const mensagem = error.issues.map((e) => e.message).join('; ');
+      return { success: false, error: mensagem };
+    }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, error: mensagem };
   }
@@ -98,6 +111,10 @@ export async function editarLoteAction(
     revalidatePath('/dashboard/rebanho');
     return { success: true };
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const mensagem = error.issues.map((e) => e.message).join('; ');
+      return { success: false, error: mensagem };
+    }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, error: mensagem };
   }

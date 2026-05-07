@@ -42,8 +42,8 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
       const resultado = calcularComposicaoRebanho(ANIMAIS_FIXTURE);
 
       expect(resultado.total).toBe(10);
-      expect(resultado.por_sexo.machos).toBe(3); // a5 (Touro), c2, c3
-      expect(resultado.por_sexo.femeas).toBe(7); // a1, a2, a3, a4, a6, a7, c1
+      expect(resultado.por_sexo.Macho).toBe(3); // a5 (Touro), c2, c3
+      expect(resultado.por_sexo.Fêmea).toBe(7); // a1, a2, a3, a4, a6, a7, c1
       expect(resultado.por_vocacao.leiteiro).toBe(7);
       expect(resultado.por_vocacao.corte).toBe(3);
       expect(resultado.por_categoria['Vaca em Lactação']).toBe(3);

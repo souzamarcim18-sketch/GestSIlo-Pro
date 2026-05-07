@@ -1,19 +1,23 @@
 /**
  * Tipos TypeScript para o módulo de Rebanho
- * Baseado em: SPEC-rebanho.md (2026-04-30)
+ * Baseado em: SPEC-rebanho.md (2026-05-07)
  */
+
+import type { StatusReprodutivo } from './rebanho-reproducao';
 
 // ========== ENUMS ==========
 
 export enum TipoRebanho {
   LEITEIRO = 'leiteiro',
   CORTE = 'corte',
+  DUPLA_APTIDAO = 'dupla_aptidao',
 }
 
 export enum StatusAnimal {
   ATIVO = 'Ativo',
   MORTO = 'Morto',
   VENDIDO = 'Vendido',
+  DESCARTADO = 'Descartado',
 }
 
 export enum TipoEvento {
@@ -30,17 +34,32 @@ export interface Animal {
   id: string;
   fazenda_id: string;
   brinco: string;
+  nome: string | null;
   sexo: 'Macho' | 'Fêmea';
   tipo_rebanho: TipoRebanho;
   data_nascimento: string; // ISO date
+  data_nascimento_estimada: boolean;
   categoria: string;
   status: StatusAnimal;
   lote_id: string | null;
   peso_atual: number | null;
+  peso_nascimento: number | null;
   mae_id: string | null;
   pai_id: string | null;
   raca: string | null;
   observacoes: string | null;
+  sisbov_crbio: string | null;
+  origem: 'nascido' | 'comprado' | null;
+  foto_url: string | null;
+  // Campos reprodutivos
+  status_reprodutivo: StatusReprodutivo | null;
+  data_ultimo_parto: string | null;
+  data_parto_previsto: string | null;
+  data_proxima_secagem: string | null;
+  escore_condicao_corporal: number | null;
+  flag_repetidora: boolean;
+  is_reprodutor: boolean;
+  reprodutor_vinculado_id: string | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -51,6 +70,7 @@ export interface Lote {
   fazenda_id: string;
   nome: string;
   descricao: string | null;
+  tipo_rebanho: 'leiteiro' | 'corte' | 'misto' | null;
   data_criacao: string;
   created_at: string;
   updated_at: string;
@@ -79,6 +99,8 @@ export interface PesoAnimal {
   animal_id: string;
   data_pesagem: string; // ISO date
   peso_kg: number;
+  metodo: 'balanca' | 'estimativa_visual';
+  condicao_corporal: 1 | 2 | 3 | 4 | 5 | null;
   observacoes: string | null;
   created_at: string;
 }
@@ -126,7 +148,20 @@ export type EventoPayload =
 
 export type AnimalInput = Omit<
   Animal,
-  'id' | 'fazenda_id' | 'categoria' | 'peso_atual' | 'created_at' | 'updated_at' | 'deleted_at'
+  | 'id'
+  | 'fazenda_id'
+  | 'categoria'
+  | 'peso_atual'
+  | 'status_reprodutivo'
+  | 'data_ultimo_parto'
+  | 'data_parto_previsto'
+  | 'data_proxima_secagem'
+  | 'flag_repetidora'
+  | 'is_reprodutor'
+  | 'reprodutor_vinculado_id'
+  | 'created_at'
+  | 'updated_at'
+  | 'deleted_at'
 >;
 
 export type LoteInput = Omit<Lote, 'id' | 'fazenda_id' | 'data_criacao' | 'created_at' | 'updated_at'>;
