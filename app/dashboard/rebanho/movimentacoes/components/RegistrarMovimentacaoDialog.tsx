@@ -321,7 +321,7 @@ export default function RegistrarMovimentacaoDialog({
                     <Label htmlFor="fornecedor">Fornecedor *</Label>
                     <Input
                       id="fornecedor"
-                      value={fornecedor}
+                      value={fornecedor ?? ''}
                       onChange={(e) => setFornecedor(e.target.value)}
                       placeholder="Nome do fornecedor"
                       required
@@ -430,7 +430,7 @@ export default function RegistrarMovimentacaoDialog({
                     <Label htmlFor="comprador">Comprador *</Label>
                     <Input
                       id="comprador"
-                      value={comprador}
+                      value={comprador ?? ''}
                       onChange={(e) => setComprador(e.target.value)}
                       placeholder="Nome do comprador"
                       required
@@ -550,7 +550,7 @@ export default function RegistrarMovimentacaoDialog({
                     <Label htmlFor="motivoDescarte">Motivo do Descarte *</Label>
                     <Input
                       id="motivoDescarte"
-                      value={motivoDescarte}
+                      value={motivoDescarte ?? ''}
                       onChange={(e) => setMotivoDescarte(e.target.value)}
                       placeholder="Descreva o motivo do descarte"
                       required
