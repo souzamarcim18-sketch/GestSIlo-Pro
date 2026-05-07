@@ -63,7 +63,7 @@ export async function buscarPesosNoPeriodo(
   let query = supabase
     .from('pesos_animal')
     .select(
-      'id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at, updated_at'
+      'id, fazenda_id, animal_id, data_pesagem, peso_kg, observacoes, created_at'
     )
     .gte('data_pesagem', dataInicio)
     .lte('data_pesagem', dataFim)
