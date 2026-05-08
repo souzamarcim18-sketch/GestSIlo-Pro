@@ -46,7 +46,7 @@ const queryAnimais = {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return (data as Animal) || null;
+    return data ? JSON.parse(JSON.stringify(data as Animal)) : null;
   },
 
   async getById(id: string): Promise<Animal> {
@@ -61,7 +61,7 @@ const queryAnimais = {
       .single();
 
     if (error) throw error;
-    return data as Animal;
+    return JSON.parse(JSON.stringify(data as Animal));
   },
 
   async create(payload: CriarAnimalInput): Promise<Animal> {
@@ -79,7 +79,7 @@ const queryAnimais = {
       .single();
 
     if (error) throw error;
-    return data as Animal;
+    return JSON.parse(JSON.stringify(data as Animal));
   },
 
   async update(id: string, payload: EditarAnimalInput): Promise<Animal> {
@@ -94,7 +94,7 @@ const queryAnimais = {
       .single();
 
     if (error) throw error;
-    return data as Animal;
+    return JSON.parse(JSON.stringify(data as Animal));
   },
 
   async softDelete(id: string): Promise<void> {
@@ -122,7 +122,7 @@ const queryLotes = {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return (data as Lote) || null;
+    return data ? JSON.parse(JSON.stringify(data as Lote)) : null;
   },
 
   async getById(id: string): Promise<Lote> {
@@ -134,7 +134,7 @@ const queryLotes = {
       .single();
 
     if (error) throw error;
-    return data as Lote;
+    return JSON.parse(JSON.stringify(data as Lote));
   },
 
   async create(payload: CriarLoteInput): Promise<Lote> {
@@ -146,7 +146,7 @@ const queryLotes = {
       .single();
 
     if (error) throw error;
-    return data as Lote;
+    return JSON.parse(JSON.stringify(data as Lote));
   },
 
   async update(id: string, payload: Partial<CriarLoteInput>): Promise<Lote> {
@@ -159,7 +159,7 @@ const queryLotes = {
       .single();
 
     if (error) throw error;
-    return data as Lote;
+    return JSON.parse(JSON.stringify(data as Lote));
   },
 
   async delete(id: string): Promise<void> {
@@ -214,7 +214,7 @@ const queryEventos = {
       .single();
 
     if (error) throw error;
-    return data as EventoRebanho;
+    return JSON.parse(JSON.stringify(data as EventoRebanho));
   },
 };
 
@@ -497,7 +497,7 @@ export async function listAnimais(
   const { data, error } = await query;
 
   if (error) throw error;
-  return (data as Animal[]) || [];
+  return JSON.parse(JSON.stringify((data as Animal[]) || []));
 }
 
 export async function listLotes(
@@ -513,7 +513,7 @@ export async function listLotes(
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return (data as Lote[]) || [];
+  return JSON.parse(JSON.stringify((data as Lote[]) || []));
 }
 
 export async function listEventosPorAnimal(animalId: string): Promise<EventoRebanho[]> {
@@ -529,7 +529,7 @@ export async function listEventosPorAnimal(animalId: string): Promise<EventoReba
     .order('data_evento', { ascending: false });
 
   if (error) throw error;
-  return (data as EventoRebanho[]) || [];
+  return JSON.parse(JSON.stringify((data as EventoRebanho[]) || []));
 }
 
 export async function listPesosPorAnimal(animalId: string): Promise<PesoAnimal[]> {
@@ -542,7 +542,7 @@ export async function listPesosPorAnimal(animalId: string): Promise<PesoAnimal[]
     .order('data_pesagem', { ascending: false });
 
   if (error) throw error;
-  return (data as PesoAnimal[]) || [];
+  return JSON.parse(JSON.stringify((data as PesoAnimal[]) || []));
 }
 
 export async function countAnimaisEmLote(loteId: string): Promise<number> {
@@ -571,7 +571,7 @@ export async function listAnimaisEmLote(loteId: string): Promise<Animal[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data as Animal[]) || [];
+  return JSON.parse(JSON.stringify((data as Animal[]) || []));
 }
 
 export async function getLoteById(loteId: string): Promise<Lote | null> {

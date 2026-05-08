@@ -8,8 +8,8 @@ export type PeriodoPreset = z.infer<typeof periodoPresetSchema>;
 export const filtrosIndicadoresSchema = z
   .object({
     periodo: periodoPresetSchema,
-    dataInicio: z.date().optional(),
-    dataFim: z.date().optional(),
+    dataInicio: z.union([z.date(), z.string()]).optional(),
+    dataFim: z.union([z.date(), z.string()]).optional(),
     lotes: z.array(z.string().uuid()).optional(),
     categorias: z.array(z.string()).optional(),
   })
@@ -19,7 +19,12 @@ export const filtrosIndicadoresSchema = z
     { message: 'dataInicio e dataFim são obrigatórios se periodo = custom', path: ['dataInicio'] }
   )
   .refine(
-    (data) => !data.dataInicio || !data.dataFim || data.dataFim >= data.dataInicio,
+    (data) => {
+      if (!data.dataInicio || !data.dataFim) return true;
+      const inicio = typeof data.dataInicio === 'string' ? new Date(data.dataInicio) : data.dataInicio;
+      const fim = typeof data.dataFim === 'string' ? new Date(data.dataFim) : data.dataFim;
+      return fim >= inicio;
+    },
     { message: 'dataFim deve ser >= dataInicio', path: ['dataFim'] }
   );
 

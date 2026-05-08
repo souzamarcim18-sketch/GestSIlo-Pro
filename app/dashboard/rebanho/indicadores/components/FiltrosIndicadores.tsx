@@ -69,8 +69,8 @@ export function FiltrosIndicadores({
 
     return {
       periodo: filtrosAtuais.periodo,
-      dataInicio: filtrosAtuais.dataInicio ? filtrosAtuais.dataInicio.toISOString().split('T')[0] : '',
-      dataFim: filtrosAtuais.dataFim ? filtrosAtuais.dataFim.toISOString().split('T')[0] : '',
+      dataInicio: filtrosAtuais.dataInicio ? (typeof filtrosAtuais.dataInicio === 'string' ? filtrosAtuais.dataInicio : filtrosAtuais.dataInicio.toISOString().split('T')[0]) : '',
+      dataFim: filtrosAtuais.dataFim ? (typeof filtrosAtuais.dataFim === 'string' ? filtrosAtuais.dataFim : filtrosAtuais.dataFim.toISOString().split('T')[0]) : '',
       lotes: filtrosAtuais.lotes || [],
       categorias: filtrosAtuais.categorias || [],
     };
@@ -220,19 +220,13 @@ export function FiltrosIndicadores({
         <div className="space-y-2">
           <Label className="text-xs font-medium text-gray-700">Lotes</Label>
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button
-                variant="outline"
-                className="h-9 w-full justify-between text-sm"
-                disabled={isLoading}
-              >
-                <span className="truncate text-xs">
-                  {lotesSelecionados.length === 0
-                    ? 'Selecionar lotes'
-                    : `${lotesSelecionados.length} lote(s)`}
-                </span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
-              </Button>
+            <DropdownMenuTrigger className="h-9 w-full justify-between text-sm inline-flex items-center rounded-lg border border-input bg-background px-3 py-2 hover:bg-muted disabled:opacity-50" disabled={isLoading}>
+              <span className="truncate text-xs">
+                {lotesSelecionados.length === 0
+                  ? 'Selecionar lotes'
+                  : `${lotesSelecionados.length} lote(s)`}
+              </span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
               <DropdownMenuLabel className="text-xs">Lotes disponíveis</DropdownMenuLabel>
@@ -261,19 +255,13 @@ export function FiltrosIndicadores({
         <div className="space-y-2">
           <Label className="text-xs font-medium text-gray-700">Categorias</Label>
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button
-                variant="outline"
-                className="h-9 w-full justify-between text-sm"
-                disabled={isLoading}
-              >
-                <span className="truncate text-xs">
-                  {categoriasSelecionadas.length === 0
-                    ? 'Selecionar categorias'
-                    : `${categoriasSelecionadas.length} categoria(s)`}
-                </span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
-              </Button>
+            <DropdownMenuTrigger className="h-9 w-full justify-between text-sm inline-flex items-center rounded-lg border border-input bg-background px-3 py-2 hover:bg-muted disabled:opacity-50" disabled={isLoading}>
+              <span className="truncate text-xs">
+                {categoriasSelecionadas.length === 0
+                  ? 'Selecionar categorias'
+                  : `${categoriasSelecionadas.length} categoria(s)`}
+              </span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
               <DropdownMenuLabel className="text-xs">Categorias disponíveis</DropdownMenuLabel>

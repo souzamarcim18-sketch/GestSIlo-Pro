@@ -1,5 +1,3 @@
-'use server';
-
 import { createSupabaseServerClient } from './server';
 import type { Animal, Lote, EventoRebanho } from '@/lib/types/rebanho';
 
@@ -7,7 +5,7 @@ import type { Animal, Lote, EventoRebanho } from '@/lib/types/rebanho';
 // TIPOS DE MOVIMENTAÇÕES
 // ---------------------------------------------------------------------------
 
-export type TipoMovimentacao = 'morte' | 'venda' | 'nascimento' | 'transferencia_lote' | 'descarte' | 'compra' | 'abate_proprio';
+export type TipoMovimentacao = 'morte' | 'venda' | 'nascimento' | 'transferencia_lote' | 'descarte';
 
 export interface MovimentacaoListItem {
   id: string;
@@ -118,11 +116,10 @@ export const queryMovimentacoes = {
       .from('eventos_rebanho')
       .select(
         `id, tipo, data_evento, observacoes, comprador, valor_venda, lote_id_destino, motivo_descarte,
-         animal_id, animais:animal_id(id, brinco, nome, categoria, tipo_rebanho, peso_atual),
-         lotes:lotes_info(nome)`,
+         animal_id, animais:animal_id(id, brinco, nome, categoria, tipo_rebanho, peso_atual)`,
         { count: 'exact' }
       )
-      .in('tipo', ['morte', 'venda', 'nascimento', 'transferencia_lote', 'descarte', 'compra', 'abate_proprio'])
+      .in('tipo', ['morte', 'venda', 'nascimento', 'transferencia_lote', 'descarte'])
       .is('deleted_at', null)
       .order('data_evento', { ascending: false });
 
@@ -166,13 +163,13 @@ export const queryMovimentacoes = {
       categoria: item.animais?.categoria || '',
       tipo_rebanho: item.animais?.tipo_rebanho || '',
       peso_atual: item.animais?.peso_atual || null,
-      lote_nome: item.lotes_info?.nome || null,
+      lote_nome: null,
     }));
 
-    return {
+    return JSON.parse(JSON.stringify({
       data: movimentacoes,
       total: count || 0,
-    };
+    }));
   },
 
   async getResumo(data_inicio: string, data_fim: string): Promise<MovimentacaoResumoPeriodo> {
@@ -182,7 +179,7 @@ export const queryMovimentacoes = {
     const { data, error } = await supabase
       .from('eventos_rebanho')
       .select('tipo, valor_venda')
-      .in('tipo', ['morte', 'venda', 'nascimento', 'transferencia_lote', 'descarte', 'compra', 'abate_proprio'])
+      .in('tipo', ['morte', 'venda', 'nascimento', 'transferencia_lote', 'descarte'])
       .gte('data_evento', data_inicio)
       .lte('data_evento', data_fim)
       .is('deleted_at', null);
@@ -206,12 +203,12 @@ export const queryMovimentacoes = {
       .filter((e: any) => e.tipo === 'venda' && e.valor_venda)
       .reduce((sum: number, e: any) => sum + (e.valor_venda || 0), 0);
 
-    return {
+    return JSON.parse(JSON.stringify({
       entradas,
       saidas,
       saldo,
       valor_vendas,
-    };
+    }));
   },
 
   async getHistoricoAnimal(animal_id: string): Promise<MovimentacaoListItem[]> {
@@ -221,17 +218,16 @@ export const queryMovimentacoes = {
       .from('eventos_rebanho')
       .select(
         `id, tipo, data_evento, observacoes, comprador, valor_venda, lote_id_destino, motivo_descarte,
-         animal_id, animais:animal_id(id, brinco, nome, categoria, tipo_rebanho, peso_atual),
-         lotes:lotes_info(nome)`
+         animal_id, animais:animal_id(id, brinco, nome, categoria, tipo_rebanho, peso_atual)`
       )
       .eq('animal_id', animal_id)
-      .in('tipo', ['morte', 'venda', 'nascimento', 'transferencia_lote', 'descarte', 'compra', 'abate_proprio'])
+      .in('tipo', ['morte', 'venda', 'nascimento', 'transferencia_lote', 'descarte'])
       .is('deleted_at', null)
       .order('data_evento', { ascending: true });
 
     if (error) throw error;
 
-    return (data || []).map((item: any) => ({
+    const resultado = (data || []).map((item: any) => ({
       id: item.id,
       tipo: item.tipo,
       data_evento: item.data_evento,
@@ -246,8 +242,10 @@ export const queryMovimentacoes = {
       categoria: item.animais?.categoria || '',
       tipo_rebanho: item.animais?.tipo_rebanho || '',
       peso_atual: item.animais?.peso_atual || null,
-      lote_nome: item.lotes_info?.nome || null,
+      lote_nome: null,
     }));
+
+    return JSON.parse(JSON.stringify(resultado));
   },
 };
 
@@ -270,7 +268,7 @@ export async function registrarNascimento(payload: RegistrarNascimentoPayload): 
     .single();
 
   if (error) throw error;
-  return data as EventoRebanho;
+  return JSON.parse(JSON.stringify(data as EventoRebanho));
 }
 
 export async function registrarCompra(payload: RegistrarCompraPayload): Promise<EventoRebanho> {
@@ -299,7 +297,7 @@ export async function registrarCompra(payload: RegistrarCompraPayload): Promise<
     .single();
 
   if (error) throw error;
-  return data as EventoRebanho;
+  return JSON.parse(JSON.stringify(data as EventoRebanho));
 }
 
 export async function registrarVenda(payload: RegistrarVendaPayload): Promise<EventoRebanho[]> {
@@ -336,7 +334,7 @@ export async function registrarVenda(payload: RegistrarVendaPayload): Promise<Ev
     if (updateError) throw updateError;
   }
 
-  return eventos;
+  return JSON.parse(JSON.stringify(eventos));
 }
 
 export async function registrarMorte(payload: RegistrarMortePayload): Promise<EventoRebanho> {
@@ -373,7 +371,7 @@ export async function registrarMorte(payload: RegistrarMortePayload): Promise<Ev
 
   if (updateError) throw updateError;
 
-  return data as EventoRebanho;
+  return JSON.parse(JSON.stringify(data as EventoRebanho));
 }
 
 export async function registrarDescarte(payload: RegistrarDescartePayload): Promise<EventoRebanho> {
@@ -411,7 +409,7 @@ export async function registrarDescarte(payload: RegistrarDescartePayload): Prom
 
   if (updateError) throw updateError;
 
-  return data as EventoRebanho;
+  return JSON.parse(JSON.stringify(data as EventoRebanho));
 }
 
 export async function registrarAbateProprio(payload: RegistrarAbatePropioPayload): Promise<EventoRebanho> {
@@ -449,7 +447,7 @@ export async function registrarAbateProprio(payload: RegistrarAbatePropioPayload
 
   if (updateError) throw updateError;
 
-  return data as EventoRebanho;
+  return JSON.parse(JSON.stringify(data as EventoRebanho));
 }
 
 export async function registrarTransferencia(payload: RegistrarTransferenciaPayload): Promise<EventoRebanho[]> {
@@ -484,5 +482,5 @@ export async function registrarTransferencia(payload: RegistrarTransferenciaPayl
     if (updateError) throw updateError;
   }
 
-  return eventos;
+  return JSON.parse(JSON.stringify(eventos));
 }

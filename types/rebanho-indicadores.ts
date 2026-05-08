@@ -52,8 +52,8 @@ export interface ResultadoIndicador<T> {
  */
 export interface FiltrosIndicadores {
   periodo: PeriodoPreset;
-  dataInicio?: Date;     // Obrigatório se periodo = 'custom'
-  dataFim?: Date;        // Obrigatório se periodo = 'custom'
+  dataInicio?: Date | string;     // Obrigatório se periodo = 'custom'
+  dataFim?: Date | string;        // Obrigatório se periodo = 'custom'
   lotes?: string[];      // Array de lote_id (multi-select)
   categorias?: string[]; // Array de categorias (Bezerra, Vaca, etc.)
   fazendaId?: string;    // UUID da fazenda (se multi-fazenda)

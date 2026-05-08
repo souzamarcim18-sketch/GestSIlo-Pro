@@ -43,9 +43,9 @@ export default async function CortePage() {
       .order('data_pesagem', { ascending: false }),
   ]);
 
-  const animais = (animaisRes.data || []) as Animal[];
-  const lotes = (lotesRes.data || []) as Lote[];
-  const pesos = (pesosRes.data || []) as PesoAnimal[];
+  const animais = JSON.parse(JSON.stringify((animaisRes.data || []) as Animal[]));
+  const lotes = JSON.parse(JSON.stringify((lotesRes.data || []) as Lote[]));
+  const pesos = JSON.parse(JSON.stringify((pesosRes.data || []) as PesoAnimal[]));
 
   // Dados iniciais (últimos 90 dias)
   const hoje = new Date();

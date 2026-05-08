@@ -53,19 +53,6 @@ export async function registrarMovimentacaoAction(payload: MovimentacaoPayload):
         return { success: true };
       }
 
-      case 'compra': {
-        const p: RegistrarCompraPayload = {
-          animal_id: payload.animal_id || '',
-          data_evento: payload.data_evento,
-          fornecedor: payload.fornecedor || '',
-          peso_entrada_kg: payload.peso_entrada_kg,
-          valor_pago: payload.valor_pago,
-          observacoes: payload.observacoes,
-        };
-        await registrarCompra(p);
-        return { success: true };
-      }
-
       case 'venda': {
         const p: RegistrarVendaPayload = {
           animal_ids: payload.animal_ids || [payload.animal_id || ''],
@@ -98,18 +85,6 @@ export async function registrarMovimentacaoAction(payload: MovimentacaoPayload):
           observacoes: payload.observacoes,
         };
         await registrarDescarte(p);
-        return { success: true };
-      }
-
-      case 'abate_proprio': {
-        const p: RegistrarAbatePropioPayload = {
-          animal_id: payload.animal_id || '',
-          data_evento: payload.data_evento,
-          peso_abate_kg: payload.peso_abate_kg || 0,
-          rendimento_carcaca_pct: payload.rendimento_carcaca_pct,
-          observacoes: payload.observacoes,
-        };
-        await registrarAbateProprio(p);
         return { success: true };
       }
 

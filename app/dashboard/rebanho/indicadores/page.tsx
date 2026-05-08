@@ -64,7 +64,7 @@ export default async function IndicadoresPage(props: PageProps) {
   }
 
   const tipoExploracao: TipoExploracao = (fazendaRes.data?.tipo_exploracao || 'MISTO') as TipoExploracao;
-  const lotes = (lotesRes.data as any[]) || [];
+  const lotes = JSON.parse(JSON.stringify((lotesRes.data as any[]) || []));
 
   // Preparar alertas para passar ao componente cliente
   const alertas: AlertasRebanho = {
@@ -78,8 +78,8 @@ export default async function IndicadoresPage(props: PageProps) {
   const searchParams = await props.searchParams;
   const initFiltros: FiltrosIndicadores = {
     periodo: (searchParams?.periodo as any) || '90d',
-    dataInicio: searchParams?.dataInicio ? new Date(searchParams.dataInicio as string) : undefined,
-    dataFim: searchParams?.dataFim ? new Date(searchParams.dataFim as string) : undefined,
+    dataInicio: searchParams?.dataInicio ? (searchParams.dataInicio as string) : undefined,
+    dataFim: searchParams?.dataFim ? (searchParams.dataFim as string) : undefined,
     lotes: searchParams?.lotes ? (searchParams.lotes as string).split(',') : undefined,
     categorias: searchParams?.categorias ? (searchParams.categorias as string).split(',') : undefined,
   };

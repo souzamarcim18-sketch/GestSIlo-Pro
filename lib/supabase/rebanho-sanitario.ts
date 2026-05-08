@@ -51,7 +51,7 @@ export async function listEventosSanitariosPorAnimal(
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return (data as EventoSanitarioRow[]) || [];
+  return JSON.parse(JSON.stringify((data as EventoSanitarioRow[]) || []));
 }
 
 // ========== LISTAR ALERTAS DE VACINAÇÃO ==========
@@ -60,6 +60,12 @@ export async function listAlertasVacinacao(
   diasAntecedencia: number = 15
 ): Promise<AlertaSanitario[]> {
   const supabase = await createSupabaseServerClient();
+
+  // Calcular data limite (hoje + diasAntecedencia)
+  const hoje = new Date();
+  const dataLimite = new Date(hoje);
+  dataLimite.setDate(dataLimite.getDate() + diasAntecedencia);
+  const dataLimiteISO = dataLimite.toISOString().split('T')[0];
 
   const { data, error } = await supabase
     .from('eventos_sanitarios')
@@ -70,15 +76,12 @@ export async function listAlertasVacinacao(
     .eq('tipo', 'vacinacao')
     .is('deleted_at', null)
     .not('data_proxima_dose', 'is', null)
-    .lte(
-      'data_proxima_dose',
-      `now()::date + ${diasAntecedencia}::integer * '1 day'::interval`
-    )
+    .lte('data_proxima_dose', dataLimiteISO)
     .order('data_proxima_dose', { ascending: true });
 
   if (error) throw error;
 
-  return (data || []).map((row: any) => {
+  const resultado = (data || []).map((row: any) => {
     const diasRestantes = Math.ceil(
       (new Date(row.data_proxima_dose).getTime() - new Date().getTime()) /
         (1000 * 60 * 60 * 24)
@@ -94,6 +97,8 @@ export async function listAlertasVacinacao(
       dias_para_vencimento: diasRestantes,
     };
   });
+
+  return JSON.parse(JSON.stringify(resultado));
 }
 
 // ========== LISTAR COM FILTROS ==========
@@ -131,7 +136,7 @@ export async function listEventosSanitarios(
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return (data as EventoSanitarioRow[]) || [];
+  return JSON.parse(JSON.stringify((data as EventoSanitarioRow[]) || []));
 }
 
 // ========== EDITAR EVENTO SANITÁRIO ==========

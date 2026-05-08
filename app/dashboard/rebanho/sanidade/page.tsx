@@ -49,7 +49,7 @@ export default async function SanidadePage() {
     .is('deleted_at', null)
     .order('brinco');
 
-  const animais = (animaisRes || []) as Animal[];
+  const animais = JSON.parse(JSON.stringify((animaisRes || []) as Animal[]));
 
   // Buscar todos os lotes para seleção
   const { data: lotesRes } = await supabase
@@ -58,7 +58,7 @@ export default async function SanidadePage() {
     .eq('fazenda_id', fazendaId)
     .order('nome');
 
-  const lotes = (lotesRes || []) as Lote[];
+  const lotes = JSON.parse(JSON.stringify((lotesRes || []) as Lote[]));
 
   return (
     <div className="p-6 md:p-8">

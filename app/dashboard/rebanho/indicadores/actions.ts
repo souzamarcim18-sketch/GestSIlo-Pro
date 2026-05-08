@@ -55,9 +55,12 @@ function calcularPeriodo(filtros: FiltrosIndicadoresValidados): { data_inicial: 
     }
   }
 
+  const inicio = typeof dataInicio === 'string' ? dataInicio : dataInicio.toISOString().split('T')[0];
+  const fim = typeof dataFim === 'string' ? dataFim : dataFim.toISOString().split('T')[0];
+
   return {
-    data_inicial: dataInicio.toISOString().split('T')[0],
-    data_final: dataFim.toISOString().split('T')[0],
+    data_inicial: inicio,
+    data_final: fim,
   };
 }
 

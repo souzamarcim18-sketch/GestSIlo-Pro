@@ -46,8 +46,8 @@ export default async function LeiteiraPage() {
       .is('deleted_at', null),
   ]);
 
-  const animais = (animaisRes.data || []) as Animal[];
-  const animalEmLactacao = animais.filter((a) => a.status_reprodutivo === 'lactacao');
+  const animais = JSON.parse(JSON.stringify((animaisRes.data || []) as Animal[])) as Animal[];
+  const animalEmLactacao = animais.filter((a: Animal) => a.status_reprodutivo === 'lactacao');
 
   // Calcular KPIs
   const producaoHoje = producoesData

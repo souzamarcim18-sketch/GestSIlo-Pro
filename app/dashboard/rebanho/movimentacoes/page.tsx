@@ -175,8 +175,6 @@ export default function MovimentacoesPage() {
     switch (tipo) {
       case 'nascimento':
         return 'bg-green-100 text-green-800';
-      case 'compra':
-        return 'bg-blue-100 text-blue-800';
       case 'venda':
         return 'bg-emerald-100 text-emerald-800';
       case 'morte':
@@ -185,8 +183,6 @@ export default function MovimentacoesPage() {
         return 'bg-orange-100 text-orange-800';
       case 'transferencia_lote':
         return 'bg-gray-100 text-gray-800';
-      case 'abate_proprio':
-        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -195,12 +191,10 @@ export default function MovimentacoesPage() {
   const getTipoLabel = (tipo: TipoMovimentacao) => {
     const labels: Record<TipoMovimentacao, string> = {
       nascimento: 'Nascimento',
-      compra: 'Compra',
       venda: 'Venda',
       morte: 'Morte',
       descarte: 'Descarte',
       transferencia_lote: 'Transferência',
-      abate_proprio: 'Abate Próprio',
     };
     return labels[tipo];
   };

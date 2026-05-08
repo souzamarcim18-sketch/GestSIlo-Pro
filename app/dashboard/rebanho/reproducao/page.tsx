@@ -23,7 +23,7 @@ export default async function ReproducaoPage() {
       .is('deleted_at', null),
   ]);
 
-  const animaisData = animais.data || [];
+  const animaisData = JSON.parse(JSON.stringify(animais.data || []));
 
   return (
     <CalendarioReprodutivo

@@ -31,7 +31,8 @@ import {
   listAnimais,
   listLotes,
 } from '@/lib/supabase/rebanho';
-import { queryMovimentacoes, type MovimentacaoListItem } from '@/lib/supabase/rebanho-movimentacoes';
+import { getHistoricoAnimalAction } from '@/lib/supabase/rebanho-movimentacoes-actions';
+import type { MovimentacaoListItem } from '@/lib/supabase/rebanho-movimentacoes';
 import { AbaProducaoLeiteira } from '@/components/rebanho/AbaProducaoLeiteira';
 import { AbaSanidade } from '@/components/rebanho/AbaSanidade';
 import { deletarAnimalAction } from '../actions';
@@ -48,8 +49,6 @@ function getBadgeColorMovimentacao(tipo: string): string {
   switch (tipo) {
     case 'nascimento':
       return 'bg-green-100 text-green-800';
-    case 'compra':
-      return 'bg-blue-100 text-blue-800';
     case 'venda':
       return 'bg-emerald-100 text-emerald-800';
     case 'morte':
@@ -58,8 +57,6 @@ function getBadgeColorMovimentacao(tipo: string): string {
       return 'bg-orange-100 text-orange-800';
     case 'transferencia_lote':
       return 'bg-gray-100 text-gray-800';
-    case 'abate_proprio':
-      return 'bg-purple-100 text-purple-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -68,12 +65,10 @@ function getBadgeColorMovimentacao(tipo: string): string {
 function getTipoLabelMovimentacao(tipo: string): string {
   const labels: Record<string, string> = {
     nascimento: 'Nascimento',
-    compra: 'Compra',
     venda: 'Venda',
     morte: 'Morte',
     descarte: 'Descarte',
     transferencia_lote: 'Transferência',
-    abate_proprio: 'Abate Próprio',
   };
   return labels[tipo] || tipo;
 }
@@ -253,7 +248,7 @@ export default function AnimalDetailPage() {
       const [eventosData, pesosData, movimentacoesData] = await Promise.all([
         listEventosPorAnimal(animalId),
         listPesosPorAnimal(animalId),
-        queryMovimentacoes.getHistoricoAnimal(animalId),
+        getHistoricoAnimalAction(animalId),
       ]);
 
       setEventos(eventosData);

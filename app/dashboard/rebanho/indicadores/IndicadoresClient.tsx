@@ -187,8 +187,8 @@ export default function IndicadoresClient({
   useEffect(() => {
     const params = new URLSearchParams();
     if (filtros.periodo) params.set('periodo', filtros.periodo);
-    if (filtros.dataInicio) params.set('dataInicio', filtros.dataInicio.toISOString());
-    if (filtros.dataFim) params.set('dataFim', filtros.dataFim.toISOString());
+    if (filtros.dataInicio) params.set('dataInicio', typeof filtros.dataInicio === 'string' ? filtros.dataInicio : filtros.dataInicio.toISOString());
+    if (filtros.dataFim) params.set('dataFim', typeof filtros.dataFim === 'string' ? filtros.dataFim : filtros.dataFim.toISOString());
     if (filtros.lotes?.length) params.set('lotes', filtros.lotes.join(','));
     if (filtros.categorias?.length) params.set('categorias', filtros.categorias.join(','));
 

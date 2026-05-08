@@ -167,11 +167,9 @@ export function AbaSanidade({
             </div>
             {canRegister && (
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Registrar Evento
-                  </Button>
+                <DialogTrigger className="inline-flex shrink-0 items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Registrar Evento
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
