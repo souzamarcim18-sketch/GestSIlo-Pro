@@ -61,7 +61,6 @@
 }
 
 :root {
-<<<<<<< HEAD
   /* ============================================
      TOKENS DA MARCA (fixos, independentes de tema)
      ============================================ */
@@ -132,75 +131,9 @@
   --sidebar-accent-foreground: oklch(0.20 0.02 145);
   --sidebar-border: oklch(0.82 0.01 145);
   --sidebar-ring: oklch(0.50 0.18 150);
-=======
-  /* === Dark mode neutro — v3 (hierarquia reforçada) === */
-
-  /* Fundo MAIS escuro pra destacar elementos */
-  --background: oklch(0.16 0 0);
-  --foreground: oklch(0.93 0 0);
-
-  /* Cards bem mais claros que o fundo */
-  --card: oklch(0.245 0 0);
-  --card-foreground: oklch(0.93 0 0);
-  --popover: oklch(0.245 0 0);
-  --popover-foreground: oklch(0.93 0 0);
-
-  /* Verde primário equilibrado */
-  --primary: oklch(0.68 0.18 150);
-  --primary-foreground: oklch(0.15 0 0);
-
-  /* Secundário (olive) */
-  --secondary: oklch(0.70 0.12 90);
-  --secondary-foreground: oklch(0.15 0 0);
-
-  /* Muted */
-  --muted: oklch(0.28 0 0);
-  --muted-foreground: oklch(0.70 0 0);
-
-  /* Accent */
-  --accent: oklch(0.70 0.12 90);
-  --accent-foreground: oklch(0.15 0 0);
-
-  /* Destructive */
-  --destructive: oklch(0.62 0.18 25);
-  --destructive-foreground: oklch(0.95 0.01 25);
-
-  /* Borders BEM visíveis (0.38 destaca sem agredir) */
-  --border: oklch(0.38 0 0);
-  --input: oklch(0.30 0 0);
-  --ring: oklch(0.68 0.18 150);
-
-  /* === Status tokens === */
-  --status-success: oklch(0.68 0.18 150);
-  --status-success-fg: oklch(0.95 0.01 150);
-  --status-warning: oklch(0.75 0.15 80);
-  --status-warning-fg: oklch(0.15 0.015 80);
-  --status-danger: oklch(0.65 0.18 25);
-  --status-danger-fg: oklch(0.95 0.01 25);
-  --status-info: oklch(0.68 0.15 240);
-  --status-info-fg: oklch(0.95 0.01 240);
-
-  /* === Charts === */
-  --chart-1: oklch(0.68 0.18 150);
-  --chart-2: oklch(0.70 0.12 90);
-  --chart-3: oklch(0.68 0.15 240);
-  --chart-4: oklch(0.75 0.15 80);
-  --chart-5: oklch(0.65 0.18 25);
-
-  /* === Sidebar (mais clara que cards = mais destacada) === */
-  --sidebar: oklch(0.26 0 0);
-  --sidebar-foreground: oklch(0.93 0 0);
-  --sidebar-primary: oklch(0.68 0.18 150);
-  --sidebar-primary-foreground: oklch(0.15 0 0);
-  --sidebar-accent: oklch(0.34 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.36 0 0);
-  --sidebar-ring: oklch(0.68 0.18 150);
->>>>>>> main
 
   /* Radius */
   --radius: 0.625rem;
-<<<<<<< HEAD
 }
 
 @layer base {
@@ -226,17 +159,3 @@
     background-color: var(--bg-metal-solid);
   }
 }
-=======
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.30);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.40);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.45);
-
-  /* Blur effects */
-  --blur-sm: blur(4px);
-  --blur-md: blur(8px);
-  --blur-lg: blur(12px);
-}
->>>>>>> main
