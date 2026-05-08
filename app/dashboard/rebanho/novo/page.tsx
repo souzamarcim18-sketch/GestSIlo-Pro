@@ -51,7 +51,8 @@ export default function NovoAnimalPage() {
     const dados: Record<string, any> = Object.fromEntries(formData);
 
     if (dados.peso_nascimento) {
-      dados.peso_nascimento = Number(dados.peso_nascimento);
+      const peso = String(dados.peso_nascimento).replace(',', '.');
+      dados.peso_nascimento = Number(peso);
     }
 
     try {
@@ -221,12 +222,13 @@ export default function NovoAnimalPage() {
               <div>
                 <Label htmlFor="lote_id">Lote</Label>
                 <Select
-                  name="lote_id"
                   value={loteId}
                   onValueChange={(value) => setLoteId(value || '')}
                 >
                   <SelectTrigger id="lote_id" disabled={isSubmitting}>
-                    <SelectValue placeholder="Sem lote" />
+                    <SelectValue>
+                      {loteId ? lotes.find((l) => l.id === loteId)?.nome || 'Sem lote' : 'Sem lote'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Sem lote</SelectItem>
@@ -237,6 +239,7 @@ export default function NovoAnimalPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <input type="hidden" name="lote_id" value={loteId} />
               </div>
 
               {/* Observações */}
