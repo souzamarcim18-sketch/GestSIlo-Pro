@@ -22,6 +22,10 @@ vi.mock('@/lib/supabase/rebanho-indicadores', () => ({
   buscarPesosNoPeriodo: vi.fn(),
   buscarAnimaisFiltrados: vi.fn(),
   buscarEventosPartos: vi.fn(),
+  buscarPartosComMae: vi.fn().mockResolvedValue([]),
+  buscarDiagnosticosPrenhez: vi.fn().mockResolvedValue([]),
+  buscarAnimaisReprodutivos: vi.fn().mockResolvedValue([]),
+  buscarLactacoesEncerradas: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('@/lib/calculos/indicadores-rebanho', () => ({

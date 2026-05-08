@@ -26,125 +26,23 @@ import {
   ComparativoLotes,
 } from './components/charts';
 
-/**
- * Mock data para indicadores — até T45 (quando Server Actions estarão implementadas)
- */
-function getMockIndicadores(): IndicadorRebanho {
+function getIndicadoresVazios(): IndicadorRebanho {
   return {
-    gmd: {
-      valor: 1.35,
-      estado: 'OK',
-      trend: 'up',
-      trendValor: 0.12,
-      atualizadoEm: new Date(),
-    },
-    taxaNatalidade: {
-      valor: 87.5,
-      estado: 'OK',
-      trend: 'stable',
-      trendValor: 0,
-      atualizadoEm: new Date(),
-    },
-    taxaMortalidadeGeral: {
-      valor: 2.1,
-      estado: 'OK',
-      trend: 'down',
-      trendValor: -0.5,
-      atualizadoEm: new Date(),
-    },
-    taxaMortalidadeBezerros: {
-      valor: 3.2,
-      estado: 'OK',
-      trend: 'down',
-      trendValor: -1.0,
-      atualizadoEm: new Date(),
-    },
-    taxaDescarte: {
-      valor: 12.5,
-      estado: 'OK',
-      trend: 'stable',
-      trendValor: 0,
-      atualizadoEm: new Date(),
-    },
-    taxaPrenhez: {
-      valor: 86.0,
-      estado: 'OK',
-      trend: 'up',
-      trendValor: 2.5,
-      atualizadoEm: new Date(),
-    },
-    iep: {
-      valor: 415,
-      estado: 'OK',
-      trend: 'down',
-      trendValor: -12,
-      atualizadoEm: new Date(),
-    },
-    ipp: {
-      valor: 24,
-      estado: 'OK',
-      trend: 'stable',
-      trendValor: 0,
-      atualizadoEm: new Date(),
-    },
-    pesoMedioPorCategoria: {
-      valor: {
-        Vaca: 580,
-        Novilha: 420,
-        Bezerra: 180,
-      },
-      estado: 'OK',
-      atualizadoEm: new Date(),
-    },
-    taxaReposicao: {
-      valor: 25.0,
-      estado: 'OK',
-      trend: 'up',
-      trendValor: 1.5,
-      atualizadoEm: new Date(),
-    },
-    evolucaoEfetivo: {
-      valor: [
-        { data: new Date('2026-02-01'), quantidade: 120 },
-        { data: new Date('2026-03-01'), quantidade: 128 },
-        { data: new Date('2026-04-01'), quantidade: 135 },
-        { data: new Date('2026-05-01'), quantidade: 142 },
-      ],
-      estado: 'OK',
-      atualizadoEm: new Date(),
-    },
-    composicaoRebanho: {
-      valor: {
-        Vaca: 40,
-        Novilha: 25,
-        Bezerra: 20,
-        Touro: 5,
-        Boi: 10,
-      },
-      estado: 'OK',
-      atualizadoEm: new Date(),
-    },
-    taxaDesfrute: {
-      valor: 18.5,
-      estado: 'OK',
-      trend: 'stable',
-      trendValor: 0,
-      atualizadoEm: new Date(),
-    },
-    percentualVacasLactacao: {
-      valor: 75.0,
-      estado: 'OK',
-      trend: 'up',
-      trendValor: 2.0,
-      atualizadoEm: new Date(),
-    },
-    periodoSecoMedio: {
-      valor: 58,
-      estado: 'OK',
-      trend: 'stable',
-      trendValor: 0,
-      atualizadoEm: new Date(),
-    },
+    gmd: { valor: null, estado: 'LOADING' },
+    taxaNatalidade: { valor: null, estado: 'LOADING' },
+    taxaMortalidadeGeral: { valor: null, estado: 'LOADING' },
+    taxaMortalidadeBezerros: { valor: null, estado: 'LOADING' },
+    taxaDescarte: { valor: null, estado: 'LOADING' },
+    taxaPrenhez: { valor: null, estado: 'LOADING' },
+    iep: { valor: null, estado: 'LOADING' },
+    ipp: { valor: null, estado: 'LOADING' },
+    pesoMedioPorCategoria: { valor: {}, estado: 'LOADING' },
+    taxaReposicao: { valor: null, estado: 'LOADING' },
+    evolucaoEfetivo: { valor: [], estado: 'LOADING' },
+    composicaoRebanho: { valor: {}, estado: 'LOADING' },
+    taxaDesfrute: { valor: null, estado: 'LOADING' },
+    percentualVacasLactacao: { valor: null, estado: 'LOADING' },
+    periodoSecoMedio: { valor: null, estado: 'LOADING' },
   };
 }
 
@@ -155,33 +53,42 @@ export default function IndicadoresClient({
   alertas,
 }: IndicadoresClientProps & { lotes: Lote[]; alertas: AlertasRebanho }) {
   const [filtros, setFiltros] = useState<FiltrosIndicadores>(initialFiltros);
-  const [isLoading, setIsLoading] = useState(false);
-  const [indicadores, setIndicadores] = useState<IndicadorRebanho>(getMockIndicadores());
+  const [isLoading, setIsLoading] = useState(true);
+  const [indicadores, setIndicadores] = useState<IndicadorRebanho>(getIndicadoresVazios());
 
-  // Aplicar filtros
-  const handleAplicarFiltros = useCallback(async (novosFiltros: FiltrosIndicadores) => {
+  const carregarIndicadores = useCallback(async (f: FiltrosIndicadores) => {
     setIsLoading(true);
     try {
       const { getIndicadoresAction } = await import('./actions');
-      const result = await getIndicadoresAction(novosFiltros);
-
-      setFiltros(novosFiltros);
+      const result = await getIndicadoresAction(f);
       setIndicadores(result);
-      toast.success('Filtros aplicados com sucesso');
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : 'Erro ao aplicar filtros');
+      toast.error(err instanceof Error ? err.message : 'Erro ao carregar indicadores');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  // Carga inicial com filtros da URL
+  useEffect(() => {
+    carregarIndicadores(initialFiltros);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Aplicar filtros
+  const handleAplicarFiltros = useCallback(async (novosFiltros: FiltrosIndicadores) => {
+    setFiltros(novosFiltros);
+    await carregarIndicadores(novosFiltros);
+    toast.success('Filtros aplicados com sucesso');
+  }, [carregarIndicadores]);
+
   // Resetar filtros
   const handleResetar = useCallback(() => {
     const filtrosDefault: FiltrosIndicadores = { periodo: '90d' };
     setFiltros(filtrosDefault);
-    setIndicadores(getMockIndicadores());
-  }, []);
+    carregarIndicadores(filtrosDefault);
+  }, [carregarIndicadores]);
 
   // Atualizar filtros na URL
   useEffect(() => {

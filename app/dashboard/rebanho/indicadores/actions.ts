@@ -22,6 +22,10 @@ import {
   buscarPesosNoPeriodo,
   buscarAnimaisFiltrados,
   buscarEventosPartos,
+  buscarPartosComMae,
+  buscarDiagnosticosPrenhez,
+  buscarAnimaisReprodutivos,
+  buscarLactacoesEncerradas,
 } from '@/lib/supabase/rebanho-indicadores';
 import type { IndicadorRebanho, ComparativoLotes, TipoExploracao } from '@/types/rebanho-indicadores';
 
@@ -90,16 +94,19 @@ export async function getIndicadoresAction(filtros: FiltrosIndicadoresValidados)
     const tipoExploracao = await obterFazendasFiltros(resultado.data);
 
     // Buscar dados em paralelo
-    const [eventos, pesos, animais] = await Promise.all([
+    const [eventos, pesos, animais, partos, diagnosticos, animaisReprod, lactacoes] = await Promise.all([
       buscarEventosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
       buscarPesosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
       buscarAnimaisFiltrados({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
+      buscarPartosComMae(),
+      buscarDiagnosticosPrenhez(periodo),
+      buscarAnimaisReprodutivos(),
+      buscarLactacoesEncerradas(),
     ]);
 
     const composicao = calcularComposicaoRebanho(animais);
     const vacasMatrizesInicio = animais.filter((a) => isVaca(a.categoria)).length;
 
-    // Calcular indicadores
     const periodoCalculo = { dataInicio: periodo.data_inicial, dataFim: periodo.data_final };
     const pesagensAgrupadas = new Map<string, { data_pesagem: string; peso_kg: number }[]>();
     for (const peso of pesos) {
@@ -116,28 +123,113 @@ export async function getIndicadoresAction(filtros: FiltrosIndicadoresValidados)
     const taxaDescarte = calcularTaxaDescarte(animais);
     const gmdMedio = calcularGMDMedioRebanho(pesagensAgrupadas, periodoCalculo);
 
+    // Taxa de Prenhez = diagnósticos positivos / total diagnósticos no período * 100
+    const totalDiag = diagnosticos.length;
+    const diagPositivos = diagnosticos.filter((d) => d.resultado_prenhez === 'positivo').length;
+    const taxaPrenhez = totalDiag > 0 ? (diagPositivos / totalDiag) * 100 : null;
+
+    // IEP — agrupar partos por animal_id, calcular média de intervalos entre partos consecutivos
+    const partosPorAnimal = new Map<string, string[]>();
+    for (const p of partos) {
+      if (!partosPorAnimal.has(p.animal_id)) partosPorAnimal.set(p.animal_id, []);
+      partosPorAnimal.get(p.animal_id)!.push(p.data_evento);
+    }
+    const intervalosIEP: number[] = [];
+    for (const datas of partosPorAnimal.values()) {
+      if (datas.length < 2) continue;
+      const ordenadas = [...datas].sort();
+      for (let i = 1; i < ordenadas.length; i++) {
+        const dias = (new Date(ordenadas[i]).getTime() - new Date(ordenadas[i - 1]).getTime()) / 86400000;
+        if (dias > 0) intervalosIEP.push(Math.round(dias));
+      }
+    }
+    const iep = intervalosIEP.length > 0
+      ? Math.round(intervalosIEP.reduce((a, b) => a + b, 0) / intervalosIEP.length)
+      : null;
+
+    // IPP — primeiro parto de cada vaca: (data_parto - data_nascimento_mae) em meses
+    // Só considera vacas com data de nascimento conhecida
+    const primeiroPartoPorAnimal = new Map<string, string>();
+    for (const p of partos) {
+      const atual = primeiroPartoPorAnimal.get(p.animal_id);
+      if (!atual || p.data_evento < atual) primeiroPartoPorAnimal.set(p.animal_id, p.data_evento);
+    }
+    const idadesIPP: number[] = [];
+    for (const p of partos) {
+      if (!primeiroPartoPorAnimal.has(p.animal_id)) continue;
+      if (primeiroPartoPorAnimal.get(p.animal_id) !== p.data_evento) continue;
+      if (!p.mae_data_nascimento) continue;
+      const nascimento = new Date(p.mae_data_nascimento);
+      const parto = new Date(p.data_evento);
+      const meses =
+        (parto.getFullYear() - nascimento.getFullYear()) * 12 +
+        (parto.getMonth() - nascimento.getMonth());
+      if (meses > 0) idadesIPP.push(meses);
+    }
+    const ipp = idadesIPP.length > 0
+      ? Math.round(idadesIPP.reduce((a, b) => a + b, 0) / idadesIPP.length)
+      : null;
+
+    // Taxa de Reposição = novilhas prenhas / total vacas * 100
+    const totalVacas = animaisReprod.filter((a) => isVaca(a.categoria)).length;
+    const novilhasPrenhas = animaisReprod.filter(
+      (a) => a.categoria === 'Novilha Prenha' || a.status_reprodutivo === 'prenha'
+    ).length;
+    const taxaReposicao = totalVacas > 0 ? (novilhasPrenhas / totalVacas) * 100 : null;
+
+    // % Vacas em Lactação = vacas com status_reprodutivo = 'lactacao' / total fêmeas adultas * 100
+    const vacasEmLactacao = animaisReprod.filter((a) => a.status_reprodutivo === 'lactacao').length;
+    const femeaAdultas = animaisReprod.filter((a) => isVacaProdutiva(a.categoria)).length;
+    const percentualVacasLactacao = femeaAdultas > 0 ? (vacasEmLactacao / femeaAdultas) * 100 : null;
+
+    // Período Seco Médio = média de dias entre data_fim_secagem e data_inicio_parto da lactação seguinte
+    const lactacoesPorAnimal = new Map<string, { inicio: string; fim: string }[]>();
+    for (const lac of lactacoes) {
+      if (!lac.data_fim_secagem) continue;
+      if (!lactacoesPorAnimal.has(lac.animal_id)) lactacoesPorAnimal.set(lac.animal_id, []);
+      lactacoesPorAnimal.get(lac.animal_id)!.push({ inicio: lac.data_inicio_parto, fim: lac.data_fim_secagem });
+    }
+    const periodosSeco: number[] = [];
+    for (const lacs of lactacoesPorAnimal.values()) {
+      const ordenadas = [...lacs].sort((a, b) => a.inicio.localeCompare(b.inicio));
+      for (let i = 0; i < ordenadas.length - 1; i++) {
+        const fimSeca = new Date(ordenadas[i].fim);
+        const proximoParto = new Date(ordenadas[i + 1].inicio);
+        const dias = (proximoParto.getTime() - fimSeca.getTime()) / 86400000;
+        if (dias > 0 && dias < 365) periodosSeco.push(Math.round(dias));
+      }
+    }
+    const periodoSecoMedio = periodosSeco.length > 0
+      ? Math.round(periodosSeco.reduce((a, b) => a + b, 0) / periodosSeco.length)
+      : null;
+
     const indicadores: IndicadorRebanho = {
-      gmd: { valor: gmdMedio || null, estado: gmdMedio ? 'OK' : 'INSUFFICIENT_DATA' },
+      gmd: { valor: gmdMedio ?? null, estado: gmdMedio != null ? 'OK' : 'INSUFFICIENT_DATA' },
       taxaNatalidade: { valor: taxaNatalidade.taxa_percentual, estado: 'OK' },
       taxaMortalidadeGeral: { valor: taxaMortalidade.taxa_percentual, estado: 'OK' },
       taxaMortalidadeBezerros: { valor: taxaMortalidadeBezerros.taxa_percentual, estado: 'OK' },
       taxaDescarte: { valor: taxaDescarte.taxa_percentual, estado: 'OK' },
-      taxaPrenhez: { valor: 86, estado: 'OK' }, // Mock até T39
-      iep: { valor: 415, estado: 'OK' }, // Mock até T39
-      ipp: { valor: 24, estado: 'OK' }, // Mock até T39
-      pesoMedioPorCategoria: { valor: {}, estado: 'OK' }, // Mock até T39
-      taxaReposicao: { valor: 25, estado: 'OK' }, // Mock até T39
-      evolucaoEfetivo: { valor: [], estado: 'OK' }, // Mock até T39
+      taxaPrenhez: { valor: taxaPrenhez, estado: taxaPrenhez != null ? 'OK' : 'INSUFFICIENT_DATA' },
+      iep: { valor: iep, estado: iep != null ? 'OK' : 'INSUFFICIENT_DATA' },
+      ipp: { valor: ipp, estado: ipp != null ? 'OK' : 'INSUFFICIENT_DATA' },
+      pesoMedioPorCategoria: { valor: {}, estado: 'OK' },
+      taxaReposicao: { valor: taxaReposicao, estado: taxaReposicao != null ? 'OK' : 'INSUFFICIENT_DATA' },
+      evolucaoEfetivo: { valor: [], estado: 'OK' },
       composicaoRebanho: { valor: composicao.por_categoria, estado: 'OK' },
     };
 
-    // Adicionar indicadores específicos por tipo
     if (tipoExploracao !== 'LEITE') {
       indicadores.taxaDesfrute = { valor: taxaDesfrute.taxa_percentual, estado: 'OK' };
     }
     if (tipoExploracao !== 'CORTE') {
-      indicadores.percentualVacasLactacao = { valor: 75, estado: 'OK' }; // Mock
-      indicadores.periodoSecoMedio = { valor: 58, estado: 'OK' }; // Mock
+      indicadores.percentualVacasLactacao = {
+        valor: percentualVacasLactacao,
+        estado: percentualVacasLactacao != null ? 'OK' : 'INSUFFICIENT_DATA',
+      };
+      indicadores.periodoSecoMedio = {
+        valor: periodoSecoMedio,
+        estado: periodoSecoMedio != null ? 'OK' : 'INSUFFICIENT_DATA',
+      };
     }
 
     // Cache 5 min

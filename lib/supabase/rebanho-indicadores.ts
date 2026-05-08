@@ -136,6 +136,119 @@ export async function buscarEventosPartos(): Promise<EventoRebanho[]> {
   return (data as EventoRebanho[]) || [];
 }
 
+// Interface para linha de parto com data de nascimento da mãe
+export interface PartoComMae {
+  id: string;
+  animal_id: string;
+  data_evento: string;
+  mae_data_nascimento: string | null;
+}
+
+/**
+ * Busca eventos de parto agrupáveis por animal, para cálculo de IEP e IPP.
+ * Retorna parto + data_nascimento da mãe (via join com animais).
+ */
+export async function buscarPartosComMae(): Promise<PartoComMae[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('eventos_rebanho')
+    .select('id, animal_id, data_evento, animais(data_nascimento)')
+    .eq('tipo', 'parto')
+    .is('deleted_at', null)
+    .order('data_evento', { ascending: true });
+
+  if (error) throw error;
+
+  return ((data as unknown as Array<{
+    id: string;
+    animal_id: string;
+    data_evento: string;
+    animais: { data_nascimento: string | null } | null;
+  }>) || []).map((row) => ({
+    id: row.id,
+    animal_id: row.animal_id,
+    data_evento: row.data_evento,
+    mae_data_nascimento: row.animais?.data_nascimento ?? null,
+  }));
+}
+
+/**
+ * Busca diagnósticos de prenhez para cálculo de taxa de prenhez.
+ * Retorna apenas os campos necessários para o cálculo.
+ */
+export async function buscarDiagnosticosPrenhez(periodo: {
+  data_inicial: string;
+  data_final: string;
+}): Promise<Array<{ id: string; animal_id: string; resultado_prenhez: string | null }>> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('eventos_rebanho')
+    .select('id, animal_id, resultado_prenhez')
+    .eq('tipo', 'diagnostico_prenhez')
+    .gte('data_evento', periodo.data_inicial)
+    .lte('data_evento', periodo.data_final)
+    .is('deleted_at', null);
+
+  if (error) throw error;
+  return (data as Array<{ id: string; animal_id: string; resultado_prenhez: string | null }>) || [];
+}
+
+/**
+ * Busca animais fêmeas ativas com status_reprodutivo para cálculo de
+ * % vacas em lactação, taxa de reposição e período seco médio.
+ */
+export interface AnimalReprodutivoRow {
+  id: string;
+  categoria: string;
+  sexo: string;
+  status_reprodutivo: string | null;
+  data_proxima_secagem: string | null;
+  data_ultimo_parto: string | null;
+}
+
+export async function buscarAnimaisReprodutivos(): Promise<AnimalReprodutivoRow[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('animais')
+    .select('id, categoria, sexo, status_reprodutivo, data_proxima_secagem, data_ultimo_parto')
+    .eq('status', 'Ativo')
+    .is('deleted_at', null)
+    .eq('sexo', 'Fêmea');
+
+  if (error) throw error;
+  return (data as AnimalReprodutivoRow[]) || [];
+}
+
+/**
+ * Busca lactações encerradas para cálculo de período seco médio.
+ * Usa a diferença entre data_fim_secagem e o próximo parto da vaca.
+ * Aproximação: duração da lactação = data_fim_secagem - data_inicio_parto.
+ * Período seco = dias entre data_fim_secagem e data_inicio_parto da lactação seguinte.
+ */
+export interface LactacaoRow {
+  animal_id: string;
+  data_inicio_parto: string;
+  data_fim_secagem: string | null;
+}
+
+export async function buscarLactacoesEncerradas(): Promise<LactacaoRow[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('lactacoes')
+    .select('animal_id, data_inicio_parto, data_fim_secagem')
+    .not('data_fim_secagem', 'is', null)
+    .is('deleted_at', null)
+    .order('animal_id', { ascending: true })
+    .order('data_inicio_parto', { ascending: true });
+
+  if (error) throw error;
+  return (data as LactacaoRow[]) || [];
+}
+
 /**
  * Busca animais com parto previsto nos próximos N dias
  * Útil para alertas de parto próximo

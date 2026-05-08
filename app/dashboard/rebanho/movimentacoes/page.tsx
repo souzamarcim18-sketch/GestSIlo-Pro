@@ -118,20 +118,14 @@ export default function MovimentacoesPage() {
     fetchData();
   }, [authLoading, fetchData]);
 
-  // Resumo do período
-  const resumo = useMemo(async () => {
-    try {
-      return await queryMovimentacoes.getResumo(datas.inicio, datas.fim);
-    } catch (err) {
-      return { entradas: 0, saidas: 0, saldo: 0, valor_vendas: 0 };
-    }
-  }, [datas]);
-
   const [resumoData, setResumoData] = useState({ entradas: 0, saidas: 0, saldo: 0, valor_vendas: 0 });
 
   useEffect(() => {
-    resumo.then(setResumoData);
-  }, [resumo]);
+    if (authLoading) return;
+    queryMovimentacoes.getResumo(datas.inicio, datas.fim)
+      .then(setResumoData)
+      .catch(() => setResumoData({ entradas: 0, saidas: 0, saldo: 0, valor_vendas: 0 }));
+  }, [authLoading, datas]);
 
   // Exportar CSV
   const handleExportarCSV = () => {

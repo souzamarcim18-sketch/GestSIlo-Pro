@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Filter, Loader2, BarChart3, Heart, Milk, Scale, Stethoscope, ArrowRightLeft } from 'lucide-react';
+import { Plus, Loader2, BarChart3, Heart, Milk, Scale, Stethoscope, ArrowRightLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
@@ -110,12 +110,6 @@ export default function RebanhosPage() {
                     onClick={() => router.push('/dashboard/rebanho/lotes')}
                   >
                     Lotes
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/dashboard/rebanho/importar')}
-                  >
-                    Importar CSV
                   </Button>
                 </>
               )}
