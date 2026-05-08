@@ -124,7 +124,7 @@ export function CoberturaForm({ animalId, onSuccess, onBack }: CoberturaFormProp
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(tiposCoberturaLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value as any}>
+                    <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>
                   ))}

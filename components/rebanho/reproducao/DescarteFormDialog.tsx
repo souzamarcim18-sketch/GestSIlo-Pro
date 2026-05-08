@@ -148,7 +148,7 @@ export function DescarteFormDialog({
             <Label htmlFor="motivo_descarte">Motivo do Descarte *</Label>
             <Select
               value={motivoDescarteValue}
-              onValueChange={(v) => setValue('motivo_descarte', v as any)}
+              onValueChange={(v) => setValue('motivo_descarte', v as CriarDescarteInput['motivo_descarte'])}
               disabled={isLoading}
             >
               <SelectTrigger id="motivo_descarte" className="h-12">

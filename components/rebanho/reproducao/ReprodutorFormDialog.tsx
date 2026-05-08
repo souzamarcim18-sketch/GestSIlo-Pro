@@ -60,7 +60,7 @@ export function ReprodutorFormDialog({
     defaultValues: reprodutor
       ? {
           nome: reprodutor.nome,
-          tipo: reprodutor.tipo as any,
+          tipo: reprodutor.tipo,
           raca: reprodutor.raca,
           numero_registro: reprodutor.numero_registro,
           data_entrada: reprodutor.data_entrada,
@@ -130,7 +130,7 @@ export function ReprodutorFormDialog({
             <Label htmlFor="tipo">Tipo *</Label>
             <Select
               value={tipoValue}
-              onValueChange={(v) => setValue('tipo', v as any)}
+              onValueChange={(v) => setValue('tipo', v as CriarReprodutorInput['tipo'])}
               disabled={isLoading}
             >
               <SelectTrigger id="tipo" className="h-12">

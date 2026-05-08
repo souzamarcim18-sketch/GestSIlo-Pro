@@ -2,6 +2,8 @@ import { CalendarioReprodutivo } from '@/components/rebanho/reproducao/Calendari
 import { queryEventosRebanho } from '@/lib/supabase/rebanho-reproducao';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import type { EventoReprodutivo } from '@/lib/types/rebanho-reproducao';
+import type { Animal } from '@/lib/types/rebanho';
 
 export default async function ReproducaoPage() {
   const fazendaId = await getCurrentFazendaId();
@@ -27,8 +29,8 @@ export default async function ReproducaoPage() {
 
   return (
     <CalendarioReprodutivo
-      eventos={eventos as any}
-      animais={animaisData as any}
+      eventos={eventos as EventoReprodutivo[]}
+      animais={animaisData as Animal[]}
     />
   );
 }

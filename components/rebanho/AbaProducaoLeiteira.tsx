@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2 } from 'lucide-react';
@@ -37,7 +37,7 @@ import {
   editarProducaoLeiteiraAction,
   deletarProducaoLeiteiraAction,
 } from '@/app/dashboard/rebanho/leiteira/actions';
-import type { ProducaoLeiteira } from '@/lib/types/rebanho-leiteira';
+import type { ProducaoLeiteira, TurnoProducao } from '@/lib/types/rebanho-leiteira';
 import type { Animal } from '@/lib/types/rebanho';
 
 interface AbaProducaoLeiteiraProps {
@@ -62,16 +62,12 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
   // Form state
   const [formData, setFormData] = useState({
     data: new Date().toISOString().split('T')[0],
-    turno: 'dia_inteiro' as any,
+    turno: 'dia_inteiro' as TurnoProducao,
     volume_litros: '',
     observacoes: '',
   });
 
-  useEffect(() => {
-    fetchProducoes();
-  }, [animal.id]);
-
-  const fetchProducoes = async () => {
+  const fetchProducoes = useCallback(async () => {
     setLoading(true);
     try {
       const data = await listProducoesLeiteiras(animal.id, 100, 0);
@@ -81,7 +77,11 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
     } finally {
       setLoading(false);
     }
-  };
+  }, [animal.id]);
+
+  useEffect(() => {
+    fetchProducoes();
+  }, [fetchProducoes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,7 +298,7 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
               <Label htmlFor="turno">Turno</Label>
               <Select
                 value={formData.turno}
-                onValueChange={(value) => setFormData({ ...formData, turno: value })}
+                onValueChange={(value) => setFormData({ ...formData, turno: value as TurnoProducao })}
               >
                 <SelectTrigger>
                   <SelectValue />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { ChevronRight, ChevronLeft, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -67,51 +67,51 @@ export function Etapa2Rebanho({
   }, [quantidades]);
 
   // Detectar rebanho ao montar
-  useEffect(() => {
-    const executarDeteccao = async () => {
-      try {
-        setDetectando(true);
-        const deteccao = await detectarRebanho();
+  const executarDeteccao = useCallback(async () => {
+    try {
+      setDetectando(true);
+      const deteccao = await detectarRebanho();
 
-        if (deteccao.rebanho_detectado) {
-          setRebanhoDetectado(true);
-          // Projetar para dataAlvo
-          const dataAlvoObj = new Date(dataAlvo);
-          const projecao = await projetarRebanho(dataAlvoObj);
-          setDadosProjetados(projecao);
+      if (deteccao.rebanho_detectado) {
+        setRebanhoDetectado(true);
+        // Projetar para dataAlvo
+        const dataAlvoObj = new Date(dataAlvo);
+        const projecao = await projetarRebanho(dataAlvoObj);
+        setDadosProjetados(projecao);
 
-          // Mapear categorias
-          const { mapeadas, naoMapeadas } = mapearCategoriasProjetadas(
-            projecao.categorias,
-            wizard.sistema?.tipo_rebanho || 'Leite',
-            categorias
+        // Mapear categorias
+        const { mapeadas, naoMapeadas } = mapearCategoriasProjetadas(
+          projecao.categorias,
+          wizard.sistema?.tipo_rebanho || 'Leite',
+          categorias
+        );
+
+        setCategoriasNaoMapeadas(naoMapeadas);
+        setQuantidades(mapeadas);
+        setEstadoInicial(mapeadas);
+        setUsarDadosReais(true);
+
+        if (naoMapeadas.length > 0) {
+          toast.info(
+            `${naoMapeadas.length} categoria(s) do rebanho não puderam ser mapeadas`
           );
-
-          setCategoriasNaoMapeadas(naoMapeadas);
-          setQuantidades(mapeadas);
-          setEstadoInicial(mapeadas);
-          setUsarDadosReais(true);
-
-          if (naoMapeadas.length > 0) {
-            toast.info(
-              `${naoMapeadas.length} categoria(s) do rebanho não puderam ser mapeadas`
-            );
-          }
-        } else {
-          setRebanhoDetectado(false);
-          setRazaoDeteccao(deteccao.razao || 'nenhum');
         }
-      } catch (erro) {
-        toast.error('Erro ao detectar rebanho');
+      } else {
         setRebanhoDetectado(false);
-        setRazaoDeteccao('nenhum');
-      } finally {
-        setDetectando(false);
+        setRazaoDeteccao(deteccao.razao || 'nenhum');
       }
-    };
+    } catch (erro) {
+      toast.error('Erro ao detectar rebanho');
+      setRebanhoDetectado(false);
+      setRazaoDeteccao('nenhum');
+    } finally {
+      setDetectando(false);
+    }
+  }, [categorias, dataAlvo, wizard.sistema?.tipo_rebanho]);
 
+  useEffect(() => {
     executarDeteccao();
-  }, []);
+  }, [executarDeteccao]);
 
   // Re-projetar quando dataAlvo muda
   const handleDataAlvoChange = async (novaData: string) => {

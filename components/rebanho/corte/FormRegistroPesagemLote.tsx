@@ -185,7 +185,7 @@ export function FormRegistroPesagemLote({
 
         <div>
           <Label>Modo</Label>
-          <Select value={modo} onValueChange={(v) => v && setModo(v as any)}>
+          <Select value={modo} onValueChange={(v) => v && setModo(v as 'individual' | 'lote')}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

@@ -21,10 +21,11 @@ export async function criarEventoSanitarioAction(
   try {
     const parsed = criarEventoSanitarioSchema.parse(formData) as EventoSanitarioInput;
 
-    // Suportar seleção de múltiplos animais
-    const animalIds = Array.isArray((parsed as any).animal_id)
-      ? (parsed as any).animal_id
-      : [animalIdOverride || parsed.animal_id];
+    // Suportar seleção de múltiplos animais enviados pelo formulário
+    const rawAnimalId: string | string[] = parsed.animal_id;
+    const animalIds: string[] = Array.isArray(rawAnimalId)
+      ? rawAnimalId
+      : [animalIdOverride || rawAnimalId];
 
     if (animalIds.length === 0) {
       return { success: false, error: 'Selecione ao menos um animal' };

@@ -23,6 +23,13 @@ export enum StatusAnimal {
 export enum TipoEvento {
   NASCIMENTO = 'nascimento',
   PESAGEM = 'pesagem',
+  COBERTURA = 'cobertura',
+  DIAGNOSTICO_PRENHEZ = 'diagnostico_prenhez',
+  PARTO = 'parto',
+  SECAGEM = 'secagem',
+  ABORTO = 'aborto',
+  DESCARTE = 'descarte',
+  DESMAME = 'desmame',
   MORTE = 'morte',
   VENDA = 'venda',
   TRANSFERENCIA_LOTE = 'transferencia_lote',
@@ -137,9 +144,37 @@ export type EventoTransferenciaLotePayload = EventoPayloadBase & {
   lote_id_destino: string; // Obrigatório
 };
 
+export type EventoCoberturaPayload = EventoPayloadBase & {
+  tipo: TipoEvento.COBERTURA;
+  reprodutor_id?: string;
+};
+
+export type EventoDiagnosticoPrenhezPayload = EventoPayloadBase & {
+  tipo: TipoEvento.DIAGNOSTICO_PRENHEZ;
+  resultado?: 'positivo' | 'negativo';
+  dias_pos_cobertura?: number;
+};
+
+export type EventoPartoPayload = EventoPayloadBase & {
+  tipo: TipoEvento.PARTO;
+  tipo_parto?: 'simples' | 'gemelar' | 'triplo';
+};
+
+export type EventoSimplePayload = EventoPayloadBase & {
+  tipo:
+    | TipoEvento.SECAGEM
+    | TipoEvento.ABORTO
+    | TipoEvento.DESCARTE
+    | TipoEvento.DESMAME;
+};
+
 export type EventoPayload =
   | EventoNascimentoPayload
   | EventoPesagemPayload
+  | EventoCoberturaPayload
+  | EventoDiagnosticoPrenhezPayload
+  | EventoPartoPayload
+  | EventoSimplePayload
   | EventoMortePayload
   | EventoVendaPayload
   | EventoTransferenciaLotePayload;

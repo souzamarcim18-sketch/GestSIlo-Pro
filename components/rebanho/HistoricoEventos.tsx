@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Baby,
   Scale,
@@ -8,6 +8,13 @@ import {
   ShoppingCart,
   ArrowRight,
   Loader2,
+  Heart,
+  Stethoscope,
+  Milestone,
+  MoonStar,
+  Ban,
+  Scissors,
+  Milk,
 } from 'lucide-react';
 import type { EventoRebanho, Lote } from '@/lib/types/rebanho';
 import { TipoEvento } from '@/lib/types/rebanho';
@@ -18,13 +25,20 @@ interface HistoricoEventosProps {
   animal_id: string;
 }
 
-const iconMap = {
+const iconMap: Record<TipoEvento, React.ElementType> = {
   [TipoEvento.NASCIMENTO]: Baby,
   [TipoEvento.PESAGEM]: Scale,
+  [TipoEvento.COBERTURA]: Heart,
+  [TipoEvento.DIAGNOSTICO_PRENHEZ]: Stethoscope,
+  [TipoEvento.PARTO]: Milestone,
+  [TipoEvento.SECAGEM]: MoonStar,
+  [TipoEvento.ABORTO]: Ban,
+  [TipoEvento.DESCARTE]: Scissors,
+  [TipoEvento.DESMAME]: Milk,
   [TipoEvento.MORTE]: AlertCircle,
   [TipoEvento.VENDA]: ShoppingCart,
   [TipoEvento.TRANSFERENCIA_LOTE]: ArrowRight,
-} as const;
+};
 
 function formatarData(dataIso: string): string {
   const data = new Date(dataIso);

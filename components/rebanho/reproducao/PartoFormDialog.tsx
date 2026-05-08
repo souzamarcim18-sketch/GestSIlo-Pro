@@ -73,7 +73,7 @@ export function PartoFormDialog({
         { sexo: 'Fêmea', peso_kg: undefined, vivo: true },
       ],
       observacoes: '',
-    } as any,
+    } satisfies Partial<CriarPartoInput>,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -154,7 +154,7 @@ export function PartoFormDialog({
             <Label htmlFor="tipo_parto">Tipo de Parto *</Label>
             <Select
               value={tipoParto}
-              onValueChange={(v) => setValue('tipo_parto', v as any)}
+              onValueChange={(v) => setValue('tipo_parto', v as CriarPartoInput['tipo_parto'])}
               disabled={isLoading}
             >
               <SelectTrigger id="tipo_parto" className="h-12">
@@ -221,7 +221,7 @@ export function PartoFormDialog({
                   <Label htmlFor={`cria-sexo-${index}`}>Sexo *</Label>
                   <Select
                     value={watch(`crias.${index}.sexo`)}
-                    onValueChange={(v) => setValue(`crias.${index}.sexo`, v as any)}
+                    onValueChange={(v) => setValue(`crias.${index}.sexo`, v as CriarPartoInput['crias'][number]['sexo'])}
                     disabled={isLoading}
                   >
                     <SelectTrigger id={`cria-sexo-${index}`} className="h-12">

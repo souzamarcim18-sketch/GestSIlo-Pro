@@ -22,8 +22,6 @@ import {
   GraduationCap,
   PawPrint,
   Heart,
-  Dna,
-  SlidersHorizontal,
   Milk,
   Scale,
   Stethoscope,
@@ -71,16 +69,16 @@ const sistemaRoutes: RouteItem[] = [
   { label: 'Assessoria agronômica', icon: GraduationCap, href: '/dashboard/assessoria',    badge: 'comingSoon' },
 ];
 
-const rebanhoSubRoutes: RouteItem[] = [
-  { label: 'Indicadores',    icon: BarChart3,          href: '/dashboard/rebanho/indicadores'             },
-  { label: 'Reprodução',     icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos'      },
-  { label: 'Reprodutores',   icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores' },
-  { label: 'Parâmetros',     icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros'   },
-  { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira'                },
-  { label: 'Corte',          icon: Scale,               href: '/dashboard/rebanho/corte'                   },
-  { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade'                },
-  { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes'           },
-];
+// const rebanhoSubRoutes: RouteItem[] = [
+//   { label: 'Indicadores',    icon: BarChart3,          href: '/dashboard/rebanho/indicadores'             },
+//   { label: 'Reprodução',     icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos'      },
+//   { label: 'Reprodutores',   icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores' },
+//   { label: 'Parâmetros',     icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros'   },
+//   { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira'                },
+//   { label: 'Corte',          icon: Scale,               href: '/dashboard/rebanho/corte'                   },
+//   { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade'                },
+//   { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes'           },
+// ];
 
 interface SidebarProps {
   onNavigate?: () => void;
@@ -267,21 +265,6 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                       onNavigate={onNavigate}
                       badge={route.badge}
                     />
-                    {route.label === 'Rebanho' && pathname.startsWith('/dashboard/rebanho') && (
-                      <ul className="space-y-0.5 list-none mt-1">
-                        {rebanhoSubRoutes.map((subRoute) => (
-                          <SubNavItem
-                            key={subRoute.href}
-                            href={subRoute.href}
-                            icon={subRoute.icon}
-                            label={subRoute.label}
-                            isActive={pathname.startsWith(subRoute.href)}
-                            onNavigate={onNavigate}
-                            badge={subRoute.badge}
-                          />
-                        ))}
-                      </ul>
-                    )}
                   </div>
                 ))}
               </ul>

@@ -155,7 +155,7 @@ export function DiagnosticoFormDialog({
             <Label htmlFor="metodo_diagnostico">Método *</Label>
             <Select
               value={metodoValue}
-              onValueChange={(v) => setValue('metodo_diagnostico', v as any)}
+              onValueChange={(v) => setValue('metodo_diagnostico', v as CriarDiagnosticoInput['metodo_diagnostico'])}
               disabled={isLoading}
             >
               <SelectTrigger id="metodo_diagnostico" className="h-12">
@@ -178,7 +178,7 @@ export function DiagnosticoFormDialog({
             <Label htmlFor="resultado_prenhez">Resultado *</Label>
             <Select
               value={resultadoValue}
-              onValueChange={(v) => setValue('resultado_prenhez', v as any)}
+              onValueChange={(v) => setValue('resultado_prenhez', v as CriarDiagnosticoInput['resultado_prenhez'])}
               disabled={isLoading}
             >
               <SelectTrigger id="resultado_prenhez" className="h-12">

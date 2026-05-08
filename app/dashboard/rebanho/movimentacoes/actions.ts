@@ -15,6 +15,7 @@ import {
   type RegistrarDescartePayload,
   type RegistrarAbatePropioPayload,
   type RegistrarTransferenciaPayload,
+  type CausaMorte,
 } from '@/lib/supabase/rebanho-movimentacoes';
 import { getCurrentUserId } from '@/lib/auth/helpers';
 
@@ -70,7 +71,9 @@ export async function registrarMovimentacaoAction(payload: MovimentacaoPayload):
         const p: RegistrarMortePayload = {
           animal_id: payload.animal_id || '',
           data_evento: payload.data_evento,
-          causa_morte: (payload.causa_morte || 'desconhecida') as any,
+          causa_morte: (['doenca', 'acidente', 'predador', 'desconhecida', 'outro'].includes(payload.causa_morte ?? '')
+            ? payload.causa_morte
+            : 'desconhecida') as CausaMorte,
           observacoes: payload.observacoes,
         };
         await registrarMorte(p);

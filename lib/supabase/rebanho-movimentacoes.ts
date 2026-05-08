@@ -7,6 +7,8 @@ import type { Animal, Lote, EventoRebanho } from '@/lib/types/rebanho';
 
 export type TipoMovimentacao = 'morte' | 'venda' | 'nascimento' | 'transferencia_lote' | 'descarte';
 
+export type CausaMorte = 'doenca' | 'acidente' | 'predador' | 'desconhecida' | 'outro';
+
 export interface MovimentacaoListItem {
   id: string;
   tipo: TipoMovimentacao;
@@ -73,7 +75,7 @@ export interface RegistrarVendaPayload {
 export interface RegistrarMortePayload {
   animal_id: string;
   data_evento: string;
-  causa_morte: 'doenca' | 'acidente' | 'predador' | 'desconhecida' | 'outro';
+  causa_morte: CausaMorte;
   observacoes?: string;
 }
 

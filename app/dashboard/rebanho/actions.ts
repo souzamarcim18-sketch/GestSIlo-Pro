@@ -26,6 +26,7 @@ import {
   registrarEvento,
   importarAnimaisCSV,
 } from '@/lib/supabase/rebanho';
+import { TipoEvento } from '@/lib/types/rebanho';
 import type { CSVImportResult } from '@/lib/types/rebanho';
 import { toast } from 'sonner';
 
@@ -143,10 +144,10 @@ export async function transferirAnimaisAction(
     for (const animal_id of animal_ids) {
       await registrarEvento({
         animal_id,
-        tipo: 'transferencia_lote',
+        tipo: TipoEvento.TRANSFERENCIA_LOTE,
         data_evento: new Date().toISOString().split('T')[0],
         lote_id_destino,
-      } as any);
+      } as CriarEventoInput);
       transferidos++;
     }
 

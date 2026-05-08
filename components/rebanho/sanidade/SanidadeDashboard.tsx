@@ -337,7 +337,7 @@ export function SanidadeDashboard({
               <select
                 value={filtroTipo}
                 onChange={(e) => {
-                  setFiltroTipo(e.target.value as any);
+                  setFiltroTipo(e.target.value as TipoEventoSanitario | 'todos');
                   setPage(0);
                 }}
                 className="w-full px-3 py-2 border rounded-lg text-sm"

@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { type FiltrosIndicadores, type TipoExploracao } from '@/types/rebanho-indicadores';
+import { type FiltrosIndicadores, type TipoExploracao, type PeriodoPreset } from '@/types/rebanho-indicadores';
 import { listAlertasVacinacao } from '@/lib/supabase/rebanho-sanitario';
 import {
   listAnimaisComPartoPrevisto,
@@ -64,7 +64,7 @@ export default async function IndicadoresPage(props: PageProps) {
   }
 
   const tipoExploracao: TipoExploracao = (fazendaRes.data?.tipo_exploracao || 'MISTO') as TipoExploracao;
-  const lotes = JSON.parse(JSON.stringify((lotesRes.data as any[]) || []));
+  const lotes = JSON.parse(JSON.stringify(lotesRes.data ?? []));
 
   // Preparar alertas para passar ao componente cliente
   const alertas: AlertasRebanho = {
@@ -77,7 +77,9 @@ export default async function IndicadoresPage(props: PageProps) {
   // Parse searchParams para filtros iniciais
   const searchParams = await props.searchParams;
   const initFiltros: FiltrosIndicadores = {
-    periodo: (searchParams?.periodo as any) || '90d',
+    periodo: (['30d', '90d', '365d', 'safra', 'custom'].includes(searchParams?.periodo as string)
+      ? searchParams?.periodo
+      : '90d') as PeriodoPreset,
     dataInicio: searchParams?.dataInicio ? (searchParams.dataInicio as string) : undefined,
     dataFim: searchParams?.dataFim ? (searchParams.dataFim as string) : undefined,
     lotes: searchParams?.lotes ? (searchParams.lotes as string).split(',') : undefined,

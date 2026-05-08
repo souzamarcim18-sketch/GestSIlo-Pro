@@ -164,7 +164,7 @@ export function CoberturaFormDialog({
             <Label htmlFor="tipo_cobertura">Tipo de Cobertura *</Label>
             <Select
               value={tipoCoberturaValue}
-              onValueChange={(v) => setValue('tipo_cobertura', v as any)}
+              onValueChange={(v) => setValue('tipo_cobertura', v as CriarCoberturaInput['tipo_cobertura'])}
               disabled={isLoading}
             >
               <SelectTrigger id="tipo_cobertura" className="h-12">
