@@ -52,7 +52,7 @@ export function NascimentoForm({ animal, animais, onSuccess }: NascimentoFormPro
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await registrarEventoAction(data);
+      const result = await registrarEventoAction(data.animal_id, data);
       if (result.success) {
         toast.success('Nascimento registrado com sucesso');
         reset();

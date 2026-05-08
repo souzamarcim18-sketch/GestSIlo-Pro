@@ -40,7 +40,7 @@ export function MorteForm({ animal, onSuccess }: MorteFormProps) {
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await registrarEventoAction(data);
+      const result = await registrarEventoAction(data.animal_id, data);
       if (result.success) {
         toast.success('Morte registrada com sucesso');
         reset();

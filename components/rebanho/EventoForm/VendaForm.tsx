@@ -41,7 +41,7 @@ export function VendaForm({ animal, onSuccess }: VendaFormProps) {
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await registrarEventoAction(data);
+      const result = await registrarEventoAction(data.animal_id, data);
       if (result.success) {
         toast.success('Venda registrada com sucesso');
         reset();

@@ -50,7 +50,7 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = await registrarEventoAction(data);
+      const result = await registrarEventoAction(data.animal_id, data);
       if (result.success) {
         toast.success('Pesagem registrada com sucesso');
         reset();

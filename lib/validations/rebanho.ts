@@ -152,6 +152,121 @@ export const criarEventoTransferenciaSchema = z.object({
 
 export type CriarEventoTransferenciaInput = z.infer<typeof criarEventoTransferenciaSchema>;
 
+// ========== EVENTOS — COBERTURA ==========
+
+export const criarEventoCoberturaSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  tipo: z.literal(TipoEvento.COBERTURA),
+  data_evento: z
+    .string()
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= new Date() && !isNaN(date.getTime());
+    }, 'Data do evento deve ser válida e não futura'),
+  reprodutor_id: z.string().uuid('Reprodutor inválido').optional().nullable(),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarEventoCoberturaInput = z.infer<typeof criarEventoCoberturaSchema>;
+
+// ========== EVENTOS — DIAGNÓSTICO DE PRENHEZ ==========
+
+export const criarEventoDiagnosticoPrenhezSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  tipo: z.literal(TipoEvento.DIAGNOSTICO_PRENHEZ),
+  data_evento: z
+    .string()
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= new Date() && !isNaN(date.getTime());
+    }, 'Data do evento deve ser válida e não futura'),
+  resultado: z.enum(['positivo', 'negativo'], { message: 'Resultado obrigatório' }),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarEventoDiagnosticoPrenhezInput = z.infer<typeof criarEventoDiagnosticoPrenhezSchema>;
+
+// ========== EVENTOS — PARTO ==========
+
+export const criarEventoPartoSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  tipo: z.literal(TipoEvento.PARTO),
+  data_evento: z
+    .string()
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= new Date() && !isNaN(date.getTime());
+    }, 'Data do evento deve ser válida e não futura'),
+  tipo_parto: z.enum(['simples', 'gemelar', 'triplo']).optional().nullable(),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarEventoPartoInput = z.infer<typeof criarEventoPartoSchema>;
+
+// ========== EVENTOS — DESMAME (mínimo) ==========
+
+export const criarEventoDesmameSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  tipo: z.literal(TipoEvento.DESMAME),
+  data_evento: z
+    .string()
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= new Date() && !isNaN(date.getTime());
+    }, 'Data do evento deve ser válida e não futura'),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarEventoDesmameInput = z.infer<typeof criarEventoDesmameSchema>;
+
+// ========== EVENTOS — SECAGEM (mínimo) ==========
+
+export const criarEventoSecagemSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  tipo: z.literal(TipoEvento.SECAGEM),
+  data_evento: z
+    .string()
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= new Date() && !isNaN(date.getTime());
+    }, 'Data do evento deve ser válida e não futura'),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarEventoSecagemInput = z.infer<typeof criarEventoSecagemSchema>;
+
+// ========== EVENTOS — ABORTO (mínimo) ==========
+
+export const criarEventoAbortoSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  tipo: z.literal(TipoEvento.ABORTO),
+  data_evento: z
+    .string()
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= new Date() && !isNaN(date.getTime());
+    }, 'Data do evento deve ser válida e não futura'),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarEventoAbortoInput = z.infer<typeof criarEventoAbortoSchema>;
+
+// ========== EVENTOS — DESCARTE (mínimo) ==========
+
+export const criarEventoDescarteSchema = z.object({
+  animal_id: z.string().uuid('Animal inválido'),
+  tipo: z.literal(TipoEvento.DESCARTE),
+  data_evento: z
+    .string()
+    .refine((val) => {
+      const date = new Date(val);
+      return date <= new Date() && !isNaN(date.getTime());
+    }, 'Data do evento deve ser válida e não futura'),
+  observacoes: z.string().optional().nullable(),
+});
+
+export type CriarEventoDescarteInput = z.infer<typeof criarEventoDescarteSchema>;
+
 // ========== EVENTO GENÉRICO ==========
 
 export const criarEventoSchema = z.union([
@@ -160,6 +275,13 @@ export const criarEventoSchema = z.union([
   criarEventoMorteSchema,
   criarEventoVendaSchema,
   criarEventoTransferenciaSchema,
+  criarEventoCoberturaSchema,
+  criarEventoDiagnosticoPrenhezSchema,
+  criarEventoPartoSchema,
+  criarEventoDesmameSchema,
+  criarEventoSecagemSchema,
+  criarEventoAbortoSchema,
+  criarEventoDescarteSchema,
 ]);
 
 export type CriarEventoInput = z.infer<typeof criarEventoSchema>;

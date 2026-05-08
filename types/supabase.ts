@@ -104,7 +104,6 @@ export type Database = {
           lote_id: string | null
           mae_id: string | null
           nome: string | null
-          numero_animal: string
           observacoes: string | null
           origem: string | null
           pai_id: string | null
@@ -138,7 +137,6 @@ export type Database = {
           lote_id?: string | null
           mae_id?: string | null
           nome?: string | null
-          numero_animal: string
           observacoes?: string | null
           origem?: string | null
           pai_id?: string | null
@@ -172,7 +170,6 @@ export type Database = {
           lote_id?: string | null
           mae_id?: string | null
           nome?: string | null
-          numero_animal?: string
           observacoes?: string | null
           origem?: string | null
           pai_id?: string | null
@@ -2442,6 +2439,10 @@ export type Database = {
       is_gerente_or_admin: { Args: never; Returns: boolean }
       is_operador: { Args: never; Returns: boolean }
       posso_criar_fazenda: { Args: never; Returns: boolean }
+      registrar_evento_com_status: {
+        Args: { p_animal_id: string; p_payload: Json }
+        Returns: string
+      }
       rpc_lancar_parto: {
         Args: {
           p_animal_id: string

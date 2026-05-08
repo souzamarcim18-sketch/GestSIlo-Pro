@@ -26,9 +26,9 @@ import {
   registrarEvento,
   importarAnimaisCSV,
 } from '@/lib/supabase/rebanho';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { TipoEvento } from '@/lib/types/rebanho';
 import type { CSVImportResult } from '@/lib/types/rebanho';
-import { toast } from 'sonner';
 
 // ========== ANIMAIS ==========
 
@@ -162,14 +162,32 @@ export async function transferirAnimaisAction(
 // ========== EVENTOS ==========
 
 export async function registrarEventoAction(
+  animal_id: string,
   formData: unknown
 ): Promise<{ success: boolean; evento_id?: string; error?: string }> {
   try {
     const parsed = criarEventoSchema.parse(formData);
-    const resultado = await registrarEvento(parsed as CriarEventoInput);
+    const supabase = await createSupabaseServerClient();
+
+    // Atomicamente insere o evento e, quando aplicável, atualiza animais.status
+    const { data, error } = await supabase.rpc('registrar_evento_com_status', {
+      p_animal_id: animal_id,
+      p_payload: parsed,
+    });
+
+    if (error) throw new Error(error.message);
+
     revalidatePath('/dashboard/rebanho');
-    return { success: true, evento_id: resultado.id };
+    revalidatePath(`/dashboard/rebanho/${animal_id}`);
+    revalidatePath('/dashboard/rebanho/indicadores');
+    revalidatePath('/dashboard/rebanho/movimentacoes');
+
+    return { success: true, evento_id: data as string };
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const mensagem = error.issues.map((e) => e.message).join('; ');
+      return { success: false, error: mensagem };
+    }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, error: mensagem };
   }
