@@ -103,6 +103,15 @@ export type MotivoDescarteEnum = 'idade' | 'reprodutivo' | 'sanitario' | 'produc
 export type StatusReprodutivo = 'vazia' | 'inseminada' | 'prenha' | 'lactacao' | 'seca' | 'descartada';
 export type TipoReprodutorEnum = 'touro' | 'semen_ia' | 'touro_teste';
 
+export interface CoberturaDoReprodutorRow {
+  id: string;
+  animal_id: string;
+  data_evento: string;
+  tipo_cobertura: TipoCoberturaEnum | null;
+  observacoes: string | null;
+  animais: { brinco: string | null; nome: string | null } | null;
+}
+
 // ========== ADIÇÕES — TABELAS DO BANCO SEM TIPO ==========
 
 // Tabela parametros_reprodutivos_fazenda (Seção 1.5)

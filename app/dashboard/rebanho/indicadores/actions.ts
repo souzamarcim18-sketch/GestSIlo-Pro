@@ -161,7 +161,9 @@ export async function getComparativoLotesAction(
     const resultado = filtrosIndicadoresSchema.safeParse(filtros);
     if (!resultado.success) throw new Error('Filtros inválidos');
 
-    // TODO: Implementar lógica de ranking por lote em T43
+    // TODO [T43 — backlog]: Implementar ranking por lote.
+    //   Bloqueado por: necessidade de definir critério de ordenação por indicador (gmd, natalidade, prenhez, peso).
+    //   Ref: SPEC-rebanho-v3.md Fase 6, BUGS-rebanho.md Seção 4.3
     return [];
   } catch (erro) {
     Sentry.captureException(erro, { tags: { action: 'getComparativoLotesAction' } });

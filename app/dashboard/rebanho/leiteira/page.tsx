@@ -131,8 +131,9 @@ export default async function LeiteiraPage() {
               <p className="text-xs text-muted-foreground">
                 Disponível após configurar consumo no módulo de Silos
               </p>
-              {/* TODO: integrar com módulo de silos quando query de consumo estiver disponível */}
-              {/* Ref: SPEC-rebanho.md Seção 8 — Integrações com GestSilo */}
+              {/* TODO [backlog]: Eficiência alimentar (litros/kg MS).
+                  Bloqueado por: query de consumo do módulo Silos não disponível.
+                  Ref: SPEC-rebanho-v3.md Fase 6, BUGS-rebanho.md Seção 2.3 */}
             </CardContent>
           </Card>
         </div>

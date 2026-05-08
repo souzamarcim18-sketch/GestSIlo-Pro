@@ -11,6 +11,7 @@ import type {
   Lactacao,
   EventoPartoCria,
   ParametrosReprodutivosFazenda,
+  CoberturaDoReprodutorRow,
 } from '@/lib/types/rebanho-reproducao';
 import type {
   CriarReprodutorInput,
@@ -373,6 +374,24 @@ export const queryEventosRebanho = {
 
     if (error && error.code !== 'PGRST116') throw error;
     return data ? { id: data.id, data_evento: data.data_evento, idade_gestacional_dias: data.idade_gestacional_dias } : null;
+  },
+
+  /** Lista coberturas associadas a um reprodutor específico, com dados do animal coberto */
+  async listCoberturasPorReprodutorId(reprodutor_id: string): Promise<CoberturaDoReprodutorRow[]> {
+    const supabase = await createSupabaseServerClient();
+
+    const { data, error } = await supabase
+      .from('eventos_rebanho')
+      .select(
+        'id, animal_id, data_evento, tipo_cobertura, observacoes, animais(brinco, nome)'
+      )
+      .eq('reprodutor_id', reprodutor_id)
+      .eq('tipo', 'cobertura')
+      .is('deleted_at', null)
+      .order('data_evento', { ascending: false });
+
+    if (error) throw error;
+    return (data as unknown as CoberturaDoReprodutorRow[]) || [];
   },
 
   /** Soft-delete de evento (apenas admin pode fazer no fluxo de UI) */
