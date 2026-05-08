@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CATEGORIAS_LEITE, CATEGORIAS_CORTE } from '@/lib/constants/planejamento-silagem';
 import { WizardState } from '@/lib/types/planejamento-silagem';
-import { detectarRebanho, projetarRebanho } from '@/lib/supabase/rebanho';
+import { detectarRebanhoAction, projetarRebanhoAction } from '../actions';
 import { mapearCategoriasProjetadas } from '@/lib/services/planejamento-silagem';
 import type { RebanhoProjetado } from '@/lib/types/rebanho';
 
@@ -70,13 +70,13 @@ export function Etapa2Rebanho({
   const executarDeteccao = useCallback(async () => {
     try {
       setDetectando(true);
-      const deteccao = await detectarRebanho();
+      const deteccao = await detectarRebanhoAction();
 
       if (deteccao.rebanho_detectado) {
         setRebanhoDetectado(true);
         // Projetar para dataAlvo
         const dataAlvoObj = new Date(dataAlvo);
-        const projecao = await projetarRebanho(dataAlvoObj);
+        const projecao = await projetarRebanhoAction(dataAlvoObj);
         setDadosProjetados(projecao);
 
         // Mapear categorias
@@ -101,6 +101,7 @@ export function Etapa2Rebanho({
         setRazaoDeteccao(deteccao.razao || 'nenhum');
       }
     } catch (erro) {
+      console.error('[Etapa2Rebanho] Erro ao detectar rebanho:', erro);
       toast.error('Erro ao detectar rebanho');
       setRebanhoDetectado(false);
       setRazaoDeteccao('nenhum');
@@ -122,7 +123,7 @@ export function Etapa2Rebanho({
     try {
       setReprojetando(true);
       const dataAlvoObj = new Date(novaData);
-      const projecao = await projetarRebanho(dataAlvoObj);
+      const projecao = await projetarRebanhoAction(dataAlvoObj);
       setDadosProjetados(projecao);
 
       // Re-mapear

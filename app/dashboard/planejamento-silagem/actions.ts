@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { qServer } from '@/lib/supabase/queries-audit';
+import { detectarRebanho, projetarRebanho } from '@/lib/supabase/rebanho';
 import type { PlanejamentoSilagem, RebanhoSnapshot } from '@/lib/types/planejamento-silagem';
+import type { DeteccaoRebanho, RebanhoProjetado } from '@/lib/types/rebanho';
 
 /**
  * Server Action para salvar um novo planejamento de silagem.
@@ -118,6 +120,20 @@ export async function deletePlanejamentoAction(id: string): Promise<{
       error: mensagem,
     };
   }
+}
+
+/**
+ * Server Action para detectar se existe rebanho cadastrado na fazenda.
+ */
+export async function detectarRebanhoAction(): Promise<DeteccaoRebanho> {
+  return detectarRebanho();
+}
+
+/**
+ * Server Action para projetar o rebanho até uma data alvo.
+ */
+export async function projetarRebanhoAction(dataAlvo: Date): Promise<RebanhoProjetado> {
+  return projetarRebanho(dataAlvo);
 }
 
 /**

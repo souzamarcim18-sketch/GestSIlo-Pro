@@ -391,7 +391,7 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 
 **Permissões por perfil**:
 - **Admin**: CRUD completo de animais, lotes e todos os eventos; deletar produções e sanitários
-- **Operador**: criar/editar animais; registrar todos os eventos; editar produção leiteira e sanitários
+- **Operador**: registrar todos os eventos; editar produção leiteira e sanitários (NÃO pode criar/editar/deletar animais — apenas Admin)
 - **Visualizador**: consultar apenas
 
 **Sub-módulos**:

@@ -123,44 +123,29 @@ export default function RebanhosPage() {
           </div>
         </div>
 
-        {/* Navegação Rápida */}
-        <div className="flex gap-2 flex-wrap">
-          <Link href="/dashboard/rebanho/indicadores">
-            <Button variant="outline" size="sm">
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Dashboard
-            </Button>
-          </Link>
-          <Link href="/dashboard/rebanho/reproducao/eventos">
-            <Button variant="outline" size="sm">
-              <Heart className="mr-2 h-4 w-4" />
-              Reprodução
-            </Button>
-          </Link>
-          <Link href="/dashboard/rebanho/leiteira">
-            <Button variant="outline" size="sm">
-              <Milk className="mr-2 h-4 w-4" />
-              Leiteira
-            </Button>
-          </Link>
-          <Link href="/dashboard/rebanho/corte">
-            <Button variant="outline" size="sm">
-              <Scale className="mr-2 h-4 w-4" />
-              Corte
-            </Button>
-          </Link>
-          <Link href="/dashboard/rebanho/sanidade">
-            <Button variant="outline" size="sm">
-              <Stethoscope className="mr-2 h-4 w-4" />
-              Sanidade
-            </Button>
-          </Link>
-          <Link href="/dashboard/rebanho/movimentacoes">
-            <Button variant="outline" size="sm">
-              <ArrowRightLeft className="mr-2 h-4 w-4" />
-              Movimentações
-            </Button>
-          </Link>
+        {/* Acesso Rápido */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Acesso Rápido</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'Dashboard com KPIs e 4 alertas proativos' },
+              { href: '/dashboard/rebanho/reproducao', icon: Heart, titulo: 'Reprodução', descricao: 'Calendário reprodutivo, eventos, reprodutores' },
+              { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Leiteira', descricao: 'Registro e curva de lactação' },
+              { href: '/dashboard/rebanho/corte', icon: Scale, titulo: 'Corte', descricao: 'GMD, arrobas, projeção de abate' },
+              { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação, sanitários, alertas' },
+              { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas, saídas, transferências' },
+            ].map(({ href, icon: Icon, titulo, descricao }) => (
+              <Link key={href} href={href}>
+                <Card className="cursor-pointer hover:shadow-lg hover:bg-accent/50 transition-all duration-150 h-full">
+                  <CardContent className="flex flex-col items-start justify-center gap-2 p-6 min-h-[120px]">
+                    <Icon className="h-8 w-8 text-[#00A651]" />
+                    <p className="font-semibold text-base">{titulo}</p>
+                    <p className="text-sm text-muted-foreground">{descricao}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Filtros */}
