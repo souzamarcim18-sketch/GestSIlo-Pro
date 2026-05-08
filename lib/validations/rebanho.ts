@@ -22,7 +22,7 @@ export const criarAnimalSchema = z.object({
   pai_id: z.string().uuid().nullable().optional(),
   raca: z.string().max(255).optional().nullable(),
   origem: z.enum(['nascido', 'comprado']).optional().nullable(),
-  peso_nascimento: z.number().positive().max(200).optional().nullable(),
+  peso_nascimento: z.coerce.number().positive().max(200).optional().nullable(),
   sisbov_crbio: z.string().max(100).optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });

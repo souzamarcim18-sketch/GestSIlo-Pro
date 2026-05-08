@@ -30,6 +30,7 @@ export default function NovoAnimalPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [origem, setOrigem] = useState<'nascido' | 'comprado'>('nascido');
   const [dataEstimada, setDataEstimada] = useState(false);
+  const [loteId, setLoteId] = useState<string>('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -47,8 +48,14 @@ export default function NovoAnimalPage() {
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
+    const dados = Object.fromEntries(formData);
+
+    if (dados.peso_nascimento) {
+      dados.peso_nascimento = Number(dados.peso_nascimento);
+    }
+
     try {
-      const result = await criarAnimalAction(Object.fromEntries(formData));
+      const result = await criarAnimalAction(dados);
       if (result.success) {
         toast.success('Animal criado com sucesso');
         router.push(`/dashboard/rebanho/${result.animal_id}`);
@@ -213,7 +220,11 @@ export default function NovoAnimalPage() {
               {/* Lote */}
               <div>
                 <Label htmlFor="lote_id">Lote</Label>
-                <Select name="lote_id">
+                <Select
+                  name="lote_id"
+                  value={loteId}
+                  onValueChange={(value) => setLoteId(value || '')}
+                >
                   <SelectTrigger id="lote_id" disabled={isSubmitting}>
                     <SelectValue placeholder="Sem lote" />
                   </SelectTrigger>
