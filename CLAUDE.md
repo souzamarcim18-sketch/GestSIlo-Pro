@@ -133,15 +133,29 @@ app/
 │   ├── configuracoes/
 │   ├── onboarding/
 │   └── rebanho/
-│       ├── page.tsx                 # Listagem geral com filtros
+│       ├── page.tsx                 # Hub: 6 cards grandes + listagem de animais com filtros
 │       ├── actions.ts               # Server Actions (criar/editar animal, lote)
 │       ├── novo/page.tsx            # Cadastro de animal
 │       ├── [id]/page.tsx            # Ficha do animal (abas: geral, pesagens, reprodução, leiteira, sanidade, histórico, corte)
 │       ├── [id]/editar/page.tsx
+│       ├── [id]/evento/page.tsx     # Registro de evento por animal
 │       ├── lotes/
 │       ├── importar/
-│       ├── indicadores/page.tsx     # Dashboard geral + 4 alertas proativos
-│       ├── reproducao/              # Calendário reprodutivo + eventos + indicadores + parâmetros + repetidoras + reprodutores
+│       ├── indicadores/             # Dashboard geral + KPIs + 4 alertas proativos
+│       ├── reproducao/              # Hub com 3 abas: Eventos, Reprodutores, Parâmetros
+│       │   ├── page.tsx             # Hub de reprodução (layout com abas via TabsNav)
+│       │   ├── layout.tsx
+│       │   ├── TabsNav.tsx
+│       │   ├── eventos/page.tsx
+│       │   ├── reprodutores/
+│       │   │   ├── page.tsx
+│       │   │   ├── ReprodutoresClient.tsx
+│       │   │   └── [id]/
+│       │   │       ├── page.tsx               # Server Component — busca reprodutor + coberturas
+│       │   │       └── ReprodutorDetailClient.tsx  # Client Component — useAuth, permissões, UI
+│       │   ├── parametros/page.tsx
+│       │   ├── indicadores/page.tsx
+│       │   └── repetidoras/page.tsx
 │       ├── leiteira/page.tsx        # Dashboard leiteiro + registro de produção
 │       ├── corte/page.tsx           # Dashboard de corte + pesagem em lote + projeção de abate
 │       ├── sanidade/page.tsx        # Alertas sanitários + calendário + registro de eventos
@@ -170,9 +184,11 @@ lib/
 │   ├── operador.ts
 │   ├── configuracoes.ts
 │   ├── rebanho.ts                   # Queries animais, lotes, eventos, pesos, importação CSV
+│   ├── rebanho-reproducao.ts        # Queries reprodutores, eventos reprodutivos, coberturas, lactações, parâmetros
 │   ├── rebanho-leiteira.ts          # Queries producoes_leiteiras
 │   ├── rebanho-sanitario.ts         # Queries eventos_sanitarios + listAlertasSanitarios()
 │   ├── rebanho-movimentacoes.ts     # Queries de movimentações consolidadas
+│   ├── rebanho-movimentacoes-actions.ts  # Helpers de movimentações
 │   └── rebanho-indicadores.ts       # Queries de alertas: partos, pesagens, vacas secas
 ├── sentry/
 │   └── allowlist.ts                 # Padrões de dados sensíveis filtrados do Sentry
@@ -367,12 +383,14 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 ### 🧮 Calculadoras Agronômicas
 - Calagem, adubação NPK, fertilizantes
 
-### 🐄 Rebanho (100% implementado — 2026-05-07)
+### 🐄 Rebanho (100% implementado — 2026-05-08, refatoração v3 concluída)
 
 **Tabelas do banco**:
 `animais`, `lotes`, `eventos_rebanho`, `pesos_animal`, `reprodutores`,
 `lactacoes`, `producoes_leiteiras`, `eventos_sanitarios`,
 `eventos_parto_crias`, `parametros_reprodutivos_fazenda`, `categorias_rebanho`
+
+> ⚠️ A tabela `reprodutores` **não aparece no `database-snapshot.md`** (snapshot desatualizado — gerado antes das tabelas de rebanho). Fonte de verdade: `types/supabase.ts`.
 
 **Tipos de rebanho suportados**: `leiteiro`, `corte`, `dupla_aptidao`
 
@@ -394,33 +412,55 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 - **Operador**: registrar todos os eventos; editar produção leiteira e sanitários (NÃO pode criar/editar/deletar animais — apenas Admin)
 - **Visualizador**: consultar apenas
 
+### Navegação do módulo Rebanho
+- **Sidebar**: item único "Rebanho" sem submenu — aponta para `/dashboard/rebanho`
+- **Hub** (`/rebanho`): 6 cards grandes de acesso rápido + listagem de animais com filtros
+- Toda navegação interna parte do hub; sub-rotas não aparecem no Sidebar
+
 **Sub-módulos**:
 - **Indicadores** (`/indicadores`): dashboard geral, KPIs, 4 alertas proativos (vacinações, partos, sem pesagem, vacas secas)
-- **Reprodução** (`/reproducao`): 9 tipos de evento reprodutivo, calendário, IEP, taxa de prenhez, DG, IATF
+- **Reprodução** (`/reproducao`): hub com 3 abas (Eventos, Reprodutores, Parâmetros) + calendário reprodutivo, IEP, taxa de prenhez, DG, IATF, repetidoras, indicadores reprodutivos
 - **Leiteira** (`/leiteira`): registro individual/coletivo, curva de lactação, gráfico 30 dias, ranking top 10 vacas
 - **Corte** (`/corte`): GMD, arrobas projetadas, projeção de abate, pesagem em lote, gráfico evolução/lote
 - **Sanidade** (`/sanidade`): vacinação/vermifugação/tratamento/exame, registro em lote, calendário sanitário, alertas
 - **Movimentações** (`/movimentacoes`): entradas (nascimento/compra), saídas (venda/morte/descarte/abate), transferência entre lotes, KPIs, export CSV
 
-**Integração pendente**: Eficiência Alimentar (litros/kg MS) — aguarda query de consumo do módulo de Silos (TODO em `leiteira/page.tsx`, ref: SPEC-rebanho.md Seção 8)
+### Reprodutores (`/reproducao/reprodutores/[id]`)
+- Página detalhada: Server Component busca dados reais via `queryReprodutores.getById(id)`
+- Client Component `ReprodutorDetailClient.tsx` usa `useAuth()` para lógica de permissão
+- Lista de coberturas via `queryEventosRebanho.listCoberturasPorReprodutorId(id)`: filtra `eventos_rebanho` por `reprodutor_id` + `tipo = 'cobertura'`, join com `animais(brinco, nome)`
+- Botões Editar/Deletar visíveis apenas para `perfil === 'Administrador'`
+
+### Registro de Eventos por Animal
+- Rota `/rebanho/[id]/evento` existe e funcional (criada na refatoração v3)
+
+### Backlog documentado (não implementar sem instrução)
+- **T43** (`indicadores/actions.ts`): ranking comparativo por lote — bloqueado por falta de critério de ordenação
+- **Eficiência Alimentar** (`leiteira/page.tsx`): litros/kg MS — bloqueado aguardando query de consumo do módulo Silos
 
 **Arquivos principais**:
 - `lib/supabase/rebanho.ts` — queries animais/lotes/eventos/pesos/importação CSV
+- `lib/supabase/rebanho-reproducao.ts` — queries reprodutores, eventos reprodutivos, coberturas, lactações, parâmetros
 - `lib/supabase/rebanho-leiteira.ts` — queries producoes_leiteiras
-- `lib/supabase/rebanho-sanitario.ts` — queries eventos_sanitarios
+- `lib/supabase/rebanho-sanitario.ts` — queries eventos_sanitarios + listAlertasSanitarios()
 - `lib/supabase/rebanho-movimentacoes.ts` — queries movimentações consolidadas
+- `lib/supabase/rebanho-movimentacoes-actions.ts` — helpers de movimentações
+- `lib/supabase/rebanho-indicadores.ts` — queries de alertas: partos, pesagens, vacas secas
 - `lib/types/rebanho.ts` — Animal, Lote, EventoRebanho, StatusAnimal, TipoRebanho
 - `lib/types/rebanho-leiteira.ts` — ProducaoLeiteira, IndicadoresLeiteiros
 - `lib/types/rebanho-sanitario.ts` — EventoSanitario (discriminated union por tipo)
+- `lib/types/rebanho-reproducao.ts` — Reprodutor, EventoReprodutivo, CoberturaDoReprodutorRow, ParametrosReprodutivosFazenda, Lactacao
 - `lib/validations/rebanho.ts` — schemas Zod (animal, lote, pesagem, produção, sanitário)
 - `lib/calculos/indicadores-rebanho.ts` — GMD, IEP, arrobas, projeção de abate, taxa de concepção
-- `app/dashboard/rebanho/actions.ts` — Server Actions gerais
+- `app/dashboard/rebanho/actions.ts` — Server Actions gerais (animais, lotes)
+- `app/dashboard/rebanho/reproducao/actions.ts` — Server Actions reprodução
 - `app/dashboard/rebanho/sanidade/actions.ts` — Server Actions sanitários
 - `app/dashboard/rebanho/movimentacoes/actions.ts` — Server Actions movimentações
 - `app/dashboard/rebanho/leiteira/actions.ts` — Server Actions produção leiteira
 - `app/dashboard/rebanho/corte/actions.ts` — pesagem em lote
+- `app/dashboard/rebanho/indicadores/actions.ts` — Server Actions KPIs e alertas
 
-**Testes**: 646 passando (inclui rebanho)
+**Testes**: 645/646 passando — 1 falho pré-existente (`__tests__/security/rls.test.ts`) por timeout de rede (tenta conectar ao Supabase real sem credenciais configuradas no ambiente de teste)
 
 ### 🔮 Em Breve (badge no Sidebar)
 - Assessoria Agronômica
