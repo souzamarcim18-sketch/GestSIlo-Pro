@@ -7,9 +7,6 @@ import { toast } from 'sonner';
 import { Home } from 'lucide-react';
 import Image from 'next/image';
 
-const BG_METAL =
-  'linear-gradient(135deg, #b8b8b8 0%, #e8e8e8 25%, #f5f5f5 50%, #d0d0d0 75%, #a8a8a8 100%)';
-
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
@@ -61,11 +58,8 @@ export default function ResetPasswordPage() {
 
   if (!sessionReady) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: BG_METAL }}
-      >
-        <p style={{ color: '#023c1f' }} className="font-semibold">
+      <div className="min-h-screen flex items-center justify-center bg-metal">
+        <p className="font-semibold text-brand-deep">
           Validando link...
         </p>
       </div>
@@ -73,16 +67,13 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
-      style={{ background: BG_METAL }}
-    >
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-metal">
       {/* Grid decorativo */}
       <div className="absolute inset-0 opacity-15 pointer-events-none" aria-hidden="true">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid-reset" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#00A651" strokeWidth="0.5" />
+              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--brand-green-vivid)" strokeWidth="0.5" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid-reset)" />
@@ -93,8 +84,7 @@ export default function ResetPasswordPage() {
       <button
         onClick={() => router.push('/')}
         aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl text-sm font-semibold hover:bg-white hover:text-primary transition-all shadow-md cursor-pointer"
-        style={{ color: '#1a1a1a' }}
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-card hover:text-brand-primary transition-all shadow-md cursor-pointer"
       >
         <Home className="w-4 h-4" aria-hidden="true" />
         <span>Voltar ao Início</span>
@@ -114,12 +104,12 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 p-8">
+        <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-border/60 p-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold mb-2" style={{ color: '#023c1f' }}>
+            <h1 className="text-2xl font-bold mb-2 text-brand-deep">
               Redefinir senha
             </h1>
-            <p className="text-sm" style={{ color: '#4a4a4a' }}>
+            <p className="text-sm text-muted-foreground">
               Escolha uma nova senha segura para sua conta.
             </p>
           </div>
@@ -128,8 +118,7 @@ export default function ResetPasswordPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-semibold mb-2"
-                style={{ color: '#1a1a1a' }}
+                className="block text-sm font-semibold mb-2 text-foreground"
               >
                 Nova senha
               </label>
@@ -142,19 +131,14 @@ export default function ResetPasswordPage() {
                 required
                 minLength={8}
                 autoComplete="new-password"
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-base shadow-sm"
-                onFocus={(e) =>
-                  (e.target.style.boxShadow = '0 0 0 3px rgba(0,166,81,0.2)')
-                }
-                onBlur={(e) => (e.target.style.boxShadow = '')}
+                className="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-base shadow-sm transition-all"
               />
             </div>
 
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-semibold mb-2"
-                style={{ color: '#1a1a1a' }}
+                className="block text-sm font-semibold mb-2 text-foreground"
               >
                 Confirmar nova senha
               </label>
@@ -167,11 +151,7 @@ export default function ResetPasswordPage() {
                 required
                 minLength={8}
                 autoComplete="new-password"
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-base shadow-sm"
-                onFocus={(e) =>
-                  (e.target.style.boxShadow = '0 0 0 3px rgba(0,166,81,0.2)')
-                }
-                onBlur={(e) => (e.target.style.boxShadow = '')}
+                className="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-base shadow-sm transition-all"
               />
             </div>
 
@@ -179,13 +159,12 @@ export default function ResetPasswordPage() {
               type="submit"
               disabled={loading}
               aria-busy={loading}
-              className="w-full py-3 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 mt-2 hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
               style={{
                 background: loading
                   ? '#9CA3AF'
                   : 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
                 boxShadow: loading ? 'none' : '0 4px 20px rgba(0,166,81,0.35)',
-                opacity: loading ? 0.7 : 1,
               }}
             >
               {loading ? 'Salvando...' : 'Redefinir senha'}
@@ -194,7 +173,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <footer className="mt-8 text-center">
-          <p className="text-xs" style={{ color: '#4a4a4a' }}>
+          <p className="text-xs text-muted-foreground">
             © 2026 GestSilo · Todos os direitos reservados
           </p>
         </footer>

@@ -1,0 +1,106 @@
+import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { type FiltrosIndicadores, type TipoExploracao, type PeriodoPreset } from '@/types/rebanho-indicadores';
+import { listAlertasVacinacao } from '@/lib/supabase/rebanho-sanitario';
+import {
+  listAnimaisComPartoPrevisto,
+  listVacasSecasComPartoPrevisto,
+  listAnimaisSemPesagem,
+  type AlertaAnimal,
+} from '@/lib/supabase/rebanho-indicadores';
+import IndicadoresClient from './IndicadoresClient';
+import IndicadoresSkeleton from './components/IndicadoresSkeleton';
+
+export interface AlertasRebanho {
+  vacinacoes: Awaited<ReturnType<typeof listAlertasVacinacao>>;
+  partosPrevistos: AlertaAnimal[];
+  vacasSecasComParto: AlertaAnimal[];
+  semPesagem: AlertaAnimal[];
+}
+
+export const metadata = {
+  title: 'Indicadores Zootécnicos | GestSilo Pro',
+};
+
+interface PageProps {
+  searchParams?: Promise<Record<string, string | string[]>>;
+}
+
+export default async function IndicadoresPage(props: PageProps) {
+  const supabase = await createSupabaseServerClient();
+
+  // Validar autenticação
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    redirect('/login');
+  }
+
+  // Fetch tipo_exploracao, lotes da fazenda, e alertas
+  const [
+    fazendaRes,
+    lotesRes,
+    alertasVacinacao,
+    partosPrevistos,
+    vacasSecasComParto,
+    semPesagem,
+  ] = await Promise.all([
+    supabase
+      .from('fazendas')
+      .select('tipo_exploracao')
+      .single(),
+    supabase
+      .from('lotes')
+      .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
+      .order('nome', { ascending: true }),
+    listAlertasVacinacao(30),
+    listAnimaisComPartoPrevisto(30),
+    listVacasSecasComPartoPrevisto(15),
+    listAnimaisSemPesagem(60),
+  ]);
+
+  if (fazendaRes.error) {
+    throw new Error(`Erro ao carregar tipo de exploração: ${fazendaRes.error.message}`);
+  }
+
+  const tipoExploracao: TipoExploracao = (fazendaRes.data?.tipo_exploracao || 'MISTO') as TipoExploracao;
+  const lotes = JSON.parse(JSON.stringify(lotesRes.data ?? []));
+
+  // Preparar alertas para passar ao componente cliente
+  const alertas: AlertasRebanho = {
+    vacinacoes: alertasVacinacao || [],
+    partosPrevistos: partosPrevistos || [],
+    vacasSecasComParto: vacasSecasComParto || [],
+    semPesagem: semPesagem || [],
+  };
+
+  // Parse searchParams para filtros iniciais
+  const searchParams = await props.searchParams;
+  const initFiltros: FiltrosIndicadores = {
+    periodo: (['30d', '90d', '365d', 'safra', 'custom'].includes(searchParams?.periodo as string)
+      ? searchParams?.periodo
+      : '90d') as PeriodoPreset,
+    dataInicio: searchParams?.dataInicio ? (searchParams.dataInicio as string) : undefined,
+    dataFim: searchParams?.dataFim ? (searchParams.dataFim as string) : undefined,
+    lotes: searchParams?.lotes ? (searchParams.lotes as string).split(',') : undefined,
+    categorias: searchParams?.categorias ? (searchParams.categorias as string).split(',') : undefined,
+  };
+
+  return (
+    <div className="container mx-auto p-4 space-y-4">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-bold text-gray-900">Indicadores Zootécnicos</h1>
+        <p className="text-sm text-gray-600">Acompanhe o desempenho do rebanho e análise de produtividade</p>
+      </header>
+
+      <Suspense fallback={<IndicadoresSkeleton />}>
+        <IndicadoresClient
+          initialFiltros={initFiltros}
+          tipoExploracao={tipoExploracao}
+          lotes={lotes}
+          alertas={alertas}
+        />
+      </Suspense>
+    </div>
+  );
+}

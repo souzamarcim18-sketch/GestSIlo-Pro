@@ -20,6 +20,12 @@ import {
   History,
   HelpCircle,
   GraduationCap,
+  PawPrint,
+  Heart,
+  Milk,
+  Scale,
+  Stethoscope,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +33,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+
+// Gradiente metálico prateado-esverdeado (somente light)
+const BG_SIDEBAR_METAL =
+  'linear-gradient(180deg, #e8efe5 0%, #f0f3ed 25%, #e3ebe0 60%, #d8e2d4 100%)';
 
 type RouteItem = {
   label: string;
@@ -38,6 +48,7 @@ type RouteItem = {
 const gerencialRoutes: RouteItem[] = [
   { label: 'Silos',       icon: Database,      href: '/dashboard/silos',                          badge: null },
   { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes',                        badge: null },
+  { label: 'Rebanho',     icon: PawPrint,      href: '/dashboard/rebanho',                        badge: null },
   { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
   { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: 'comingSoon' },
   { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },
@@ -57,6 +68,17 @@ const sistemaRoutes: RouteItem[] = [
   { label: 'Suporte',               icon: HelpCircle,    href: '/dashboard/suporte',       badge: null },
   { label: 'Assessoria agronômica', icon: GraduationCap, href: '/dashboard/assessoria',    badge: 'comingSoon' },
 ];
+
+// const rebanhoSubRoutes: RouteItem[] = [
+//   { label: 'Indicadores',    icon: BarChart3,          href: '/dashboard/rebanho/indicadores'             },
+//   { label: 'Reprodução',     icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos'      },
+//   { label: 'Reprodutores',   icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores' },
+//   { label: 'Parâmetros',     icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros'   },
+//   { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira'                },
+//   { label: 'Corte',          icon: Scale,               href: '/dashboard/rebanho/corte'                   },
+//   { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade'                },
+//   { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes'           },
+// ];
 
 interface SidebarProps {
   onNavigate?: () => void;
@@ -87,8 +109,8 @@ function NavItem({
         className={cn(
           'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 px-3',
           isActive
-            ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-foreground shadow-sm border border-primary/30 dark:border-primary/40'
-            : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted/80',
+            ? 'bg-gradient-to-r from-primary/25 to-primary/10 text-brand-deep shadow-sm border border-primary/40 dark:text-foreground dark:border-primary/40'
+            : 'text-foreground/70 hover:bg-white/60 hover:text-brand-deep dark:text-muted-foreground dark:hover:bg-muted/80 dark:hover:text-foreground',
         )}
       >
         <span className="flex items-center gap-2">
@@ -96,13 +118,68 @@ function NavItem({
             aria-hidden="true"
             className={cn(
               'h-4 w-4 transition-colors flex-shrink-0',
-              isActive ? 'text-primary' : 'text-sidebar-foreground'
+              isActive ? 'text-brand-primary' : 'text-foreground/60 dark:text-sidebar-foreground'
             )}
           />
           <span>{label}</span>
         </span>
         {badge === 'comingSoon' && (
-          <Badge variant="outline" className="text-[10px] ml-1 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
+          <Badge
+            variant="outline"
+            className="text-[10px] ml-1 bg-status-warning/15 text-status-warning border-status-warning/30"
+          >
+            Em breve
+          </Badge>
+        )}
+      </Link>
+    </li>
+  );
+}
+
+function SubNavItem({
+  href,
+  icon: Icon,
+  label,
+  isActive,
+  onNavigate,
+  badge,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  isActive: boolean;
+  onNavigate?: () => void;
+  badge?: 'comingSoon' | null;
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        onClick={onNavigate}
+        prefetch={false}
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 pl-8 pr-3',
+          isActive
+            ? 'bg-gradient-to-r from-primary/25 to-primary/10 text-brand-deep shadow-sm border border-primary/40 dark:text-foreground dark:border-primary/40'
+            : 'text-foreground/70 hover:bg-white/60 hover:text-brand-deep dark:text-muted-foreground dark:hover:bg-muted/80 dark:hover:text-foreground',
+        )}
+      >
+        <span className="flex items-center gap-2">
+          <Icon
+            aria-hidden="true"
+            className={cn(
+              'h-3 w-3 transition-colors flex-shrink-0',
+              isActive ? 'text-brand-primary' : 'text-foreground/60 dark:text-sidebar-foreground'
+            )}
+          />
+          <span>{label}</span>
+        </span>
+        {badge === 'comingSoon' && (
+          <Badge
+            variant="outline"
+            className="text-[10px] ml-1 bg-status-warning/15 text-status-warning border-status-warning/30"
+          >
             Em breve
           </Badge>
         )}
@@ -122,8 +199,20 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   };
 
   return (
-    <div className="flex flex-col h-full w-60 border-r border-border shadow-sm bg-background dark:bg-sidebar dark:border-sidebar-border">
-      <div className="py-6 flex-1 flex flex-col min-h-0 px-6">
+    <div
+      className="flex flex-col h-full w-60 border-r border-border/60 shadow-md dark:bg-sidebar dark:border-sidebar-border"
+      style={{ background: BG_SIDEBAR_METAL }}
+    >
+      {/* No dark mode, sobrescreve o gradiente com a cor sólida do sidebar */}
+      <style jsx>{`
+        @media (prefers-color-scheme: dark) {
+          div {
+            background: hsl(var(--sidebar)) !important;
+          }
+        }
+      `}</style>
+
+      <div className="py-6 flex-1 flex flex-col min-h-0 px-6 relative">
 
         {/* Logo */}
         <Link
@@ -158,34 +247,35 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </ul>
 
             {/* Separador */}
-            <div className="my-2 border-t border-sidebar-border" />
+            <div className="my-2 border-t border-foreground/10 dark:border-sidebar-border" />
 
             {/* Bloco 2 — Gerencial */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="px-3 py-1 text-[10px] font-semibold text-foreground/50 dark:text-muted-foreground uppercase tracking-wider">
                 Gerencial
               </div>
               <ul className="space-y-0.5 list-none">
                 {gerencialRoutes.map((route) => (
-                  <NavItem
-                    key={route.href}
-                    href={route.href}
-                    icon={route.icon}
-                    label={route.label}
-                    isActive={pathname === route.href}
-                    onNavigate={onNavigate}
-                    badge={route.badge}
-                  />
+                  <div key={route.href}>
+                    <NavItem
+                      href={route.href}
+                      icon={route.icon}
+                      label={route.label}
+                      isActive={pathname === route.href}
+                      onNavigate={onNavigate}
+                      badge={route.badge}
+                    />
+                  </div>
                 ))}
               </ul>
             </div>
 
             {/* Separador */}
-            <div className="my-2 border-t border-sidebar-border" />
+            <div className="my-2 border-t border-foreground/10 dark:border-sidebar-border" />
 
             {/* Bloco 3 — Ferramentas */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="px-3 py-1 text-[10px] font-semibold text-foreground/50 dark:text-muted-foreground uppercase tracking-wider">
                 Ferramentas
               </div>
               <ul className="space-y-0.5 list-none">
@@ -203,11 +293,11 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </div>
 
             {/* Separador */}
-            <div className="my-2 border-t border-sidebar-border" />
+            <div className="my-2 border-t border-foreground/10 dark:border-sidebar-border" />
 
             {/* Bloco 4 — Sistema */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="px-3 py-1 text-[10px] font-semibold text-foreground/50 dark:text-muted-foreground uppercase tracking-wider">
                 Sistema
               </div>
               <ul className="space-y-0.5 list-none">
@@ -230,7 +320,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
       </div>
 
       {/* Rodapé — Sair */}
-      <div className="p-4 border-t border-sidebar-border bg-sidebar/50">
+      <div className="p-4 border-t border-foreground/10 dark:border-sidebar-border bg-white/30 dark:bg-sidebar/50 backdrop-blur-sm">
         <Button
           variant="ghost"
           className="text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-lg transition-all w-full justify-start py-1.5 px-3 h-auto text-xs font-semibold"

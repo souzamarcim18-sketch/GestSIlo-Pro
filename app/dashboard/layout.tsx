@@ -20,7 +20,6 @@ export default function DashboardLayout({
 
   const isOnboardingPage = pathname === '/dashboard/onboarding';
 
-  // Timeout de 5s se loading permanecer true
   useEffect(() => {
     if (!loading) return;
 
@@ -35,7 +34,6 @@ export default function DashboardLayout({
     };
   }, [loading]);
 
-  // Verificação de autenticação e redirecionamento
   useEffect(() => {
     if (loading) return;
 
@@ -58,7 +56,7 @@ export default function DashboardLayout({
   // Loading geral
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center" role="status" aria-live="polite">
+      <div className="h-screen flex items-center justify-center bg-muted/30" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true" />
           <span className="sr-only">Carregando...</span>
@@ -69,7 +67,7 @@ export default function DashboardLayout({
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="text-sm text-primary hover:underline font-medium"
+                className="text-sm text-brand-primary hover:underline font-medium"
               >
                 Voltar ao login
               </button>
@@ -80,21 +78,21 @@ export default function DashboardLayout({
     );
   }
 
-  // Onboarding: layout limpo, sem sidebar/header
+  // Onboarding: layout limpo
   if (needsOnboarding && isOnboardingPage) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-sidebar">
+      <div className="h-screen flex items-center justify-center bg-muted/30 dark:bg-sidebar">
         {children}
       </div>
     );
   }
 
-  // Layout normal do dashboard
+  // Layout normal
   return (
     <div className="h-screen relative overflow-hidden">
       <nav
         aria-label="Menu principal"
-        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80 border-r border-border dark:border-sidebar-border transition-all duration-300 ease-in-out"
+        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80 transition-all duration-300 ease-in-out"
       >
         <Sidebar />
       </nav>

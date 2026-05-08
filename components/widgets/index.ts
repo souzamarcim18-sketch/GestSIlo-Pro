@@ -1,0 +1,1 @@
+export { MiniCardRebanho } from './MiniCardRebanho';

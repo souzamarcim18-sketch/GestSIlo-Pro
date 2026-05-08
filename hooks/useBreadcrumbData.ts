@@ -114,6 +114,8 @@ async function fetchNameForId(
       insumos: { table: 'insumos', nameField: 'nome' },
       financeiro: { table: 'financeiro', nameField: 'descricao' },
       maquinas: { table: 'maquinas', nameField: 'nome' },
+      rebanho: { table: 'animais', nameField: 'brinco' },
+      lotes: { table: 'lotes', nameField: 'nome' },
     };
 
     const config = tableMap[context];
@@ -165,6 +167,21 @@ function formatModuleLabel(slug: string): string {
     configuracoes: 'Configurações',
     calendario: 'Calendário',
     onboarding: 'Onboarding',
+    rebanho: 'Rebanho',
+    indicadores: 'Indicadores',
+    reproducao: 'Reprodução',
+    leiteira: 'Leiteira',
+    corte: 'Corte',
+    sanidade: 'Sanidade',
+    movimentacoes: 'Movimentações',
+    lotes: 'Lotes',
+    eventos: 'Eventos',
+    reprodutores: 'Reprodutores',
+    parametros: 'Parâmetros',
+    repetidoras: 'Repetidoras',
+    importar: 'Importar CSV',
+    novo: 'Novo',
+    editar: 'Editar',
   };
   return slugMap[slug] || slug.charAt(0).toUpperCase() + slug.slice(1);
 }

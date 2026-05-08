@@ -16,17 +16,6 @@ interface CityAutocompleteProps {
   disabled?: boolean;
 }
 
-/**
- * ──────────────────────────────────────────────────────────────
- * CITY AUTOCOMPLETE COMPONENT
- * ──────────────────────────────────────────────────────────────
- *
- * Autocomplete para cidades brasileiras com busca por Nominatim API
- * - Requer 3+ caracteres para começar
- * - Dropdown de sugestões com lat/lon
- * - Callback ao selecionar uma cidade
- */
-
 export function CityAutocomplete({
   label = 'Cidade',
   placeholder = 'Digite a cidade (ex: Ribeirão Preto)',
@@ -45,12 +34,10 @@ export function CityAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Atualizar input quando value controlado muda
   useEffect(() => {
     setInputValue(controlledValue);
   }, [controlledValue]);
 
-  // Buscar cidades ao digitar
   useEffect(() => {
     const timer = setTimeout(() => {
       if (inputValue.length >= 3) {
@@ -60,12 +47,11 @@ export function CityAutocomplete({
         clear();
         setIsOpen(false);
       }
-    }, 300); // debounce 300ms
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [inputValue, searchCities, clear]);
 
-  // Fechar dropdown ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -119,9 +105,8 @@ export function CityAutocomplete({
           )}
         </div>
 
-        {/* Dropdown de resultados */}
         {showDropdown && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-input rounded-lg shadow-lg z-50">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg z-50">
             {hasResults ? (
               <ul className="max-h-64 overflow-y-auto">
                 {results.map((city, idx) => (
@@ -150,7 +135,7 @@ export function CityAutocomplete({
                 {loading ? (
                   <p className="text-sm text-muted-foreground">Buscando cidades...</p>
                 ) : geocodingError ? (
-                  <div className="flex items-center justify-center gap-2 text-sm text-red-600">
+                  <div className="flex items-center justify-center gap-2 text-sm text-status-danger">
                     <AlertCircle className="w-4 h-4" />
                     {geocodingError}
                   </div>
@@ -165,14 +150,12 @@ export function CityAutocomplete({
         )}
       </div>
 
-      {/* Erro do campo */}
       {displayError && !geocodingError && (
         <p className="text-sm text-destructive">{displayError}</p>
       )}
 
-      {/* Confirmação de seleção */}
       {selectedCity && (
-        <p className="text-xs text-green-600 font-medium">
+        <p className="text-xs text-status-success font-medium">
           ✓ Localização definida: {selectedCity.displayName}
         </p>
       )}
