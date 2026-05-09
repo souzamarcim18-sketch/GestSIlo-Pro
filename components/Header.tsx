@@ -86,7 +86,8 @@ export function Header() {
 
   return (
     <header
-      className="flex items-center p-4 bg-card/80 dark:bg-sidebar/95 backdrop-blur-md border-b border-border sticky top-0 z-40"
+      className="flex items-center px-4 h-[52px] backdrop-blur-md border-b sticky top-0 z-40"
+      style={{ background: 'rgba(8,14,10,0.85)', borderBottom: '1px solid rgba(255,255,255,0.065)' }}
       role="toolbar"
       aria-label="Barra superior"
     >
@@ -113,7 +114,7 @@ export function Header() {
 
         {/* Nome + Fazenda — desktop */}
         <div className="hidden md:flex flex-col items-end" aria-hidden="true">
-          <p className="text-sm font-bold text-foreground leading-tight">
+          <p className="text-sm font-medium text-[#dceede] leading-tight">
             {displayName}
           </p>
           {fazendaNome && (
@@ -131,7 +132,10 @@ export function Header() {
           >
             <Avatar className="h-10 w-10 rounded-2xl border-2 border-primary/30 shadow-sm">
               <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt="" />
-              <AvatarFallback className="bg-muted text-brand-primary font-bold rounded-2xl text-sm">
+              <AvatarFallback
+                className="font-bold rounded-2xl text-sm text-[#00c45a]"
+                style={{ background: 'rgba(0,196,90,0.15)', border: '1px solid rgba(0,196,90,0.3)' }}
+              >
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -164,13 +168,13 @@ export function Header() {
             <div className="p-1">
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-muted p-3 cursor-pointer"
+                className="rounded-xl p-3 cursor-pointer text-[#dceede] hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)]"
               >
                 Perfil do Usuário
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl focus:bg-muted p-3 cursor-pointer"
+                className="rounded-xl p-3 cursor-pointer text-[#dceede] hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)]"
               >
                 Configurações
               </DropdownMenuItem>
@@ -181,7 +185,7 @@ export function Header() {
             <div className="p-1">
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="rounded-xl focus:bg-destructive/10 p-3 cursor-pointer text-destructive focus:text-destructive"
+                className="rounded-xl p-3 cursor-pointer text-[#e05454] hover:bg-[rgba(224,84,84,0.08)] focus:bg-[rgba(224,84,84,0.08)] focus:text-[#e05454]"
               >
                 Sair da conta
               </DropdownMenuItem>

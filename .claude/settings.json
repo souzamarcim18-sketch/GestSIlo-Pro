@@ -10,7 +10,10 @@
       "Bash(powershell -Command \"Get-ChildItem components\\\\rebanho -Recurse -File -Include *.ts,*.tsx | Select-String 'as any'\")",
       "PowerShell(head -20)",
       "Read(//c/Projetos/GestSilo/GestSIlo-Pro/app/dashboard/rebanho/**)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(Get-Content \"C:\\\\Users\\\\marci\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projetos-GestSilo-GestSIlo-Pro\\\\551b9edf-1ed5-4a3f-8824-4826979ac78d\\\\tasks\\\\bag8scr4e.output\" -Wait)",
+      "Bash(Select-String -Pattern \"Build|Error|error|warn|✓|✗|Failed|compiled|Route\")",
+      "Bash(Get-Content \"C:\\\\Users\\\\marci\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projetos-GestSilo-GestSIlo-Pro\\\\551b9edf-1ed5-4a3f-8824-4826979ac78d\\\\tasks\\\\bag8scr4e.output\" -Tail 50)"
     ]
   }
 }

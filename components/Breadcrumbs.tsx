@@ -15,16 +15,16 @@ export function Breadcrumbs() {
 
   return (
     <nav
-      className="flex items-center gap-2 text-sm text-muted-foreground overflow-x-auto pb-2 mb-4"
+      className="flex items-center gap-1.5 text-sm overflow-x-auto"
       aria-label="Navegação por breadcrumb"
     >
       {/* Home */}
       <Link
         href="/dashboard"
-        className="flex items-center hover:text-foreground transition-colors flex-shrink-0"
+        className="flex items-center transition-colors flex-shrink-0 text-[#688070] hover:text-[#dceede]"
         aria-label="Voltar ao Dashboard"
       >
-        <Home className="h-4 w-4" />
+        <Home className="h-3.5 w-3.5" />
       </Link>
 
       {/* Segmentos dinâmicos */}
@@ -33,23 +33,23 @@ export function Breadcrumbs() {
         const label = segment.label;
 
         return (
-          <div key={segment.href} className="flex items-center gap-2 flex-shrink-0">
-            <ChevronRight className="h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
+          <div key={segment.href} className="flex items-center gap-1.5 flex-shrink-0">
+            <ChevronRight className="h-3 w-3 text-[#2a4433]" aria-hidden="true" />
 
             {segment.isLoading ? (
-              // Skeleton enquanto busca o nome
-              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-3.5 w-20" />
             ) : (
               <Link
                 href={segment.href}
                 className={cn(
-                  "hover:text-foreground transition-colors whitespace-nowrap",
-                  isLast && "font-semibold text-foreground pointer-events-none"
+                  'transition-colors whitespace-nowrap text-xs leading-none',
+                  isLast
+                    ? 'font-semibold text-[#dceede] pointer-events-none'
+                    : 'text-[#688070] hover:text-[#dceede]'
                 )}
                 aria-current={isLast ? 'page' : undefined}
               >
-                {/* Truncar texto longo com ellipsis */}
-                <span className="max-w-[120px] truncate inline-block">
+                <span className="max-w-[140px] truncate inline-block align-middle">
                   {label}
                 </span>
               </Link>

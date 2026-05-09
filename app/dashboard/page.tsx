@@ -325,36 +325,32 @@ export default function DashboardPage() {
               aria-label={`${stat.title}: ${stat.value}. Clique para ver detalhes.`}
             >
               <Card
-                className="rounded-2xl p-6 h-full border-0 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl"
-                style={{
-                  background: 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
-                  boxShadow: '0 4px 16px rgba(0, 132, 61, 0.25)',
-                }}
+                className="rounded-[13px] p-6 h-full transition-all duration-300 group-hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-2 flex-1">
-                    <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                    <p className="uppercase tracking-[0.13em] font-bold text-[0.475rem] text-[#688070]">
                       {stat.title}
                     </p>
                     {loading ? (
                       <div className="space-y-2">
-                        <Skeleton className="h-10 w-24 bg-white/20" />
-                        <Skeleton className="h-4 w-32 bg-white/20" />
+                        <Skeleton className="h-10 w-24" />
+                        <Skeleton className="h-4 w-32" />
                       </div>
                     ) : (
                       <>
-                        <p className="text-3xl md:text-4xl font-bold text-white drop-shadow-sm">
+                        <p className="text-3xl font-black tracking-tight text-[#dceede]">
                           {stat.value}
                         </p>
-                        <p className="text-xs text-white/85">
+                        <p className="text-xs text-[#688070]">
                           {stat.detail}
                         </p>
                       </>
                     )}
                   </div>
-                  <div className="p-3 rounded-xl bg-white/15 backdrop-blur-sm group-hover:bg-white/25 transition-colors">
+                  <div className="p-3 rounded-xl transition-colors" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <stat.icon
-                      className="h-5 w-5 text-white"
+                      className="h-5 w-5 text-[#00c45a]"
                       aria-label={stat.iconLabel}
                     />
                   </div>
