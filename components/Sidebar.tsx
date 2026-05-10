@@ -20,7 +20,6 @@ import {
   History,
   HelpCircle,
   GraduationCap,
-  PawPrint,
   Heart,
   Milk,
   Scale,
@@ -32,6 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
+import { CowIcon } from '@/components/icons/CowIcon';
 import { useRouter } from 'next/navigation';
 
 
@@ -45,7 +45,7 @@ type RouteItem = {
 const gerencialRoutes: RouteItem[] = [
   { label: 'Silos',       icon: Database,      href: '/dashboard/silos',                          badge: null },
   { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes',                        badge: null },
-  { label: 'Rebanho',     icon: PawPrint,      href: '/dashboard/rebanho',                        badge: null },
+  { label: 'Rebanho',     icon: CowIcon,       href: '/dashboard/rebanho',                        badge: null },
   { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
   { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: 'comingSoon' },
   { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },

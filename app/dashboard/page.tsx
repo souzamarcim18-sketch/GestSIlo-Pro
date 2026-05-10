@@ -15,7 +15,6 @@ import {
   PackageOpen,
   Wheat,
   CalendarCheck,
-  PawPrint,
   Grid3X3,
   Sprout,
 } from 'lucide-react';
@@ -28,6 +27,9 @@ import { toast } from 'sonner';
 import { getProximasOperacoes } from '@/lib/supabase/talhoes';
 import type { ProximaOperacao, CicloAgricola } from '@/lib/types/talhoes';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
+import { GaugeOcupacaoSilos } from '@/components/widgets/GaugeOcupacaoSilos';
+import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho';
+import { PieCulturasAtivas } from '@/components/widgets/PieCulturasAtivas';
 
 interface DashboardStats {
   // Silagem
@@ -76,7 +78,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
       className="text-[0.6rem] font-bold uppercase tracking-[0.18em] mb-3"
-      style={{ color: '#2a4433' }}
+      style={{ color: '#688070' }}
     >
       {children}
     </p>
@@ -88,13 +90,15 @@ function KpiCard({
   value,
   detail,
   icon: Icon,
+  iconNode,
   href,
   loading,
 }: {
   title: string;
   value: string;
   detail: string;
-  icon: React.ElementType;
+  icon?: React.ElementType;
+  iconNode?: React.ReactNode;
   href: string;
   loading: boolean;
 }) {
@@ -124,15 +128,19 @@ function KpiCard({
               </>
             )}
           </div>
-          <div
-            className="shrink-0 p-2.5 rounded-xl"
-            style={{
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.1)',
-            }}
-          >
-            <Icon className="h-4 w-4 text-[#00c45a]" />
-          </div>
+          {iconNode ? (
+            iconNode
+          ) : Icon ? (
+            <div
+              className="shrink-0 p-2.5 rounded-xl"
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <Icon className="h-4 w-4 text-[#00c45a]" />
+            </div>
+          ) : null}
         </div>
       </Card>
     </button>
@@ -144,6 +152,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [silosOcupacaoPctNum, setSilosOcupacaoPctNum] = useState(0);
+  const [categoriasRebanho, setCategoriasRebanho] = useState<{ name: string; value: number }[]>([]);
+  const [culturasAtivas, setCulturasAtivas] = useState<{ name: string; value: number }[]>([]);
   const [proximasOperacoes, setProximasOperacoes] = useState<ProximaOperacaoComBadge[]>([]);
   const [loadingOperacoes, setLoadingOperacoes] = useState(true);
 
@@ -155,10 +166,12 @@ export default function DashboardPage() {
         ? 'Boa noite'
         : 'Bom dia';
 
-  const userName =
+  const rawUserName =
     user?.user_metadata?.nome?.split(' ')[0] ||
     user?.user_metadata?.full_name?.split(' ')[0] ||
     'Produtor';
+
+  const userName = rawUserName.charAt(0).toUpperCase() + rawUserName.slice(1).toLowerCase();
 
   useEffect(() => {
     if (authLoading) return;
@@ -181,7 +194,7 @@ export default function DashboardPage() {
           .toISOString()
           .split('T')[0];
 
-        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes, movsRecentesRes] =
+        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes, movsRecentesRes, animaisCategRes, talhoesCultRes] =
           await Promise.all([
             supabase
               .from('silos')
@@ -189,7 +202,7 @@ export default function DashboardPage() {
               .eq('fazenda_id', fazendaId),
             supabase
               .from('talhoes')
-              .select('area_ha')
+              .select('area_ha, cultura')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('maquinas')
@@ -211,6 +224,16 @@ export default function DashboardPage() {
               .select('silo_id, tipo, subtipo, quantidade, data')
               .eq('fazenda_id', fazendaId)
               .gte('data', trintaDiasAtras),
+            supabase
+              .from('animais')
+              .select('categoria')
+              .eq('fazenda_id', fazendaId)
+              .eq('status', 'Ativo'),
+            supabase
+              .from('talhoes')
+              .select('cultura')
+              .eq('fazenda_id', fazendaId)
+              .not('cultura', 'is', null),
           ]);
 
         const silosData = silosRes.data ?? [];
@@ -245,6 +268,7 @@ export default function DashboardPage() {
             totalVolume > 0 ? Math.round((totalEstoque / totalVolume) * 100) : 0;
           silosOcupacaoPct = `${ocupPct}%`;
           silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
+          setSilosOcupacaoPctNum(ocupPct);
         }
 
         // Total de silos cadastrados
@@ -379,6 +403,28 @@ export default function DashboardPage() {
               : 'Sem manutenções pendentes'
             : '—';
 
+        // Categorias de rebanho para mini pie
+        const animaisCategData = animaisCategRes.data ?? [];
+        const contagemCat: Record<string, number> = {};
+        for (const a of animaisCategData) {
+          const cat = (a.categoria as string | null) ?? 'Sem categoria';
+          contagemCat[cat] = (contagemCat[cat] ?? 0) + 1;
+        }
+        setCategoriasRebanho(
+          Object.entries(contagemCat).map(([name, value]) => ({ name, value }))
+        );
+
+        // Culturas ativas para mini pie
+        const talhoesCultData = talhoesCultRes.data ?? [];
+        const contagemCult: Record<string, number> = {};
+        for (const t of talhoesCultData) {
+          const cult = (t.cultura as string | null) ?? 'Sem cultura';
+          contagemCult[cult] = (contagemCult[cult] ?? 0) + 1;
+        }
+        setCulturasAtivas(
+          Object.entries(contagemCult).map(([name, value]) => ({ name, value }))
+        );
+
         setStats({
           silosOcupacaoPct,
           silosDetalhe,
@@ -473,11 +519,11 @@ export default function DashboardPage() {
 
       {/* Saudação */}
       <div className="space-y-1 mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-brand-deep">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#dceede]">
           {greeting}, {userName}!
         </h1>
         <p className="text-sm text-muted-foreground">
-          Resumo da sua propriedade
+          Visão geral da sua propriedade
         </p>
       </div>
 
@@ -485,7 +531,7 @@ export default function DashboardPage() {
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          <KpiCard title="OCUPAÇÃO DOS SILOS" value={stats?.silosOcupacaoPct ?? '—'} detail={stats?.silosDetalhe ?? '—'} icon={Database} href="/dashboard/silos" loading={loading} />
+          <KpiCard title="OCUPAÇÃO DOS SILOS" value={stats?.silosOcupacaoPct ?? '—'} detail={stats?.silosDetalhe ?? '—'} iconNode={<GaugeOcupacaoSilos percentual={silosOcupacaoPctNum} />} href="/dashboard/silos" loading={loading} />
           <KpiCard title="AUTONOMIA ESTIMADA" value={stats?.silosAutonomiaDias ?? '—'} detail="Dias de estoque" icon={Clock} href="/dashboard/silos" loading={loading} />
           <KpiCard title="CONSUMO MÉDIO/DIA" value={stats?.silosConsumoDiario ?? '—'} detail="Últimos 30 dias" icon={TrendingUp} href="/dashboard/silos" loading={loading} />
           <KpiCard title="SILOS CADASTRADOS" value={stats?.silosTotalCadastrados ?? '—'} detail="Total cadastrado" icon={Database} href="/dashboard/silos" loading={loading} />
@@ -502,7 +548,7 @@ export default function DashboardPage() {
       <section aria-label="Rebanho">
         <SectionLabel>Rebanho</SectionLabel>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="TOTAL DE ANIMAIS" value="—" detail="Animais cadastrados" icon={PawPrint} href="/dashboard/rebanho" loading={loading} />
+          <KpiCard title="TOTAL DE ANIMAIS" value="—" detail="Animais cadastrados" iconNode={<PieCategoriasRebanho data={categoriasRebanho} />} href="/dashboard/rebanho" loading={loading} />
           <KpiCard title="LOTES ATIVOS" value="—" detail="Lotes cadastrados" icon={Grid3X3} href="/dashboard/rebanho" loading={loading} />
           <KpiCard title="PRÓXIMO EVENTO" value="—" detail="Pesagem ou DG" icon={Calendar} href="/dashboard/rebanho" loading={loading} />
           <KpiCard title="ALERTA REPRODUTIVO" value="—" detail="Eventos pendentes" icon={AlertTriangle} href="/dashboard/rebanho" loading={loading} />
@@ -515,7 +561,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard title="ÁREA TOTAL" value={stats?.talhaoAreaTotal ?? '—'} detail="Área cadastrada" icon={Map} href="/dashboard/talhoes" loading={loading} />
           <KpiCard title="EM CULTIVO" value="—" detail="Área plantada" icon={Sprout} href="/dashboard/talhoes" loading={loading} />
-          <KpiCard title="CULTURAS ATIVAS" value="—" detail="Distribuição" icon={Wheat} href="/dashboard/talhoes" loading={loading} />
+          <KpiCard title="CULTURAS ATIVAS" value="—" detail="Distribuição" iconNode={<PieCulturasAtivas data={culturasAtivas} />} href="/dashboard/talhoes" loading={loading} />
           <KpiCard title="TALHÕES" value={stats?.talhaoTotalCadastrados ?? '—'} detail="Cadastrados" icon={Map} href="/dashboard/talhoes" loading={loading} />
         </div>
       </section>
