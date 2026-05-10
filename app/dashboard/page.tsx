@@ -30,6 +30,7 @@ import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 import { GaugeOcupacaoSilos } from '@/components/widgets/GaugeOcupacaoSilos';
 import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho';
 import { PieCulturasAtivas } from '@/components/widgets/PieCulturasAtivas';
+import { KpiChartCard } from '@/components/widgets/KpiChartCard';
 
 interface DashboardStats {
   // Silagem
@@ -153,6 +154,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [silosOcupacaoPctNum, setSilosOcupacaoPctNum] = useState(0);
+  const [silosGaugeDetalhe, setSilosGaugeDetalhe] = useState('');
+  const [totalAnimais, setTotalAnimais] = useState(0);
   const [categoriasRebanho, setCategoriasRebanho] = useState<{ name: string; value: number }[]>([]);
   const [culturasAtivas, setCulturasAtivas] = useState<{ name: string; value: number }[]>([]);
   const [proximasOperacoes, setProximasOperacoes] = useState<ProximaOperacaoComBadge[]>([]);
@@ -269,6 +272,7 @@ export default function DashboardPage() {
           silosOcupacaoPct = `${ocupPct}%`;
           silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
           setSilosOcupacaoPctNum(ocupPct);
+          setSilosGaugeDetalhe(`${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`);
         }
 
         // Total de silos cadastrados
@@ -410,9 +414,9 @@ export default function DashboardPage() {
           const cat = (a.categoria as string | null) ?? 'Sem categoria';
           contagemCat[cat] = (contagemCat[cat] ?? 0) + 1;
         }
-        setCategoriasRebanho(
-          Object.entries(contagemCat).map(([name, value]) => ({ name, value }))
-        );
+        const categoriasArr = Object.entries(contagemCat).map(([name, value]) => ({ name, value }));
+        setCategoriasRebanho(categoriasArr);
+        setTotalAnimais(animaisCategData.length);
 
         // Culturas ativas para mini pie
         const talhoesCultData = talhoesCultRes.data ?? [];
@@ -531,7 +535,12 @@ export default function DashboardPage() {
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          <KpiCard title="OCUPAÇÃO DOS SILOS" value={stats?.silosOcupacaoPct ?? '—'} detail={stats?.silosDetalhe ?? '—'} iconNode={<GaugeOcupacaoSilos percentual={silosOcupacaoPctNum} />} href="/dashboard/silos" loading={loading} />
+          <KpiChartCard
+            label="Ocupação dos Silos"
+            sublabel={silosGaugeDetalhe || undefined}
+            chart={<GaugeOcupacaoSilos percentual={silosOcupacaoPctNum} />}
+            onClick={() => router.push('/dashboard/silos')}
+          />
           <KpiCard title="AUTONOMIA ESTIMADA" value={stats?.silosAutonomiaDias ?? '—'} detail="Dias de estoque" icon={Clock} href="/dashboard/silos" loading={loading} />
           <KpiCard title="CONSUMO MÉDIO/DIA" value={stats?.silosConsumoDiario ?? '—'} detail="Últimos 30 dias" icon={TrendingUp} href="/dashboard/silos" loading={loading} />
           <KpiCard title="SILOS CADASTRADOS" value={stats?.silosTotalCadastrados ?? '—'} detail="Total cadastrado" icon={Database} href="/dashboard/silos" loading={loading} />
@@ -548,7 +557,11 @@ export default function DashboardPage() {
       <section aria-label="Rebanho">
         <SectionLabel>Rebanho</SectionLabel>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="TOTAL DE ANIMAIS" value="—" detail="Animais cadastrados" iconNode={<PieCategoriasRebanho data={categoriasRebanho} />} href="/dashboard/rebanho" loading={loading} />
+          <KpiChartCard
+            label="Total de Animais"
+            chart={<PieCategoriasRebanho data={categoriasRebanho} total={totalAnimais} />}
+            onClick={() => router.push('/dashboard/rebanho')}
+          />
           <KpiCard title="LOTES ATIVOS" value="—" detail="Lotes cadastrados" icon={Grid3X3} href="/dashboard/rebanho" loading={loading} />
           <KpiCard title="PRÓXIMO EVENTO" value="—" detail="Pesagem ou DG" icon={Calendar} href="/dashboard/rebanho" loading={loading} />
           <KpiCard title="ALERTA REPRODUTIVO" value="—" detail="Eventos pendentes" icon={AlertTriangle} href="/dashboard/rebanho" loading={loading} />
@@ -561,7 +574,11 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard title="ÁREA TOTAL" value={stats?.talhaoAreaTotal ?? '—'} detail="Área cadastrada" icon={Map} href="/dashboard/talhoes" loading={loading} />
           <KpiCard title="EM CULTIVO" value="—" detail="Área plantada" icon={Sprout} href="/dashboard/talhoes" loading={loading} />
-          <KpiCard title="CULTURAS ATIVAS" value="—" detail="Distribuição" iconNode={<PieCulturasAtivas data={culturasAtivas} />} href="/dashboard/talhoes" loading={loading} />
+          <KpiChartCard
+            label="Culturas Ativas"
+            chart={<PieCulturasAtivas data={culturasAtivas} total={culturasAtivas.length} />}
+            onClick={() => router.push('/dashboard/talhoes')}
+          />
           <KpiCard title="TALHÕES" value={stats?.talhaoTotalCadastrados ?? '—'} detail="Cadastrados" icon={Map} href="/dashboard/talhoes" loading={loading} />
         </div>
       </section>
