@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Database,
@@ -11,27 +11,58 @@ import {
   AlertTriangle,
   CheckCircle2,
   Calendar,
+  Clock,
+  PackageOpen,
+  Wheat,
+  CalendarCheck,
+  PawPrint,
+  Grid3X3,
+  Sprout,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { MiniCardRebanho } from '@/components/widgets';
 import { toast } from 'sonner';
 import { getProximasOperacoes } from '@/lib/supabase/talhoes';
 import type { ProximaOperacao, CicloAgricola } from '@/lib/types/talhoes';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 
 interface DashboardStats {
-  silosOcupacao: string;
+  // Silagem
+  silosOcupacaoPct: string;
   silosDetalhe: string;
-  talhaoArea: string;
+  silosTotalCadastrados: string;
+  silosAutonomiaDias: string;
+  silosConsumoDiario: string;
+  silosAbertos: string;
+  silosAbertosDetalhe: string;
+  silosTaxaPerdas: string;
+  silosCulturasEnsiladas: string;
+  silosUltimaAbertura: string;
+  silosUltimaAberturaDetalhe: string;
+  // Lavouras
+  talhaoAreaTotal: string;
+  talhaoTotalCadastrados: string;
+  // Financeiro
+  receitaMes: string;
+  despesaMes: string;
+  // Frota
   maquinasTotal: string;
   maquinasDetalhe: string;
-  saldoMes: string;
 }
+
+const statsInicial: DashboardStats = {
+  silosOcupacaoPct: '—', silosDetalhe: '—',
+  silosTotalCadastrados: '—', silosAutonomiaDias: '—',
+  silosConsumoDiario: '—', silosAbertos: '—',
+  silosAbertosDetalhe: '—', silosTaxaPerdas: '—',
+  silosCulturasEnsiladas: '—', silosUltimaAbertura: '—',
+  silosUltimaAberturaDetalhe: '—', talhaoAreaTotal: '—',
+  talhaoTotalCadastrados: '—', receitaMes: '—',
+  despesaMes: '—', maquinasTotal: '—', maquinasDetalhe: '—',
+};
 
 interface ProximaOperacaoComBadge extends ProximaOperacao {
   janelaColheita?: { ativo: boolean; diasRestantes: number };
@@ -39,6 +70,73 @@ interface ProximaOperacaoComBadge extends ProximaOperacao {
 
 function formatBRL(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      className="text-[0.6rem] font-bold uppercase tracking-[0.18em] mb-3"
+      style={{ color: '#2a4433' }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function KpiCard({
+  title,
+  value,
+  detail,
+  icon: Icon,
+  href,
+  loading,
+}: {
+  title: string;
+  value: string;
+  detail: string;
+  icon: React.ElementType;
+  href: string;
+  loading: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <button
+      onClick={() => router.push(href)}
+      className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+    >
+      <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <p className="uppercase tracking-[0.13em] font-bold text-[0.475rem] text-[#688070]">
+              {title}
+            </p>
+            {loading ? (
+              <div className="space-y-1.5">
+                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-black tracking-tight text-[#dceede] truncate">
+                  {value}
+                </p>
+                <p className="text-xs text-[#688070] truncate">{detail}</p>
+              </>
+            )}
+          </div>
+          <div
+            className="shrink-0 p-2.5 rounded-xl"
+            style={{
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+          >
+            <Icon className="h-4 w-4 text-[#00c45a]" />
+          </div>
+        </div>
+      </Card>
+    </button>
+  );
 }
 
 export default function DashboardPage() {
@@ -62,21 +160,13 @@ export default function DashboardPage() {
     user?.user_metadata?.full_name?.split(' ')[0] ||
     'Produtor';
 
-
   useEffect(() => {
     if (authLoading) return;
     const init = async () => {
       setLoading(true);
       try {
         if (!fazendaId) {
-          setStats({
-            silosOcupacao: '—',
-            silosDetalhe: '—',
-            talhaoArea: '—',
-            maquinasTotal: '—',
-            maquinasDetalhe: '—',
-            saldoMes: '—',
-          });
+          setStats(statsInicial);
           return;
         }
 
@@ -87,12 +177,15 @@ export default function DashboardPage() {
         const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0)
           .toISOString()
           .split('T')[0];
+        const trintaDiasAtras = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split('T')[0];
 
-        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes] =
+        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes, movsRecentesRes] =
           await Promise.all([
             supabase
               .from('silos')
-              .select('id, volume_ensilado_ton_mv')
+              .select('id, nome, volume_ensilado_ton_mv, cultura_ensilada, data_abertura_real, estoque_atual')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('talhoes')
@@ -113,83 +206,197 @@ export default function DashboardPage() {
               .eq('fazenda_id', fazendaId)
               .gte('data', mesInicio)
               .lte('data', mesFim),
+            supabase
+              .from('movimentacoes_silo')
+              .select('silo_id, tipo, subtipo, quantidade, data')
+              .eq('fazenda_id', fazendaId)
+              .gte('data', trintaDiasAtras),
           ]);
 
         const silosData = silosRes.data ?? [];
-        let silosOcupacao = '—';
+
+        // Ocupação dos silos (via movimentações de todos os silos da fazenda)
+        let silosOcupacaoPct = '—';
         let silosDetalhe = '—';
         if (silosData.length > 0) {
           const totalVolume = silosData.reduce(
             (acc, s) => acc + (s.volume_ensilado_ton_mv ?? 0),
             0
           );
-
           const siloIds = silosData.map((s) => s.id);
-          const movsRes = siloIds.length > 0
+          const allMovsRes = siloIds.length > 0
             ? await supabase
                 .from('movimentacoes_silo')
                 .select('silo_id, tipo, quantidade')
                 .in('silo_id', siloIds)
             : { data: [] };
 
-          const movsData = movsRes.data ?? [];
+          const allMovs = allMovsRes.data ?? [];
           const estoquePorSilo: Record<string, number> = {};
-          for (const mov of movsData) {
+          for (const mov of allMovs) {
             if (!estoquePorSilo[mov.silo_id]) estoquePorSilo[mov.silo_id] = 0;
             estoquePorSilo[mov.silo_id] += mov.tipo === 'Entrada' ? mov.quantidade : -mov.quantidade;
           }
-
           const totalEstoque = Object.values(estoquePorSilo).reduce(
             (acc, v) => acc + Math.max(v, 0),
             0
           );
-
           const ocupPct =
-            totalVolume > 0
-              ? Math.round((totalEstoque / totalVolume) * 100)
-              : 0;
-          silosOcupacao = `${ocupPct}%`;
+            totalVolume > 0 ? Math.round((totalEstoque / totalVolume) * 100) : 0;
+          silosOcupacaoPct = `${ocupPct}%`;
           silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
         }
 
-        const talhoesData = talhoesRes.data ?? [];
-        let talhaoArea = '—';
-        if (talhoesData.length > 0) {
-          const totalArea = talhoesData.reduce(
-            (acc, t) => acc + (t.area_ha ?? 0),
-            0
-          );
-          talhaoArea = `${totalArea.toLocaleString('pt-BR')} ha`;
-        }
+        // Total de silos cadastrados
+        const silosTotalCadastrados =
+          silosData.length > 0 ? silosData.length.toString() : '—';
 
+        // Silos abertos
+        const silosAbertosData = silosData.filter(
+          (s) => s.data_abertura_real && (s.estoque_atual ?? 0) > 0
+        );
+        const silosAbertos =
+          silosAbertosData.length > 0 ? silosAbertosData.length.toString() : '0';
+        const silosAbertosDetalhe =
+          silosAbertosData.length > 0
+            ? silosAbertosData
+                .map((s) => s.nome)
+                .slice(0, 2)
+                .join(', ') +
+              (silosAbertosData.length > 2 ? ` +${silosAbertosData.length - 2}` : '')
+            : 'Nenhum silo aberto';
+
+        // Culturas ensiladas
+        const culturas = [
+          ...new Set(
+            silosData.map((s) => s.cultura_ensilada).filter(Boolean)
+          ),
+        ] as string[];
+        const silosCulturasEnsiladas =
+          culturas.length > 0 ? culturas.slice(0, 3).join(', ') : '—';
+
+        // Última abertura real
+        const silosComAbertura = silosData
+          .filter((s) => s.data_abertura_real)
+          .sort(
+            (a, b) =>
+              new Date(b.data_abertura_real!).getTime() -
+              new Date(a.data_abertura_real!).getTime()
+          );
+        const silosUltimaAbertura =
+          silosComAbertura.length > 0
+            ? new Date(silosComAbertura[0].data_abertura_real!).toLocaleDateString(
+                'pt-BR',
+                { day: '2-digit', month: '2-digit', year: '2-digit' }
+              )
+            : '—';
+        const silosUltimaAberturaDetalhe =
+          silosComAbertura.length > 0
+            ? silosComAbertura[0].nome
+            : 'Nenhuma abertura registrada';
+
+        // Consumo médio diário (últimos 30 dias) — saídas exceto Descarte
+        const movsRecentes = movsRecentesRes.data ?? [];
+        const saidasConsumo = movsRecentes.filter(
+          (m) => m.tipo === 'Saída' && m.subtipo !== 'Descarte'
+        );
+        const totalConsumo30dias = saidasConsumo.reduce(
+          (acc, m) => acc + (m.quantidade ?? 0),
+          0
+        );
+        const consumoDiario = totalConsumo30dias / 30;
+        const silosConsumoDiario =
+          consumoDiario > 0
+            ? `${consumoDiario.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} kg/dia`
+            : '—';
+
+        // Autonomia = estoque atual ÷ consumo diário
+        const totalEstoqueAtual = silosData.reduce(
+          (acc, s) => acc + Math.max(s.estoque_atual ?? 0, 0),
+          0
+        );
+        const autonomiaDias =
+          consumoDiario > 0
+            ? Math.round((totalEstoqueAtual * 1000) / consumoDiario)
+            : null;
+        const silosAutonomiaDias =
+          autonomiaDias !== null ? `${autonomiaDias} dias` : '—';
+
+        // Taxa de perdas
+        const saidasDescarte = movsRecentes.filter(
+          (m) => m.tipo === 'Saída' && m.subtipo === 'Descarte'
+        );
+        const totalDescarte = saidasDescarte.reduce(
+          (acc, m) => acc + (m.quantidade ?? 0),
+          0
+        );
+        const totalSaidas = movsRecentes
+          .filter((m) => m.tipo === 'Saída')
+          .reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
+        const silosTaxaPerdas =
+          totalSaidas > 0
+            ? ((totalDescarte / totalSaidas) * 100).toFixed(1) + '%'
+            : '—';
+
+        // Lavouras
+        const talhoesData = talhoesRes.data ?? [];
+        const talhaoAreaTotal =
+          talhoesData.length > 0
+            ? `${talhoesData
+                .reduce((acc, t) => acc + (t.area_ha ?? 0), 0)
+                .toLocaleString('pt-BR')} ha`
+            : '—';
+        const talhaoTotalCadastrados =
+          talhoesData.length > 0 ? talhoesData.length.toString() : '—';
+
+        // Financeiro
+        const finData = finRes.data ?? [];
+        const receitaMes =
+          finData.length > 0
+            ? formatBRL(
+                finData
+                  .filter((l) => l.tipo === 'Receita')
+                  .reduce((acc, l) => acc + l.valor, 0)
+              )
+            : '—';
+        const despesaMes =
+          finData.length > 0
+            ? formatBRL(
+                finData
+                  .filter((l) => l.tipo === 'Despesa')
+                  .reduce((acc, l) => acc + l.valor, 0)
+              )
+            : '—';
+
+        // Frota
         const totalMaquinas = maquinasRes.count ?? 0;
         const manutencoesCount = manutRes.count ?? 0;
-        let maquinasTotal = '—';
-        let maquinasDetalhe = '—';
-        if (totalMaquinas > 0) {
-          maquinasTotal = `${totalMaquinas}`;
-          maquinasDetalhe =
-            manutencoesCount > 0
+        const maquinasTotal = totalMaquinas > 0 ? `${totalMaquinas}` : '—';
+        const maquinasDetalhe =
+          totalMaquinas > 0
+            ? manutencoesCount > 0
               ? `${manutencoesCount} manutenção(ões) pendente(s)`
-              : 'Sem manutenções pendentes';
-        }
-
-        const finData = finRes.data ?? [];
-        let saldoMes = '—';
-        if (finData.length > 0) {
-          const saldo = finData.reduce((acc, l) => {
-            return acc + (l.tipo === 'Receita' ? l.valor : -l.valor);
-          }, 0);
-          saldoMes = formatBRL(saldo);
-        }
+              : 'Sem manutenções pendentes'
+            : '—';
 
         setStats({
-          silosOcupacao,
+          silosOcupacaoPct,
           silosDetalhe,
-          talhaoArea,
+          silosTotalCadastrados,
+          silosAutonomiaDias,
+          silosConsumoDiario,
+          silosAbertos,
+          silosAbertosDetalhe,
+          silosTaxaPerdas,
+          silosCulturasEnsiladas,
+          silosUltimaAbertura,
+          silosUltimaAberturaDetalhe,
+          talhaoAreaTotal,
+          talhaoTotalCadastrados,
+          receitaMes,
+          despesaMes,
           maquinasTotal,
           maquinasDetalhe,
-          saldoMes,
         });
       } catch {
         toast.error('Erro ao carregar dados do dashboard.');
@@ -222,7 +429,7 @@ export default function DashboardPage() {
         let alertaSilagemAtivo = false;
         const operacoesEnriquecidas: ProximaOperacaoComBadge[] = operacoes.map((op) => {
           const cicloCorrespondente = (ciclosData || []).find(
-            (c: any) =>
+            (c: { id: string; cultura: string; data_colheita_prevista: string; data_colheita_real: string | null }) =>
               c.data_colheita_prevista === op.data_esperada &&
               c.cultura.includes('Silagem')
           );
@@ -240,10 +447,10 @@ export default function DashboardPage() {
         });
 
         if (alertaSilagemAtivo && !sessionStorage.getItem('alerta_silagem_exibido')) {
-          const proximoEvento = operacoesEnriquecidas.find(op => op.janelaColheita?.ativo);
+          const proximoEvento = operacoesEnriquecidas.find((op) => op.janelaColheita?.ativo);
           if (proximoEvento && proximoEvento.janelaColheita) {
             toast.warning(
-              `⚠️ Atenção: janela de colheita de ${proximoEvento.cultura} no ${proximoEvento.talhao_nome} se aproxima em ${proximoEvento.janelaColheita.diasRestantes} dias`
+              `Atenção: janela de colheita de ${proximoEvento.cultura} no ${proximoEvento.talhao_nome} se aproxima em ${proximoEvento.janelaColheita.diasRestantes} dias`
             );
             sessionStorage.setItem('alerta_silagem_exibido', 'true');
           }
@@ -261,45 +468,10 @@ export default function DashboardPage() {
     loadProximasOperacoes();
   }, [fazendaId]);
 
-  const statCards = [
-    {
-      title: 'Capacidade Total Silos',
-      value: stats?.silosOcupacao ?? '—',
-      detail: stats?.silosDetalhe ?? '—',
-      icon: Database,
-      iconLabel: 'Ícone de silo',
-      href: '/dashboard/silos',
-    },
-    {
-      title: 'Área em Cultivo',
-      value: stats?.talhaoArea ?? '—',
-      detail: talhoesDetail(stats),
-      icon: Map,
-      iconLabel: 'Ícone de talhões',
-      href: '/dashboard/talhoes',
-    },
-    {
-      title: 'Frota em Operação',
-      value: stats?.maquinasTotal ?? '—',
-      detail: stats?.maquinasDetalhe ?? '—',
-      icon: Truck,
-      iconLabel: 'Ícone de frota',
-      href: '/dashboard/frota',
-    },
-    {
-      title: 'Saldo Financeiro',
-      value: stats?.saldoMes ?? '—',
-      detail: 'Mês atual',
-      icon: DollarSign,
-      iconLabel: 'Ícone financeiro',
-      href: '/dashboard/financeiro',
-    },
-  ];
-
   return (
     <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
 
-      {/* ── Saudação ────────────────────────────────────────────────────── */}
+      {/* Saudação */}
       <div className="space-y-1 mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-brand-deep">
           {greeting}, {userName}!
@@ -309,70 +481,57 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── Stats Grid (Clicáveis) ─────────────────────────────────────── */}
-
-      <section aria-labelledby="stats-heading">
-        <h2 id="stats-heading" className="sr-only">
-          Indicadores gerais da propriedade
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((stat) => (
-            <button
-              key={stat.title}
-              onClick={() => router.push(stat.href)}
-              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 rounded-2xl"
-              aria-label={`${stat.title}: ${stat.value}. Clique para ver detalhes.`}
-            >
-              <Card
-                className="rounded-[13px] p-6 h-full transition-all duration-300 group-hover:-translate-y-1"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <p className="uppercase tracking-[0.13em] font-bold text-[0.475rem] text-[#688070]">
-                      {stat.title}
-                    </p>
-                    {loading ? (
-                      <div className="space-y-2">
-                        <Skeleton className="h-10 w-24" />
-                        <Skeleton className="h-4 w-32" />
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-3xl font-black tracking-tight text-[#dceede]">
-                          {stat.value}
-                        </p>
-                        <p className="text-xs text-[#688070]">
-                          {stat.detail}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  <div className="p-3 rounded-xl transition-colors" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <stat.icon
-                      className="h-5 w-5 text-[#00c45a]"
-                      aria-label={stat.iconLabel}
-                    />
-                  </div>
-                </div>
-              </Card>
-            </button>
-          ))}
+      {/* Silagem */}
+      <section aria-label="Silagem">
+        <SectionLabel>Silagem</SectionLabel>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <KpiCard title="OCUPAÇÃO DOS SILOS" value={stats?.silosOcupacaoPct ?? '—'} detail={stats?.silosDetalhe ?? '—'} icon={Database} href="/dashboard/silos" loading={loading} />
+          <KpiCard title="AUTONOMIA ESTIMADA" value={stats?.silosAutonomiaDias ?? '—'} detail="Dias de estoque" icon={Clock} href="/dashboard/silos" loading={loading} />
+          <KpiCard title="CONSUMO MÉDIO/DIA" value={stats?.silosConsumoDiario ?? '—'} detail="Últimos 30 dias" icon={TrendingUp} href="/dashboard/silos" loading={loading} />
+          <KpiCard title="SILOS CADASTRADOS" value={stats?.silosTotalCadastrados ?? '—'} detail="Total cadastrado" icon={Database} href="/dashboard/silos" loading={loading} />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard title="SILOS ABERTOS" value={stats?.silosAbertos ?? '—'} detail={stats?.silosAbertosDetalhe ?? '—'} icon={PackageOpen} href="/dashboard/silos" loading={loading} />
+          <KpiCard title="TAXA DE PERDAS" value={stats?.silosTaxaPerdas ?? '—'} detail="Saídas por descarte" icon={AlertTriangle} href="/dashboard/silos" loading={loading} />
+          <KpiCard title="CULTURAS ENSILADAS" value={stats?.silosCulturasEnsiladas ?? '—'} detail="Culturas nos silos" icon={Wheat} href="/dashboard/silos" loading={loading} />
+          <KpiCard title="ÚLTIMA ABERTURA" value={stats?.silosUltimaAbertura ?? '—'} detail={stats?.silosUltimaAberturaDetalhe ?? '—'} icon={CalendarCheck} href="/dashboard/silos" loading={loading} />
         </div>
       </section>
 
-      {/* ── Mini-Card Rebanho ────────────────────────────────────────── */}
-      <section aria-labelledby="rebanho-heading">
-        <h2 id="rebanho-heading" className="sr-only">
-          Indicadores do rebanho
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <MiniCardRebanho />
-            </div>
+      {/* Rebanho */}
+      <section aria-label="Rebanho">
+        <SectionLabel>Rebanho</SectionLabel>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard title="TOTAL DE ANIMAIS" value="—" detail="Animais cadastrados" icon={PawPrint} href="/dashboard/rebanho" loading={loading} />
+          <KpiCard title="LOTES ATIVOS" value="—" detail="Lotes cadastrados" icon={Grid3X3} href="/dashboard/rebanho" loading={loading} />
+          <KpiCard title="PRÓXIMO EVENTO" value="—" detail="Pesagem ou DG" icon={Calendar} href="/dashboard/rebanho" loading={loading} />
+          <KpiCard title="ALERTA REPRODUTIVO" value="—" detail="Eventos pendentes" icon={AlertTriangle} href="/dashboard/rebanho" loading={loading} />
+        </div>
       </section>
 
-      {/* ── Main Content ───────────────────────────────────────────────── */}
+      {/* Lavouras */}
+      <section aria-label="Lavouras">
+        <SectionLabel>Lavouras</SectionLabel>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard title="ÁREA TOTAL" value={stats?.talhaoAreaTotal ?? '—'} detail="Área cadastrada" icon={Map} href="/dashboard/talhoes" loading={loading} />
+          <KpiCard title="EM CULTIVO" value="—" detail="Área plantada" icon={Sprout} href="/dashboard/talhoes" loading={loading} />
+          <KpiCard title="CULTURAS ATIVAS" value="—" detail="Distribuição" icon={Wheat} href="/dashboard/talhoes" loading={loading} />
+          <KpiCard title="TALHÕES" value={stats?.talhaoTotalCadastrados ?? '—'} detail="Cadastrados" icon={Map} href="/dashboard/talhoes" loading={loading} />
+        </div>
+      </section>
+
+      {/* Operações */}
+      <section aria-label="Operações">
+        <SectionLabel>Operações</SectionLabel>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard title="FROTA" value={stats?.maquinasTotal ?? '—'} detail="Máquinas cadastradas" icon={Truck} href="/dashboard/frota" loading={loading} />
+          <KpiCard title="MANUTENÇÃO" value={stats?.maquinasDetalhe ?? '—'} detail="Próxima manutenção" icon={AlertTriangle} href="/dashboard/frota" loading={loading} />
+          <KpiCard title="RECEITA DO MÊS" value={stats?.receitaMes ?? '—'} detail="Mês corrente" icon={TrendingUp} href="/dashboard/financeiro" loading={loading} />
+          <KpiCard title="DESPESA DO MÊS" value={stats?.despesaMes ?? '—'} detail="Mês corrente" icon={DollarSign} href="/dashboard/financeiro" loading={loading} />
+        </div>
+      </section>
+
+      {/* Main Content */}
       <div className="space-y-6 mt-8">
 
         {/* Próximas Operações */}
@@ -416,7 +575,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2">
                     {op.janelaColheita?.ativo && (
                       <Badge className="bg-status-warning/15 text-status-warning border-status-warning/30 hover:bg-status-warning/20">
-                        ⚠️ Janela de colheita
+                        Janela de colheita
                       </Badge>
                     )}
                     <Badge className={getStatusBadgeColor(op.status)}>
@@ -503,7 +662,7 @@ export default function DashboardPage() {
 }
 
 function talhoesDetail(stats: DashboardStats | null): string {
-  if (!stats || stats.talhaoArea === '—') return 'Nenhuma cultura ativa';
+  if (!stats || stats.talhaoAreaTotal === '—') return 'Nenhuma cultura ativa';
   return 'Área total cadastrada';
 }
 
