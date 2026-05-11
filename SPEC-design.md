@@ -1295,7 +1295,308 @@ Use este checklist durante a execução para marcar progresso:
 
 ---
 
-**Data de Geração:** 11/05/2026 (atualizada com Talhões + Frota)  
+## Fase 9 — Consolidação de Módulos Pendentes (Fases 3c, 3d, 3e, 4)
+
+**Status:** Planejado  
+**Contexto:** Esta fase consolida os itens que ficaram de fora das SPEC Fases 2-5, agrupando as seções de Auth, Admin, Financeiro e Forms numa visão estratégica única.
+
+---
+
+### 9.1 — Auth + Operador (ex-Fase 3c)
+
+**Objetivo:**  
+Refinar a experiência de autenticação (login, registro, recuperação de senha) e implementar o dashboard do operador com suas permissões específicas e fluxos isolados.
+
+**Entregáveis:**
+- `app/page.tsx` — Landing page com cards de features
+- `app/login/page.tsx` — Form de login com email/senha
+- `app/register/page.tsx` — Form de cadastro (Admin/Operador)
+- `app/forgot-password/page.tsx` — Recuperação de senha
+- `app/reset-password/page.tsx` — Reset de senha via link
+- `app/operador/page.tsx` — Dashboard do operador (retirada/perda de silagem)
+- `app/operador/silos/page.tsx` — Lista de silos (operador, acesso restrito)
+- **Componentes auth:** `LoginForm.tsx`, `RegisterForm.tsx`, `PasswordRecoveryForm.tsx`
+- **Páginas legais:** `app/termos/page.tsx`, `app/privacidade/page.tsx`
+
+**Mudanças de Tipografia:**
+- Section labels: `text-[0.475rem]` → `text-sm`
+- Form labels: `text-xs` → `text-sm`
+- Error/info messages: `text-xs` → `text-sm`
+- Feature card titles: `text-xs`/`text-[11px]` → `text-sm`
+- Status badges: `text-xs` → `text-sm`
+
+**Dependências:**
+- Fase 2 completa (widgets com tipografia atualizada)
+- Middleware de autenticação (já implementado em `middleware.ts`)
+- RLS + policies de operador (já em banco de dados)
+
+**Prioridade:** 🔴 Alta
+
+**Risco de Regressão:** Médio
+- Risco: Alterar fluxo de login pode quebrar sessões de usuários existentes
+- Mitigação: Não alterar lógica de autenticação; apenas tipografia e UI
+
+**Critério de Aceite:**
+- [ ] `npm run build` sem erros TypeScript
+- [ ] `npm run test` passa todos os testes de auth (se houver)
+- [ ] Páginas de auth renderizam com tipografia consistente
+- [ ] Operador consegue fazer login e acessar dashboard restrito
+- [ ] Admin consegue ver painel completo (contraste com operador)
+- [ ] Contraste WCAG AA em todos os forms
+- [ ] Responsividade 375px / 768px / 1440px
+- [ ] Visual review dark + light mode
+
+---
+
+### 9.2 — Planejamento, Calculadoras e Configurações (ex-Fase 3d)
+
+**Objetivo:**  
+Atualizar módulos administrativos de planejamento agrícola, ferramentas de cálculo e configurações de fazenda/perfil com hierarquia tipográfica uniforme.
+
+**Entregáveis:**
+
+#### Planejamento de Silagem
+- `app/dashboard/planejamento-silagem/page.tsx` — Wizard container (4 etapas)
+- `app/dashboard/planejamento-silagem/historico/page.tsx` — Histórico de simulações
+- **Componentes:** `WizardContainer.tsx`, `TabelaHistorico.tsx`, `DialogDetalhes.tsx`, `DialogExcluir.tsx`, `DialogEditarNome.tsx`
+
+#### Calculadoras Agronômicas
+- `app/dashboard/calculadoras/page.tsx` — Tabs (Calagem, Adubação NPK)
+- **Componentes:** `CalagemCalculator.tsx`, `NPKCalculator.tsx`
+
+#### Configurações
+- `app/dashboard/configuracoes/page.tsx` — Tabbed settings (Perfil, Propriedade, Usuários)
+- **Componentes:** `FormPerfil.tsx`, `CardFazenda.tsx`, `TabelaUsuarios.tsx`
+
+**Mudanças de Tipografia:**
+- Form labels: `text-xs` → `text-sm`
+- Wizard step headers: `text-[11px]` → `text-sm`
+- Table headers: `text-xs` → `text-sm`
+- Section labels: `text-[0.475rem]` → `text-sm`
+- Input helpers: `text-xs` → `text-sm` (se crítico para UX)
+- Status badges: `text-xs` → `text-sm`
+- Result/info cards: labels `text-xs` → `text-sm`
+
+**Dependências:**
+- Fases 2, 3a, 3b completas
+- Database schema para fazendas, usuários, configurações (já pronto)
+
+**Prioridade:** 🟠 Média
+
+**Risco de Regressão:** Baixo
+- Apenas tipografia e UI — sem alteração de lógica de dados
+- Formulários já estão consolidados
+
+**Critério de Aceite:**
+- [ ] `npm run build` sem erros
+- [ ] `npm run test` passa
+- [ ] Wizard de planejamento renderiza com labels legíveis em todas as 4 etapas
+- [ ] Calculadoras exibem results com `text-sm` (labels) e valores grandes (KPI)
+- [ ] Tela de configurações com tabs e forms consistentes
+- [ ] Contraste WCAG AA em todos os formulários
+- [ ] Responsividade mobile adequada
+- [ ] Visual review completo
+
+---
+
+### 9.3 — Financeiro, Relatórios, Calendário, Insumos e Tempo (ex-Fase 3e)
+
+**Objetivo:**  
+Atualizar módulos auxiliares (financeiro, insumos, relatórios, calendário, previsão de tempo) com tipografia unificada e padrão de labels/KPIs.
+
+**Entregáveis:**
+
+#### Financeiro
+- `app/dashboard/financeiro/page.tsx` — DRE, fluxo de caixa, análise de lucratividade
+- **Componentes:** Charts (Recharts), tabelas de lançamentos, KPI cards
+
+#### Insumos
+- `app/dashboard/insumos/page.tsx` — Inventory dashboard (estoque, movimentações, alertas)
+- **Componentes:** Cards de estoque, tabelas, modais de entrada/saída
+
+#### Relatórios
+- `app/dashboard/relatorios/page.tsx` — Report builder (cards com export options)
+- Exporta: Financeiro, Silos, Talhões, Animais (XLSX)
+
+#### Calendário
+- `app/dashboard/calendario/page.tsx` — Calendar/Timeline view (3 tabs: mensal, semanal, lista)
+- **Componentes:** `CalendarioView.tsx`, `EventoCard.tsx`
+
+#### Previsão de Tempo
+- `app/dashboard/previsao-tempo/page.tsx` — Weather dashboard (forecast + current conditions)
+
+**Mudanças de Tipografia:**
+- Card titles: `text-[11px]`/`text-xs` → `text-sm`
+- Section headers: `text-[0.475rem]` → `text-sm`
+- Table headers: `text-xs` → `text-sm`
+- Legend text (charts): `text-xs` → `text-sm`
+- KPI labels: `text-[0.475rem]` → `text-sm` (preservar values `text-2xl`/`text-3xl`)
+- Event/activity labels: `text-xs` → `text-sm`
+- Status badges: `text-xs` → `text-sm`
+- Weather condition labels: `text-xs` → `text-sm`
+
+**Dependências:**
+- Fases 2, 3a, 3b completas
+- Database: `financeiro`, `insumos`, `movimentacoes_insumo` (já prontos)
+- API de clima (OpenWeather — já integrada)
+
+**Prioridade:** 🟠 Média
+
+**Risco de Regressão:** Baixo-Médio
+- Gráficos (charts) podem ter quebras visuais se legends forem alteradas
+- Mitigação: Testar visualmente após mudanças em gráficos
+
+**Critério de Aceite:**
+- [ ] `npm run build` sem erros
+- [ ] `npm run test` passa
+- [ ] Financeiro: DRE, fluxo de caixa, gráficos com labels legíveis
+- [ ] Insumos: cards de estoque, tabelas, KPIs com tipografia consistente
+- [ ] Relatórios: cards com títulos e botões de download visíveis
+- [ ] Calendário: tabs funcionando, eventos com labels legíveis
+- [ ] Tempo: forecast com labels e temperatura legível
+- [ ] Contraste WCAG AA em todas as mudanças
+- [ ] Responsividade 375px / 768px / 1440px
+- [ ] Gráficos (charts) não sofrem quebra visual após atualização de legends
+
+---
+
+### 9.4 — Forms e Dialogs Adicionais (ex-Fase 4)
+
+**Objetivo:**  
+Consolidar padrão de formulários e diálogos em todos os módulos, garantindo acessibilidade, validação Zod e responsividade.
+
+**Entregáveis:**
+
+#### Formulários e Diálogos por Módulo
+- **Silos:** `SiloForm.tsx`, `MovimentacaoDialog.tsx`, `AvaliacaoBromatologicaDialog.tsx`, `AvaliacaoPspsDialog.tsx` (4)
+- **Talhões:** `TalhaoForm.tsx`, `CicloForm.tsx`, `AtividadeDialog.tsx`, `*Fields.tsx` (8)
+- **Frota:** `MaquinaDialog.tsx`, `PlanoManutencaoDialog.tsx`, `ManutencaoDialog.tsx`, `AbastecimentoDialog.tsx`, `UsoDialog.tsx` (5)
+- **Rebanho:** `AnimalForm.tsx`, `LoteForm.tsx`, `EventoDialog.tsx`, `*Form*.tsx` (15+)
+- **Auth:** `LoginForm.tsx`, `RegisterForm.tsx`, `PasswordRecoveryForm.tsx` (3)
+- **Configurações:** `FormPerfil.tsx`, `FormFazenda.tsx`, `FormUsuarios.tsx` (3)
+
+**Total:** ~25-30 formulários/diálogos
+
+**Mudanças Padronizadas:**
+- Todos os `<Label>` devem ter `text-sm` (shadcn default ou explicit)
+- Form section headers: `text-[0.475rem]` → `text-sm`
+- Input helpers/descriptions: `text-xs` → `text-sm` (se crítico)
+- Error messages: `text-xs` → `text-sm`
+- Dialog titles: `text-lg` / `text-xl` (preservar — maiores)
+- Buttons: usar shadcn defaults (já com estilos corretos)
+
+**Dependências:**
+- Fases 2, 3a, 3b, 3c, 3d, 3e completas
+- React Hook Form + Zod (já integrados)
+- shadcn/ui (Form, Input, Label, Dialog) — já configurados
+
+**Prioridade:** 🟡 Baixa (post-launch)
+
+**Risco de Regressão:** Baixo
+- Apenas tipografia — sem alteração de validação/lógica
+- shadcn componentes já estão bem integrados
+
+**Critério de Aceite:**
+- [ ] `npm run build` sem erros
+- [ ] `npm run test` passa (incluindo validação Zod)
+- [ ] Todos os formulários renderizam com `<Label>` em `text-sm`
+- [ ] Error messages legíveis (`text-sm`)
+- [ ] Dialogs com títulos claros e labels consistentes
+- [ ] Botões com estilos consolidados (shadcn)
+- [ ] Acessibilidade: labels associados a inputs, focus states visíveis
+- [ ] Responsividade mobile: forms não overflow, inputs redimensionam
+- [ ] Contraste WCAG AA em todos os inputs/labels
+- [ ] Visual review de 5-10 formulários representativos
+
+---
+
+## Resumo Executivo — Fase 9
+
+**📊 Consolidação de Módulos Pendentes**
+
+| Seção | # Arquivos | Prioridade | Tempo Est. | Status |
+|---|---|---|---|---|
+| 9.1 Auth + Operador | 9 | 🔴 Alta | 2-3h | Planejado |
+| 9.2 Planejamento + Calc + Config | 10 | 🟠 Média | 2-3h | Planejado |
+| 9.3 Financeiro + Insumos + Relatórios + Calendário + Tempo | 15+ | 🟠 Média | 3-4h | Planejado |
+| 9.4 Forms + Dialogs | 25-30 | 🟡 Baixa | 3-4h | Planejado |
+| **Total Fase 9** | **59-64** | — | **10-14h** | **Planejado** |
+
+### Itens Consolidados na Fase 9
+
+**De Fase 3c (Auth):**
+- Landing page, Login, Register, Forgot-password, Reset-password
+- Operador dashboard e silos restrito
+- Termos e Privacidade
+
+**De Fase 3d (Admin):**
+- Planejamento de Silagem (4 etapas + histórico)
+- Calculadoras Agronômicas (Calagem, NPK)
+- Configurações (Perfil, Propriedade, Usuários)
+
+**De Fase 3e (Auxiliar + Financeiro):**
+- Financeiro (DRE, fluxo de caixa)
+- Insumos (estoque, movimentações)
+- Relatórios (export XLSX)
+- Calendário (eventos, timeline)
+- Previsão de Tempo
+
+**De Fase 4 (Forms):**
+- ~25-30 formulários e diálogos consolidados
+- Padrão React Hook Form + Zod
+- Acessibilidade + responsividade garantidas
+
+### Sugestão de Ordem de Execução
+
+1. **Fase 9.1 (Auth + Operador)** — 2-3h
+   - Depende: Fases 2-3b ✅
+   - Risco: Médio (lógica de auth sensível)
+   - Pode ser executada primeiro após Fase 3b
+
+2. **Fase 9.2 (Planejamento + Calc + Config)** — 2-3h
+   - Depende: Fases 2-3b ✅
+   - Risco: Baixo (apenas UI)
+   - Executar após 9.1
+
+3. **Fase 9.3 (Financeiro + Auxiliares)** — 3-4h
+   - Depende: Fases 2-3b ✅
+   - Risco: Baixo-Médio (charts podem quebrar)
+   - Executar após 9.2 (paralelo possível com 9.1)
+
+4. **Fase 9.4 (Forms + Dialogs)** — 3-4h
+   - Depende: Fases 2-3b + 9.1, 9.2, 9.3 (parcialmente)
+   - Risco: Baixo (post-launch, não bloqueia release)
+   - Executar **após** release das Fases 2-3b (lower priority)
+
+### Timeline Recomendado
+
+```
+Fase 1 (Dashboard)        ✅ Completo
+   ↓
+Fase 2 (Widgets)          ⏳ ~2-3h
+   ↓
+Fase 3a (Silos+Tal+Frota) ⏳ ~8-10h
+   ↓
+Fase 3b (Rebanho)         ⏳ ~5-6h
+   ↓ (Validação + QA)
+Fase 5 (QA Final)         ⏳ ~2h
+   ↓ RELEASE
+Fase 9.1 (Auth)           ⏳ ~2-3h (paralelo com 9.2/9.3 possível)
+Fase 9.2 (Admin)          ⏳ ~2-3h
+Fase 9.3 (Auxiliar)       ⏳ ~3-4h
+Fase 9.4 (Forms)          ⏳ ~3-4h (post-launch, low priority)
+   ↓ (QA)
+Fase 5b (QA Final Phase 9) ⏳ ~1-2h
+   ↓ RELEASE 2
+```
+
+**Total Fases 2-5:** ~17-19h (release principal)  
+**Total Fase 9:** ~10-14h (release secundário ou post-launch)  
+**Tempo Total:** ~27-33h de desenvolvimento + QA
+
+---
+
+**Data de Geração:** 11/05/2026 (atualizada com Talhões + Frota + Fase 9)  
 **Pronto para Execução:** Sim ✅  
-**Próxima Ação:** Iniciar Fase 2 (11 Widgets)  
-**Escopo Total Confirmado:** 140 arquivos (Fase 2: 11 + Fase 3a: 42 + Fase 3b: 85 + Fase 5: QA)
+**Próxima Ação:** Iniciar Fase 2 (11 Widgets) → Fases 3a/3b → Fase 5 (QA) → Fase 9  
+**Escopo Total Confirmado:** 200+ arquivos (Fase 2: 11 + Fase 3a: 42 + Fase 3b: 85 + Fase 9: 59-64 + Fase 5: QA)
