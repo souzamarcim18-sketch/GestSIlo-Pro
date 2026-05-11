@@ -255,12 +255,12 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
           {/* Horímetros */}
           <div className="p-4 bg-muted/40 rounded-lg space-y-3">
             <p className="text-sm font-medium">Horímetro</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Preencha início e fim para calcular horas automaticamente. Caso contrário, informe as horas manualmente.
             </p>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="uso-hor-ini" className="text-xs">
+                <Label htmlFor="uso-hor-ini" className="text-sm">
                   Início
                 </Label>
                 <Input
@@ -275,7 +275,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="uso-hor-fim" className="text-xs">
+                <Label htmlFor="uso-hor-fim" className="text-sm">
                   Fim
                 </Label>
                 <Input
@@ -290,7 +290,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="uso-horas" className="text-xs">
+                <Label htmlFor="uso-horas" className="text-sm">
                   Horas {horasAutoMode ? '(calculado)' : '(manual)'}
                 </Label>
                 <Input
