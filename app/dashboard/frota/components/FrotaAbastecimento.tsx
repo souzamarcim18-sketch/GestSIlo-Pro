@@ -83,7 +83,7 @@ export function FrotaAbastecimento({
         <div className="grid grid-cols-2 gap-4 mb-4">
           <Card className="rounded-xl">
             <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground uppercase font-medium">Total Litros</p>
+              <p className="text-sm text-muted-foreground uppercase font-medium tracking-[0.13em]">Total Litros</p>
               <p className="text-2xl font-bold mt-1">
                 {totalLitros.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} L
               </p>
@@ -91,7 +91,7 @@ export function FrotaAbastecimento({
           </Card>
           <Card className="rounded-xl">
             <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground uppercase font-medium">Total Gasto</p>
+              <p className="text-sm text-muted-foreground uppercase font-medium tracking-[0.13em]">Total Gasto</p>
               <p className="text-2xl font-bold mt-1">
                 R$ {totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
@@ -116,13 +116,13 @@ export function FrotaAbastecimento({
             <Table aria-labelledby="abast-titulo">
               <TableHeader>
                 <TableRow>
-                  <TableHead scope="col">Data</TableHead>
-                  <TableHead scope="col">Máquina</TableHead>
-                  <TableHead scope="col">Combustível</TableHead>
-                  <TableHead scope="col">Litros</TableHead>
-                  <TableHead scope="col">Valor Total</TableHead>
-                  <TableHead scope="col">R$/L</TableHead>
-                  <TableHead scope="col">Hodômetro</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Data</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Máquina</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Combustível</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Litros</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Valor Total</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">R$/L</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Hodômetro</TableHead>
                   <TableHead scope="col" className="w-10" />
                 </TableRow>
               </TableHeader>
