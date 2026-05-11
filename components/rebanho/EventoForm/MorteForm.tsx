@@ -58,7 +58,7 @@ export function MorteForm({ animal, onSuccess }: MorteFormProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="morte-data">Data do Evento *</Label>
+        <Label htmlFor="morte-data" className="text-sm font-semibold">Data do Evento *</Label>
         <Input
           id="morte-data"
           type="date"
@@ -71,7 +71,7 @@ export function MorteForm({ animal, onSuccess }: MorteFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="morte-motivo">Motivo/Observações</Label>
+        <Label htmlFor="morte-motivo" className="text-sm font-semibold">Motivo/Observações</Label>
         <Textarea
           id="morte-motivo"
           placeholder="Causa da morte, observações relevantes..."
