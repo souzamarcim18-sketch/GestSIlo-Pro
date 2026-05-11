@@ -91,7 +91,7 @@ export function AnaliseSoloFields({
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             {CAMPOS_ANALISE.map((campo) => (
               <div key={campo.key} className="space-y-1">
-                <Label htmlFor={campo.key} className="text-xs">
+                <Label htmlFor={campo.key} className="text-sm">
                   {campo.label}
                 </Label>
                 <Controller
@@ -103,7 +103,7 @@ export function AnaliseSoloFields({
                       type="number"
                       step="0.01"
                       placeholder="0"
-                      className="text-xs h-8"
+                      className="h-8"
                       {...field}
                       onChange={(e) =>
                         field.onChange(e.target.valueAsNumber || undefined)
