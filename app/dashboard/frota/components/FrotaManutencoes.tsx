@@ -54,7 +54,7 @@ function ProgressoPlano({
   const alerta = verificarAlertaPlanoManutencao(plano, horimetroAtual);
 
   if (!plano.intervalo_horas || !plano.horimetro_base) {
-    return <span className="text-xs text-muted-foreground">Sem dados de horímetro</span>;
+    return <span className="text-sm text-muted-foreground">Sem dados de horímetro</span>;
   }
 
   const proxima = plano.horimetro_base + plano.intervalo_horas;
@@ -67,7 +67,7 @@ function ProgressoPlano({
         value={progresso}
         className={`h-2 ${alerta.urgente ? 'bg-destructive/20' : alerta.emAlerta ? 'bg-yellow-100' : ''}`}
       />
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         {alerta.horasRestantes !== null ? (
           alerta.horasRestantes <= 0
             ? <span className="text-destructive font-medium">Vencido em {Math.abs(alerta.horasRestantes).toFixed(0)} h</span>
@@ -170,13 +170,13 @@ export function FrotaManutencoes({
                 <Table aria-labelledby="man-titulo">
                   <TableHeader>
                     <TableRow>
-                      <TableHead scope="col">Data</TableHead>
-                      <TableHead scope="col">Máquina</TableHead>
-                      <TableHead scope="col">Tipo</TableHead>
-                      <TableHead scope="col">Status</TableHead>
-                      <TableHead scope="col">Descrição</TableHead>
-                      <TableHead scope="col">Custo</TableHead>
-                      <TableHead scope="col">Próxima</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Data</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Máquina</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Tipo</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Status</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Descrição</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Custo</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Próxima</TableHead>
                       <TableHead scope="col" className="w-10" />
                     </TableRow>
                   </TableHeader>
@@ -293,11 +293,11 @@ export function FrotaManutencoes({
                   <Table aria-labelledby="plano-titulo">
                     <TableHeader>
                       <TableRow>
-                        <TableHead scope="col">Máquina</TableHead>
-                        <TableHead scope="col">Serviço</TableHead>
-                        <TableHead scope="col">Intervalo</TableHead>
-                        <TableHead scope="col">Progresso</TableHead>
-                        <TableHead scope="col">Status</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Máquina</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Serviço</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Intervalo</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Progresso</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Status</TableHead>
                         <TableHead scope="col" className="w-20" />
                       </TableRow>
                     </TableHeader>
@@ -312,7 +312,7 @@ export function FrotaManutencoes({
                               {maquina?.nome ?? '—'}
                             </TableCell>
                             <TableCell>{plano.descricao}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
+                            <TableCell className="text-sm text-muted-foreground font-semibold">
                               {plano.intervalo_horas ? `${plano.intervalo_horas} h` : ''}
                               {plano.intervalo_horas && plano.intervalo_dias ? ' / ' : ''}
                               {plano.intervalo_dias ? `${plano.intervalo_dias} dias` : ''}
