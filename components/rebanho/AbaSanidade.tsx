@@ -125,7 +125,7 @@ export function AbaSanidade({
           <CardContent className="space-y-3">
             {alertasVencidos.length > 0 && (
               <div className="space-y-2 p-3 bg-red-50 border border-red-300 rounded-lg">
-                <p className="text-sm font-semibold text-red-900">Vacinações Vencidas</p>
+                <p className="text-sm font-semibold text-red-900 uppercase tracking-[0.13em]">Vacinações Vencidas</p>
                 {alertasVencidos.map((alerta) => (
                   <div key={alerta.vacina_nome} className="text-sm text-red-800">
                     <p className="font-medium">{alerta.vacina_nome}</p>
@@ -139,7 +139,7 @@ export function AbaSanidade({
 
             {alertasProximos.length > 0 && (
               <div className="space-y-2 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
-                <p className="text-sm font-semibold text-yellow-900 flex items-center gap-1">
+                <p className="text-sm font-semibold text-yellow-900 uppercase tracking-[0.13em] flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   Próximas dos Próximos 15 Dias
                 </p>
@@ -197,11 +197,11 @@ export function AbaSanidade({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Detalhes</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Próx. Dose</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Data</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Tipo</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Detalhes</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Responsável</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Próx. Dose</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
