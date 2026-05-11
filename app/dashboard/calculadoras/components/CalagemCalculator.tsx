@@ -124,19 +124,19 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
             <Label>Método de Cálculo</Label>
             <Tabs value={metodo} onValueChange={v => handleMethodChange(v as MetodoCalagemType)}>
               <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-                <TabsTrigger value="saturacao" className="text-xs">
+                <TabsTrigger value="saturacao" className="text-sm">
                   Saturação V%
                 </TabsTrigger>
-                <TabsTrigger value="al_ca_mg" className="text-xs">
+                <TabsTrigger value="al_ca_mg" className="text-sm">
                   Al+Ca/Mg
                 </TabsTrigger>
-                <TabsTrigger value="mg_manual" className="text-xs">
+                <TabsTrigger value="mg_manual" className="text-sm">
                   MG Manual
                 </TabsTrigger>
-                <TabsTrigger value="smp" className="text-xs">
+                <TabsTrigger value="smp" className="text-sm">
                   SMP
                 </TabsTrigger>
-                <TabsTrigger value="ufla" className="text-xs">
+                <TabsTrigger value="ufla" className="text-sm">
                   UFLA
                 </TabsTrigger>
               </TabsList>
@@ -166,7 +166,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                       placeholder="Ex: 10 ou 5.5"
                       className={erros.area ? 'border-destructive' : ''}
                     />
-                    {erros.area && <p className="text-xs text-destructive">{erros.area}</p>}
+                    {erros.area && <p className="text-sm text-destructive">{erros.area}</p>}
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
@@ -189,7 +189,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                       placeholder="Ex: 80 (típico)"
                       className={erros.prnt ? 'border-destructive' : ''}
                     />
-                    {erros.prnt && <p className="text-xs text-destructive">{erros.prnt}</p>}
+                    {erros.prnt && <p className="text-sm text-destructive">{erros.prnt}</p>}
                   </div>
                 </div>
               </div>

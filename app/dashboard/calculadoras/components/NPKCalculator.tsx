@@ -156,7 +156,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                 placeholder="Ex: 90 (típico)"
                 className={erros.n_nec ? 'border-destructive' : ''}
               />
-              {erros.n_nec && <p className="text-xs text-destructive">{erros.n_nec}</p>}
+              {erros.n_nec && <p className="text-sm text-destructive">{erros.n_nec}</p>}
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-1">
@@ -179,7 +179,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                 placeholder="Ex: 60 (típico)"
                 className={erros.p_nec ? 'border-destructive' : ''}
               />
-              {erros.p_nec && <p className="text-xs text-destructive">{erros.p_nec}</p>}
+              {erros.p_nec && <p className="text-sm text-destructive">{erros.p_nec}</p>}
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-1">
@@ -202,7 +202,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                 placeholder="Ex: 60 (típico)"
                 className={erros.k_nec ? 'border-destructive' : ''}
               />
-              {erros.k_nec && <p className="text-xs text-destructive">{erros.k_nec}</p>}
+              {erros.k_nec && <p className="text-sm text-destructive">{erros.k_nec}</p>}
             </div>
           </div>
 

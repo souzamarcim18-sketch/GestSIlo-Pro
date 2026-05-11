@@ -211,7 +211,7 @@ export default function ConfiguracoesPage() {
               >
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="prof-nome">Nome Completo</Label>
+                    <Label htmlFor="prof-nome" className="text-sm">Nome Completo</Label>
                     <Input
                       id="prof-nome"
                       ref={profileNomeRef}
@@ -221,7 +221,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="prof-email">E-mail</Label>
+                    <Label htmlFor="prof-email" className="text-sm">E-mail</Label>
                     {/*
                       ✅ aria-disabled reforça disabled para AT que
                       ignoram o atributo nativo em alguns contextos
@@ -239,7 +239,7 @@ export default function ConfiguracoesPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="prof-perfil">Perfil de Acesso</Label>
+                    <Label htmlFor="prof-perfil" className="text-sm">Perfil de Acesso</Label>
                     <Input
                       id="prof-perfil"
                       defaultValue={profile?.perfil}
@@ -248,7 +248,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="prof-senha">Nova Senha</Label>
+                    <Label htmlFor="prof-senha" className="text-sm">Nova Senha</Label>
                     {/*
                       ✅ aria-describedby associa o hint ao campo —
                       AT lê: "Nova Senha — Deixe em branco para manter a atual"
@@ -262,7 +262,7 @@ export default function ConfiguracoesPage() {
                     />
                     <p
                       id={ids.senhaHint}
-                      className="text-xs text-muted-foreground"
+                      className="text-sm text-muted-foreground"
                     >
                       Deixe em branco para manter a senha atual.
                     </p>
@@ -299,7 +299,7 @@ export default function ConfiguracoesPage() {
                 noValidate
               >
                 <div className="space-y-2">
-                  <Label htmlFor="faz-nome">Nome da Fazenda</Label>
+                  <Label htmlFor="faz-nome" className="text-sm">Nome da Fazenda</Label>
                   <Input
                     id="faz-nome"
                     ref={fazendaNomeRef}
@@ -317,7 +317,7 @@ export default function ConfiguracoesPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="faz-area">Área Total (ha)</Label>
+                    <Label htmlFor="faz-area" className="text-sm">Área Total (ha)</Label>
                     <Input
                       id="faz-area"
                       ref={fazendaAreaRef}
@@ -334,7 +334,7 @@ export default function ConfiguracoesPage() {
                 {(selectedCity || fazenda?.latitude) && (
                   <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
                     <div className="space-y-2">
-                      <Label htmlFor="faz-lat">Latitude</Label>
+                      <Label htmlFor="faz-lat" className="text-sm">Latitude</Label>
                       <Input
                         id="faz-lat"
                         type="text"
@@ -346,7 +346,7 @@ export default function ConfiguracoesPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="faz-lon">Longitude</Label>
+                      <Label htmlFor="faz-lon" className="text-sm">Longitude</Label>
                       <Input
                         id="faz-lon"
                         type="text"
@@ -401,10 +401,10 @@ export default function ConfiguracoesPage() {
               <Table aria-labelledby={ids.usuariosTitle}>
                 <TableHeader>
                   <TableRow>
-                    <TableHead scope="col">Nome</TableHead>
-                    <TableHead scope="col">E-mail</TableHead>
-                    <TableHead scope="col">Perfil</TableHead>
-                    <TableHead scope="col">Status</TableHead>
+                    <TableHead scope="col" className="text-sm">Nome</TableHead>
+                    <TableHead scope="col" className="text-sm">E-mail</TableHead>
+                    <TableHead scope="col" className="text-sm">Perfil</TableHead>
+                    <TableHead scope="col" className="text-sm">Status</TableHead>
                     {/* ✅ Coluna de ações com texto visível apenas para AT */}
                     <TableHead scope="col" className="text-right">
                       <span className="sr-only">Ações</span>

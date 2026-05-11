@@ -119,7 +119,7 @@ export function Etapa3Parametros({
               }
               placeholder="180"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Entre {RANGES_PARAMETROS.periodo_dias.min} e{' '}
               {RANGES_PARAMETROS.periodo_dias.max} dias
             </p>
@@ -164,7 +164,7 @@ export function Etapa3Parametros({
               placeholder="33"
               step="1"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Entre {RANGES_PARAMETROS.teor_ms_percent.min}% e{' '}
               {RANGES_PARAMETROS.teor_ms_percent.max}%
             </p>
@@ -190,7 +190,7 @@ export function Etapa3Parametros({
               placeholder="20"
               step="1"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Entre {RANGES_PARAMETROS.perdas_percent.min}% e{' '}
               {RANGES_PARAMETROS.perdas_percent.max}%
             </p>
@@ -218,7 +218,7 @@ export function Etapa3Parametros({
               placeholder={DEFAULTS_PARAMETROS.produtividade_ton_mo_ha.toString()}
               step="1"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Entre {prodRange.min} e {prodRange.max} ton MO/ha
             </p>
             {errors.produtividade_ton_mo_ha && (
@@ -247,7 +247,7 @@ export function Etapa3Parametros({
               placeholder="250"
               step="10"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Entre {RANGES_PARAMETROS.taxa_retirada.min} e{' '}
               {RANGES_PARAMETROS.taxa_retirada.max} kg/m²/dia
             </p>

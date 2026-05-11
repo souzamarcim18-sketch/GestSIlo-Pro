@@ -44,10 +44,10 @@ export function TabelaDetalhamento({ categorias }: TabelaDetalhamentoProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Categoria</TableHead>
-                <TableHead className="text-right">n</TableHead>
-                <TableHead className="text-right">Demanda MS (ton)</TableHead>
-                <TableHead className="text-right">Participação</TableHead>
+                <TableHead className="text-sm">Categoria</TableHead>
+                <TableHead className="text-right text-sm">n</TableHead>
+                <TableHead className="text-right text-sm">Demanda MS (ton)</TableHead>
+                <TableHead className="text-right text-sm">Participação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -56,7 +56,7 @@ export function TabelaDetalhamento({ categorias }: TabelaDetalhamentoProps) {
                   <TableCell>
                     <div>
                       <p className="font-medium text-sm">{cat.nome}</p>
-                      <p className="text-xs text-muted-foreground">{cat.id}</p>
+                      <p className="text-sm text-muted-foreground">{cat.id}</p>
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
