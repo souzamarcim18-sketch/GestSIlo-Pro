@@ -148,7 +148,7 @@ export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
               }}
             />
             <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
-            <p className="mb-2 text-sm font-medium">Arraste um arquivo CSV aqui ou</p>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.13em]">Arraste um arquivo CSV aqui ou</p>
             <Button
               variant="outline"
               size="sm"
@@ -192,17 +192,17 @@ export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
 
           {preview.length > 0 && (
             <Card className="p-4">
-              <h3 className="mb-3 text-sm font-semibold">Preview (primeiras 5 linhas)</h3>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">Preview (primeiras 5 linhas)</h3>
               <ScrollArea className="w-full">
                 <div className="inline-block w-full min-w-fit">
                   <table className="text-xs">
                     <thead>
                       <tr className="border-b">
-                        <th className="px-3 py-2 text-left font-semibold">Brinco</th>
-                        <th className="px-3 py-2 text-left font-semibold">Sexo</th>
-                        <th className="px-3 py-2 text-left font-semibold">Data Nascimento</th>
-                        <th className="px-3 py-2 text-left font-semibold">Tipo Rebanho</th>
-                        <th className="px-3 py-2 text-left font-semibold">Lote</th>
+                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Brinco</th>
+                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Sexo</th>
+                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Data Nascimento</th>
+                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Tipo Rebanho</th>
+                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Lote</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -251,7 +251,7 @@ export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
 
           {resultado.erros.length > 0 && (
             <Card className="p-4">
-              <h3 className="mb-3 text-sm font-semibold">Detalhes dos Erros</h3>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">Detalhes dos Erros</h3>
               <ScrollArea className="w-full">
                 <div className="space-y-2">
                   {resultado.erros.map((erro, idx) => (
