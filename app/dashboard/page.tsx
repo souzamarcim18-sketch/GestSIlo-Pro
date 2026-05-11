@@ -10,9 +10,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Calendar,
-  Clock,
-  CalendarCheck,
-  Grid3X3,
   Sprout,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -29,7 +26,9 @@ import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho'
 import { PieComposicaoRebanho } from '@/components/widgets/PieComposicaoRebanho';
 import { PieCulturasAtivas } from '@/components/widgets/PieCulturasAtivas';
 import { KpiChartCard } from '@/components/widgets/KpiChartCard';
-import { SilosStatusCard } from '@/components/widgets/SilosStatusCard';
+import { SilagemMetricasCard } from '@/components/widgets/SilagemMetricasCard';
+import { SilosInfoCard } from '@/components/widgets/SilosInfoCard';
+import { LotesAtivosCard } from '@/components/widgets/LotesAtivosCard';
 
 interface DashboardStats {
   // Silagem
@@ -77,8 +76,8 @@ function formatBRL(value: number): string {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
-      className="text-[0.6rem] font-bold uppercase tracking-[0.18em] mb-3"
-      style={{ color: '#688070' }}
+      className="text-xs font-bold uppercase tracking-[0.18em] mb-3"
+      style={{ color: '#dceede' }}
     >
       {children}
     </p>
@@ -159,6 +158,8 @@ export default function DashboardPage() {
   const [composicaoRebanho, setComposicaoRebanho] = useState<{ name: string; value: number; pct: number }[]>([]);
   const [culturasAtivas, setCulturasAtivas] = useState<{ name: string; value: number }[]>([]);
   const [silosAbertosNomes, setSilosAbertosNomes] = useState<string[]>([]);
+  const [culturasEnsiladas, setCulturasEnsiladas] = useState<{ name: string; value: number; pct: number }[]>([]);
+  const [lotesAtivos, setLotesAtivos] = useState<{ id: string; nome: string; quantidade_animais?: number | null }[]>([]);
   const [proximasOperacoes, setProximasOperacoes] = useState<ProximaOperacaoComBadge[]>([]);
   const [loadingOperacoes, setLoadingOperacoes] = useState(true);
 
@@ -413,8 +414,54 @@ export default function DashboardPage() {
               : 'Sem manutenções pendentes'
             : '—';
 
-        // Nomes dos silos abertos para SilosStatusCard
+        // Nomes dos silos abertos
         setSilosAbertosNomes(silosAbertosData.map((s) => s.nome).filter(Boolean) as string[]);
+
+        // Culturas ensiladas com percentual para SilosInfoCard
+        const contagemCulturas: Record<string, number> = {};
+        for (const silo of silosData) {
+          const cultura = silo.cultura_ensilada ?? 'Desconhecida';
+          contagemCulturas[cultura] = (contagemCulturas[cultura] ?? 0) + 1;
+        }
+        const totalSilosComCultura = Object.values(contagemCulturas).reduce((a, b) => a + b, 0);
+        setCulturasEnsiladas(
+          Object.entries(contagemCulturas).map(([name, value]) => ({
+            name,
+            value,
+            pct: totalSilosComCultura > 0 ? Math.round((value / totalSilosComCultura) * 100) : 0,
+          }))
+        );
+
+        // Lotes ativos com contagem de animais
+        const { data: lotesData } = await supabase
+          .from('lotes')
+          .select('id, nome')
+          .eq('fazenda_id', fazendaId)
+          .order('nome');
+
+        if (lotesData && lotesData.length > 0) {
+          const { data: animaisPorLoteData } = await supabase
+            .from('animais')
+            .select('lote_id')
+            .eq('fazenda_id', fazendaId)
+            .eq('status', 'Ativo')
+            .not('lote_id', 'is', null);
+
+          const contagemPorLote: Record<string, number> = {};
+          for (const a of animaisPorLoteData ?? []) {
+            if (a.lote_id) contagemPorLote[a.lote_id] = (contagemPorLote[a.lote_id] ?? 0) + 1;
+          }
+
+          setLotesAtivos(
+            lotesData.map((l) => ({
+              id: l.id,
+              nome: l.nome,
+              quantidade_animais: contagemPorLote[l.id] ?? 0,
+            }))
+          );
+        } else {
+          setLotesAtivos([]);
+        }
 
         // Categorias de rebanho para mini pie
         const animaisCategData = animaisCategRes.data ?? [];
@@ -561,64 +608,57 @@ export default function DashboardPage() {
       {/* Silagem */}
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
-        <div className="grid grid-cols-4 gap-4">
-          {/* Col 1 — gauge grande, 2 linhas de altura */}
-          <div className="row-span-2">
+        <div className="grid grid-cols-3 gap-4">
+          {/* Col 1 — Gauge, row-span-2 */}
+          <div className="row-span-2 flex">
             <KpiChartCard
               label="Ocupação dos Silos"
               sublabel={silosGaugeDetalhe || undefined}
               chart={<GaugeOcupacaoSilos percentual={silosOcupacaoPctNum} />}
+              className="flex-1 min-h-[280px]"
               onClick={() => router.push('/dashboard/silos')}
             />
           </div>
-          {/* Linha 1 — cols 2, 3, 4 */}
-          <KpiCard title="AUTONOMIA ESTIMADA" value={stats?.silosAutonomiaDias ?? '—'} detail="Dias de estoque" icon={Clock} href="/dashboard/silos" loading={loading} />
-          <KpiCard title="CONSUMO MÉDIO/DIA" value={stats?.silosConsumoDiario ?? '—'} detail="Últimos 30 dias" icon={TrendingUp} href="/dashboard/silos" loading={loading} />
-          <button
-            onClick={() => router.push('/dashboard/silos')}
-            className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
-          >
-            <SilosStatusCard
+          {/* Col 2 — 3 métricas empilhadas, row-span-2 */}
+          <div className="row-span-2 flex">
+            <SilagemMetricasCard
+              autonomia={stats?.silosAutonomiaDias ?? '—'}
+              consumo={stats?.silosConsumoDiario ?? '—'}
+              taxaPerdas={stats?.silosTaxaPerdas ?? '—'}
+            />
+          </div>
+          {/* Col 3 — Card único alto com 2 seções, row-span-2 */}
+          <div className="row-span-2 flex">
+            <SilosInfoCard
               silosAbertos={parseInt(stats?.silosAbertos ?? '0', 10)}
               silosCadastrados={parseInt(stats?.silosTotalCadastrados ?? '0', 10)}
               silosAbertosNomes={silosAbertosNomes}
+              culturas={culturasEnsiladas}
             />
-          </button>
-          {/* Linha 2 — cols 2, 3, 4 */}
-          <KpiCard title="TAXA DE PERDAS" value={stats?.silosTaxaPerdas ?? '—'} detail="Saídas por descarte" icon={AlertTriangle} href="/dashboard/silos" loading={loading} />
-          <KpiChartCard
-            label="Culturas Ensiladas"
-            chart={<PieCulturasAtivas data={culturasAtivas} total={culturasAtivas.length} />}
-            onClick={() => router.push('/dashboard/silos')}
-          />
-          <KpiCard title="ÚLTIMA ABERTURA" value={stats?.silosUltimaAbertura ?? '—'} detail={stats?.silosUltimaAberturaDetalhe ?? '—'} icon={CalendarCheck} href="/dashboard/silos" loading={loading} />
+          </div>
         </div>
       </section>
 
       {/* Rebanho */}
       <section aria-label="Rebanho">
         <SectionLabel>Rebanho</SectionLabel>
-        <div className="grid grid-cols-4 gap-4">
-          {/* Linha 1 — Total de Animais (col-span-2) + Composição (col-span-2) */}
-          <div className="col-span-2">
-            <KpiChartCard
-              label="Total de Animais"
-              chart={<PieCategoriasRebanho data={categoriasRebanho} total={totalAnimais} />}
-              onClick={() => router.push('/dashboard/rebanho')}
-            />
-          </div>
-          <div className="col-span-2">
-            <KpiChartCard
-              label="Composição do Rebanho"
-              chart={<PieComposicaoRebanho data={composicaoRebanho} />}
-              onClick={() => router.push('/dashboard/rebanho')}
-            />
-          </div>
-          {/* Linha 2 — 4 KpiCards simples */}
-          <KpiCard title="LOTES ATIVOS" value="—" detail="Lotes cadastrados" icon={Grid3X3} href="/dashboard/rebanho" loading={loading} />
-          <KpiCard title="PRÓXIMO EVENTO" value="—" detail="Pesagem ou DG" icon={Calendar} href="/dashboard/rebanho" loading={loading} />
-          <KpiCard title="ALERTA REPRODUTIVO" value="—" detail="Eventos pendentes" icon={AlertTriangle} href="/dashboard/rebanho" loading={loading} />
-          <KpiCard title="ANIMAIS ATIVOS" value={totalAnimais > 0 ? String(totalAnimais) : '—'} detail="Total no rebanho" icon={Grid3X3} href="/dashboard/rebanho" loading={loading} />
+        <div className="grid grid-cols-3 gap-4">
+          {/* Col 1 — Total de Animais por categoria */}
+          <KpiChartCard
+            label="Total de Animais"
+            chart={<PieCategoriasRebanho data={categoriasRebanho} total={totalAnimais} />}
+            className="min-h-[200px]"
+            onClick={() => router.push('/dashboard/rebanho')}
+          />
+          {/* Col 2 — Composição por tipo */}
+          <KpiChartCard
+            label="Composição do Rebanho"
+            chart={<PieComposicaoRebanho data={composicaoRebanho} />}
+            className="min-h-[200px]"
+            onClick={() => router.push('/dashboard/rebanho')}
+          />
+          {/* Col 3 — Lotes Ativos */}
+          <LotesAtivosCard lotes={lotesAtivos} />
         </div>
       </section>
 
