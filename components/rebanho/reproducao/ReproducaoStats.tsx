@@ -59,7 +59,7 @@ export function ReproducaoStats({ eventos }: ReproducaoStatsProps) {
           <div key={card.label} className={`${card.bgColor} rounded-lg p-4 border border-border/40`}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">{card.label}</p>
+                <p className="text-sm text-muted-foreground font-semibold uppercase tracking-[0.13em]">{card.label}</p>
                 <p className="text-3xl font-bold mt-2">{card.value}</p>
               </div>
               <Icon className={`h-8 w-8 ${card.iconColor} flex-shrink-0`} />
