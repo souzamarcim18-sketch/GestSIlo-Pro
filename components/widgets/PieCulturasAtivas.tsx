@@ -62,7 +62,7 @@ export function PieCulturasAtivas({ data, total }: Props) {
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-2xl font-extrabold text-card-foreground leading-none">{total}</span>
-        <span className="text-[10px] text-muted-foreground mt-0.5">culturas</span>
+        <span className="text-[12px] text-muted-foreground mt-0.5">culturas</span>
       </div>
     </div>
   )
