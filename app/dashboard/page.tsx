@@ -647,14 +647,14 @@ export default function DashboardPage() {
           <KpiChartCard
             label="Total de Animais"
             chart={<PieCategoriasRebanho data={categoriasRebanho} total={totalAnimais} />}
-            className="min-h-[200px]"
+            className="min-h-[240px]"
             onClick={() => router.push('/dashboard/rebanho')}
           />
           {/* Col 2 — Composição por tipo */}
           <KpiChartCard
             label="Composição do Rebanho"
             chart={<PieComposicaoRebanho data={composicaoRebanho} />}
-            className="min-h-[200px]"
+            className="min-h-[240px]"
             onClick={() => router.push('/dashboard/rebanho')}
           />
           {/* Col 3 — Lotes Ativos */}

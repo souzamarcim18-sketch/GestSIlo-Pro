@@ -52,7 +52,7 @@ export function PieCategoriasRebanho({ data, total }: Props) {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius="52%"
+              innerRadius="45%"
               outerRadius="85%"
               dataKey="value"
               strokeWidth={2}
