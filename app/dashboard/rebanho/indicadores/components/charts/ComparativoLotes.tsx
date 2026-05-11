@@ -127,11 +127,11 @@ export function ComparativoLotes(props: ComparativoLotesProps) {
             angle={-45}
             textAnchor="end"
             height={80}
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 14 }}
           />
           <YAxis
             label={{ value: `${unidade}`, angle: -90, position: 'insideLeft' }}
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 14 }}
           />
           <Tooltip
             formatter={(value) => `${Number(value).toFixed(2)} ${unidade}`}
