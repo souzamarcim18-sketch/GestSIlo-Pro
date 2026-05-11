@@ -205,14 +205,14 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 )}
               />
               {errors.maquina_id && (
-                <p className="text-xs text-destructive">{errors.maquina_id.message}</p>
+                <p className="text-sm text-destructive">{errors.maquina_id.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="uso-data">Data *</Label>
               <Input id="uso-data" type="date" {...register('data')} />
               {errors.data && (
-                <p className="text-xs text-destructive">{errors.data.message}</p>
+                <p className="text-sm text-destructive">{errors.data.message}</p>
               )}
             </div>
           </div>
@@ -271,7 +271,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                   {...register('horimetro_inicio', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
                 />
                 {errors.horimetro_inicio && (
-                  <p className="text-xs text-destructive">{errors.horimetro_inicio.message}</p>
+                  <p className="text-sm text-destructive">{errors.horimetro_inicio.message}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -286,7 +286,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                   {...register('horimetro_fim', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
                 />
                 {errors.horimetro_fim && (
-                  <p className="text-xs text-destructive">{errors.horimetro_fim.message}</p>
+                  <p className="text-sm text-destructive">{errors.horimetro_fim.message}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -303,7 +303,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                   {...register('horas', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
                 />
                 {errors.horas && (
-                  <p className="text-xs text-destructive">{errors.horas.message}</p>
+                  <p className="text-sm text-destructive">{errors.horas.message}</p>
                 )}
               </div>
             </div>
@@ -320,7 +320,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 placeholder="0.0"
                 {...register('km', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
               />
-              {errors.km && <p className="text-xs text-destructive">{errors.km.message}</p>}
+              {errors.km && <p className="text-sm text-destructive">{errors.km.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="uso-area">Área (ha)</Label>
@@ -331,7 +331,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 placeholder="0.00"
                 {...register('area_ha', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
               />
-              {errors.area_ha && <p className="text-xs text-destructive">{errors.area_ha.message}</p>}
+              {errors.area_ha && <p className="text-sm text-destructive">{errors.area_ha.message}</p>}
             </div>
           </div>
 

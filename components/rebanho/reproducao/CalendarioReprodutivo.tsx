@@ -306,7 +306,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
                       {tipoEventoMap[card.tipo] || card.tipo}
                     </Badge>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                     <p className="text-xs">{format(new Date(card.data_evento), 'dd/MM/yyyy', { locale: ptBR })}</p>
                     {card.status && <p className="text-xs text-brand-primary font-medium mt-1">{card.status}</p>}
                   </div>

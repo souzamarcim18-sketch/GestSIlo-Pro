@@ -109,7 +109,7 @@ export default function AjusteInventario({
               }}
             />
             {form.formState.errors.insumo_id && (
-              <p className="text-xs text-destructive mt-1">{form.formState.errors.insumo_id.message}</p>
+              <p className="text-sm text-destructive mt-1">{form.formState.errors.insumo_id.message}</p>
             )}
           </div>
 
@@ -133,7 +133,7 @@ export default function AjusteInventario({
               {...form.register('estoque_real', { valueAsNumber: true })}
             />
             {form.formState.errors.estoque_real && (
-              <p className="text-xs text-destructive mt-1">{form.formState.errors.estoque_real.message}</p>
+              <p className="text-sm text-destructive mt-1">{form.formState.errors.estoque_real.message}</p>
             )}
             {insumoAtual && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -155,7 +155,7 @@ export default function AjusteInventario({
               {...form.register('motivo')}
             />
             {form.formState.errors.motivo && (
-              <p className="text-xs text-destructive mt-1">{form.formState.errors.motivo.message}</p>
+              <p className="text-sm text-destructive mt-1">{form.formState.errors.motivo.message}</p>
             )}
           </div>
 

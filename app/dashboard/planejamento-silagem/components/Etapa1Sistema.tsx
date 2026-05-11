@@ -103,7 +103,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
               <Label htmlFor="corte" className="cursor-pointer flex-1 font-medium">
                 🐄 Corte
               </Label>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 Animais para terminação e reposição
               </span>
             </div>

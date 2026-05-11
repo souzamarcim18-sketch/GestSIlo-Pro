@@ -147,7 +147,7 @@ export function MovimentacaoDialog({
                 )}
               />
               {form.formState.errors.silo_id && (
-                <p className="text-xs text-destructive">{form.formState.errors.silo_id.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.silo_id.message}</p>
               )}
             </div>
           )}
@@ -183,7 +183,7 @@ export function MovimentacaoDialog({
               )}
             />
             {form.formState.errors.tipo && (
-              <p className="text-xs text-destructive">{form.formState.errors.tipo.message}</p>
+              <p className="text-sm text-destructive">{form.formState.errors.tipo.message}</p>
             )}
           </div>
 
@@ -215,7 +215,7 @@ export function MovimentacaoDialog({
                 )}
               />
               {form.formState.errors.subtipo && (
-                <p className="text-xs text-destructive">{form.formState.errors.subtipo.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.subtipo.message}</p>
               )}
             </div>
           )}
@@ -230,7 +230,7 @@ export function MovimentacaoDialog({
               {...form.register('data')}
             />
             {form.formState.errors.data && (
-              <p className="text-xs text-destructive">{form.formState.errors.data.message}</p>
+              <p className="text-sm text-destructive">{form.formState.errors.data.message}</p>
             )}
           </div>
 
@@ -247,7 +247,7 @@ export function MovimentacaoDialog({
               {...form.register('quantidade', { valueAsNumber: true })}
             />
             {form.formState.errors.quantidade && (
-              <p className="text-xs text-destructive">{form.formState.errors.quantidade.message}</p>
+              <p className="text-sm text-destructive">{form.formState.errors.quantidade.message}</p>
             )}
           </div>
 

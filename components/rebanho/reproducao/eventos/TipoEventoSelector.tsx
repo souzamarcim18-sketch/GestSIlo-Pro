@@ -74,7 +74,7 @@ export function TipoEventoSelector({ onSelect }: TipoEventoSelectorProps) {
             <div className="text-muted-foreground">{tipo.icon}</div>
             <div className="text-left">
               <div className="font-semibold text-sm">{tipo.label}</div>
-              <div className="text-xs text-muted-foreground">{tipo.descricao}</div>
+              <div className="text-sm text-muted-foreground">{tipo.descricao}</div>
             </div>
           </div>
         </Button>

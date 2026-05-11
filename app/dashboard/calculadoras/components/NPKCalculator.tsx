@@ -228,7 +228,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
               placeholder="Ex: 10 ou 5.5"
               className={erros.area ? 'border-destructive' : ''}
             />
-            {erros.area && <p className="text-xs text-destructive">{erros.area}</p>}
+            {erros.area && <p className="text-sm text-destructive">{erros.area}</p>}
           </div>
 
           {/* BOTÃO OTIMIZAR */}
@@ -429,11 +429,11 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <p className="text-xs text-muted-foreground">Dose</p>
+                            <p className="text-sm text-muted-foreground">Dose</p>
                             <p className="font-semibold">{opcao.fertilizantes.map((f: any) => f.dose_kg_ha.toFixed(0)).join(' + ')} kg/ha</p>
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground">Sacos/ha</p>
+                            <p className="text-sm text-muted-foreground">Sacos/ha</p>
                             <p className="font-semibold">{opcao.fertilizantes.reduce((acc: number, f: any) => acc + f.sacos_por_ha, 0)}</p>
                           </div>
                         </div>

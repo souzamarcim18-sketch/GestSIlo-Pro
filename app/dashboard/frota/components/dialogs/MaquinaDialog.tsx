@@ -240,7 +240,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                     {...register('nome')}
                   />
                   {errors.nome && (
-                    <p className="text-xs text-destructive">{errors.nome.message}</p>
+                    <p className="text-sm text-destructive">{errors.nome.message}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -372,7 +372,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                       })}
                     />
                     {errors.consumo_medio_lh && (
-                      <p className="text-xs text-destructive">
+                      <p className="text-sm text-destructive">
                         {errors.consumo_medio_lh.message}
                       </p>
                     )}

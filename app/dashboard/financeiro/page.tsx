@@ -281,7 +281,7 @@ export default function FinanceiroPage() {
             {...register('valor', { valueAsNumber: true })}
           />
           {errors.valor && (
-            <p id={`${ids.formValor}-err`} className="text-xs text-destructive" role="alert">
+            <p id={`${ids.formValor}-err`} className="text-sm text-destructive" role="alert">
               {errors.valor.message}
             </p>
           )}
@@ -300,7 +300,7 @@ export default function FinanceiroPage() {
           {...register('descricao')}
         />
         {errors.descricao && (
-          <p id={`${ids.formDesc}-err`} className="text-xs text-destructive" role="alert">
+          <p id={`${ids.formDesc}-err`} className="text-sm text-destructive" role="alert">
             {errors.descricao.message}
           </p>
         )}
@@ -324,7 +324,7 @@ export default function FinanceiroPage() {
             {categorias.map((c) => <option key={c} value={c} />)}
           </datalist>
           {errors.categoria && (
-            <p id={`${ids.formCat}-err`} className="text-xs text-destructive" role="alert">
+            <p id={`${ids.formCat}-err`} className="text-sm text-destructive" role="alert">
               {errors.categoria.message}
             </p>
           )}
@@ -342,7 +342,7 @@ export default function FinanceiroPage() {
             {...register('data')}
           />
           {errors.data && (
-            <p id={`${ids.formData}-err`} className="text-xs text-destructive" role="alert">
+            <p id={`${ids.formData}-err`} className="text-sm text-destructive" role="alert">
               {errors.data.message}
             </p>
           )}
@@ -414,7 +414,7 @@ export default function FinanceiroPage() {
       <TableCell><Badge variant="outline">{l.categoria}</Badge></TableCell>
       <TableCell>
         {l.referencia_tipo
-          ? <span className="text-xs text-muted-foreground">{l.referencia_tipo}</span>
+          ? <span className="text-sm text-muted-foreground">{l.referencia_tipo}</span>
           : <span className="text-muted-foreground" aria-hidden="true">—</span>}
       </TableCell>
       <TableCell
@@ -541,14 +541,14 @@ export default function FinanceiroPage() {
 
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-receitas">Total Receitas</CardTitle>
+              <CardTitle className="text-base font-medium" id="card-receitas">Total Receitas</CardTitle>
               <TrendingUp className="h-4 w-4 text-primary dark:text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary dark:text-primary" aria-labelledby="card-receitas" aria-live="polite">
                 {loading ? '—' : brl(resumo.totalReceitas)}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {filtroInicio || filtroFim ? 'No período filtrado' : 'Total acumulado'}
               </p>
             </CardContent>
@@ -556,14 +556,14 @@ export default function FinanceiroPage() {
 
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-despesas">Total Despesas</CardTitle>
+              <CardTitle className="text-base font-medium" id="card-despesas">Total Despesas</CardTitle>
               <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive" aria-labelledby="card-despesas" aria-live="polite">
                 {loading ? '—' : brl(resumo.totalDespesas)}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {filtroInicio || filtroFim ? 'No período filtrado' : 'Total acumulado'}
               </p>
             </CardContent>
@@ -571,7 +571,7 @@ export default function FinanceiroPage() {
 
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-saldo">Saldo Líquido</CardTitle>
+              <CardTitle className="text-base font-medium" id="card-saldo">Saldo Líquido</CardTitle>
               <Wallet className="h-4 w-4 text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
@@ -582,7 +582,7 @@ export default function FinanceiroPage() {
               >
                 {loading ? '—' : brl(resumo.saldo)}
               </div>
-              <p className="text-xs text-muted-foreground">Resultado operacional</p>
+              <p className="text-sm text-muted-foreground">Resultado operacional</p>
             </CardContent>
           </Card>
 
@@ -615,15 +615,15 @@ export default function FinanceiroPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.4} />
-                <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="mes" tick={{ fontSize: 13 }} />
                 <YAxis
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 13 }}
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                   width={56}
                 />
                 {/* ✅ Fix principal: formatter tipado corretamente */}
                 <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
-                <Legend iconType="circle" iconSize={8} />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13 }} />
                 <Area type="monotone" dataKey="receita" name="Receita"
                   stroke="hsl(var(--primary))" fill="url(#gradReceita)" strokeWidth={2} dot={false} />
                 <Area type="monotone" dataKey="despesa" name="Despesa"

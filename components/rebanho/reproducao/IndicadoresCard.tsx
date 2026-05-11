@@ -98,7 +98,7 @@ export function IndicadoresCard({
             </div>
             <div className="space-y-2">
               <Progress value={barProgressTaxaPrenhez} className="h-2" />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {taxaPrenhez >= metaTaxaPrenhez ? '✓ Meta atingida' : '⚠ Abaixo da meta'}
               </p>
             </div>
@@ -121,7 +121,7 @@ export function IndicadoresCard({
                   ) : (
                     <TrendingUp className="h-5 w-5 text-red-600" />
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {psmAbaixaMeta ? '✓ Abaixo da meta' : '⚠ Acima da meta'}
                   </p>
                 </>
@@ -146,7 +146,7 @@ export function IndicadoresCard({
                   ) : (
                     <TrendingUp className="h-5 w-5 text-red-600" />
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {iepDentroMeta ? '✓ Na meta' : '⚠ Fora da meta'}
                   </p>
                 </>
@@ -164,7 +164,7 @@ export function IndicadoresCard({
               <p className="text-xs text-muted-foreground mt-1">Diagnósticos positivos após IA</p>
             </div>
             {taxaConcepçaoIA !== null && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {taxaConcepçaoIA >= 50 ? '✓ Bom resultado' : '⚠ Verificar técnica'}
               </p>
             )}
@@ -184,7 +184,7 @@ export function IndicadoresCard({
               </p>
             </div>
             {diasEmAberto.media_dias !== null && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {diasEmAberto.media_dias <= metaDiasAberto ? '✓ Abaixo da meta' : '⚠ Acima da meta'}
               </p>
             )}
@@ -200,7 +200,7 @@ export function IndicadoresCard({
               <p className="text-xs text-muted-foreground mt-1">Coberturas / fêmeas aptas</p>
             </div>
             {taxaServiço !== null && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {taxaServiço >= 100 ? '✓ Boa cobertura' : '⚠ Verificar'}
               </p>
             )}
@@ -218,7 +218,7 @@ export function IndicadoresCard({
               <p className="text-xs text-muted-foreground mt-1">Idade média em meses</p>
             </div>
             {idadePrimeiraPariçao !== null && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {idadePrimeiraPariçao <= 28 ? '✓ Ideal' : '⚠ Acima da meta'}
               </p>
             )}

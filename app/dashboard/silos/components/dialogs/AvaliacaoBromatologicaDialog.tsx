@@ -95,7 +95,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('data')}
               />
               {form.formState.errors.data && (
-                <p className="text-xs text-destructive">{form.formState.errors.data.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.data.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -117,7 +117,7 @@ export function AvaliacaoBromatologicaDialog({
                 )}
               />
               {form.formState.errors.momento && (
-                <p className="text-xs text-destructive">{form.formState.errors.momento.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.momento.message}</p>
               )}
             </div>
           </div>
@@ -144,7 +144,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('ms', { valueAsNumber: true })}
               />
               {form.formState.errors.ms && (
-                <p className="text-xs text-destructive">{form.formState.errors.ms.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.ms.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -157,7 +157,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('pb', { valueAsNumber: true })}
               />
               {form.formState.errors.pb && (
-                <p className="text-xs text-destructive">{form.formState.errors.pb.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.pb.message}</p>
               )}
             </div>
           </div>
@@ -173,7 +173,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('fdn', { valueAsNumber: true })}
               />
               {form.formState.errors.fdn && (
-                <p className="text-xs text-destructive">{form.formState.errors.fdn.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.fdn.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -186,7 +186,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('fda', { valueAsNumber: true })}
               />
               {form.formState.errors.fda && (
-                <p className="text-xs text-destructive">{form.formState.errors.fda.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.fda.message}</p>
               )}
             </div>
           </div>
@@ -203,7 +203,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('amido', { valueAsNumber: true })}
               />
               {form.formState.errors.amido && (
-                <p className="text-xs text-destructive">{form.formState.errors.amido.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.amido.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -216,7 +216,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('ndt', { valueAsNumber: true })}
               />
               {form.formState.errors.ndt && (
-                <p className="text-xs text-destructive">{form.formState.errors.ndt.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.ndt.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -231,7 +231,7 @@ export function AvaliacaoBromatologicaDialog({
                 {...form.register('ph', { valueAsNumber: true })}
               />
               {form.formState.errors.ph && (
-                <p className="text-xs text-destructive">{form.formState.errors.ph.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.ph.message}</p>
               )}
             </div>
           </div>

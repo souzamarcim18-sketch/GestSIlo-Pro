@@ -253,6 +253,42 @@ instrumentation.ts
 
 ---
 
+## Design System (Concluído 13/05/2026)
+
+### Tipografia — Padrão Obrigatório
+**Regra crítica**: Todo novo componente DEVE usar `text-sm` (14px) para labels secundários, NUNCA usar valores em `px` inline.
+
+| Elemento | Tamanho | CSS Tailwind | Exemplo |
+|---|---|---|---|
+| Página (h1) | 1.375rem (22px) | (mantém padrão) | Títulos de páginas |
+| Card Label | 14px | `text-sm` | ✅ USAR |
+| KPI Value | 1.875rem/2rem | `text-2xl`/`text-3xl` | Números principais em negrito |
+| KPI Sublabel | 14px | `text-sm` | ✅ USAR |
+| Body/Tabelas | 14px | `text-sm` | ✅ USAR |
+| Small text | 12px | `text-xs` | Apenas para avisos/notas inline |
+
+### Valores Proibidos ❌
+- ❌ `text-[0.475rem]` (6px) — NUNCA usar
+- ❌ `text-[0.6rem]` (9.6px) — NUNCA usar
+- ❌ `text-[11px]` — NUNCA usar
+- ❌ `text-[10px]` — NUNCA usar
+- ❌ valores inline em `px` — sempre usar classes Tailwind
+
+### Referência de Design
+- **PRD Completo**: `PRD-design.md`
+- **Especificação Técnica**: `SPEC-design.md`
+- **Design System**: `DESIGN-SYSTEM.md`
+- **Changelog**: `CHANGELOG-redesign.md`
+
+### Arquivos Intocáveis (Verificar com revisão)
+Não modifique sem instrução explícita:
+- `next.config.ts` — contém headers de segurança críticos
+- `DESIGN-SYSTEM.md` — referência de padrões
+- `app/globals.css` — tema Tailwind
+- `colors_and_type.css` — tokens de design
+
+---
+
 ## Segurança — Regras Obrigatórias
 
 1. **RLS obrigatório** em todas as tabelas autenticadas

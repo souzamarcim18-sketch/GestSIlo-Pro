@@ -35,7 +35,7 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
           <div className="flex items-center gap-2">
             <ArrowDownRight className="h-5 w-5 text-green-600" />
             <div>
-              <CardTitle className="text-base">Últimas Entradas</CardTitle>
+              <CardTitle className="text-sm">Últimas Entradas</CardTitle>
               <CardDescription className="text-xs">Insumos recebidos</CardDescription>
             </div>
           </div>
@@ -49,11 +49,11 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
                 <div key={mov.id} className="flex justify-between items-start p-2 rounded border border-green-200/50 bg-green-50/30 dark:bg-green-950/20 dark:border-green-900/30">
                   <div className="flex-1">
                     <div className="font-medium text-sm">{mov.insumo_nome}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                       {mov.quantidade} {mov.insumo_unidade}
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                  <div className="text-sm text-muted-foreground whitespace-nowrap ml-2">
                     {format(new Date(mov.data + 'T00:00:00'), 'dd/MM', { locale: ptBR })}
                   </div>
                 </div>
@@ -69,7 +69,7 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
           <div className="flex items-center gap-2">
             <ArrowUpRight className="h-5 w-5 text-red-600" />
             <div>
-              <CardTitle className="text-base">Últimas Saídas</CardTitle>
+              <CardTitle className="text-sm">Últimas Saídas</CardTitle>
               <CardDescription className="text-xs">Insumos utilizados</CardDescription>
             </div>
           </div>
@@ -83,11 +83,11 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
                 <div key={mov.id} className="flex justify-between items-start p-2 rounded border border-red-200/50 bg-red-50/30 dark:bg-red-950/20 dark:border-red-900/30">
                   <div className="flex-1">
                     <div className="font-medium text-sm">{mov.insumo_nome}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                       {mov.quantidade} {mov.insumo_unidade}
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                  <div className="text-sm text-muted-foreground whitespace-nowrap ml-2">
                     {format(new Date(mov.data + 'T00:00:00'), 'dd/MM', { locale: ptBR })}
                   </div>
                 </div>

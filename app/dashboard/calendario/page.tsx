@@ -156,13 +156,13 @@ export default function CalendarioPage() {
         <table className="w-full text-sm">
           <thead className="border-b">
             <tr className="text-left">
-              <th className="px-4 py-2 font-semibold">Data Esperada</th>
-              <th className="px-4 py-2 font-semibold">Operação</th>
-              <th className="px-4 py-2 font-semibold">Talhão</th>
-              <th className="px-4 py-2 font-semibold">Cultura</th>
-              <th className="px-4 py-2 font-semibold">Status</th>
+              <th className="px-4 py-2 font-semibold text-sm">Data Esperada</th>
+              <th className="px-4 py-2 font-semibold text-sm">Operação</th>
+              <th className="px-4 py-2 font-semibold text-sm">Talhão</th>
+              <th className="px-4 py-2 font-semibold text-sm">Cultura</th>
+              <th className="px-4 py-2 font-semibold text-sm">Status</th>
               {eventos.some((e) => e.data_realizada) && (
-                <th className="px-4 py-2 font-semibold">Data Realizada</th>
+                <th className="px-4 py-2 font-semibold text-sm">Data Realizada</th>
               )}
             </tr>
           </thead>
@@ -236,7 +236,7 @@ export default function CalendarioPage() {
             return (
               <Card key={idx} className="min-h-24">
                 <CardHeader className="p-3 pb-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
+                  <div className="text-sm font-semibold text-muted-foreground">
                     {day.toLocaleDateString('pt-BR', { weekday: 'short' })}
                   </div>
                   <div className="text-lg font-bold">{day.getDate()}</div>
@@ -303,7 +303,7 @@ export default function CalendarioPage() {
 
         <div className="grid grid-cols-7 gap-2">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((day) => (
-            <div key={day} className="text-center font-semibold text-sm p-2">
+            <div key={day} className="text-center font-semibold text-base p-2">
               {day}
             </div>
           ))}
@@ -320,7 +320,7 @@ export default function CalendarioPage() {
             return (
               <Card key={day.toDateString()} className="min-h-20">
                 <CardHeader className="p-2 pb-1">
-                  <div className="text-sm font-semibold">{day.getDate()}</div>
+                  <div className="text-base font-semibold">{day.getDate()}</div>
                 </CardHeader>
                 <CardContent className="p-2 pt-0 space-y-0.5">
                   {dayEventos.slice(0, 1).map((evt) => {
@@ -357,12 +357,12 @@ export default function CalendarioPage() {
       {/* Filtros */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Filtros</CardTitle>
+          <CardTitle className="text-sm">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Talhão</label>
+              <label className="text-base font-medium">Talhão</label>
               <Select value={talhaoId} onValueChange={(val) => setTalhaoId(val || '')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
@@ -379,7 +379,7 @@ export default function CalendarioPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Cultura</label>
+              <label className="text-base font-medium">Cultura</label>
               <Select value={cultura} onValueChange={(val) => setCultura(val || '')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
@@ -396,7 +396,7 @@ export default function CalendarioPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-base font-medium">Status</label>
               <Select value={status} onValueChange={(val) => setStatus(val || '')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
@@ -432,15 +432,15 @@ export default function CalendarioPage() {
           <div className="flex flex-wrap gap-6">
             <div className="flex items-center gap-2">
               <span className="text-lg">🔵</span>
-              <span className="text-sm">Planejado</span>
+              <span className="text-base">Planejado</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-lg">🟢</span>
-              <span className="text-sm">Realizado</span>
+              <span className="text-base">Realizado</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-lg">🔴</span>
-              <span className="text-sm">Atrasado</span>
+              <span className="text-base">Atrasado</span>
             </div>
           </div>
         </CardContent>

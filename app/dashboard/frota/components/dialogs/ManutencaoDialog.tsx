@@ -257,7 +257,7 @@ export function ManutencaoDialog({
                 )}
               />
               {errors.maquina_id && (
-                <p className="text-xs text-destructive">{errors.maquina_id.message}</p>
+                <p className="text-sm text-destructive">{errors.maquina_id.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -305,7 +305,7 @@ export function ManutencaoDialog({
               <Label htmlFor="man-data">Data *</Label>
               <Input id="man-data" type="date" {...register('data')} />
               {errors.data && (
-                <p className="text-xs text-destructive">{errors.data.message}</p>
+                <p className="text-sm text-destructive">{errors.data.message}</p>
               )}
             </div>
           </div>
@@ -319,7 +319,7 @@ export function ManutencaoDialog({
               {...register('descricao')}
             />
             {errors.descricao && (
-              <p className="text-xs text-destructive">{errors.descricao.message}</p>
+              <p className="text-sm text-destructive">{errors.descricao.message}</p>
             )}
           </div>
 
@@ -442,7 +442,7 @@ export function ManutencaoDialog({
                         {...register(`pecas.${index}.descricao`)}
                       />
                       {errors.pecas?.[index]?.descricao && (
-                        <p className="text-xs text-destructive mt-1">
+                        <p className="text-sm text-destructive mt-1">
                           {errors.pecas[index]?.descricao?.message}
                         </p>
                       )}
@@ -456,7 +456,7 @@ export function ManutencaoDialog({
                         {...register(`pecas.${index}.quantidade`, { valueAsNumber: true })}
                       />
                       {errors.pecas?.[index]?.quantidade && (
-                        <p className="text-xs text-destructive mt-1">
+                        <p className="text-sm text-destructive mt-1">
                           {errors.pecas[index]?.quantidade?.message}
                         </p>
                       )}
@@ -470,7 +470,7 @@ export function ManutencaoDialog({
                         {...register(`pecas.${index}.valor_unitario`, { valueAsNumber: true })}
                       />
                       {errors.pecas?.[index]?.valor_unitario && (
-                        <p className="text-xs text-destructive mt-1">
+                        <p className="text-sm text-destructive mt-1">
                           {errors.pecas[index]?.valor_unitario?.message}
                         </p>
                       )}

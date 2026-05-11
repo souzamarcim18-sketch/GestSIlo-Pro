@@ -97,7 +97,7 @@ export function ConflictResolutionDialog({
                       {motivoLabels[conflito._conflict_motivo || ''] || 'Conflito desconhecido'}
                     </p>
 
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       Data do evento: {new Date(conflito.data_evento).toLocaleDateString('pt-BR')}
                     </p>
                   </div>

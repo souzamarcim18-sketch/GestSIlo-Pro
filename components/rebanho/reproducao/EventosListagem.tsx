@@ -176,7 +176,7 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
             Erro
           </Badge>
           {errorMessage && (
-            <span className="text-xs text-muted-foreground" title={errorMessage}>
+            <span className="text-sm text-muted-foreground" title={errorMessage}>
               ?
             </span>
           )}

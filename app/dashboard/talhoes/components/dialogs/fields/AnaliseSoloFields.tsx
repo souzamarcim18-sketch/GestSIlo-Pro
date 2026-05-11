@@ -112,7 +112,7 @@ export function AnaliseSoloFields({
                   )}
                 />
                 {errors[campo.key] && (
-                  <p className="text-xs text-destructive">
+                  <p className="text-sm text-destructive">
                     {errors[campo.key].message}
                   </p>
                 )}
@@ -142,7 +142,7 @@ export function AnaliseSoloFields({
               />
             )}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Upload de PDF com análise de solo (opcional)
           </p>
         </div>
