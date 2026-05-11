@@ -191,8 +191,8 @@ export function HistoricoEventos({ animal_id }: HistoricoEventosProps) {
               <Card className="p-4 bg-white">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{descricao}</p>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="font-medium text-sm text-gray-900 uppercase tracking-[0.13em]">{descricao}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {formatarData(evento.data_evento)}
                     </p>
                   </div>
