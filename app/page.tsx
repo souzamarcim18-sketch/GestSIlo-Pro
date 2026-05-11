@@ -236,7 +236,7 @@ export default function LandingPage() {
       <section id="beneficios" className="bg-metal py-24 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest mb-4 block text-brand-primary">
+            <span className="text-sm font-bold uppercase tracking-widest mb-4 block text-brand-primary">
               Por que utilizar o GestSilo na sua propriedade?
             </span>
             <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight text-brand-deep">
@@ -281,14 +281,14 @@ export default function LandingPage() {
                   { label: 'Economia gerada', value: 'R$ 120k', unit: 'este ano' },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-white/15 rounded-2xl p-4 backdrop-blur-sm">
-                    <p className="text-white/80 text-xs font-medium mb-1">{stat.label}</p>
+                    <p className="text-white/80 text-sm font-medium mb-1">{stat.label}</p>
                     <p className="text-white text-2xl font-extrabold">{stat.value}</p>
-                    <p className="text-white/70 text-xs">{stat.unit}</p>
+                    <p className="text-white/70 text-sm">{stat.unit}</p>
                   </div>
                 ))}
               </div>
               <div className="mt-6 bg-white/10 rounded-2xl p-4">
-                <p className="text-white/80 text-xs font-medium mb-2">Produtividade do mês</p>
+                <p className="text-white/80 text-sm font-medium mb-2">Produtividade do mês</p>
                 <div className="flex items-end gap-1 h-12">
                   {[40, 65, 55, 80, 70, 90, 85].map((h, i) => (
                     <div
@@ -301,7 +301,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div
-              className="absolute -top-4 -right-4 text-xs font-bold px-4 py-2 rounded-full shadow-lg"
+              className="absolute -top-4 -right-4 text-sm font-bold px-4 py-2 rounded-full shadow-lg"
               style={{ background: '#FEF08A', color: '#854d0e' }}
             >
               🏆 #1 no agro
@@ -365,7 +365,7 @@ export default function LandingPage() {
               >
                 {plan.highlight && (
                   <div
-                    className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-bold px-4 py-1.5 rounded-full shadow"
+                    className="absolute -top-4 left-1/2 -translate-x-1/2 text-sm font-bold px-4 py-1.5 rounded-full shadow"
                     style={{ background: '#FEF08A', color: '#854d0e' }}
                   >
                     ⭐ Mais popular

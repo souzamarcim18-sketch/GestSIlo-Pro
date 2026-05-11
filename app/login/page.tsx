@@ -306,7 +306,7 @@ export default function LoginPage() {
                       {error || profileError || (timeout && 'Tempo limite ao carregar seu perfil. Tente fazer login novamente.')}
                     </p>
                     {(profileError || timeout) && (
-                      <p className="text-status-danger/80 text-xs mt-1">
+                      <p className="text-status-danger/80 text-sm mt-1">
                         Contate o suporte se o problema persistir.
                       </p>
                     )}
@@ -373,15 +373,15 @@ export default function LoginPage() {
 
           {/* Footer */}
           <footer className="mt-8 text-center">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               © 2026 GestSilo · Todos os direitos reservados
             </p>
             <nav aria-label="Links institucionais" className="flex items-center justify-center gap-4 mt-2">
-              <a href="/privacidade" className="text-xs text-muted-foreground hover:text-brand-primary transition-colors">Privacidade</a>
+              <a href="/privacidade" className="text-sm text-muted-foreground hover:text-brand-primary transition-colors">Privacidade</a>
               <span aria-hidden="true" className="text-muted-foreground/60">·</span>
-              <a href="/termos" className="text-xs text-muted-foreground hover:text-brand-primary transition-colors">Termos de uso</a>
+              <a href="/termos" className="text-sm text-muted-foreground hover:text-brand-primary transition-colors">Termos de uso</a>
               <span aria-hidden="true" className="text-muted-foreground/60">·</span>
-              <a href="/suporte" className="text-xs text-muted-foreground hover:text-brand-primary transition-colors">Suporte</a>
+              <a href="/suporte" className="text-sm text-muted-foreground hover:text-brand-primary transition-colors">Suporte</a>
             </nav>
           </footer>
 
