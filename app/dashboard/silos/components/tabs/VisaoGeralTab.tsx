@@ -44,7 +44,7 @@ export function VisaoGeralTab({
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Tipo de Estrutura</p>
-            <Badge variant="secondary">{silo.tipo}</Badge>
+            <Badge variant="secondary" className="text-sm">{silo.tipo}</Badge>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Volume Ensilado</p>
