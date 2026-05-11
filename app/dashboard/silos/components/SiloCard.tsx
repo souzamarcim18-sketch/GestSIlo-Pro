@@ -77,10 +77,10 @@ export function SiloCard({
           <div className="flex-1">
             <CardTitle className="text-lg font-bold">{silo.nome}</CardTitle>
             <div className="flex gap-2 mt-2">
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-sm">
                 {silo.tipo}
               </Badge>
-              <Badge className={`text-xs text-white ${statusInfo.color}`}>
+              <Badge className={`text-sm text-white ${statusInfo.color}`}>
                 {statusInfo.emoji} {statusInfo.label}
               </Badge>
             </div>
@@ -98,7 +98,7 @@ export function SiloCard({
 
         {/* Barra de progresso do estoque */}
         <div className="space-y-2">
-          <div className="flex justify-between text-xs">
+          <div className="flex justify-between text-sm">
             <span className="font-medium">{estoque.toFixed(1)} ton</span>
             <span className="text-muted-foreground">
               {capacidade > 0 ? `${capacidade.toFixed(1)} ton` : 'N/D'}
@@ -109,7 +109,7 @@ export function SiloCard({
             className="h-2.5"
             aria-label={progressLabel}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="flex justify-between text-sm text-muted-foreground">
             <span>{percentage}%</span>
           </div>
         </div>
@@ -117,13 +117,13 @@ export function SiloCard({
         {/* Linha: MS original | MS atual */}
         <div className="grid grid-cols-2 gap-4 pt-2 border-t text-sm">
           <div>
-            <span className="text-muted-foreground">MS Original:</span>
+            <span className="text-muted-foreground text-sm">MS Original:</span>
             <p className="font-medium">
               {silo.materia_seca_percent ? `${silo.materia_seca_percent}%` : '-'}
             </p>
           </div>
           <div>
-            <span className="text-muted-foreground">MS Atual:</span>
+            <span className="text-muted-foreground text-sm">MS Atual:</span>
             <p className="font-medium">{msAtual !== null ? `${msAtual}%` : '-'}</p>
           </div>
         </div>
@@ -131,7 +131,7 @@ export function SiloCard({
         {/* Linha: Fechado em dd/mm/yyyy | Previsão/Abertura Real */}
         <div className="grid grid-cols-2 gap-4 pt-2 border-t text-sm">
           <div>
-            <span className="text-muted-foreground text-xs">Fechado em:</span>
+            <span className="text-muted-foreground text-sm">Fechado em:</span>
             <p className="font-medium">
               {dataFechamento
                 ? format(new Date(dataFechamento), 'dd/MM/yyyy', { locale: ptBR })
@@ -139,7 +139,7 @@ export function SiloCard({
             </p>
           </div>
           <div>
-            <span className="text-muted-foreground text-xs">
+            <span className="text-muted-foreground text-sm">
               {dataAberturaReal ? 'Abertura Real:' : 'Previsão de Abertura:'}
             </span>
             <p className="font-medium">
@@ -155,7 +155,7 @@ export function SiloCard({
         {/* Custo de aquisição (apenas para silos sem talhão) */}
         {!silo.talhao_id && silo.custo_aquisicao_rs_ton && (
           <div className="pt-2 border-t">
-            <span className="text-muted-foreground text-xs">Custo de Aquisição:</span>
+            <span className="text-muted-foreground text-sm">Custo de Aquisição:</span>
             <p className="font-medium text-sm">
               R$ {silo.custo_aquisicao_rs_ton.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
