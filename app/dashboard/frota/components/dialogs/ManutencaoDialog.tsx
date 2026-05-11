@@ -344,19 +344,19 @@ export function ManutencaoDialog({
           {/* Datas prevista / realizada / próxima */}
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="man-prev" className="text-xs">
+              <Label htmlFor="man-prev" className="text-sm">
                 Data Prevista
               </Label>
               <Input id="man-prev" type="date" {...register('data_prevista')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="man-real" className="text-xs">
+              <Label htmlFor="man-real" className="text-sm">
                 Data Realizada
               </Label>
               <Input id="man-real" type="date" {...register('data_realizada')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="man-prox" className="text-xs">
+              <Label htmlFor="man-prox" className="text-sm">
                 Próxima Manutenção
               </Label>
               <Input id="man-prox" type="date" {...register('proxima_manutencao')} />
@@ -365,7 +365,7 @@ export function ManutencaoDialog({
 
           {/* Próxima por horímetro */}
           <div className="space-y-2">
-            <Label htmlFor="man-prox-hor" className="text-xs">
+            <Label htmlFor="man-prox-hor" className="text-sm">
               Próxima Manutenção (Horímetro)
             </Label>
             <Input
