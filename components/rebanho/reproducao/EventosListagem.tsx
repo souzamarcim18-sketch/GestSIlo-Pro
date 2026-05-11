@@ -225,7 +225,7 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
       <ReproducaoStats eventos={eventos} />
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="tipo-filtro">Tipo de Evento</Label>
+          <Label htmlFor="tipo-filtro" className="text-sm font-semibold">Tipo de Evento</Label>
           <Select value={tipoFiltro} onValueChange={(v) => setTipoFiltro(v ?? '')}>
             <SelectTrigger id="tipo-filtro">
               <SelectValue placeholder="Todos" />
@@ -243,7 +243,7 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="data-inicio">Data Inicial</Label>
+          <Label htmlFor="data-inicio" className="text-sm font-semibold">Data Inicial</Label>
           <Input
             id="data-inicio"
             type="date"
@@ -256,7 +256,7 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="data-fim">Data Final</Label>
+          <Label htmlFor="data-fim" className="text-sm font-semibold">Data Final</Label>
           <Input
             id="data-fim"
             type="date"
@@ -273,12 +273,12 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Animal</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Resumo</TableHead>
-              <TableHead>Status</TableHead>
-              {isAdmin && <TableHead className="text-right">Ações</TableHead>}
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Data</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Animal</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Tipo</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Resumo</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Status</TableHead>
+              {isAdmin && <TableHead className="text-right text-sm font-semibold uppercase tracking-[0.13em]">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
