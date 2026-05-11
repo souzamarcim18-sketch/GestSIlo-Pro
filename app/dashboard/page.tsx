@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Database,
   Map,
   Truck,
   DollarSign,
@@ -12,8 +11,6 @@ import {
   CheckCircle2,
   Calendar,
   Clock,
-  PackageOpen,
-  Wheat,
   CalendarCheck,
   Grid3X3,
   Sprout,
@@ -29,8 +26,10 @@ import type { ProximaOperacao, CicloAgricola } from '@/lib/types/talhoes';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 import { GaugeOcupacaoSilos } from '@/components/widgets/GaugeOcupacaoSilos';
 import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho';
+import { PieComposicaoRebanho } from '@/components/widgets/PieComposicaoRebanho';
 import { PieCulturasAtivas } from '@/components/widgets/PieCulturasAtivas';
 import { KpiChartCard } from '@/components/widgets/KpiChartCard';
+import { SilosStatusCard } from '@/components/widgets/SilosStatusCard';
 
 interface DashboardStats {
   // Silagem
@@ -157,7 +156,9 @@ export default function DashboardPage() {
   const [silosGaugeDetalhe, setSilosGaugeDetalhe] = useState('');
   const [totalAnimais, setTotalAnimais] = useState(0);
   const [categoriasRebanho, setCategoriasRebanho] = useState<{ name: string; value: number }[]>([]);
+  const [composicaoRebanho, setComposicaoRebanho] = useState<{ name: string; value: number; pct: number }[]>([]);
   const [culturasAtivas, setCulturasAtivas] = useState<{ name: string; value: number }[]>([]);
+  const [silosAbertosNomes, setSilosAbertosNomes] = useState<string[]>([]);
   const [proximasOperacoes, setProximasOperacoes] = useState<ProximaOperacaoComBadge[]>([]);
   const [loadingOperacoes, setLoadingOperacoes] = useState(true);
 
@@ -197,7 +198,7 @@ export default function DashboardPage() {
           .toISOString()
           .split('T')[0];
 
-        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes, movsRecentesRes, animaisCategRes, talhoesCultRes] =
+        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes, movsRecentesRes, animaisCategRes, talhoesCultRes, animaisTipoRes] =
           await Promise.all([
             supabase
               .from('silos')
@@ -237,6 +238,11 @@ export default function DashboardPage() {
               .select('cultura')
               .eq('fazenda_id', fazendaId)
               .not('cultura', 'is', null),
+            supabase
+              .from('animais')
+              .select('tipo_rebanho')
+              .eq('fazenda_id', fazendaId)
+              .eq('status', 'Ativo'),
           ]);
 
         const silosData = silosRes.data ?? [];
@@ -407,6 +413,9 @@ export default function DashboardPage() {
               : 'Sem manutenções pendentes'
             : '—';
 
+        // Nomes dos silos abertos para SilosStatusCard
+        setSilosAbertosNomes(silosAbertosData.map((s) => s.nome).filter(Boolean) as string[]);
+
         // Categorias de rebanho para mini pie
         const animaisCategData = animaisCategRes.data ?? [];
         const contagemCat: Record<string, number> = {};
@@ -417,6 +426,24 @@ export default function DashboardPage() {
         const categoriasArr = Object.entries(contagemCat).map(([name, value]) => ({ name, value }));
         setCategoriasRebanho(categoriasArr);
         setTotalAnimais(animaisCategData.length);
+
+        // Composição do rebanho por tipo
+        const animaisTipoData = animaisTipoRes.data ?? [];
+        if (animaisTipoData.length > 0) {
+          const contagemTipo: Record<string, number> = {};
+          for (const a of animaisTipoData) {
+            const tipo = (a.tipo_rebanho as string | null) ?? 'desconhecido';
+            contagemTipo[tipo] = (contagemTipo[tipo] ?? 0) + 1;
+          }
+          const totalTipo = Object.values(contagemTipo).reduce((s, v) => s + v, 0);
+          setComposicaoRebanho(
+            Object.entries(contagemTipo).map(([name, value]) => ({
+              name,
+              value,
+              pct: Math.round((value / totalTipo) * 100),
+            }))
+          );
+        }
 
         // Culturas ativas para mini pie
         const talhoesCultData = talhoesCultRes.data ?? [];
@@ -534,21 +561,36 @@ export default function DashboardPage() {
       {/* Silagem */}
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          <KpiChartCard
-            label="Ocupação dos Silos"
-            sublabel={silosGaugeDetalhe || undefined}
-            chart={<GaugeOcupacaoSilos percentual={silosOcupacaoPctNum} />}
-            onClick={() => router.push('/dashboard/silos')}
-          />
+        <div className="grid grid-cols-4 gap-4">
+          {/* Col 1 — gauge grande, 2 linhas de altura */}
+          <div className="row-span-2">
+            <KpiChartCard
+              label="Ocupação dos Silos"
+              sublabel={silosGaugeDetalhe || undefined}
+              chart={<GaugeOcupacaoSilos percentual={silosOcupacaoPctNum} />}
+              onClick={() => router.push('/dashboard/silos')}
+            />
+          </div>
+          {/* Linha 1 — cols 2, 3, 4 */}
           <KpiCard title="AUTONOMIA ESTIMADA" value={stats?.silosAutonomiaDias ?? '—'} detail="Dias de estoque" icon={Clock} href="/dashboard/silos" loading={loading} />
           <KpiCard title="CONSUMO MÉDIO/DIA" value={stats?.silosConsumoDiario ?? '—'} detail="Últimos 30 dias" icon={TrendingUp} href="/dashboard/silos" loading={loading} />
-          <KpiCard title="SILOS CADASTRADOS" value={stats?.silosTotalCadastrados ?? '—'} detail="Total cadastrado" icon={Database} href="/dashboard/silos" loading={loading} />
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="SILOS ABERTOS" value={stats?.silosAbertos ?? '—'} detail={stats?.silosAbertosDetalhe ?? '—'} icon={PackageOpen} href="/dashboard/silos" loading={loading} />
+          <button
+            onClick={() => router.push('/dashboard/silos')}
+            className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+          >
+            <SilosStatusCard
+              silosAbertos={parseInt(stats?.silosAbertos ?? '0', 10)}
+              silosCadastrados={parseInt(stats?.silosTotalCadastrados ?? '0', 10)}
+              silosAbertosNomes={silosAbertosNomes}
+            />
+          </button>
+          {/* Linha 2 — cols 2, 3, 4 */}
           <KpiCard title="TAXA DE PERDAS" value={stats?.silosTaxaPerdas ?? '—'} detail="Saídas por descarte" icon={AlertTriangle} href="/dashboard/silos" loading={loading} />
-          <KpiCard title="CULTURAS ENSILADAS" value={stats?.silosCulturasEnsiladas ?? '—'} detail="Culturas nos silos" icon={Wheat} href="/dashboard/silos" loading={loading} />
+          <KpiChartCard
+            label="Culturas Ensiladas"
+            chart={<PieCulturasAtivas data={culturasAtivas} total={culturasAtivas.length} />}
+            onClick={() => router.push('/dashboard/silos')}
+          />
           <KpiCard title="ÚLTIMA ABERTURA" value={stats?.silosUltimaAbertura ?? '—'} detail={stats?.silosUltimaAberturaDetalhe ?? '—'} icon={CalendarCheck} href="/dashboard/silos" loading={loading} />
         </div>
       </section>
@@ -556,15 +598,27 @@ export default function DashboardPage() {
       {/* Rebanho */}
       <section aria-label="Rebanho">
         <SectionLabel>Rebanho</SectionLabel>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiChartCard
-            label="Total de Animais"
-            chart={<PieCategoriasRebanho data={categoriasRebanho} total={totalAnimais} />}
-            onClick={() => router.push('/dashboard/rebanho')}
-          />
+        <div className="grid grid-cols-4 gap-4">
+          {/* Linha 1 — Total de Animais (col-span-2) + Composição (col-span-2) */}
+          <div className="col-span-2">
+            <KpiChartCard
+              label="Total de Animais"
+              chart={<PieCategoriasRebanho data={categoriasRebanho} total={totalAnimais} />}
+              onClick={() => router.push('/dashboard/rebanho')}
+            />
+          </div>
+          <div className="col-span-2">
+            <KpiChartCard
+              label="Composição do Rebanho"
+              chart={<PieComposicaoRebanho data={composicaoRebanho} />}
+              onClick={() => router.push('/dashboard/rebanho')}
+            />
+          </div>
+          {/* Linha 2 — 4 KpiCards simples */}
           <KpiCard title="LOTES ATIVOS" value="—" detail="Lotes cadastrados" icon={Grid3X3} href="/dashboard/rebanho" loading={loading} />
           <KpiCard title="PRÓXIMO EVENTO" value="—" detail="Pesagem ou DG" icon={Calendar} href="/dashboard/rebanho" loading={loading} />
           <KpiCard title="ALERTA REPRODUTIVO" value="—" detail="Eventos pendentes" icon={AlertTriangle} href="/dashboard/rebanho" loading={loading} />
+          <KpiCard title="ANIMAIS ATIVOS" value={totalAnimais > 0 ? String(totalAnimais) : '—'} detail="Total no rebanho" icon={Grid3X3} href="/dashboard/rebanho" loading={loading} />
         </div>
       </section>
 
