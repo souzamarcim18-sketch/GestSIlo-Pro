@@ -59,7 +59,7 @@ export function VendaForm({ animal, onSuccess }: VendaFormProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="venda-data">Data do Evento *</Label>
+        <Label htmlFor="venda-data" className="text-sm font-semibold">Data do Evento *</Label>
         <Input
           id="venda-data"
           type="date"
@@ -72,7 +72,7 @@ export function VendaForm({ animal, onSuccess }: VendaFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="venda-comprador">Comprador</Label>
+        <Label htmlFor="venda-comprador" className="text-sm font-semibold">Comprador</Label>
         <Input
           id="venda-comprador"
           placeholder="Nome do comprador"
@@ -85,7 +85,7 @@ export function VendaForm({ animal, onSuccess }: VendaFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="venda-preco">Preço (R$)</Label>
+        <Label htmlFor="venda-preco" className="text-sm font-semibold">Preço (R$)</Label>
         <Input
           id="venda-preco"
           type="number"
