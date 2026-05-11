@@ -91,7 +91,7 @@ export function AnimalForm({
     <form onSubmit={handleFormSubmit} className="space-y-6">
       {!animal && (
         <div className="space-y-2">
-          <Label htmlFor="brinco">Brinco *</Label>
+          <Label htmlFor="brinco" className="text-sm font-semibold">Brinco *</Label>
           <Input
             id="brinco"
             placeholder="Ex: 001, A-2024, etc"
@@ -106,7 +106,7 @@ export function AnimalForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="sexo">Sexo *</Label>
+          <Label htmlFor="sexo" className="text-sm font-semibold">Sexo *</Label>
           <Select
             value={sexoWatch}
             onValueChange={(v) => {
@@ -127,7 +127,7 @@ export function AnimalForm({
 
         {!animal && (
           <div className="space-y-2">
-            <Label htmlFor="tipo_rebanho">Tipo de Rebanho *</Label>
+            <Label htmlFor="tipo_rebanho" className="text-sm font-semibold">Tipo de Rebanho *</Label>
             <Select
               defaultValue="leiteiro"
               onValueChange={(v) => {
@@ -148,7 +148,7 @@ export function AnimalForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="data_nascimento">Data de Nascimento *</Label>
+        <Label htmlFor="data_nascimento" className="text-sm font-semibold">Data de Nascimento *</Label>
         <Input
           id="data_nascimento"
           type="date"
@@ -161,7 +161,7 @@ export function AnimalForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="lote_id">Lote</Label>
+        <Label htmlFor="lote_id" className="text-sm font-semibold">Lote</Label>
         <Select
           onValueChange={(v) => setValue('lote_id', (v as string) || null)}
           disabled={isLoading}
@@ -183,7 +183,7 @@ export function AnimalForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="mae_id">Mãe</Label>
+          <Label htmlFor="mae_id" className="text-sm font-semibold">Mãe</Label>
           <Select
             onValueChange={(v) => setValue('mae_id', (v as string) || null)}
             disabled={isLoading}
@@ -204,7 +204,7 @@ export function AnimalForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="pai_id">Pai</Label>
+          <Label htmlFor="pai_id" className="text-sm font-semibold">Pai</Label>
           <Select
             onValueChange={(v) => setValue('pai_id', (v as string) || null)}
             disabled={isLoading}
@@ -226,7 +226,7 @@ export function AnimalForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="raca">Raça</Label>
+        <Label htmlFor="raca" className="text-sm font-semibold">Raça</Label>
         <Input
           id="raca"
           placeholder="Ex: Holandês, Nelore, etc"
@@ -237,7 +237,7 @@ export function AnimalForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="observacoes">Observações</Label>
+        <Label htmlFor="observacoes" className="text-sm font-semibold">Observações</Label>
         <Textarea
           id="observacoes"
           placeholder="Notas adicionais sobre o animal"
