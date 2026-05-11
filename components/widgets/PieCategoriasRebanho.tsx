@@ -41,7 +41,7 @@ export function PieCategoriasRebanho({ data, total }: Props) {
 
   return (
     <div className="flex items-center gap-4 w-full">
-      <div className="relative w-28 h-28 flex-shrink-0">
+      <div className="relative w-36 h-36 flex-shrink-0">
         <div
           className="absolute inset-0 rounded-full blur-xl opacity-20 pointer-events-none"
           style={{ background: 'var(--chart-2)' }}
@@ -52,7 +52,7 @@ export function PieCategoriasRebanho({ data, total }: Props) {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius="45%"
+              innerRadius="70%"
               outerRadius="85%"
               dataKey="value"
               strokeWidth={2}
@@ -69,7 +69,7 @@ export function PieCategoriasRebanho({ data, total }: Props) {
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-xl font-extrabold text-card-foreground leading-none">{total}</span>
-          <span className="text-[9px] text-muted-foreground mt-0.5">animais</span>
+          <span className="text-[10px] text-muted-foreground mt-0.5">animais</span>
         </div>
       </div>
 

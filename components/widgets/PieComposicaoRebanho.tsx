@@ -29,7 +29,7 @@ export function PieComposicaoRebanho({ data }: Props) {
 
   return (
     <div className="flex items-center gap-4 w-full">
-      <div className="relative w-28 h-28 flex-shrink-0">
+      <div className="relative w-36 h-36 flex-shrink-0">
         <div
           className="absolute inset-0 rounded-full blur-xl opacity-20 pointer-events-none"
           style={{ background: 'var(--chart-3)' }}
@@ -40,7 +40,7 @@ export function PieComposicaoRebanho({ data }: Props) {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius="45%"
+              innerRadius="65%"
               outerRadius="85%"
               dataKey="value"
               strokeWidth={2}
