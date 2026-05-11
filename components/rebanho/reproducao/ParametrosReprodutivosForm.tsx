@@ -143,7 +143,7 @@ export function ParametrosReprodutivosForm({ parametros, isAdmin }: ParametrosRe
         <div className="grid gap-6 sm:grid-cols-2">
           {fieldConfig.map((field) => (
             <div key={field.name} className="space-y-2">
-              <Label htmlFor={field.name}>{field.label}</Label>
+              <Label htmlFor={field.name} className="text-sm font-semibold">{field.label}</Label>
               <p className="text-xs text-muted-foreground">{field.description}</p>
               <Input
                 id={field.name}
