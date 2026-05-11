@@ -110,7 +110,7 @@ function KpiCard({
       <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5 flex-1 min-w-0">
-            <p className="uppercase tracking-[0.13em] font-bold text-[0.475rem] text-[#688070]">
+            <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">
               {title}
             </p>
             {loading ? (
@@ -123,7 +123,7 @@ function KpiCard({
                 <p className="text-2xl font-black tracking-tight text-[#dceede] truncate">
                   {value}
                 </p>
-                <p className="text-xs text-[#688070] truncate">{detail}</p>
+                <p className="text-sm text-[#688070] truncate">{detail}</p>
               </>
             )}
           </div>

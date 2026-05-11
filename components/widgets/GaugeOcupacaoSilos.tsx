@@ -10,7 +10,7 @@ export function GaugeOcupacaoSilos({ percentual }: Props) {
   const data = [{ value: percentual, fill: 'var(--chart-1)' }]
 
   return (
-    <div className="relative w-36 h-36">
+    <div className="relative w-42 h-42">
       <div
         className="absolute inset-0 rounded-full blur-2xl opacity-25 pointer-events-none"
         style={{ background: 'var(--chart-1)' }}
@@ -37,7 +37,7 @@ export function GaugeOcupacaoSilos({ percentual }: Props) {
         <span className="text-2xl font-extrabold text-card-foreground leading-none">
           {percentual}%
         </span>
-        <span className="text-[10px] text-muted-foreground mt-0.5">ocupado</span>
+        <span className="text-[12px] text-muted-foreground mt-0.5">ocupado</span>
       </div>
     </div>
   )
