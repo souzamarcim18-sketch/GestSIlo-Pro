@@ -92,7 +92,7 @@ export function IndicadoresCard({
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Taxa de Prenhez</p>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">Taxa de Prenhez</p>
               <p className="text-4xl font-bold mt-2">{taxaPrenhez}%</p>
               <p className="text-xs text-muted-foreground mt-1">Meta: {metaTaxaPrenhez}%</p>
             </div>
@@ -109,7 +109,7 @@ export function IndicadoresCard({
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">PSM Médio</p>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">PSM Médio</p>
               <p className="text-4xl font-bold mt-2">{psmMedia !== null ? psmMedia : '—'}</p>
               <p className="text-xs text-muted-foreground mt-1">Meta: ≤ {metaPSM} dias</p>
             </div>
@@ -134,7 +134,7 @@ export function IndicadoresCard({
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">IEP Médio</p>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">IEP Médio</p>
               <p className="text-4xl font-bold mt-2">{iepMedia !== null ? iepMedia : '—'}</p>
               <p className="text-xs text-muted-foreground mt-1">Meta: {metaIEP} dias</p>
             </div>
@@ -159,7 +159,7 @@ export function IndicadoresCard({
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Taxa de Concepção IA</p>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">Taxa de Concepção IA</p>
               <p className="text-4xl font-bold mt-2">{taxaConcepçaoIA !== null ? `${taxaConcepçaoIA}%` : '—'}</p>
               <p className="text-xs text-muted-foreground mt-1">Diagnósticos positivos após IA</p>
             </div>
@@ -175,7 +175,7 @@ export function IndicadoresCard({
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Dias em Aberto</p>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">Dias em Aberto</p>
               <p className="text-4xl font-bold mt-2">
                 {diasEmAberto.media_dias !== null ? diasEmAberto.media_dias : '—'}
               </p>
@@ -195,7 +195,7 @@ export function IndicadoresCard({
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Taxa de Serviço</p>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">Taxa de Serviço</p>
               <p className="text-4xl font-bold mt-2">{taxaServiço !== null ? `${taxaServiço}%` : '—'}</p>
               <p className="text-xs text-muted-foreground mt-1">Coberturas / fêmeas aptas</p>
             </div>
@@ -211,7 +211,7 @@ export function IndicadoresCard({
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Idade Primeira Parição</p>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">Idade Primeira Parição</p>
               <p className="text-4xl font-bold mt-2">
                 {idadePrimeiraPariçao !== null ? `${idadePrimeiraPariçao}m` : '—'}
               </p>
@@ -229,7 +229,7 @@ export function IndicadoresCard({
       {/* Gráfico Pizza */}
       {pieData.length > 0 && (
         <div className="rounded-lg border border-border/40 bg-muted/30 p-6">
-          <h3 className="text-sm font-semibold mb-4">Distribuição por Status Reprodutivo</h3>
+          <h3 className="text-sm font-semibold mb-4 uppercase tracking-[0.13em]">Distribuição por Status Reprodutivo</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
