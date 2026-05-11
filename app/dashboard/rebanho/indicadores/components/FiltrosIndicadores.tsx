@@ -167,7 +167,7 @@ export function FiltrosIndicadores({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Período */}
         <div className="space-y-2">
-          <Label htmlFor="periodo" className="text-xs font-medium text-gray-700">
+          <Label htmlFor="periodo" className="text-sm font-medium text-gray-700">
             Período
           </Label>
           <Select value={periodo} onValueChange={(v) => setPeriodo(v as PeriodoPreset)}>
@@ -187,7 +187,7 @@ export function FiltrosIndicadores({
         {/* Data Início (custom) */}
         {periodo === 'custom' && (
           <div className="space-y-2">
-            <Label htmlFor="dataInicio" className="text-xs font-medium text-gray-700">
+            <Label htmlFor="dataInicio" className="text-sm font-medium text-gray-700">
               Data Início
             </Label>
             <Input
@@ -203,7 +203,7 @@ export function FiltrosIndicadores({
         {/* Data Fim (custom) */}
         {periodo === 'custom' && (
           <div className="space-y-2">
-            <Label htmlFor="dataFim" className="text-xs font-medium text-gray-700">
+            <Label htmlFor="dataFim" className="text-sm font-medium text-gray-700">
               Data Fim
             </Label>
             <Input
@@ -218,7 +218,7 @@ export function FiltrosIndicadores({
 
         {/* Lotes */}
         <div className="space-y-2">
-          <Label className="text-xs font-medium text-gray-700">Lotes</Label>
+          <Label className="text-sm font-medium text-gray-700">Lotes</Label>
           <DropdownMenu>
             <DropdownMenuTrigger className="h-9 w-full justify-between text-sm inline-flex items-center rounded-lg border border-input bg-background px-3 py-2 hover:bg-muted disabled:opacity-50" disabled={isLoading}>
               <span className="truncate text-xs">
@@ -253,7 +253,7 @@ export function FiltrosIndicadores({
 
         {/* Categorias */}
         <div className="space-y-2">
-          <Label className="text-xs font-medium text-gray-700">Categorias</Label>
+          <Label className="text-sm font-medium text-gray-700">Categorias</Label>
           <DropdownMenu>
             <DropdownMenuTrigger className="h-9 w-full justify-between text-sm inline-flex items-center rounded-lg border border-input bg-background px-3 py-2 hover:bg-muted disabled:opacity-50" disabled={isLoading}>
               <span className="truncate text-xs">
