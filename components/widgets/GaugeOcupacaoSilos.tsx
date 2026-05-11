@@ -12,7 +12,7 @@ export function GaugeOcupacaoSilos({ percentual }: Props) {
   return (
     <div className="relative w-42 h-42">
       <div
-        className="absolute inset-0 rounded-full blur-2xl opacity-25 pointer-events-none"
+        className="absolute inset-0 rounded-full blur-xl opacity-25 pointer-events-none"
         style={{ background: 'var(--chart-1)' }}
       />
       <ResponsiveContainer width="100%" height="100%">
