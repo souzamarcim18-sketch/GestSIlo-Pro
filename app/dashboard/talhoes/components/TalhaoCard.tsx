@@ -27,7 +27,7 @@ export function TalhaoCard({ talhao, cicloAtivo, onClick }: TalhaoCardProps) {
       <CardContent className="space-y-3">
         <div className="text-sm text-muted-foreground">
           <div className="font-semibold text-foreground">{talhao.area_ha} ha</div>
-          <div className="text-xs">Solo: {talhao.tipo_solo || 'Não informado'}</div>
+          <div className="text-sm">Solo: {talhao.tipo_solo || 'Não informado'}</div>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t">
