@@ -70,7 +70,7 @@ export function MiniCardRebanho() {
       >
         <div className="flex items-start justify-between">
           <div className="space-y-2 flex-1">
-            <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+            <p className="text-sm font-semibold text-white/80 uppercase tracking-wider">
               Rebanho
             </p>
             <p className="text-sm text-white/85">
