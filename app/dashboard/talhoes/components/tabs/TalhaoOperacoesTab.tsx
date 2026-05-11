@@ -92,7 +92,7 @@ export function TalhaoOperacoesTab({
 
         <div className="grid grid-cols-3 gap-3 flex-1">
           <div className="space-y-2">
-            <Label className="text-xs">Tipo de Operação</Label>
+            <Label className="text-sm">Tipo de Operação</Label>
             <Select value={tipoFiltro || ''} onValueChange={(v) => setTipoFiltro(v as string)}>
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="Todos" />
@@ -109,7 +109,7 @@ export function TalhaoOperacoesTab({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs">Data Início</Label>
+            <Label className="text-sm">Data Início</Label>
             <Input
               type="date"
               value={dataInicio}
@@ -122,7 +122,7 @@ export function TalhaoOperacoesTab({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs">Data Fim</Label>
+            <Label className="text-sm">Data Fim</Label>
             <Input
               type="date"
               value={dataFim}
