@@ -30,7 +30,7 @@ export function SilosInfoCard({
 
       {/* Seção 1 — Silos Abertos */}
       <div className="flex flex-col gap-3 p-5 border-b border-border flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Silos Abertos / Cadastrados
         </p>
         <div className="flex items-baseline gap-1">
@@ -40,24 +40,24 @@ export function SilosInfoCard({
         {silosAbertosNomes.length > 0 ? (
           <ul className="flex flex-col gap-1.5">
             {silosAbertosNomes.slice(0, 4).map((nome, i) => (
-              <li key={i} className="flex items-center gap-2 text-xs">
+              <li key={i} className="flex items-center gap-2 text-sm">
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
                 <span className="text-card-foreground truncate">{nome}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-xs text-muted-foreground">Nenhum silo aberto</p>
+          <p className="text-sm text-muted-foreground">Nenhum silo aberto</p>
         )}
       </div>
 
       {/* Seção 2 — Culturas Ensiladas */}
       <div className="flex flex-col gap-3 p-5 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Culturas Ensiladas
         </p>
         {culturas.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Sem culturas registradas</p>
+          <p className="text-sm text-muted-foreground">Sem culturas registradas</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {culturas.map((item, i) => (
@@ -65,9 +65,9 @@ export function SilosInfoCard({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                    <span className="text-xs text-card-foreground">{item.name}</span>
+                    <span className="text-sm text-card-foreground">{item.name}</span>
                   </div>
-                  <span className="text-xs font-semibold text-card-foreground">{item.pct}%</span>
+                  <span className="text-sm font-semibold text-card-foreground">{item.pct}%</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                   <div

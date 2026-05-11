@@ -69,7 +69,7 @@ export function PieCategoriasRebanho({ data, total }: Props) {
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-xl font-extrabold text-card-foreground leading-none">{total}</span>
-          <span className="text-[10px] text-muted-foreground mt-0.5">animais</span>
+          <span className="text-[12px] text-muted-foreground mt-0.5">animais</span>
         </div>
       </div>
 
@@ -80,10 +80,10 @@ export function PieCategoriasRebanho({ data, total }: Props) {
               className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ background: CHART_COLORS[i % CHART_COLORS.length] }}
             />
-            <span className="text-[11px] text-muted-foreground truncate flex-1">
+            <span className="text-sm text-muted-foreground truncate flex-1">
               {abreviar(item.name)}
             </span>
-            <span className="text-[11px] font-semibold text-card-foreground flex-shrink-0">
+            <span className="text-sm font-semibold text-card-foreground flex-shrink-0">
               {item.value}
             </span>
           </li>

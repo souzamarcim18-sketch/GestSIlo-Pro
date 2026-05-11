@@ -64,10 +64,10 @@ export function PieComposicaoRebanho({ data }: Props) {
               className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ background: TIPO_COLORS[item.name] ?? 'var(--chart-4)' }}
             />
-            <span className="text-[11px] text-muted-foreground flex-1">
+            <span className="text-sm text-muted-foreground flex-1">
               {TIPO_LABELS[item.name] ?? item.name}
             </span>
-            <span className="text-[11px] font-semibold text-card-foreground">
+            <span className="text-sm font-semibold text-card-foreground">
               {item.pct}%
             </span>
           </li>

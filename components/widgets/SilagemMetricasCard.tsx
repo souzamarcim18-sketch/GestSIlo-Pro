@@ -27,10 +27,10 @@ export function SilagemMetricasCard({ autonomia, consumo, taxaPerdas }: Props) {
         >
           <div className="flex items-center gap-1.5 text-muted-foreground">
             {item.icon}
-            <span className="text-[11px] font-semibold uppercase tracking-widest">{item.label}</span>
+            <span className="text-sm font-semibold uppercase tracking-widest">{item.label}</span>
           </div>
           <p className="text-2xl font-extrabold text-card-foreground leading-none">{item.value}</p>
-          <p className="text-xs text-muted-foreground">{item.sublabel}</p>
+          <p className="text-sm text-muted-foreground">{item.sublabel}</p>
         </div>
       ))}
     </div>
