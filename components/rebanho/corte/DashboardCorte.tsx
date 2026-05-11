@@ -249,7 +249,7 @@ export function DashboardCorte({
       {/* FILTROS */}
       <div className="flex gap-4 flex-wrap">
         <div className="flex-1 min-w-[200px]">
-          <Label className="text-xs">Período</Label>
+          <Label className="text-sm">Período</Label>
           <Select value={periodo} onValueChange={(v) => v && setPeriodo(v)}>
             <SelectTrigger>
               <SelectValue />
@@ -263,7 +263,7 @@ export function DashboardCorte({
         </div>
 
         <div className="flex-1 min-w-[200px]">
-          <Label className="text-xs">Lote</Label>
+          <Label className="text-sm">Lote</Label>
           <Select value={loteFiltroPId} onValueChange={(v) => v && setLoteFiltroPId(v)}>
             <SelectTrigger>
               <SelectValue />
@@ -337,7 +337,7 @@ export function DashboardCorte({
               </CardDescription>
             </div>
             <div className="w-32">
-              <Label className="text-xs">Peso-alvo (kg)</Label>
+              <Label className="text-sm">Peso-alvo (kg)</Label>
               <Input
                 type="number"
                 value={pesoAlvo}
