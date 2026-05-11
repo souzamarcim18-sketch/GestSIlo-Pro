@@ -38,11 +38,11 @@ export function GraficoEvolucaoEfetivo(props: GraficoEvolucaoEfetivoProps) {
           angle={-45}
           textAnchor="end"
           height={80}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 14 }}
         />
         <YAxis
           label={{ value: 'Quantidade de Animais', angle: -90, position: 'insideLeft' }}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 14 }}
         />
         <Tooltip
           contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}

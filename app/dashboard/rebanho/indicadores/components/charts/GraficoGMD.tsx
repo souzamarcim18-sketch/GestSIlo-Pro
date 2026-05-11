@@ -91,11 +91,11 @@ export function GraficoGMD(props: GraficoGMDProps) {
           angle={-45}
           textAnchor="end"
           height={80}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 14 }}
         />
         <YAxis
           label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 14 }}
         />
         <Tooltip
           formatter={(value) => `${Number(value).toFixed(2)} kg`}
