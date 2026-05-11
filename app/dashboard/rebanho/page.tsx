@@ -257,12 +257,12 @@ export default function RebanhosPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Brinco</TableHead>
-                      <TableHead>Sexo</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Peso Atual</TableHead>
-                      <TableHead>Lote</TableHead>
+                      <TableHead className="text-sm font-medium">Brinco</TableHead>
+                      <TableHead className="text-sm font-medium">Sexo</TableHead>
+                      <TableHead className="text-sm font-medium">Categoria</TableHead>
+                      <TableHead className="text-sm font-medium">Status</TableHead>
+                      <TableHead className="text-sm font-medium">Peso Atual</TableHead>
+                      <TableHead className="text-sm font-medium">Lote</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
