@@ -217,7 +217,7 @@ export function SanidadeDashboard({
           {/* Grade do calendário */}
           <div className="grid grid-cols-7 gap-2">
             {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((dia) => (
-              <div key={dia} className="text-center font-semibold text-xs text-muted-foreground py-2">
+              <div key={dia} className="text-center font-semibold text-sm text-muted-foreground py-2">
                 {dia}
               </div>
             ))}
@@ -333,7 +333,7 @@ export function SanidadeDashboard({
           {/* Filtros */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="space-y-2 flex-1">
-              <label className="text-sm font-medium">Tipo de Evento</label>
+              <label className="text-sm font-medium uppercase tracking-[0.13em]">Tipo de Evento</label>
               <select
                 value={filtroTipo}
                 onChange={(e) => {
@@ -351,7 +351,7 @@ export function SanidadeDashboard({
             </div>
 
             <div className="space-y-2 flex-1">
-              <label className="text-sm font-medium">Buscar por Brinco</label>
+              <label className="text-sm font-medium uppercase tracking-[0.13em]">Buscar por Brinco</label>
               <input
                 type="text"
                 placeholder="Digite o brinco..."
@@ -370,12 +370,12 @@ export function SanidadeDashboard({
             <table className="w-full text-sm">
               <thead className="border-b">
                 <tr>
-                  <th className="text-left py-2 px-3">Data</th>
-                  <th className="text-left py-2 px-3">Tipo</th>
-                  <th className="text-left py-2 px-3">Animal</th>
-                  <th className="text-left py-2 px-3">Detalhes</th>
-                  <th className="text-left py-2 px-3">Responsável</th>
-                  <th className="text-left py-2 px-3">Próx. Dose</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium">Data</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium">Tipo</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium">Animal</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium">Detalhes</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium">Responsável</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium">Próx. Dose</th>
                 </tr>
               </thead>
               <tbody>
