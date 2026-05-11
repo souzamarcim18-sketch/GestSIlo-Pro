@@ -87,7 +87,7 @@ export function QualidadeTab({
                         {aval.avaliador ? ` • ${aval.avaliador}` : ''}
                       </p>
                     </div>
-                    <Badge variant="outline">{aval.momento}</Badge>
+                    <Badge variant="outline" className="text-sm">{aval.momento}</Badge>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
@@ -187,7 +187,7 @@ export function QualidadeTab({
                           {aval.avaliador ? ` • ${aval.avaliador}` : ''}
                         </p>
                       </div>
-                      <Badge variant={aval.kernel_processor ? 'default' : 'secondary'}>
+                      <Badge variant={aval.kernel_processor ? 'default' : 'secondary'} className="text-sm">
                         {aval.kernel_processor ? 'Com KP' : 'Sem KP'}
                       </Badge>
                     </div>
