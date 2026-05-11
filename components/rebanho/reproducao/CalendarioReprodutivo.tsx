@@ -199,7 +199,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
       <div className="space-y-6 p-4 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="lote-filtro">Lote</Label>
+            <Label htmlFor="lote-filtro" className="text-sm font-semibold">Lote</Label>
             <Select value={loteFilter} onValueChange={handleLoteChange}>
               <SelectTrigger id="lote-filtro">
                 <SelectValue placeholder="Todos" />
@@ -215,7 +215,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="periodo-inicio">Data Inicial</Label>
+            <Label htmlFor="periodo-inicio" className="text-sm font-semibold">Data Inicial</Label>
             <Input
               id="periodo-inicio"
               type="date"
@@ -246,7 +246,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
     <div className="space-y-4 p-4 sm:p-6">
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="lote-filtro">Lote</Label>
+          <Label htmlFor="lote-filtro" className="text-sm font-semibold">Lote</Label>
           <Select value={loteFilter} onValueChange={handleLoteChange}>
             <SelectTrigger id="lote-filtro">
               <SelectValue placeholder="Todos" />
@@ -262,7 +262,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="periodo-inicio">Data Inicial</Label>
+          <Label htmlFor="periodo-inicio" className="text-sm font-semibold">Data Inicial</Label>
           <Input
             id="periodo-inicio"
             type="date"
@@ -271,7 +271,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="periodo-fim">Data Final</Label>
+          <Label htmlFor="periodo-fim" className="text-sm font-semibold">Data Final</Label>
           <Input
             id="periodo-fim"
             type="date"
@@ -288,7 +288,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
             className={`rounded-lg border-2 ${coluna.borderColor} ${coluna.bgColor} p-4 min-h-96`}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-sm">{coluna.label}</h3>
+              <h3 className="font-semibold text-sm uppercase tracking-[0.13em]">{coluna.label}</h3>
               <Badge variant="secondary">{coluna.cards.length}</Badge>
             </div>
 
@@ -307,7 +307,7 @@ export function CalendarioReprodutivo({ eventos, animais }: CalendarioReprodutiv
                     </Badge>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    <p>{format(new Date(card.data_evento), 'dd/MM/yyyy', { locale: ptBR })}</p>
+                    <p className="text-xs">{format(new Date(card.data_evento), 'dd/MM/yyyy', { locale: ptBR })}</p>
                     {card.status && <p className="text-xs text-brand-primary font-medium mt-1">{card.status}</p>}
                   </div>
                 </div>
