@@ -41,7 +41,7 @@ export function MiniCardRebanhoClient({ data }: MiniCardRebanhoClientProps) {
         <CardContent className="p-0">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="uppercase tracking-[0.13em] font-bold text-[0.475rem] text-[#688070]">
+              <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">
                 Rebanho
               </p>
             </div>
@@ -52,14 +52,14 @@ export function MiniCardRebanhoClient({ data }: MiniCardRebanhoClientProps) {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-[#688070]">Total</p>
+              <p className="text-sm text-[#688070]">Total</p>
               <span className="text-lg font-black tracking-tight text-[#dceede]">
                 {data.totalAnimais}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-xs text-[#688070]">GMD</p>
+              <p className="text-sm text-[#688070]">GMD</p>
               <div className="flex items-center gap-1">
                 <span className="text-lg font-black tracking-tight text-[#dceede]">
                   {formatNumber(data.gmd)}
@@ -80,14 +80,14 @@ export function MiniCardRebanhoClient({ data }: MiniCardRebanhoClientProps) {
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-xs text-[#688070]">Prenhez</p>
+              <p className="text-sm text-[#688070]">Prenhez</p>
               <span className="text-lg font-black tracking-tight text-[#dceede]">
                 {data.taxaPrenhez}%
               </span>
             </div>
 
             <div className="pt-2 mt-2 border-t border-white/10">
-              <p className="text-xs font-semibold text-[#688070] hover:text-[#dceede] transition-colors">
+              <p className="text-sm font-semibold text-[#688070] hover:text-[#dceede] transition-colors">
                 Ver Indicadores →
               </p>
             </div>
