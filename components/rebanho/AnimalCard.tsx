@@ -33,7 +33,7 @@ export function AnimalCard({ animal, className }: AnimalCardProps) {
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
                 <p className="text-2xl font-bold text-blue-600">{animal.brinco}</p>
-                <p className="text-sm text-muted-foreground mt-1">{animal.categoria}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1 uppercase tracking-[0.13em]">{animal.categoria}</p>
               </div>
               <Badge className={cn('text-xs font-medium', statusColor[animal.status])}>
                 {animal.status}
@@ -42,11 +42,11 @@ export function AnimalCard({ animal, className }: AnimalCardProps) {
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-muted-foreground text-xs font-semibold">Sexo</p>
+                <p className="text-muted-foreground text-sm font-semibold uppercase tracking-[0.13em]">Sexo</p>
                 <p className="font-medium">{animal.sexo === 'Macho' ? '♂ Macho' : '♀ Fêmea'}</p>
               </div>
               <div>
-                <p className="text-muted-foreground text-xs font-semibold">Peso</p>
+                <p className="text-muted-foreground text-sm font-semibold uppercase tracking-[0.13em]">Peso</p>
                 <p className="font-medium">
                   {animal.peso_atual ? `${animal.peso_atual.toFixed(1)} kg` : '—'}
                 </p>
