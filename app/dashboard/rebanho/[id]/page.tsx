@@ -437,10 +437,10 @@ export default function AnimalDetailPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Tipo</TableHead>
-                          <TableHead>Detalhes</TableHead>
-                          <TableHead>Usuário</TableHead>
+                          <TableHead className="text-sm font-medium">Data</TableHead>
+                          <TableHead className="text-sm font-medium">Tipo</TableHead>
+                          <TableHead className="text-sm font-medium">Detalhes</TableHead>
+                          <TableHead className="text-sm font-medium">Usuário</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -477,10 +477,10 @@ export default function AnimalDetailPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Tipo</TableHead>
-                          <TableHead>Detalhes</TableHead>
-                          <TableHead>Valor</TableHead>
+                          <TableHead className="text-sm font-medium">Data</TableHead>
+                          <TableHead className="text-sm font-medium">Tipo</TableHead>
+                          <TableHead className="text-sm font-medium">Detalhes</TableHead>
+                          <TableHead className="text-sm font-medium">Valor</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -521,11 +521,11 @@ export default function AnimalDetailPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Peso</TableHead>
-                          <TableHead>Método</TableHead>
-                          <TableHead>CC</TableHead>
-                          <TableHead>Observações</TableHead>
+                          <TableHead className="text-sm font-medium">Data</TableHead>
+                          <TableHead className="text-sm font-medium">Peso</TableHead>
+                          <TableHead className="text-sm font-medium">Método</TableHead>
+                          <TableHead className="text-sm font-medium">CC</TableHead>
+                          <TableHead className="text-sm font-medium">Observações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
