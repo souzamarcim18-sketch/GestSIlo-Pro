@@ -86,8 +86,7 @@ export function Header() {
 
   return (
     <header
-      className="flex items-center px-4 h-[52px] backdrop-blur-md border-b sticky top-0 z-40"
-      style={{ background: 'rgba(8,14,10,0.85)', borderBottom: '1px solid rgba(255,255,255,0.065)' }}
+      className="flex items-center px-4 h-[52px] backdrop-blur-md border-b border-white/10 sticky top-0 z-40 bg-background"
       role="toolbar"
       aria-label="Barra superior"
     >
