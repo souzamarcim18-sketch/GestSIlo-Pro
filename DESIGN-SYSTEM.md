@@ -25,11 +25,12 @@ The design system reflects a premium, operational aesthetic: data-heavy but eleg
 | Name | Value | Purpose |
 |---|---|---|
 | **Primary Green** | `#00c45a` | Action, success, normal operation, open/active state |
-| **Alert Gold** | `#e09d1c` | Warning, attention, compacting, capacity attention |
+| **Alert Gold** | `#f5d000` | Warning, attention, compacting, capacity attention |
 | **Info Blue** | `#4aaae6` | Information, filling, analysis, secondary action |
 | **Critical Red** | `#e05454` | Error, rupture warning, critical state |
-| **Dark BG** | `#080e0a` | Global background |
-| **Dark BG2** | `#0b1410` | Page content background |
+| **Dark BG** | `#161616` | Global background |
+| **Dark BG2** | `#1c1c1c` | Page content background |
+| **Dark BG3** | `#222222` | Elevated content background |
 | **Sidebar** | `#0a140d` | Navigation sidebar |
 | **Text Primary** | `#dceede` | Main text |
 | **Text Muted** | `#688070` | Secondary text, labels |
@@ -53,16 +54,17 @@ All colors exist as CSS custom properties (see `colors_and_type.css`). Semantic 
 
 #### Type Scales
 
-| Component | Size | Weight | Letter-spacing | Usage |
+| Component | Tailwind / Size | Weight | Letter-spacing | Usage |
 |---|---|---|---|---|
-| Page Title (h1) | 1.375rem | 900 | -0.03em | Dashboard/screen headers |
-| Card Title (h2) | 0.8375rem | 700 | -0.01em | Card headers |
-| KPI Value | 1.875rem | 900 | -0.04em | Large numbers |
-| KPI Label | 0.475rem | 700 | +0.13em | Uppercase KPI labels |
-| Body / Table | 0.7rem | 400–500 | normal | Content text, table cells |
-| Nav Label | 0.775rem | 500–700 | normal | Navigation items |
-| Section Label | 0.475rem | 700 | +0.15em | Uppercase section headers |
-| Badge | 0.4875rem | 700 | +0.07em | Status badges, tags |
+| Page Title (h1) | text-2xl / 1.375rem | 900 | -0.03em | Dashboard/screen headers |
+| KPI Value | text-3xl / 1.875rem | 900 | -0.04em | Large KPI numbers in bold |
+| Card Title (h2) | text-base / 1rem | 700 | -0.01em | Card headers |
+| Body/Tables/Nav/KPI Sublabel | text-sm / 0.875rem (14px) | 400–700 | normal | Standard body, table cells, nav items, KPI sublabels — **MÍNIMO REQUERIDO** |
+| Section Label/Badge/Small | text-xs / 0.75rem (12px) | 700 | +0.1em–0.15em | Uppercase labels, badges, notes inline — APENAS uppercase |
+
+**Critical Rule**: Minimum text-sm (14px) for all copy. Use text-xs only for UPPERCASE labels, badges, and inline notes. **Never use arbitrary px/rem values inline** (`text-[12px]`, `text-[0.8rem]`, etc.) — always use Tailwind classes.
+
+**Base Font Size**: Browser default (16px). No `html { font-size }` rebase. Tailwind units (text-sm = 14px, text-xs = 12px) derive from this base.
 
 ---
 
@@ -97,12 +99,15 @@ All colors exist as CSS custom properties (see `colors_and_type.css`). Semantic 
 ## Visual Foundations
 
 ### Backgrounds & Surfaces
-- **Global BG:** Solid `#080e0a` (very dark green-tinted black)
-- **Content BG:** `#0b1410` (slightly lighter)
+- **Global BG:** Solid `#161616` (charcoal dark, signature for refined look)
+- **Content BG (bg2):** `#1c1c1c` (slightly lighter for page content)
+- **Elevated BG (bg3):** `#222222` (used for overlays, modals, elevated surfaces)
+- **Sidebar:** `#0a140d` (green-tinted, navigation identity)
 - **Cards/Panels:** Semi-transparent white (`rgba(255,255,255,0.033)`) with subtle border
 - **Hover/Elevation:** Slight transparency increase to `rgba(255,255,255,0.052)` + shadow enhancement
 - **No gradients** in backgrounds; all surfaces are solid or semi-transparent
 - **Sidebar glow:** Subtle gradient from green to transparent at top (non-interactive)
+- **Visual signature:** `.bg-metal` class identifies the design system via dark charcoal base
 
 ### Shadows & Depth
 - **Card shadow:** `0 2px 8px rgba(0,0,0,.28), 0 8px 28px rgba(0,0,0,.16)` — layered, soft
@@ -260,7 +265,8 @@ All colors exist as CSS custom properties (see `colors_and_type.css`). Semantic 
 
 ## Files in This System
 
-- `colors_and_type.css` — CSS variables, type scales, reset
+- `app/globals.css` — **Source of Truth**: Applied theme, Tailwind overrides, dark-mode defaults
+- `colors_and_type.css` — Reference specification: CSS variables, type scales, reset, component foundations
 - `preview/` — Card samples for each category (type, colors, spacing, components)
 - `assets/` — Logo files, icon assets
 - `ui_kits/dashboard/` — Full dashboard UI kit (clickable, interactive)

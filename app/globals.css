@@ -5,6 +5,7 @@
   --font-heading: var(--font-satoshi), system-ui, sans-serif;
   --font-sans: var(--font-satoshi), system-ui, sans-serif;
 
+  /* ─── Cores semânticas (mapeadas para shadcn) ─── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -21,13 +22,25 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
+  --color-border-strong: var(--border2);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* ─── Superfícies (hierarquia de profundidade) ─── */
+  --color-bg2: var(--bg2);
+  --color-bg3: var(--bg3);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-text-faint: var(--text-faint);
+
+  /* ─── Charts ─── */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  /* ─── Sidebar ─── */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -37,13 +50,13 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Brand tokens (fixos) */
+  /* ─── Brand tokens (fixos) ─── */
   --color-brand-deep: var(--brand-green-deep);
   --color-brand-primary: var(--brand-green-primary);
   --color-brand-vivid: var(--brand-green-vivid);
   --color-brand-soft: var(--brand-green-soft);
 
-  /* Status colors */
+  /* ─── Status colors ─── */
   --color-status-success: var(--status-success);
   --color-status-success-fg: var(--status-success-fg);
   --color-status-warning: var(--status-warning);
@@ -53,11 +66,30 @@
   --color-status-info: var(--status-info);
   --color-status-info-fg: var(--status-info-fg);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* ─── Variantes dim / border / glow (badges, focus rings) ─── */
+  --color-green-dim: var(--green-dim);
+  --color-green-border: var(--green-border);
+  --color-green-glow: var(--green-glow);
+  --color-gold-dim: var(--gold-dim);
+  --color-gold-border: var(--gold-border);
+  --color-gold-glow: var(--gold-glow);
+  --color-blue-dim: var(--blue-dim);
+  --color-blue-border: var(--blue-border);
+  --color-red-dim: var(--red-dim);
+  --color-red-border: var(--red-border);
+
+  /* ─── Radius ─── */
+  --radius-sm: 8px;
+  --radius-md: 10px;
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-pill: 9999px;
+
+  /* ─── Shadows ─── */
+  --shadow-card: var(--shadow-card);
+  --shadow-kpi: var(--shadow-kpi);
+  --shadow-btn-primary: var(--shadow-btn-primary);
 }
 
 :root {
@@ -83,13 +115,21 @@
   --bg-metal-solid: #e8e8e8;
 
   /* ============================================
+     SUPERFÍCIES — Hierarquia de profundidade
+     ============================================ */
+  --background: #161616;          /* base da página */
+  --bg2: #1c1c1c;                 /* área de conteúdo (main) */
+  --bg3: #222222;                 /* cards elevados, hover */
+  --surface: rgba(255,255,255,0.033);
+  --surface2: rgba(255,255,255,0.052);
+
+  /* ============================================
      TOKENS SEMÂNTICOS — Tema Dark Premium
      ============================================ */
-  --background: #080e0a;
   --foreground: #dceede;
   --card: rgba(255,255,255,0.033);
   --card-foreground: #dceede;
-  --popover: #0b1410;
+  --popover: #1c1c1c;
   --popover-foreground: #dceede;
   --primary: #00c45a;
   --primary-foreground: #030904;
@@ -102,8 +142,12 @@
   --destructive: #e05454;
   --destructive-foreground: #dceede;
   --border: rgba(255,255,255,0.065);
+  --border2: rgba(255,255,255,0.105);
   --input: rgba(255,255,255,0.052);
   --ring: #00c45a;
+
+  /* Texto */
+  --text-faint: #2a4433;
 
   /* Status tokens */
   --status-success: #00c45a;
@@ -115,6 +159,18 @@
   --status-info: #4aaae6;
   --status-info-fg: #dceede;
 
+  /* Variantes dim / border / glow */
+  --green-dim: rgba(0, 196, 90, 0.09);
+  --green-border: rgba(0, 196, 90, 0.2);
+  --green-glow: rgba(0, 196, 90, 0.28);
+  --gold-dim: rgba(245, 208, 0, 0.09);
+  --gold-border: rgba(245, 208, 0, 0.2);
+  --gold-glow: rgba(245, 208, 0, 0.24);
+  --blue-dim: rgba(74, 170, 230, 0.09);
+  --blue-border: rgba(74, 170, 230, 0.2);
+  --red-dim: rgba(224, 84, 84, 0.09);
+  --red-border: rgba(224, 84, 84, 0.2);
+
   /* Charts */
   --chart-1: #00c45a;
   --chart-2: #f5d000;
@@ -122,7 +178,7 @@
   --chart-4: #e05454;
   --chart-5: #688070;
 
-  /* Sidebar */
+  /* Sidebar — mantém identidade verde */
   --sidebar: #0a140d;
   --sidebar-foreground: #dceede;
   --sidebar-primary: #00c45a;
@@ -134,6 +190,11 @@
 
   /* Radius */
   --radius: 13px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.28), 0 8px 28px rgba(0, 0, 0, 0.16);
+  --shadow-kpi: 0 2px 6px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.18);
+  --shadow-btn-primary: 0 0 0 1px rgba(0, 196, 90, 0.45), 0 4px 20px rgba(0, 196, 90, 0.22);
 }
 
 @layer base {
@@ -145,6 +206,7 @@
   }
   html {
     @apply font-sans h-full;
+    /* Mantém base 16px do browser — garante text-sm = 14px conforme CLAUDE.md */
   }
 }
 

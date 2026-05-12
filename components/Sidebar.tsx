@@ -129,7 +129,7 @@ function NavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="ml-1 bg-[rgba(245,208,0,0.09)] text-[#f5d000] border-[rgba(245,208,0,0.2)] text-[0.45rem] font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
+            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-xs font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
           >
             Em breve
           </Badge>
@@ -187,7 +187,7 @@ function SubNavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="ml-1 bg-[rgba(245,208,0,0.09)] text-[#f5d000] border-[rgba(245,208,0,0.2)] text-[0.45rem] font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
+            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-xs font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
           >
             Em breve
           </Badge>
@@ -261,7 +261,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
             {/* Bloco 2 — Gerencial */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[#2a4433] uppercase text-[0.475rem] font-bold tracking-[0.15em]">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Gerencial
               </div>
               <ul className="space-y-0.5 list-none">
@@ -285,7 +285,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
             {/* Bloco 3 — Ferramentas */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[#2a4433] uppercase text-[0.475rem] font-bold tracking-[0.15em]">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Ferramentas
               </div>
               <ul className="space-y-0.5 list-none">
@@ -307,7 +307,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
             {/* Bloco 4 — Sistema */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[#2a4433] uppercase text-[0.475rem] font-bold tracking-[0.15em]">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Sistema
               </div>
               <ul className="space-y-0.5 list-none">

@@ -37,7 +37,7 @@ export function GaugeOcupacaoSilos({ percentual }: Props) {
         <span className="text-2xl font-extrabold text-card-foreground leading-none">
           {percentual}%
         </span>
-        <span className="text-[12px] text-muted-foreground mt-0.5">ocupado</span>
+        <span className="text-xs text-muted-foreground mt-0.5">ocupado</span>
       </div>
     </div>
   )

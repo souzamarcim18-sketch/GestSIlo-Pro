@@ -253,39 +253,44 @@ instrumentation.ts
 
 ---
 
-## Design System (Concluído 13/05/2026)
+## Design System (Concluído 13/05/2026 — Alinhado 2026-05-12)
 
 ### Tipografia — Padrão Obrigatório
-**Regra crítica**: Todo novo componente DEVE usar `text-sm` (14px) para labels secundários, NUNCA usar valores em `px` inline.
+**Regra crítica**: Todo novo componente DEVE usar `text-sm` (14px) mínimo, NUNCA usar valores em `px`/`rem` inline.
 
 | Elemento | Tamanho | CSS Tailwind | Exemplo |
 |---|---|---|---|
-| Página (h1) | 1.375rem (22px) | (mantém padrão) | Títulos de páginas |
-| Card Label | 14px | `text-sm` | ✅ USAR |
-| KPI Value | 1.875rem/2rem | `text-2xl`/`text-3xl` | Números principais em negrito |
-| KPI Sublabel | 14px | `text-sm` | ✅ USAR |
-| Body/Tabelas | 14px | `text-sm` | ✅ USAR |
-| Small text | 12px | `text-xs` | Apenas para avisos/notas inline |
+| Página (h1) | 1.375rem (22px) | `text-2xl` | Títulos de páginas |
+| KPI Value | 1.875rem–2rem | `text-3xl` | Números principais em negrito |
+| Card Label/Body/Tabelas | 14px | `text-sm` | ✅ PADRÃO — SEMPRE USAR |
+| KPI Sublabel | 14px | `text-sm` | ✅ PADRÃO |
+| Small text/Badges | 12px | `text-xs` | ✅ APENAS para UPPERCASE labels e notas inline |
 
 ### Valores Proibidos ❌
-- ❌ `text-[0.475rem]` (6px) — NUNCA usar
-- ❌ `text-[0.6rem]` (9.6px) — NUNCA usar
-- ❌ `text-[11px]` — NUNCA usar
-- ❌ `text-[10px]` — NUNCA usar
-- ❌ valores inline em `px` — sempre usar classes Tailwind
+- ❌ `text-[0.475rem]`, `text-[0.45rem]` (6-7px) — NUNCA usar
+- ❌ `text-[0.6rem]`, `text-[0.8rem]` (9.6-12.8px) — NUNCA usar
+- ❌ `text-[11px]`, `text-[10px]`, `text-[12px]` — NUNCA usar
+- ❌ qualquer `text-[Npx]` ou `text-[N.Nrem]` inline — sempre usar classes Tailwind (`text-sm`, `text-xs`)
+
+### Cores — Padrão Alinhado 2026-05-12
+**Paleta atualizada**: Backgrounds (`#161616` / `#1c1c1c` / `#222222`), Alert Gold (`#f5d000`), primária verde/azul/red mantidos.
+- ✅ `colors_and_type.css` — referência completa (CSS vars)
+- ✅ `app/globals.css` — fonte de verdade aplicada (Tailwind overrides)
+- Usar CSS custom props (`var(--text-muted)`) ou classes Tailwind (`text-muted-foreground`)
+- ❌ NUNCA hardcode cores inline (`text-[#...]`, `bg-[#...]`)
 
 ### Referência de Design
 - **PRD Completo**: `PRD-design.md`
 - **Especificação Técnica**: `SPEC-design.md`
-- **Design System**: `DESIGN-SYSTEM.md`
+- **Design System**: `DESIGN-SYSTEM.md` (atualizado 2026-05-12)
 - **Changelog**: `CHANGELOG-redesign.md`
 
 ### Arquivos Intocáveis (Verificar com revisão)
 Não modifique sem instrução explícita:
 - `next.config.ts` — contém headers de segurança críticos
-- `DESIGN-SYSTEM.md` — referência de padrões
-- `app/globals.css` — tema Tailwind
-- `colors_and_type.css` — tokens de design
+- `app/globals.css` — fonte de verdade do tema Tailwind (atualizado 2026-05-12)
+- `colors_and_type.css` — referência de tokens de design (atualizado 2026-05-12)
+- `DESIGN-SYSTEM.md` — especificação de padrões (atualizado 2026-05-12)
 
 ---
 

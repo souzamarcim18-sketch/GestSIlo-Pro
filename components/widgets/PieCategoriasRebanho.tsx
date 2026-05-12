@@ -69,7 +69,7 @@ export function PieCategoriasRebanho({ data, total }: Props) {
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-xl font-extrabold text-card-foreground leading-none">{total}</span>
-          <span className="text-[12px] text-muted-foreground mt-0.5">animais</span>
+          <span className="text-xs text-muted-foreground mt-0.5">animais</span>
         </div>
       </div>
 

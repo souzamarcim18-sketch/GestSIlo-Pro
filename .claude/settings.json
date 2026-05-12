@@ -18,7 +18,8 @@
       "Bash(grep -E \"rebanho.*\\\\.tsx$\")",
       "Bash(find . -type f \\\\\\( -name \"*Form*.tsx\" -o -name \"*Dialog*.tsx\" \\\\\\) -path \"*/app/dashboard/*\" -o -path \"*/components/rebanho/*\" | sort > /tmp/form_files.txt && wc -l /tmp/form_files.txt)",
       "PowerShell(cd 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro'; git status --short | Where-Object { $_ -match \"^ M\" } | Measure-Object | Select-Object -Property Count)",
-      "PowerShell(cd 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro'; \\(git status --short | Measure-Object -Line\\).Lines)"
+      "PowerShell(cd 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro'; \\(git status --short | Measure-Object -Line\\).Lines)",
+      "Bash(npx eslint *)"
     ],
     "additionalDirectories": [
       "\\tmp"
