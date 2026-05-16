@@ -102,9 +102,9 @@ export default function DashboardLayout({
           <Header />
         </header>
 
-        <div className="flex-1">
-          {children}
-        </div>
+        <div className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  {children}
+</div>
       </main>
     </div>
   );
