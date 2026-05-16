@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    const siteUrl = redirectUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const resetUrl = `${siteUrl}/reset-password`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || redirectUrl || 'http://localhost:3000';
+    const resetUrl = `${siteUrl}/auth/confirm`;
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
       redirectTo: resetUrl,

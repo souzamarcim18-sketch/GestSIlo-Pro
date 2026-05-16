@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
@@ -12,11 +12,17 @@ import { authLog } from '@/lib/auth/logger';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, profile, loading: authLoading, profileError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(() => {
+    const urlError = searchParams.get('error');
+    if (urlError === 'link_expirado') return 'O link de acesso expirou. Solicite um novo convite ou recuperação de senha.';
+    if (urlError === 'link_invalido') return 'Link inválido. Solicite um novo convite ou recuperação de senha.';
+    return '';
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [timeout, setTimeout] = useState(false);
 
