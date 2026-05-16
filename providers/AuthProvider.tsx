@@ -220,12 +220,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfileError(null);
 
         // ✅ Build profile from JWT metadata (fast path - no database query)
+        // user_metadata = set by user (updateUser); app_metadata = set by admin (invite/service role)
+        // Invited users (Operador/Visualizador) have perfil+fazenda_id in app_metadata, not user_metadata
+        const appMeta = currentUser.app_metadata ?? {};
+        const userMeta = currentUser.user_metadata ?? {};
         const profileFromMetadata: Profile = {
           id: currentUser.id,
           email: currentUser.email || '',
-          nome: currentUser.user_metadata?.nome || currentUser.email || '',
-          perfil: currentUser.user_metadata?.perfil || 'Operador',
-          fazenda_id: currentUser.user_metadata?.fazenda_id || null
+          nome: userMeta.nome || appMeta.nome || currentUser.email || '',
+          perfil: userMeta.perfil || appMeta.perfil || 'Operador',
+          fazenda_id: userMeta.fazenda_id || appMeta.fazenda_id || null
         };
 
         authLog('[AUTH-PROVIDER] Profile loaded from JWT metadata:', {
