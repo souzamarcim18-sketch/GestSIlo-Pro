@@ -3,7 +3,7 @@ import { supabase, Profile, Fazenda } from '../supabase';
 export async function getProfile(userId: string): Promise<Profile> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, nome, email, telefone, perfil, role, fazenda_id, fazendas(nome)')
+    .select('id, nome, email, perfil, fazenda_id, fazendas(nome)')
     .eq('id', userId)
     .single();
   if (error) throw error;
@@ -12,13 +12,13 @@ export async function getProfile(userId: string): Promise<Profile> {
 
 export async function updateProfile(
   userId: string,
-  data: { nome?: string; email?: string; telefone?: string | null }
+  data: { nome?: string; email?: string }
 ): Promise<Profile> {
   const { data: updated, error } = await supabase
     .from('profiles')
     .update(data)
     .eq('id', userId)
-    .select('id, nome, email, telefone, perfil, role, fazenda_id')
+    .select('id, nome, email, perfil, fazenda_id')
     .single();
   if (error) throw error;
   return updated as Profile;
@@ -57,7 +57,7 @@ export async function updateFazenda(
 export async function getUsersByFazenda(fazendaId: string): Promise<Profile[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, nome, email, telefone, perfil, role, fazenda_id')
+    .select('id, nome, email, perfil, fazenda_id')
     .eq('fazenda_id', fazendaId)
     .order('nome', { ascending: true });
   if (error) throw error;

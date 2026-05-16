@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useId, useRef } from 'react';
-import { ComingSoonBanner } from '@/components/ComingSoonBanner';
+import { InviteUserModal } from '@/components/InviteUserModal';
 import {
   Card,
   CardContent,
@@ -45,6 +45,7 @@ export default function ConfiguracoesPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingFazenda, setSavingFazenda] = useState(false);
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   const profileNomeRef = useRef<HTMLInputElement>(null);
   const fazendaNomeRef = useRef<HTMLInputElement>(null);
@@ -172,8 +173,6 @@ export default function ConfiguracoesPage() {
           Configurações do Sistema
         </h1>
       </div>
-
-      <ComingSoonBanner message="Convite de usuários e gestão de acessos será expandida em breve" />
 
       {/* ── Tabs ───────────────────────────────────────────────────────── */}
       <div className="w-full space-y-6">
@@ -400,14 +399,16 @@ export default function ConfiguracoesPage() {
                 ✅ Botão sem dialog associado recebe toast de feedback
                 em vez de silêncio — evita armadilha de foco
               */}
-              <Button
-                size="sm"
-                onClick={() => toast.info('Convite de usuário em breve.')}
-                aria-label="Convidar novo usuário para a fazenda"
-              >
-                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                Convidar Usuário
-              </Button>
+              {userProfile?.perfil === 'Administrador' && (
+                <Button
+                  size="sm"
+                  onClick={() => setInviteModalOpen(true)}
+                  aria-label="Convidar novo usuário para a fazenda"
+                >
+                  <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Convidar Usuário
+                </Button>
+              )}
             </CardHeader>
 
             <CardContent>
@@ -483,6 +484,10 @@ export default function ConfiguracoesPage() {
         )}
       </div>
 
+      <InviteUserModal
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+      />
     </div>
   );
 }

@@ -17,7 +17,6 @@ import {
   Calculator,
   Beaker,
   Calendar,
-  History,
   HelpCircle,
   GraduationCap,
   Heart,
@@ -52,7 +51,6 @@ const gerencialRoutes: RouteItem[] = [
   { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro',                     badge: null },
   { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario',                     badge: null },
   { label: 'Relatórios',  icon: BarChart3,     href: '/dashboard/relatorios',                     badge: null },
-  { label: 'Histórico',   icon: History,       href: '/dashboard/planejamento-silagem/historico', badge: null },
 ];
 
 const ferramentasRoutes: RouteItem[] = [
