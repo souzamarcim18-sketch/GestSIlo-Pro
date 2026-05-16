@@ -28,7 +28,7 @@ export default function AlertsSection({ criticos = [] }: AlertsSectionProps) {
             <div key={insumo.id} className="flex justify-between items-center p-2 rounded bg-background text-sm">
               <div>
                 <div className="font-medium">{insumo.nome}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-sm text-muted-foreground">
                   {insumo.estoque_atual} {insumo.unidade} (mín: {insumo.estoque_minimo})
                 </div>
               </div>
@@ -36,7 +36,7 @@ export default function AlertsSection({ criticos = [] }: AlertsSectionProps) {
             </div>
           ))}
           {criticos.length > 5 && (
-            <p className="text-xs text-muted-foreground">+{criticos.length - 5} outros...</p>
+            <p className="text-sm text-muted-foreground">+{criticos.length - 5} outros...</p>
           )}
         </div>
       </CardContent>

@@ -369,12 +369,12 @@ export default function MovimentacoesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Animal</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Detalhes</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-sm font-medium">Data</TableHead>
+                      <TableHead className="text-sm font-medium">Tipo</TableHead>
+                      <TableHead className="text-sm font-medium">Animal</TableHead>
+                      <TableHead className="text-sm font-medium">Categoria</TableHead>
+                      <TableHead className="text-sm font-medium">Detalhes</TableHead>
+                      <TableHead className="text-right text-sm font-medium">Valor</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

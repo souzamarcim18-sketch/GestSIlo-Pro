@@ -58,7 +58,7 @@ export function TabsNav({ badgeRepetidoras = 0 }: TabsNavProps) {
               {tab.icon}
               {tab.label}
               {tab.badge != null && tab.badge > 0 && (
-                <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-white">
                   {tab.badge}
                 </span>
               )}

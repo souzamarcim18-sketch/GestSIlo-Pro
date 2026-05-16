@@ -61,7 +61,7 @@ function KpiCard({
     <Card className="rounded-2xl">
       <CardContent className="pt-4 pb-4">
         <div className="flex items-center justify-between mb-1.5">
-          <p className="text-xs sm:text-sm text-muted-foreground">{title}</p>
+          <p className="text-sm text-muted-foreground">{title}</p>
           <Icon className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         </div>
         <p className="text-xl sm:text-2xl font-bold">{value}</p>

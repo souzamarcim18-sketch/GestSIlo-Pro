@@ -70,7 +70,7 @@ export function NascimentoForm({ animal, animais, onSuccess }: NascimentoFormPro
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="nasc-data">Data do Evento *</Label>
+        <Label htmlFor="nasc-data" className="text-sm font-semibold">Data do Evento *</Label>
         <Input
           id="nasc-data"
           type="date"
@@ -83,7 +83,7 @@ export function NascimentoForm({ animal, animais, onSuccess }: NascimentoFormPro
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="nasc-mae">Mãe</Label>
+        <Label htmlFor="nasc-mae" className="text-sm font-semibold">Mãe</Label>
         <Select
           value={watch('observacoes') || ''}
           onValueChange={(v) => {
@@ -107,7 +107,7 @@ export function NascimentoForm({ animal, animais, onSuccess }: NascimentoFormPro
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="nasc-pai">Pai</Label>
+        <Label htmlFor="nasc-pai" className="text-sm font-semibold">Pai</Label>
         <Select disabled={isLoading}>
           <SelectTrigger id="nasc-pai">
             <SelectValue placeholder="Selecionar pai" />

@@ -76,7 +76,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
               <Label htmlFor="leite" className="cursor-pointer flex-1 font-medium">
                 🥛 Leite
               </Label>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 Vacas leiteiras, novilhas e bezerras
               </span>
             </div>
@@ -103,7 +103,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
               <Label htmlFor="corte" className="cursor-pointer flex-1 font-medium">
                 🐄 Corte
               </Label>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 Animais para terminação e reposição
               </span>
             </div>
@@ -172,7 +172,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
               <Label htmlFor="semiconfinado" className="cursor-pointer flex-1 font-medium">
                 🏢 Semi-confinado
               </Label>
-              <span className="text-xs text-muted-foreground">(Referência)</span>
+              <span className="text-sm text-muted-foreground">(Referência)</span>
             </div>
 
             <div
@@ -211,14 +211,14 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
       {sistemaProd && systemInfo && (
         <Card className="border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30">
           <CardHeader>
-            <CardTitle className="text-sm">Fatores do Sistema</CardTitle>
+            <CardTitle>Fatores do Sistema</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
+          <CardContent className="space-y-2">
+            <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Consumo:</span>
               <span className="font-medium">{systemInfo.consumo}% da base</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Silagem:</span>
               <span className="font-medium">{systemInfo.silagem}% da base</span>
             </div>

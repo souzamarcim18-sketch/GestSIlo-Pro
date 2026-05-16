@@ -16,7 +16,6 @@ import {
   type AvaliacaoPSPS,
 } from '@/lib/supabase';
 import { SiloDetailHeader } from '../components/SiloDetailHeader';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { VisaoGeralTab } from '../components/tabs/VisaoGeralTab';
@@ -28,7 +27,7 @@ import { AvaliacaoBromatologicaDialog } from '../components/dialogs/AvaliacaoBro
 import { AvaliacaoPspsDialog } from '../components/dialogs/AvaliacaoPspsDialog';
 import { calcularDadosSilos } from '../helpers';
 import { toast } from 'sonner';
-import { AlertTriangle, Loader, Trash2 } from 'lucide-react';
+import { AlertTriangle, Loader } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +43,7 @@ export default function SiloDetailPage() {
   const { loading: authLoading, profile } = useAuth();
 
   const siloId = params.id as string;
+  const [activeTab, setActiveTab] = useState<'visao-geral' | 'estoque' | 'qualidade'>('visao-geral');
   const [silo, setSilo] = useState<Silo | null>(null);
   const [talhao, setTalhao] = useState<Talhao | null>(null);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
@@ -178,58 +178,45 @@ export default function SiloDetailPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <SiloDetailHeader
-            silo={silo}
-            status={status}
-            onBack={() => router.back()}
-            onEdit={() => setIsEditOpen(true)}
-            talhaoNome={talhao?.nome}
-          />
-        </div>
-        {profile?.perfil === 'Administrador' && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              setDeleteDependencies(null);
-              setShowDeleteConfirmation(false);
-              setIsDeleteOpen(true);
-            }}
-            className="gap-2"
-            aria-label="Deletar silo"
-          >
-            <Trash2 className="h-4 w-4" />
-            Deletar
-          </Button>
-        )}
-      </div>
+        <SiloDetailHeader
+          silo={silo}
+          status={status}
+          onBack={() => router.back()}
+          onEdit={() => setIsEditOpen(true)}
+          talhaoNome={talhao?.nome}
+          onDelete={
+            profile?.perfil === 'Administrador'
+              ? () => {
+                  setDeleteDependencies(null);
+                  setShowDeleteConfirmation(false);
+                  setIsDeleteOpen(true);
+                }
+              : undefined
+          }
+        />
 
       {/* Tabs */}
-      <Tabs defaultValue="visao-geral">
-        <TabsList className="h-9 text-sm overflow-x-auto bg-transparent border-b border-border">
-          <TabsTrigger
-            value="visao-geral"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600 data-[state=active]:bg-transparent rounded-none"
-          >
-            Visão Geral
-          </TabsTrigger>
-          <TabsTrigger
-            value="estoque"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600 data-[state=active]:bg-transparent rounded-none"
-          >
-            Estoque
-          </TabsTrigger>
-          <TabsTrigger
-            value="qualidade"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600 data-[state=active]:bg-transparent rounded-none"
-          >
-            Qualidade
-          </TabsTrigger>
-        </TabsList>
+      <div className="w-full space-y-6">
+        <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+          {(['visao-geral', 'estoque', 'qualidade'] as const).map((tab) => {
+            const labels = { 'visao-geral': 'Visão Geral', estoque: 'Estoque', qualidade: 'Qualidade' };
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                  activeTab === tab
+                    ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                    : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                }`}
+              >
+                {labels[tab]}
+              </button>
+            );
+          })}
+        </div>
 
-        <TabsContent value="visao-geral" className="mt-6">
+        {activeTab === 'visao-geral' && (
           <VisaoGeralTab
             silo={silo}
             talhao={talhao}
@@ -238,9 +225,8 @@ export default function SiloDetailPage() {
             insumoLona={null}
             insumoInoculante={null}
           />
-        </TabsContent>
-
-        <TabsContent value="estoque" className="mt-6">
+        )}
+        {activeTab === 'estoque' && (
           <EstoqueTab
             siloId={siloId}
             volumeTotal={volumeTotal ?? 0}
@@ -251,9 +237,8 @@ export default function SiloDetailPage() {
             onNovaMovimentacao={() => setIsMovOpen(true)}
             onRefresh={fetchData}
           />
-        </TabsContent>
-
-        <TabsContent value="qualidade" className="mt-6">
+        )}
+        {activeTab === 'qualidade' && (
           <QualidadeTab
             siloId={siloId}
             avaliacoesBromatologicas={avaliacoesBromatologicas}
@@ -261,8 +246,8 @@ export default function SiloDetailPage() {
             onNovaBromatologica={() => setIsBromOpen(true)}
             onNovaPsps={() => setIsPspsOpen(true)}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

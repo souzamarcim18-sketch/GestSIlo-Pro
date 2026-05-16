@@ -76,13 +76,13 @@ export function AnimaisList({ animais, perfil, onRefresh }: AnimaisListProps) {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="font-semibold">Brinco</TableHead>
-              <TableHead className="font-semibold">Sexo</TableHead>
-              <TableHead className="font-semibold">Categoria</TableHead>
-              <TableHead className="font-semibold">Peso Atual</TableHead>
-              <TableHead className="font-semibold">Lote</TableHead>
-              <TableHead className="font-semibold">Status</TableHead>
-              {isAdmin && <TableHead className="text-right font-semibold">Ações</TableHead>}
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Brinco</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Sexo</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Categoria</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Peso Atual</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Lote</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Status</TableHead>
+              {isAdmin && <TableHead className="text-right text-sm font-semibold uppercase tracking-[0.13em]">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>

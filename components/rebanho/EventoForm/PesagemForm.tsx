@@ -68,7 +68,7 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="pesagem-data">Data do Evento *</Label>
+        <Label htmlFor="pesagem-data" className="text-sm font-semibold">Data do Evento *</Label>
         <Input
           id="pesagem-data"
           type="date"
@@ -81,7 +81,7 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="pesagem-peso">Peso (kg) *</Label>
+        <Label htmlFor="pesagem-peso" className="text-sm font-semibold">Peso (kg) *</Label>
         <Input
           id="pesagem-peso"
           type="number"
@@ -96,7 +96,7 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="pesagem-metodo">Método de Pesagem *</Label>
+        <Label htmlFor="pesagem-metodo" className="text-sm font-semibold">Método de Pesagem *</Label>
         <Controller
           name="metodo"
           control={control}
@@ -118,7 +118,7 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="pesagem-cc">Condição Corporal (1-5)</Label>
+        <Label htmlFor="pesagem-cc" className="text-sm font-semibold">Condição Corporal (1-5)</Label>
         <Controller
           name="condicao_corporal"
           control={control}

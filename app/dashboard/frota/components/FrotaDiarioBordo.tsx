@@ -92,14 +92,14 @@ export function FrotaDiarioBordo({
             <Table aria-labelledby="uso-titulo">
               <TableHeader>
                 <TableRow>
-                  <TableHead scope="col">Data</TableHead>
-                  <TableHead scope="col">Máquina</TableHead>
-                  <TableHead scope="col">Operador</TableHead>
-                  <TableHead scope="col">Atividade</TableHead>
-                  <TableHead scope="col">Tipo</TableHead>
-                  <TableHead scope="col">Horas</TableHead>
-                  <TableHead scope="col">KM</TableHead>
-                  <TableHead scope="col">Área (ha)</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Data</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Máquina</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Operador</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Atividade</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Tipo</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Horas</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">KM</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Área (ha)</TableHead>
                   <TableHead scope="col" className="w-10" />
                 </TableRow>
               </TableHeader>

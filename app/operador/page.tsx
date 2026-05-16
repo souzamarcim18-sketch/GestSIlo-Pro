@@ -265,7 +265,7 @@ export default function ModoOperadorPage() {
             <User className="w-6 h-6" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-xs text-zinc-400 font-bold uppercase tracking-tighter">
+            <p className="text-sm text-zinc-400 font-bold uppercase tracking-tighter">
               Operador Logado
             </p>
             <p className="text-xl font-bold">{profile?.nome}</p>
@@ -487,7 +487,7 @@ export default function ModoOperadorPage() {
             className={`w-2 h-2 rounded-full ${isOnline ? 'bg-primary/100' : 'bg-secondary/100 animate-pulse'}`}
             aria-hidden="true"
           />
-          <p className="text-xs" role="status" aria-live="polite">
+          <p className="text-sm" role="status" aria-live="polite">
             {isOnline ? 'Sincronizado com a nuvem' : 'Modo Offline Ativo'}
           </p>
         </div>

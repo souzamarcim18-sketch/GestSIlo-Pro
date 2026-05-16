@@ -1,10 +1,12 @@
 'use client';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
 import { CalagemCalculator, NPKCalculator } from './components';
 import { Beaker, Sprout } from 'lucide-react';
 
 export default function CalculadorasPage() {
+  const [activeTab, setActiveTab] = useState<'calagem' | 'npk'>('calagem');
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* HEADER */}
@@ -19,26 +21,35 @@ export default function CalculadorasPage() {
       </div>
 
       {/* CALCULADORAS */}
-      <Tabs defaultValue="calagem" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="calagem" className="flex items-center gap-2">
+      <div className="w-full space-y-6">
+        <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] max-w-md">
+          <button
+            onClick={() => setActiveTab('calagem')}
+            className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+              activeTab === 'calagem'
+                ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                : 'text-muted-foreground hover:bg-background hover:text-foreground'
+            }`}
+          >
             <Beaker className="h-4 w-4" />
             Calagem
-          </TabsTrigger>
-          <TabsTrigger value="npk" className="flex items-center gap-2">
+          </button>
+          <button
+            onClick={() => setActiveTab('npk')}
+            className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+              activeTab === 'npk'
+                ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                : 'text-muted-foreground hover:bg-background hover:text-foreground'
+            }`}
+          >
             <Sprout className="h-4 w-4" />
             Adubação NPK
-          </TabsTrigger>
-        </TabsList>
+          </button>
+        </div>
 
-        <TabsContent value="calagem" className="mt-6">
-          <CalagemCalculator />
-        </TabsContent>
-
-        <TabsContent value="npk" className="mt-6">
-          <NPKCalculator />
-        </TabsContent>
-      </Tabs>
+        {activeTab === 'calagem' && <CalagemCalculator />}
+        {activeTab === 'npk' && <NPKCalculator />}
+      </div>
     </div>
   );
 }

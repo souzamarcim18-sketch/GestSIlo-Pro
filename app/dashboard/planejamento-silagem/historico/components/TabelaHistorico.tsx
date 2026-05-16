@@ -40,11 +40,11 @@ export function TabelaHistorico({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Tipo de Rebanho</TableHead>
-            <TableHead>Sistema</TableHead>
-            <TableHead>Data Criação</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <TableHead className="text-sm">Nome</TableHead>
+            <TableHead className="text-sm">Tipo de Rebanho</TableHead>
+            <TableHead className="text-sm">Sistema</TableHead>
+            <TableHead className="text-sm">Data Criação</TableHead>
+            <TableHead className="text-right text-sm">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

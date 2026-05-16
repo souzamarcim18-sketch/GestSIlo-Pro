@@ -66,5 +66,6 @@ export const config = {
     '/operador/:path*',
     '/login',
     '/register',
+    '/auth/:path*',
   ],
 };

@@ -17,10 +17,8 @@ import {
   Calculator,
   Beaker,
   Calendar,
-  History,
   HelpCircle,
   GraduationCap,
-  PawPrint,
   Heart,
   Milk,
   Scale,
@@ -32,11 +30,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
+import { CowIcon } from '@/components/icons/CowIcon';
 import { useRouter } from 'next/navigation';
 
-// Gradiente metálico prateado-esverdeado (somente light)
-const BG_SIDEBAR_METAL =
-  'linear-gradient(180deg, #e8efe5 0%, #f0f3ed 25%, #e3ebe0 60%, #d8e2d4 100%)';
 
 type RouteItem = {
   label: string;
@@ -48,14 +44,13 @@ type RouteItem = {
 const gerencialRoutes: RouteItem[] = [
   { label: 'Silos',       icon: Database,      href: '/dashboard/silos',                          badge: null },
   { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes',                        badge: null },
-  { label: 'Rebanho',     icon: PawPrint,      href: '/dashboard/rebanho',                        badge: null },
+  { label: 'Rebanho',     icon: CowIcon,       href: '/dashboard/rebanho',                        badge: null },
   { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
   { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: 'comingSoon' },
   { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },
   { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro',                     badge: null },
   { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario',                     badge: null },
   { label: 'Relatórios',  icon: BarChart3,     href: '/dashboard/relatorios',                     badge: null },
-  { label: 'Histórico',   icon: History,       href: '/dashboard/planejamento-silagem/historico', badge: null },
 ];
 
 const ferramentasRoutes: RouteItem[] = [
@@ -107,18 +102,24 @@ function NavItem({
         prefetch={false}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 px-3',
+          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3',
           isActive
-            ? 'bg-gradient-to-r from-primary/25 to-primary/10 text-brand-deep shadow-sm border border-primary/40 dark:text-foreground dark:border-primary/40'
-            : 'text-foreground/70 hover:bg-white/60 hover:text-brand-deep dark:text-muted-foreground dark:hover:bg-muted/80 dark:hover:text-foreground',
+            ? 'text-[#00c45a]'
+            : 'text-[#688070] hover:text-[#dceede] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-150',
         )}
+        style={isActive ? {
+          background: 'rgba(0,196,90,0.12)',
+          border: '1px solid rgba(0,196,90,0.2)',
+          borderRadius: 8,
+          boxShadow: '0 0 12px rgba(0,196,90,0.15)',
+        } : undefined}
       >
         <span className="flex items-center gap-2">
           <Icon
             aria-hidden="true"
             className={cn(
-              'h-4 w-4 transition-colors flex-shrink-0',
-              isActive ? 'text-brand-primary' : 'text-foreground/60 dark:text-sidebar-foreground'
+              'h-4 w-4 flex-shrink-0',
+              isActive ? 'text-[#00c45a]' : 'text-[#688070]'
             )}
           />
           <span>{label}</span>
@@ -126,7 +127,7 @@ function NavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="text-[10px] ml-1 bg-status-warning/15 text-status-warning border-status-warning/30"
+            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-xs font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
           >
             Em breve
           </Badge>
@@ -159,18 +160,24 @@ function SubNavItem({
         prefetch={false}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg transition-all duration-200 py-1.5 pl-8 pr-3',
+          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 pl-8 pr-3',
           isActive
-            ? 'bg-gradient-to-r from-primary/25 to-primary/10 text-brand-deep shadow-sm border border-primary/40 dark:text-foreground dark:border-primary/40'
-            : 'text-foreground/70 hover:bg-white/60 hover:text-brand-deep dark:text-muted-foreground dark:hover:bg-muted/80 dark:hover:text-foreground',
+            ? 'text-[#00c45a]'
+            : 'text-[#688070] hover:text-[#dceede] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-150',
         )}
+        style={isActive ? {
+          background: 'rgba(0,196,90,0.12)',
+          border: '1px solid rgba(0,196,90,0.2)',
+          borderRadius: 8,
+          boxShadow: '0 0 12px rgba(0,196,90,0.15)',
+        } : undefined}
       >
         <span className="flex items-center gap-2">
           <Icon
             aria-hidden="true"
             className={cn(
-              'h-3 w-3 transition-colors flex-shrink-0',
-              isActive ? 'text-brand-primary' : 'text-foreground/60 dark:text-sidebar-foreground'
+              'h-3 w-3 flex-shrink-0',
+              isActive ? 'text-[#00c45a]' : 'text-[#688070]'
             )}
           />
           <span>{label}</span>
@@ -178,7 +185,7 @@ function SubNavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="text-[10px] ml-1 bg-status-warning/15 text-status-warning border-status-warning/30"
+            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-xs font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
           >
             Em breve
           </Badge>
@@ -200,19 +207,20 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
   return (
     <div
-      className="flex flex-col h-full w-60 border-r border-border/60 shadow-md dark:bg-sidebar dark:border-sidebar-border"
-      style={{ background: BG_SIDEBAR_METAL }}
+      className="flex flex-col h-full w-60 relative"
+      style={{ background: '#0a140d', borderRight: '1px solid rgba(255,255,255,0.065)' }}
     >
-      {/* No dark mode, sobrescreve o gradiente com a cor sólida do sidebar */}
-      <style jsx>{`
-        @media (prefers-color-scheme: dark) {
-          div {
-            background: hsl(var(--sidebar)) !important;
-          }
-        }
-      `}</style>
+      {/* Glow topo */}
+      <div
+        style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 120,
+          background: 'linear-gradient(180deg, rgba(0,196,90,0.07) 0%, transparent 100%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
 
-      <div className="py-6 flex-1 flex flex-col min-h-0 px-6 relative">
+      <div className="py-6 flex-1 flex flex-col min-h-0 px-6 relative z-10">
 
         {/* Logo */}
         <Link
@@ -247,11 +255,11 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </ul>
 
             {/* Separador */}
-            <div className="my-2 border-t border-foreground/10 dark:border-sidebar-border" />
+            <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }} />
 
             {/* Bloco 2 — Gerencial */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[10px] font-semibold text-foreground/50 dark:text-muted-foreground uppercase tracking-wider">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Gerencial
               </div>
               <ul className="space-y-0.5 list-none">
@@ -271,11 +279,11 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </div>
 
             {/* Separador */}
-            <div className="my-2 border-t border-foreground/10 dark:border-sidebar-border" />
+            <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }} />
 
             {/* Bloco 3 — Ferramentas */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[10px] font-semibold text-foreground/50 dark:text-muted-foreground uppercase tracking-wider">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Ferramentas
               </div>
               <ul className="space-y-0.5 list-none">
@@ -293,11 +301,11 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </div>
 
             {/* Separador */}
-            <div className="my-2 border-t border-foreground/10 dark:border-sidebar-border" />
+            <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }} />
 
             {/* Bloco 4 — Sistema */}
             <div className="pb-2">
-              <div className="px-3 py-1 text-[10px] font-semibold text-foreground/50 dark:text-muted-foreground uppercase tracking-wider">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Sistema
               </div>
               <ul className="space-y-0.5 list-none">
@@ -320,10 +328,10 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
       </div>
 
       {/* Rodapé — Sair */}
-      <div className="p-4 border-t border-foreground/10 dark:border-sidebar-border bg-white/30 dark:bg-sidebar/50 backdrop-blur-sm">
+      <div className="p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }}>
         <Button
           variant="ghost"
-          className="text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-lg transition-all w-full justify-start py-1.5 px-3 h-auto text-xs font-semibold"
+          className="text-[#688070] hover:text-[#e05454] hover:bg-[rgba(224,84,84,0.08)] rounded-lg transition-all w-full justify-start py-1.5 px-3 h-auto text-xs font-semibold"
           onClick={handleLogout}
           aria-label="Sair da conta"
         >

@@ -423,7 +423,7 @@ export function AtividadeDialog({
                     placeholder="0.00"
                     {...register('custo_manual', { valueAsNumber: true })}
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Preencha se quiser informar manualmente
                   </p>
                 </div>
@@ -439,7 +439,7 @@ export function AtividadeDialog({
                     readOnly
                     className="bg-muted"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Atualizado em tempo real
                   </p>
                 </div>

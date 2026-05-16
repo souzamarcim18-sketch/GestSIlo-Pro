@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Database,
   Map,
   Truck,
   DollarSign,
@@ -11,27 +10,60 @@ import {
   AlertTriangle,
   CheckCircle2,
   Calendar,
+  Sprout,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { MiniCardRebanho } from '@/components/widgets';
 import { toast } from 'sonner';
 import { getProximasOperacoes } from '@/lib/supabase/talhoes';
 import type { ProximaOperacao, CicloAgricola } from '@/lib/types/talhoes';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
+import { GaugeOcupacaoSilos } from '@/components/widgets/GaugeOcupacaoSilos';
+import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho';
+import { PieComposicaoRebanho } from '@/components/widgets/PieComposicaoRebanho';
+import { PieCulturasAtivas } from '@/components/widgets/PieCulturasAtivas';
+import { KpiChartCard } from '@/components/widgets/KpiChartCard';
+import { SilagemMetricasCard } from '@/components/widgets/SilagemMetricasCard';
+import { SilosInfoCard } from '@/components/widgets/SilosInfoCard';
+import { LotesAtivosCard } from '@/components/widgets/LotesAtivosCard';
 
 interface DashboardStats {
-  silosOcupacao: string;
+  // Silagem
+  silosOcupacaoPct: string;
   silosDetalhe: string;
-  talhaoArea: string;
+  silosTotalCadastrados: string;
+  silosAutonomiaDias: string;
+  silosConsumoDiario: string;
+  silosAbertos: string;
+  silosAbertosDetalhe: string;
+  silosTaxaPerdas: string;
+  silosCulturasEnsiladas: string;
+  silosUltimaAbertura: string;
+  silosUltimaAberturaDetalhe: string;
+  // Lavouras
+  talhaoAreaTotal: string;
+  talhaoTotalCadastrados: string;
+  // Financeiro
+  receitaMes: string;
+  despesaMes: string;
+  // Frota
   maquinasTotal: string;
   maquinasDetalhe: string;
-  saldoMes: string;
 }
+
+const statsInicial: DashboardStats = {
+  silosOcupacaoPct: '—', silosDetalhe: '—',
+  silosTotalCadastrados: '—', silosAutonomiaDias: '—',
+  silosConsumoDiario: '—', silosAbertos: '—',
+  silosAbertosDetalhe: '—', silosTaxaPerdas: '—',
+  silosCulturasEnsiladas: '—', silosUltimaAbertura: '—',
+  silosUltimaAberturaDetalhe: '—', talhaoAreaTotal: '—',
+  talhaoTotalCadastrados: '—', receitaMes: '—',
+  despesaMes: '—', maquinasTotal: '—', maquinasDetalhe: '—',
+};
 
 interface ProximaOperacaoComBadge extends ProximaOperacao {
   janelaColheita?: { ativo: boolean; diasRestantes: number };
@@ -41,11 +73,93 @@ function formatBRL(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      className="text-xs font-bold uppercase tracking-[0.18em] mb-3"
+      style={{ color: '#dceede' }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function KpiCard({
+  title,
+  value,
+  detail,
+  icon: Icon,
+  iconNode,
+  href,
+  loading,
+}: {
+  title: string;
+  value: string;
+  detail: string;
+  icon?: React.ElementType;
+  iconNode?: React.ReactNode;
+  href: string;
+  loading: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <button
+      onClick={() => router.push(href)}
+      className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+    >
+      <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">
+              {title}
+            </p>
+            {loading ? (
+              <div className="space-y-1.5">
+                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-black tracking-tight text-[#dceede] truncate">
+                  {value}
+                </p>
+                <p className="text-sm text-[#688070] truncate">{detail}</p>
+              </>
+            )}
+          </div>
+          {iconNode ? (
+            iconNode
+          ) : Icon ? (
+            <div
+              className="shrink-0 p-2.5 rounded-xl"
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <Icon className="h-4 w-4 text-[#00c45a]" />
+            </div>
+          ) : null}
+        </div>
+      </Card>
+    </button>
+  );
+}
+
 export default function DashboardPage() {
   const { fazendaId, loading: authLoading, user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [silosOcupacaoPctNum, setSilosOcupacaoPctNum] = useState(0);
+  const [silosGaugeDetalhe, setSilosGaugeDetalhe] = useState('');
+  const [totalAnimais, setTotalAnimais] = useState(0);
+  const [categoriasRebanho, setCategoriasRebanho] = useState<{ name: string; value: number }[]>([]);
+  const [composicaoRebanho, setComposicaoRebanho] = useState<{ name: string; value: number; pct: number }[]>([]);
+  const [culturasAtivas, setCulturasAtivas] = useState<{ name: string; value: number }[]>([]);
+  const [silosAbertosNomes, setSilosAbertosNomes] = useState<string[]>([]);
+  const [culturasEnsiladas, setCulturasEnsiladas] = useState<{ name: string; value: number; pct: number }[]>([]);
+  const [lotesAtivos, setLotesAtivos] = useState<{ id: string; nome: string; quantidade_animais?: number | null }[]>([]);
   const [proximasOperacoes, setProximasOperacoes] = useState<ProximaOperacaoComBadge[]>([]);
   const [loadingOperacoes, setLoadingOperacoes] = useState(true);
 
@@ -57,11 +171,12 @@ export default function DashboardPage() {
         ? 'Boa noite'
         : 'Bom dia';
 
-  const userName =
+  const rawUserName =
     user?.user_metadata?.nome?.split(' ')[0] ||
     user?.user_metadata?.full_name?.split(' ')[0] ||
     'Produtor';
 
+  const userName = rawUserName.charAt(0).toUpperCase() + rawUserName.slice(1).toLowerCase();
 
   useEffect(() => {
     if (authLoading) return;
@@ -69,14 +184,7 @@ export default function DashboardPage() {
       setLoading(true);
       try {
         if (!fazendaId) {
-          setStats({
-            silosOcupacao: '—',
-            silosDetalhe: '—',
-            talhaoArea: '—',
-            maquinasTotal: '—',
-            maquinasDetalhe: '—',
-            saldoMes: '—',
-          });
+          setStats(statsInicial);
           return;
         }
 
@@ -87,16 +195,19 @@ export default function DashboardPage() {
         const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0)
           .toISOString()
           .split('T')[0];
+        const trintaDiasAtras = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split('T')[0];
 
-        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes] =
+        const [silosRes, talhoesRes, maquinasRes, manutRes, finRes, movsRecentesRes, animaisCategRes, talhoesCultRes, animaisTipoRes] =
           await Promise.all([
             supabase
               .from('silos')
-              .select('id, volume_ensilado_ton_mv')
+              .select('id, nome, volume_ensilado_ton_mv, cultura_ensilada, data_abertura_real, estoque_atual')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('talhoes')
-              .select('area_ha')
+              .select('area_ha, cultura')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('maquinas')
@@ -113,83 +224,303 @@ export default function DashboardPage() {
               .eq('fazenda_id', fazendaId)
               .gte('data', mesInicio)
               .lte('data', mesFim),
+            supabase
+              .from('movimentacoes_silo')
+              .select('silo_id, tipo, subtipo, quantidade, data')
+              .eq('fazenda_id', fazendaId)
+              .gte('data', trintaDiasAtras),
+            supabase
+              .from('animais')
+              .select('categoria')
+              .eq('fazenda_id', fazendaId)
+              .eq('status', 'Ativo'),
+            supabase
+              .from('talhoes')
+              .select('cultura')
+              .eq('fazenda_id', fazendaId)
+              .not('cultura', 'is', null),
+            supabase
+              .from('animais')
+              .select('tipo_rebanho')
+              .eq('fazenda_id', fazendaId)
+              .eq('status', 'Ativo'),
           ]);
 
         const silosData = silosRes.data ?? [];
-        let silosOcupacao = '—';
+
+        // Ocupação dos silos (via movimentações de todos os silos da fazenda)
+        let silosOcupacaoPct = '—';
         let silosDetalhe = '—';
         if (silosData.length > 0) {
           const totalVolume = silosData.reduce(
             (acc, s) => acc + (s.volume_ensilado_ton_mv ?? 0),
             0
           );
-
           const siloIds = silosData.map((s) => s.id);
-          const movsRes = siloIds.length > 0
+          const allMovsRes = siloIds.length > 0
             ? await supabase
                 .from('movimentacoes_silo')
                 .select('silo_id, tipo, quantidade')
                 .in('silo_id', siloIds)
             : { data: [] };
 
-          const movsData = movsRes.data ?? [];
+          const allMovs = allMovsRes.data ?? [];
           const estoquePorSilo: Record<string, number> = {};
-          for (const mov of movsData) {
+          for (const mov of allMovs) {
             if (!estoquePorSilo[mov.silo_id]) estoquePorSilo[mov.silo_id] = 0;
             estoquePorSilo[mov.silo_id] += mov.tipo === 'Entrada' ? mov.quantidade : -mov.quantidade;
           }
-
           const totalEstoque = Object.values(estoquePorSilo).reduce(
             (acc, v) => acc + Math.max(v, 0),
             0
           );
-
           const ocupPct =
-            totalVolume > 0
-              ? Math.round((totalEstoque / totalVolume) * 100)
-              : 0;
-          silosOcupacao = `${ocupPct}%`;
+            totalVolume > 0 ? Math.round((totalEstoque / totalVolume) * 100) : 0;
+          silosOcupacaoPct = `${ocupPct}%`;
           silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
+          setSilosOcupacaoPctNum(ocupPct);
+          setSilosGaugeDetalhe(`${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`);
         }
 
-        const talhoesData = talhoesRes.data ?? [];
-        let talhaoArea = '—';
-        if (talhoesData.length > 0) {
-          const totalArea = talhoesData.reduce(
-            (acc, t) => acc + (t.area_ha ?? 0),
-            0
+        // Total de silos cadastrados
+        const silosTotalCadastrados =
+          silosData.length > 0 ? silosData.length.toString() : '—';
+
+        // Silos abertos
+        const silosAbertosData = silosData.filter(
+          (s) => s.data_abertura_real && (s.estoque_atual ?? 0) > 0
+        );
+        const silosAbertos =
+          silosAbertosData.length > 0 ? silosAbertosData.length.toString() : '0';
+        const silosAbertosDetalhe =
+          silosAbertosData.length > 0
+            ? silosAbertosData
+                .map((s) => s.nome)
+                .slice(0, 2)
+                .join(', ') +
+              (silosAbertosData.length > 2 ? ` +${silosAbertosData.length - 2}` : '')
+            : 'Nenhum silo aberto';
+
+        // Culturas ensiladas
+        const culturas = [
+          ...new Set(
+            silosData.map((s) => s.cultura_ensilada).filter(Boolean)
+          ),
+        ] as string[];
+        const silosCulturasEnsiladas =
+          culturas.length > 0 ? culturas.slice(0, 3).join(', ') : '—';
+
+        // Última abertura real
+        const silosComAbertura = silosData
+          .filter((s) => s.data_abertura_real)
+          .sort(
+            (a, b) =>
+              new Date(b.data_abertura_real!).getTime() -
+              new Date(a.data_abertura_real!).getTime()
           );
-          talhaoArea = `${totalArea.toLocaleString('pt-BR')} ha`;
-        }
+        const silosUltimaAbertura =
+          silosComAbertura.length > 0
+            ? new Date(silosComAbertura[0].data_abertura_real!).toLocaleDateString(
+                'pt-BR',
+                { day: '2-digit', month: '2-digit', year: '2-digit' }
+              )
+            : '—';
+        const silosUltimaAberturaDetalhe =
+          silosComAbertura.length > 0
+            ? silosComAbertura[0].nome
+            : 'Nenhuma abertura registrada';
 
+        // Consumo médio diário (últimos 30 dias) — saídas exceto Descarte
+        const movsRecentes = movsRecentesRes.data ?? [];
+        const saidasConsumo = movsRecentes.filter(
+          (m) => m.tipo === 'Saída' && m.subtipo !== 'Descarte'
+        );
+        const totalConsumo30dias = saidasConsumo.reduce(
+          (acc, m) => acc + (m.quantidade ?? 0),
+          0
+        );
+        const consumoDiario = totalConsumo30dias / 30;
+        const silosConsumoDiario =
+          consumoDiario > 0
+            ? `${consumoDiario.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} kg/dia`
+            : '—';
+
+        // Autonomia = estoque atual ÷ consumo diário
+        const totalEstoqueAtual = silosData.reduce(
+          (acc, s) => acc + Math.max(s.estoque_atual ?? 0, 0),
+          0
+        );
+        const autonomiaDias =
+          consumoDiario > 0
+            ? Math.round((totalEstoqueAtual * 1000) / consumoDiario)
+            : null;
+        const silosAutonomiaDias =
+          autonomiaDias !== null ? `${autonomiaDias} dias` : '—';
+
+        // Taxa de perdas
+        const saidasDescarte = movsRecentes.filter(
+          (m) => m.tipo === 'Saída' && m.subtipo === 'Descarte'
+        );
+        const totalDescarte = saidasDescarte.reduce(
+          (acc, m) => acc + (m.quantidade ?? 0),
+          0
+        );
+        const totalSaidas = movsRecentes
+          .filter((m) => m.tipo === 'Saída')
+          .reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
+        const silosTaxaPerdas =
+          totalSaidas > 0
+            ? ((totalDescarte / totalSaidas) * 100).toFixed(1) + '%'
+            : '—';
+
+        // Lavouras
+        const talhoesData = talhoesRes.data ?? [];
+        const talhaoAreaTotal =
+          talhoesData.length > 0
+            ? `${talhoesData
+                .reduce((acc, t) => acc + (t.area_ha ?? 0), 0)
+                .toLocaleString('pt-BR')} ha`
+            : '—';
+        const talhaoTotalCadastrados =
+          talhoesData.length > 0 ? talhoesData.length.toString() : '—';
+
+        // Financeiro
+        const finData = finRes.data ?? [];
+        const receitaMes =
+          finData.length > 0
+            ? formatBRL(
+                finData
+                  .filter((l) => l.tipo === 'Receita')
+                  .reduce((acc, l) => acc + l.valor, 0)
+              )
+            : '—';
+        const despesaMes =
+          finData.length > 0
+            ? formatBRL(
+                finData
+                  .filter((l) => l.tipo === 'Despesa')
+                  .reduce((acc, l) => acc + l.valor, 0)
+              )
+            : '—';
+
+        // Frota
         const totalMaquinas = maquinasRes.count ?? 0;
         const manutencoesCount = manutRes.count ?? 0;
-        let maquinasTotal = '—';
-        let maquinasDetalhe = '—';
-        if (totalMaquinas > 0) {
-          maquinasTotal = `${totalMaquinas}`;
-          maquinasDetalhe =
-            manutencoesCount > 0
+        const maquinasTotal = totalMaquinas > 0 ? `${totalMaquinas}` : '—';
+        const maquinasDetalhe =
+          totalMaquinas > 0
+            ? manutencoesCount > 0
               ? `${manutencoesCount} manutenção(ões) pendente(s)`
-              : 'Sem manutenções pendentes';
+              : 'Sem manutenções pendentes'
+            : '—';
+
+        // Nomes dos silos abertos
+        setSilosAbertosNomes(silosAbertosData.map((s) => s.nome).filter(Boolean) as string[]);
+
+        // Culturas ensiladas com percentual para SilosInfoCard
+        const contagemCulturas: Record<string, number> = {};
+        for (const silo of silosData) {
+          const cultura = silo.cultura_ensilada ?? 'Desconhecida';
+          contagemCulturas[cultura] = (contagemCulturas[cultura] ?? 0) + 1;
+        }
+        const totalSilosComCultura = Object.values(contagemCulturas).reduce((a, b) => a + b, 0);
+        setCulturasEnsiladas(
+          Object.entries(contagemCulturas).map(([name, value]) => ({
+            name,
+            value,
+            pct: totalSilosComCultura > 0 ? Math.round((value / totalSilosComCultura) * 100) : 0,
+          }))
+        );
+
+        // Lotes ativos com contagem de animais
+        const { data: lotesData } = await supabase
+          .from('lotes')
+          .select('id, nome')
+          .eq('fazenda_id', fazendaId)
+          .order('nome');
+
+        if (lotesData && lotesData.length > 0) {
+          const { data: animaisPorLoteData } = await supabase
+            .from('animais')
+            .select('lote_id')
+            .eq('fazenda_id', fazendaId)
+            .eq('status', 'Ativo')
+            .not('lote_id', 'is', null);
+
+          const contagemPorLote: Record<string, number> = {};
+          for (const a of animaisPorLoteData ?? []) {
+            if (a.lote_id) contagemPorLote[a.lote_id] = (contagemPorLote[a.lote_id] ?? 0) + 1;
+          }
+
+          setLotesAtivos(
+            lotesData.map((l) => ({
+              id: l.id,
+              nome: l.nome,
+              quantidade_animais: contagemPorLote[l.id] ?? 0,
+            }))
+          );
+        } else {
+          setLotesAtivos([]);
         }
 
-        const finData = finRes.data ?? [];
-        let saldoMes = '—';
-        if (finData.length > 0) {
-          const saldo = finData.reduce((acc, l) => {
-            return acc + (l.tipo === 'Receita' ? l.valor : -l.valor);
-          }, 0);
-          saldoMes = formatBRL(saldo);
+        // Categorias de rebanho para mini pie
+        const animaisCategData = animaisCategRes.data ?? [];
+        const contagemCat: Record<string, number> = {};
+        for (const a of animaisCategData) {
+          const cat = (a.categoria as string | null) ?? 'Sem categoria';
+          contagemCat[cat] = (contagemCat[cat] ?? 0) + 1;
         }
+        const categoriasArr = Object.entries(contagemCat).map(([name, value]) => ({ name, value }));
+        setCategoriasRebanho(categoriasArr);
+        setTotalAnimais(animaisCategData.length);
+
+        // Composição do rebanho por tipo
+        const animaisTipoData = animaisTipoRes.data ?? [];
+        if (animaisTipoData.length > 0) {
+          const contagemTipo: Record<string, number> = {};
+          for (const a of animaisTipoData) {
+            const tipo = (a.tipo_rebanho as string | null) ?? 'desconhecido';
+            contagemTipo[tipo] = (contagemTipo[tipo] ?? 0) + 1;
+          }
+          const totalTipo = Object.values(contagemTipo).reduce((s, v) => s + v, 0);
+          setComposicaoRebanho(
+            Object.entries(contagemTipo).map(([name, value]) => ({
+              name,
+              value,
+              pct: Math.round((value / totalTipo) * 100),
+            }))
+          );
+        }
+
+        // Culturas ativas para mini pie
+        const talhoesCultData = talhoesCultRes.data ?? [];
+        const contagemCult: Record<string, number> = {};
+        for (const t of talhoesCultData) {
+          const cult = (t.cultura as string | null) ?? 'Sem cultura';
+          contagemCult[cult] = (contagemCult[cult] ?? 0) + 1;
+        }
+        setCulturasAtivas(
+          Object.entries(contagemCult).map(([name, value]) => ({ name, value }))
+        );
 
         setStats({
-          silosOcupacao,
+          silosOcupacaoPct,
           silosDetalhe,
-          talhaoArea,
+          silosTotalCadastrados,
+          silosAutonomiaDias,
+          silosConsumoDiario,
+          silosAbertos,
+          silosAbertosDetalhe,
+          silosTaxaPerdas,
+          silosCulturasEnsiladas,
+          silosUltimaAbertura,
+          silosUltimaAberturaDetalhe,
+          talhaoAreaTotal,
+          talhaoTotalCadastrados,
+          receitaMes,
+          despesaMes,
           maquinasTotal,
           maquinasDetalhe,
-          saldoMes,
         });
       } catch {
         toast.error('Erro ao carregar dados do dashboard.');
@@ -222,7 +553,7 @@ export default function DashboardPage() {
         let alertaSilagemAtivo = false;
         const operacoesEnriquecidas: ProximaOperacaoComBadge[] = operacoes.map((op) => {
           const cicloCorrespondente = (ciclosData || []).find(
-            (c: any) =>
+            (c: { id: string; cultura: string; data_colheita_prevista: string; data_colheita_real: string | null }) =>
               c.data_colheita_prevista === op.data_esperada &&
               c.cultura.includes('Silagem')
           );
@@ -240,10 +571,10 @@ export default function DashboardPage() {
         });
 
         if (alertaSilagemAtivo && !sessionStorage.getItem('alerta_silagem_exibido')) {
-          const proximoEvento = operacoesEnriquecidas.find(op => op.janelaColheita?.ativo);
+          const proximoEvento = operacoesEnriquecidas.find((op) => op.janelaColheita?.ativo);
           if (proximoEvento && proximoEvento.janelaColheita) {
             toast.warning(
-              `⚠️ Atenção: janela de colheita de ${proximoEvento.cultura} no ${proximoEvento.talhao_nome} se aproxima em ${proximoEvento.janelaColheita.diasRestantes} dias`
+              `Atenção: janela de colheita de ${proximoEvento.cultura} no ${proximoEvento.talhao_nome} se aproxima em ${proximoEvento.janelaColheita.diasRestantes} dias`
             );
             sessionStorage.setItem('alerta_silagem_exibido', 'true');
           }
@@ -261,122 +592,103 @@ export default function DashboardPage() {
     loadProximasOperacoes();
   }, [fazendaId]);
 
-  const statCards = [
-    {
-      title: 'Capacidade Total Silos',
-      value: stats?.silosOcupacao ?? '—',
-      detail: stats?.silosDetalhe ?? '—',
-      icon: Database,
-      iconLabel: 'Ícone de silo',
-      href: '/dashboard/silos',
-    },
-    {
-      title: 'Área em Cultivo',
-      value: stats?.talhaoArea ?? '—',
-      detail: talhoesDetail(stats),
-      icon: Map,
-      iconLabel: 'Ícone de talhões',
-      href: '/dashboard/talhoes',
-    },
-    {
-      title: 'Frota em Operação',
-      value: stats?.maquinasTotal ?? '—',
-      detail: stats?.maquinasDetalhe ?? '—',
-      icon: Truck,
-      iconLabel: 'Ícone de frota',
-      href: '/dashboard/frota',
-    },
-    {
-      title: 'Saldo Financeiro',
-      value: stats?.saldoMes ?? '—',
-      detail: 'Mês atual',
-      icon: DollarSign,
-      iconLabel: 'Ícone financeiro',
-      href: '/dashboard/financeiro',
-    },
-  ];
-
   return (
     <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
 
-      {/* ── Saudação ────────────────────────────────────────────────────── */}
+      {/* Saudação */}
       <div className="space-y-1 mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-brand-deep">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#dceede]">
           {greeting}, {userName}!
         </h1>
         <p className="text-sm text-muted-foreground">
-          Resumo da sua propriedade
+          Visão geral da sua propriedade
         </p>
       </div>
 
-      {/* ── Stats Grid (Clicáveis) ─────────────────────────────────────── */}
-
-      <section aria-labelledby="stats-heading">
-        <h2 id="stats-heading" className="sr-only">
-          Indicadores gerais da propriedade
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((stat) => (
-            <button
-              key={stat.title}
-              onClick={() => router.push(stat.href)}
-              className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 rounded-2xl"
-              aria-label={`${stat.title}: ${stat.value}. Clique para ver detalhes.`}
-            >
-              <Card
-                className="rounded-2xl p-6 h-full border-0 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl"
-                style={{
-                  background: 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
-                  boxShadow: '0 4px 16px rgba(0, 132, 61, 0.25)',
-                }}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-                      {stat.title}
-                    </p>
-                    {loading ? (
-                      <div className="space-y-2">
-                        <Skeleton className="h-10 w-24 bg-white/20" />
-                        <Skeleton className="h-4 w-32 bg-white/20" />
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-3xl md:text-4xl font-bold text-white drop-shadow-sm">
-                          {stat.value}
-                        </p>
-                        <p className="text-xs text-white/85">
-                          {stat.detail}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  <div className="p-3 rounded-xl bg-white/15 backdrop-blur-sm group-hover:bg-white/25 transition-colors">
-                    <stat.icon
-                      className="h-5 w-5 text-white"
-                      aria-label={stat.iconLabel}
-                    />
-                  </div>
-                </div>
-              </Card>
-            </button>
-          ))}
+      {/* Silagem */}
+      <section aria-label="Silagem">
+        <SectionLabel>Silagem</SectionLabel>
+        <div className="grid grid-cols-3 gap-4">
+          {/* Col 1 — Gauge, row-span-2 */}
+          <div className="row-span-2 flex">
+            <KpiChartCard
+              label="Ocupação dos Silos"
+              sublabel={silosGaugeDetalhe || undefined}
+              chart={<GaugeOcupacaoSilos percentual={silosOcupacaoPctNum} />}
+              className="flex-1 min-h-[280px]"
+              onClick={() => router.push('/dashboard/silos')}
+            />
+          </div>
+          {/* Col 2 — 3 métricas empilhadas, row-span-2 */}
+          <div className="row-span-2 flex">
+            <SilagemMetricasCard
+              autonomia={stats?.silosAutonomiaDias ?? '—'}
+              consumo={stats?.silosConsumoDiario ?? '—'}
+              taxaPerdas={stats?.silosTaxaPerdas ?? '—'}
+            />
+          </div>
+          {/* Col 3 — Card único alto com 2 seções, row-span-2 */}
+          <div className="row-span-2 flex">
+            <SilosInfoCard
+              silosAbertos={parseInt(stats?.silosAbertos ?? '0', 10)}
+              silosCadastrados={parseInt(stats?.silosTotalCadastrados ?? '0', 10)}
+              silosAbertosNomes={silosAbertosNomes}
+              culturas={culturasEnsiladas}
+            />
+          </div>
         </div>
       </section>
 
-      {/* ── Mini-Card Rebanho ────────────────────────────────────────── */}
-      <section aria-labelledby="rebanho-heading">
-        <h2 id="rebanho-heading" className="sr-only">
-          Indicadores do rebanho
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <MiniCardRebanho />
-            </div>
+      {/* Rebanho */}
+      <section aria-label="Rebanho">
+        <SectionLabel>Rebanho</SectionLabel>
+        <div className="grid grid-cols-3 gap-4">
+          {/* Col 1 — Total de Animais por categoria */}
+          <KpiChartCard
+            label="Total de Animais"
+            chart={<PieCategoriasRebanho data={categoriasRebanho} total={totalAnimais} />}
+            className="min-h-[240px]"
+            onClick={() => router.push('/dashboard/rebanho')}
+          />
+          {/* Col 2 — Composição por tipo */}
+          <KpiChartCard
+            label="Composição do Rebanho"
+            chart={<PieComposicaoRebanho data={composicaoRebanho} />}
+            className="min-h-[240px]"
+            onClick={() => router.push('/dashboard/rebanho')}
+          />
+          {/* Col 3 — Lotes Ativos */}
+          <LotesAtivosCard lotes={lotesAtivos} />
+        </div>
       </section>
 
-      {/* ── Main Content ───────────────────────────────────────────────── */}
+      {/* Lavouras */}
+      <section aria-label="Lavouras">
+        <SectionLabel>Lavouras</SectionLabel>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard title="ÁREA TOTAL" value={stats?.talhaoAreaTotal ?? '—'} detail="Área cadastrada" icon={Map} href="/dashboard/talhoes" loading={loading} />
+          <KpiCard title="EM CULTIVO" value="—" detail="Área plantada" icon={Sprout} href="/dashboard/talhoes" loading={loading} />
+          <KpiChartCard
+            label="Culturas Ativas"
+            chart={<PieCulturasAtivas data={culturasAtivas} total={culturasAtivas.length} />}
+            onClick={() => router.push('/dashboard/talhoes')}
+          />
+          <KpiCard title="TALHÕES" value={stats?.talhaoTotalCadastrados ?? '—'} detail="Cadastrados" icon={Map} href="/dashboard/talhoes" loading={loading} />
+        </div>
+      </section>
+
+      {/* Operações */}
+      <section aria-label="Operações">
+        <SectionLabel>Operações</SectionLabel>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard title="FROTA" value={stats?.maquinasTotal ?? '—'} detail="Máquinas cadastradas" icon={Truck} href="/dashboard/frota" loading={loading} />
+          <KpiCard title="MANUTENÇÃO" value={stats?.maquinasDetalhe ?? '—'} detail="Próxima manutenção" icon={AlertTriangle} href="/dashboard/frota" loading={loading} />
+          <KpiCard title="RECEITA DO MÊS" value={stats?.receitaMes ?? '—'} detail="Mês corrente" icon={TrendingUp} href="/dashboard/financeiro" loading={loading} />
+          <KpiCard title="DESPESA DO MÊS" value={stats?.despesaMes ?? '—'} detail="Mês corrente" icon={DollarSign} href="/dashboard/financeiro" loading={loading} />
+        </div>
+      </section>
+
+      {/* Main Content */}
       <div className="space-y-6 mt-8">
 
         {/* Próximas Operações */}
@@ -420,7 +732,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2">
                     {op.janelaColheita?.ativo && (
                       <Badge className="bg-status-warning/15 text-status-warning border-status-warning/30 hover:bg-status-warning/20">
-                        ⚠️ Janela de colheita
+                        Janela de colheita
                       </Badge>
                     )}
                     <Badge className={getStatusBadgeColor(op.status)}>
@@ -507,7 +819,7 @@ export default function DashboardPage() {
 }
 
 function talhoesDetail(stats: DashboardStats | null): string {
-  if (!stats || stats.talhaoArea === '—') return 'Nenhuma cultura ativa';
+  if (!stats || stats.talhaoAreaTotal === '—') return 'Nenhuma cultura ativa';
   return 'Área total cadastrada';
 }
 

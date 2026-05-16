@@ -240,7 +240,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                     {...register('nome')}
                   />
                   {errors.nome && (
-                    <p className="text-xs text-destructive">{errors.nome.message}</p>
+                    <p className="text-sm text-destructive">{errors.nome.message}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -372,7 +372,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                       })}
                     />
                     {errors.consumo_medio_lh && (
-                      <p className="text-xs text-destructive">
+                      <p className="text-sm text-destructive">
                         {errors.consumo_medio_lh.message}
                       </p>
                     )}
@@ -432,13 +432,13 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
             <SectionHeader label="Aquisição e Depreciação" />
             <CollapsibleContent className="pt-3">
               <div className="p-4 bg-muted/50 rounded-lg space-y-4">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <TrendingDown className="w-3 h-3" aria-hidden="true" />
                   Dados para cálculo de depreciação linear
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="maq-val-aq" className="text-xs">
+                    <Label htmlFor="maq-val-aq" className="text-sm">
                       Valor de Aquisição (R$)
                     </Label>
                     <Input
@@ -452,7 +452,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="maq-data-aq" className="text-xs">
+                    <Label htmlFor="maq-data-aq" className="text-sm">
                       Data de Aquisição
                     </Label>
                     <Input
@@ -466,7 +466,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="maq-vida-anos" className="text-xs">
+                    <Label htmlFor="maq-vida-anos" className="text-sm">
                       Vida Útil (anos)
                     </Label>
                     <Input
@@ -478,7 +478,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="maq-vida-horas" className="text-xs">
+                    <Label htmlFor="maq-vida-horas" className="text-sm">
                       Vida Útil (horas)
                     </Label>
                     <Input
@@ -492,7 +492,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="maq-val-res" className="text-xs">
+                    <Label htmlFor="maq-val-res" className="text-sm">
                       Valor Residual (R$)
                     </Label>
                     <Input

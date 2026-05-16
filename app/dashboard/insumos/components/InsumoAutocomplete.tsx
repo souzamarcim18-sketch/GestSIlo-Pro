@@ -118,7 +118,7 @@ export default function InsumoAutocomplete({
                     >
                       <div>
                         <div className="font-medium">{insumo.nome}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-sm text-muted-foreground">
                           {insumo.estoque_atual} {insumo.unidade}
                           {insumo.estoque_minimo && (
                             <span className="ml-2">
@@ -141,7 +141,7 @@ export default function InsumoAutocomplete({
                     >
                       <div>
                         <div className="font-medium">Criar novo insumo</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-sm text-muted-foreground">
                           &quot;{searchTerm}&quot;
                         </div>
                       </div>

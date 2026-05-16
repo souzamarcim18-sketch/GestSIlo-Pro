@@ -44,7 +44,7 @@ export function QualidadeTab({
   return (
     <div className="space-y-6">
       {/* Seção: Análise Bromatológica */}
-      <Card className="rounded-2xl bg-card shadow-sm">
+      <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-blue-500">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <div className="flex items-center gap-2">
             <Microscope className="h-5 w-5 text-blue-600" aria-hidden="true" />
@@ -87,7 +87,7 @@ export function QualidadeTab({
                         {aval.avaliador ? ` • ${aval.avaliador}` : ''}
                       </p>
                     </div>
-                    <Badge variant="outline">{aval.momento}</Badge>
+                    <Badge variant="outline" className="text-sm">{aval.momento}</Badge>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
@@ -133,7 +133,7 @@ export function QualidadeTab({
       </Card>
 
       {/* Seção: Análise PSPS */}
-      <Card className="rounded-2xl bg-card shadow-sm">
+      <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-purple-500">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-purple-600" aria-hidden="true" />
@@ -187,7 +187,7 @@ export function QualidadeTab({
                           {aval.avaliador ? ` • ${aval.avaliador}` : ''}
                         </p>
                       </div>
-                      <Badge variant={aval.kernel_processor ? 'default' : 'secondary'}>
+                      <Badge variant={aval.kernel_processor ? 'default' : 'secondary'} className="text-sm">
                         {aval.kernel_processor ? 'Com KP' : 'Sem KP'}
                       </Badge>
                     </div>

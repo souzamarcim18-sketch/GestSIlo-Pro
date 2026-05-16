@@ -14,7 +14,6 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,6 +82,7 @@ const tooltipFormatter = (
 // ---------------------------------------------------------------------------
 export default function FinanceiroPage() {
   const { fazendaId, loading: authLoading, profile } = useAuth();
+  const [abaLancamentos, setAbaLancamentos] = useState<'todos' | 'receitas' | 'despesas'>('todos');
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -281,7 +281,7 @@ export default function FinanceiroPage() {
             {...register('valor', { valueAsNumber: true })}
           />
           {errors.valor && (
-            <p id={`${ids.formValor}-err`} className="text-xs text-destructive" role="alert">
+            <p id={`${ids.formValor}-err`} className="text-sm text-destructive" role="alert">
               {errors.valor.message}
             </p>
           )}
@@ -300,7 +300,7 @@ export default function FinanceiroPage() {
           {...register('descricao')}
         />
         {errors.descricao && (
-          <p id={`${ids.formDesc}-err`} className="text-xs text-destructive" role="alert">
+          <p id={`${ids.formDesc}-err`} className="text-sm text-destructive" role="alert">
             {errors.descricao.message}
           </p>
         )}
@@ -324,7 +324,7 @@ export default function FinanceiroPage() {
             {categorias.map((c) => <option key={c} value={c} />)}
           </datalist>
           {errors.categoria && (
-            <p id={`${ids.formCat}-err`} className="text-xs text-destructive" role="alert">
+            <p id={`${ids.formCat}-err`} className="text-sm text-destructive" role="alert">
               {errors.categoria.message}
             </p>
           )}
@@ -342,7 +342,7 @@ export default function FinanceiroPage() {
             {...register('data')}
           />
           {errors.data && (
-            <p id={`${ids.formData}-err`} className="text-xs text-destructive" role="alert">
+            <p id={`${ids.formData}-err`} className="text-sm text-destructive" role="alert">
               {errors.data.message}
             </p>
           )}
@@ -414,7 +414,7 @@ export default function FinanceiroPage() {
       <TableCell><Badge variant="outline">{l.categoria}</Badge></TableCell>
       <TableCell>
         {l.referencia_tipo
-          ? <span className="text-xs text-muted-foreground">{l.referencia_tipo}</span>
+          ? <span className="text-sm text-muted-foreground">{l.referencia_tipo}</span>
           : <span className="text-muted-foreground" aria-hidden="true">—</span>}
       </TableCell>
       <TableCell
@@ -541,14 +541,14 @@ export default function FinanceiroPage() {
 
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-receitas">Total Receitas</CardTitle>
+              <CardTitle className="text-base font-medium" id="card-receitas">Total Receitas</CardTitle>
               <TrendingUp className="h-4 w-4 text-primary dark:text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary dark:text-primary" aria-labelledby="card-receitas" aria-live="polite">
                 {loading ? '—' : brl(resumo.totalReceitas)}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {filtroInicio || filtroFim ? 'No período filtrado' : 'Total acumulado'}
               </p>
             </CardContent>
@@ -556,14 +556,14 @@ export default function FinanceiroPage() {
 
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-despesas">Total Despesas</CardTitle>
+              <CardTitle className="text-base font-medium" id="card-despesas">Total Despesas</CardTitle>
               <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive" aria-labelledby="card-despesas" aria-live="polite">
                 {loading ? '—' : brl(resumo.totalDespesas)}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {filtroInicio || filtroFim ? 'No período filtrado' : 'Total acumulado'}
               </p>
             </CardContent>
@@ -571,7 +571,7 @@ export default function FinanceiroPage() {
 
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium" id="card-saldo">Saldo Líquido</CardTitle>
+              <CardTitle className="text-base font-medium" id="card-saldo">Saldo Líquido</CardTitle>
               <Wallet className="h-4 w-4 text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
@@ -582,7 +582,7 @@ export default function FinanceiroPage() {
               >
                 {loading ? '—' : brl(resumo.saldo)}
               </div>
-              <p className="text-xs text-muted-foreground">Resultado operacional</p>
+              <p className="text-sm text-muted-foreground">Resultado operacional</p>
             </CardContent>
           </Card>
 
@@ -615,15 +615,15 @@ export default function FinanceiroPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.4} />
-                <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="mes" tick={{ fontSize: 13 }} />
                 <YAxis
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 13 }}
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                   width={56}
                 />
                 {/* ✅ Fix principal: formatter tipado corretamente */}
                 <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
-                <Legend iconType="circle" iconSize={8} />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13 }} />
                 <Area type="monotone" dataKey="receita" name="Receita"
                   stroke="hsl(var(--primary))" fill="url(#gradReceita)" strokeWidth={2} dot={false} />
                 <Area type="monotone" dataKey="despesa" name="Despesa"
@@ -644,59 +644,55 @@ export default function FinanceiroPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="todos">
-            <TabsList className="mb-4">
-              <TabsTrigger value="todos" aria-label={`Todos os lançamentos: ${lancamentosFiltrados.length}`}>
-                Todos ({lancamentosFiltrados.length})
-              </TabsTrigger>
-              <TabsTrigger value="receitas" aria-label={`Receitas: ${receitas.length}`}>
-                Receitas ({receitas.length})
-              </TabsTrigger>
-              <TabsTrigger value="despesas" aria-label={`Despesas: ${despesas.length}`}>
-                Despesas ({despesas.length})
-              </TabsTrigger>
-            </TabsList>
+          <div className="space-y-4">
+            <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
+              {([
+                { value: 'todos', label: `Todos (${lancamentosFiltrados.length})` },
+                { value: 'receitas', label: `Receitas (${receitas.length})` },
+                { value: 'despesas', label: `Despesas (${despesas.length})` },
+              ] as const).map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setAbaLancamentos(value)}
+                  aria-label={label}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                    abaLancamentos === value
+                      ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                      : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-            {(['todos', 'receitas', 'despesas'] as const).map((aba) => {
-              const lista =
-                aba === 'todos'    ? lancamentosFiltrados :
-                aba === 'receitas' ? receitas : despesas;
-
-              const labelMap = {
-                todos:    'Todos os lançamentos',
-                receitas: 'Lançamentos de receitas',
-                despesas: 'Lançamentos de despesas',
-              };
-
-              return (
-                <TabsContent key={aba} value={aba}>
-                  <div className="w-full overflow-x-auto">
-                    <Table aria-label={labelMap[aba]}>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead scope="col">Data</TableHead>
-                        <TableHead scope="col">Descrição</TableHead>
-                        <TableHead scope="col">Categoria</TableHead>
-                        <TableHead scope="col">Referência</TableHead>
-                        <TableHead scope="col">Valor</TableHead>
-                        <TableHead scope="col">Pagamento</TableHead>
-                        <TableHead scope="col" className="w-[80px]">
-                          <span className="sr-only">Ações</span>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {lista.length === 0
-                        ? <TabelaVazia />
-                        : lista.map((l) => <LancamentoRow key={l.id} l={l} />)
-                      }
-                    </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-              );
-            })}
-          </Tabs>
+            <div className="w-full overflow-x-auto">
+              <Table aria-label={
+                abaLancamentos === 'todos' ? 'Todos os lançamentos' :
+                abaLancamentos === 'receitas' ? 'Lançamentos de receitas' : 'Lançamentos de despesas'
+              }>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Data</TableHead>
+                    <TableHead scope="col">Descrição</TableHead>
+                    <TableHead scope="col">Categoria</TableHead>
+                    <TableHead scope="col">Referência</TableHead>
+                    <TableHead scope="col">Valor</TableHead>
+                    <TableHead scope="col">Pagamento</TableHead>
+                    <TableHead scope="col" className="w-[80px]">
+                      <span className="sr-only">Ações</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(abaLancamentos === 'todos' ? lancamentosFiltrados : abaLancamentos === 'receitas' ? receitas : despesas).length === 0
+                    ? <TabelaVazia />
+                    : (abaLancamentos === 'todos' ? lancamentosFiltrados : abaLancamentos === 'receitas' ? receitas : despesas).map((l) => <LancamentoRow key={l.id} l={l} />)
+                  }
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

@@ -247,7 +247,7 @@ export function FrotaRelatorios({
           {/* Período */}
           <div className="flex flex-wrap gap-4 items-end pt-2">
             <div className="space-y-1.5">
-              <Label htmlFor="rel-inicio">Período inicial</Label>
+              <Label htmlFor="rel-inicio" className="text-sm font-semibold">Período inicial</Label>
               <Input
                 id="rel-inicio"
                 type="date"
@@ -257,7 +257,7 @@ export function FrotaRelatorios({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="rel-fim">Período final</Label>
+              <Label htmlFor="rel-fim" className="text-sm font-semibold">Período final</Label>
               <Input
                 id="rel-fim"
                 type="date"
@@ -271,7 +271,7 @@ export function FrotaRelatorios({
           {/* Filtros específicos por tipo */}
           {tipo === 'por-maquina' && (
             <div className="space-y-1.5">
-              <Label htmlFor="rel-maquina">Máquina</Label>
+              <Label htmlFor="rel-maquina" className="text-sm font-semibold">Máquina</Label>
               <select
                 id="rel-maquina"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -288,7 +288,7 @@ export function FrotaRelatorios({
 
           {tipo === 'manutencoes' && (
             <div className="space-y-1.5">
-              <Label htmlFor="rel-tipo-manut">Tipo de manutenção</Label>
+              <Label htmlFor="rel-tipo-manut" className="text-sm font-semibold">Tipo de manutenção</Label>
               <select
                 id="rel-tipo-manut"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -355,7 +355,7 @@ export function FrotaRelatorios({
                 <TableHeader>
                   <TableRow>
                     {Object.keys(dadosAtivos[0]).map((col) => (
-                      <TableHead key={col} className="text-xs uppercase tracking-wide">
+                      <TableHead key={col} className="text-sm font-semibold uppercase tracking-[0.13em]">
                         {col.replace(/_/g, ' ')}
                       </TableHead>
                     ))}

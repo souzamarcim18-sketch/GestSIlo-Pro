@@ -36,42 +36,38 @@ export function MiniCardRebanhoClient({ data }: MiniCardRebanhoClientProps) {
       aria-label="Rebanho - clique para ver indicadores"
     >
       <Card
-        className="rounded-2xl p-6 h-full border-0 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl"
-        style={{
-          background: 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
-          boxShadow: '0 4px 16px rgba(0, 132, 61, 0.25)',
-        }}
+        className="rounded-[13px] p-6 h-full transition-all duration-300 group-hover:-translate-y-1"
       >
         <CardContent className="p-0">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+              <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">
                 Rebanho
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-white/15 backdrop-blur-sm group-hover:bg-white/25 transition-colors">
-              <Beef className="h-5 w-5 text-white" aria-hidden="true" />
+            <div className="p-3 rounded-xl transition-colors" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <Beef className="h-5 w-5 text-[#00c45a]" aria-hidden="true" />
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-white/75">Total</p>
-              <span className="text-lg font-semibold text-white">
+              <p className="text-sm text-[#688070]">Total</p>
+              <span className="text-lg font-black tracking-tight text-[#dceede]">
                 {data.totalAnimais}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-xs text-white/75">GMD</p>
+              <p className="text-sm text-[#688070]">GMD</p>
               <div className="flex items-center gap-1">
-                <span className="text-lg font-semibold text-white">
+                <span className="text-lg font-black tracking-tight text-[#dceede]">
                   {formatNumber(data.gmd)}
                 </span>
-                <span className="text-xs text-white/75 ml-1">kg/d</span>
+                <span className="text-xs text-[#688070] ml-1">kg/d</span>
                 <div className={cn(
                   'flex items-center gap-0.5 ml-2',
-                  data.trendGMD === 'up' ? 'text-green-200' : data.trendGMD === 'down' ? 'text-yellow-200' : 'text-white/50'
+                  data.trendGMD === 'up' ? 'text-[#00c45a]' : data.trendGMD === 'down' ? 'text-[#f5d000]' : 'text-[#688070]'
                 )}>
                   {getTrendIcon(data.trendGMD)}
                   {data.trendValor !== undefined && (
@@ -84,14 +80,14 @@ export function MiniCardRebanhoClient({ data }: MiniCardRebanhoClientProps) {
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-xs text-white/75">Prenhez</p>
-              <span className="text-lg font-semibold text-white">
+              <p className="text-sm text-[#688070]">Prenhez</p>
+              <span className="text-lg font-black tracking-tight text-[#dceede]">
                 {data.taxaPrenhez}%
               </span>
             </div>
 
             <div className="pt-2 mt-2 border-t border-white/10">
-              <p className="text-xs font-semibold text-white/90 hover:text-white transition-colors">
+              <p className="text-sm font-semibold text-[#688070] hover:text-[#dceede] transition-colors">
                 Ver Indicadores →
               </p>
             </div>

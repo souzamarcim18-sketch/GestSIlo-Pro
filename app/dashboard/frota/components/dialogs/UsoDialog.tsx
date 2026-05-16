@@ -205,14 +205,14 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 )}
               />
               {errors.maquina_id && (
-                <p className="text-xs text-destructive">{errors.maquina_id.message}</p>
+                <p className="text-sm text-destructive">{errors.maquina_id.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="uso-data">Data *</Label>
               <Input id="uso-data" type="date" {...register('data')} />
               {errors.data && (
-                <p className="text-xs text-destructive">{errors.data.message}</p>
+                <p className="text-sm text-destructive">{errors.data.message}</p>
               )}
             </div>
           </div>
@@ -255,12 +255,12 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
           {/* Horímetros */}
           <div className="p-4 bg-muted/40 rounded-lg space-y-3">
             <p className="text-sm font-medium">Horímetro</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Preencha início e fim para calcular horas automaticamente. Caso contrário, informe as horas manualmente.
             </p>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="uso-hor-ini" className="text-xs">
+                <Label htmlFor="uso-hor-ini" className="text-sm">
                   Início
                 </Label>
                 <Input
@@ -271,11 +271,11 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                   {...register('horimetro_inicio', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
                 />
                 {errors.horimetro_inicio && (
-                  <p className="text-xs text-destructive">{errors.horimetro_inicio.message}</p>
+                  <p className="text-sm text-destructive">{errors.horimetro_inicio.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="uso-hor-fim" className="text-xs">
+                <Label htmlFor="uso-hor-fim" className="text-sm">
                   Fim
                 </Label>
                 <Input
@@ -286,11 +286,11 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                   {...register('horimetro_fim', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
                 />
                 {errors.horimetro_fim && (
-                  <p className="text-xs text-destructive">{errors.horimetro_fim.message}</p>
+                  <p className="text-sm text-destructive">{errors.horimetro_fim.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="uso-horas" className="text-xs">
+                <Label htmlFor="uso-horas" className="text-sm">
                   Horas {horasAutoMode ? '(calculado)' : '(manual)'}
                 </Label>
                 <Input
@@ -303,7 +303,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                   {...register('horas', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
                 />
                 {errors.horas && (
-                  <p className="text-xs text-destructive">{errors.horas.message}</p>
+                  <p className="text-sm text-destructive">{errors.horas.message}</p>
                 )}
               </div>
             </div>
@@ -320,7 +320,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 placeholder="0.0"
                 {...register('km', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
               />
-              {errors.km && <p className="text-xs text-destructive">{errors.km.message}</p>}
+              {errors.km && <p className="text-sm text-destructive">{errors.km.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="uso-area">Área (ha)</Label>
@@ -331,7 +331,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
                 placeholder="0.00"
                 {...register('area_ha', { setValueAs: (v) => (v === '' ? null : parseFloat(v)) })}
               />
-              {errors.area_ha && <p className="text-xs text-destructive">{errors.area_ha.message}</p>}
+              {errors.area_ha && <p className="text-sm text-destructive">{errors.area_ha.message}</p>}
             </div>
           </div>
 

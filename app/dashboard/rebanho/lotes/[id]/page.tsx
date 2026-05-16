@@ -235,11 +235,11 @@ export default function LoteDetailPage() {
                     <TableHeader>
                       <TableRow>
                         {isAdmin && <TableHead className="w-12"></TableHead>}
-                        <TableHead>Brinco</TableHead>
-                        <TableHead>Sexo</TableHead>
-                        <TableHead>Categoria</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Peso</TableHead>
+                        <TableHead className="text-sm font-medium">Brinco</TableHead>
+                        <TableHead className="text-sm font-medium">Sexo</TableHead>
+                        <TableHead className="text-sm font-medium">Categoria</TableHead>
+                        <TableHead className="text-sm font-medium">Status</TableHead>
+                        <TableHead className="text-sm font-medium">Peso</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>

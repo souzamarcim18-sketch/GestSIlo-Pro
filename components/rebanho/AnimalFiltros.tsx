@@ -48,7 +48,7 @@ export function AnimalFiltros({ lotes, onFilterChange }: AnimalFiltrosProps) {
     <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="text-sm font-medium mb-2 block">Buscar por Brinco</label>
+          <label className="text-sm font-semibold uppercase tracking-[0.13em] mb-2 block">Buscar por Brinco</label>
           <Input
             placeholder="Digite o brinco..."
             value={busca}
@@ -58,7 +58,7 @@ export function AnimalFiltros({ lotes, onFilterChange }: AnimalFiltrosProps) {
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Status</label>
+          <label className="text-sm font-semibold uppercase tracking-[0.13em] mb-2 block">Status</label>
           <Select value={status} onValueChange={(v) => setStatus(v || '')}>
             <SelectTrigger>
               <SelectValue placeholder="Todos" />
@@ -73,7 +73,7 @@ export function AnimalFiltros({ lotes, onFilterChange }: AnimalFiltrosProps) {
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Lote</label>
+          <label className="text-sm font-semibold uppercase tracking-[0.13em] mb-2 block">Lote</label>
           <Select value={loteId} onValueChange={(v) => setLoteId(v || '')}>
             <SelectTrigger>
               <SelectValue placeholder="Todos" />

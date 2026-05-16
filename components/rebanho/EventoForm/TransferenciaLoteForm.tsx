@@ -74,7 +74,7 @@ export function TransferenciaLoteForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="trans-data">Data do Evento *</Label>
+        <Label htmlFor="trans-data" className="text-sm font-semibold">Data do Evento *</Label>
         <Input
           id="trans-data"
           type="date"
@@ -87,7 +87,7 @@ export function TransferenciaLoteForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="trans-lote">Lote Destino *</Label>
+        <Label htmlFor="trans-lote" className="text-sm font-semibold">Lote Destino *</Label>
         <Select
           value={String(loteValue || '')}
           onValueChange={(v) => setValue('lote_id_destino', v as string)}

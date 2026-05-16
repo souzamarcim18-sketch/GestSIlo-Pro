@@ -199,7 +199,7 @@ export function PlanoManutencaoDialog({
               )}
             />
             {errors.maquina_id && (
-              <p className="text-xs text-destructive">{errors.maquina_id.message}</p>
+              <p className="text-sm text-destructive">{errors.maquina_id.message}</p>
             )}
           </div>
 
@@ -208,7 +208,7 @@ export function PlanoManutencaoDialog({
             <Label htmlFor="pm-descricao">Descrição do serviço</Label>
             <Input id="pm-descricao" placeholder="Ex: Troca de óleo e filtros" {...register('descricao')} />
             {errors.descricao && (
-              <p className="text-xs text-destructive">{errors.descricao.message}</p>
+              <p className="text-sm text-destructive">{errors.descricao.message}</p>
             )}
           </div>
 
@@ -256,7 +256,7 @@ export function PlanoManutencaoDialog({
                 {...register('intervalo_horas', { valueAsNumber: true })}
               />
               {errors.intervalo_horas && (
-                <p className="text-xs text-destructive">{errors.intervalo_horas.message}</p>
+                <p className="text-sm text-destructive">{errors.intervalo_horas.message}</p>
               )}
             </div>
           )}
@@ -273,7 +273,7 @@ export function PlanoManutencaoDialog({
                 {...register('intervalo_dias', { valueAsNumber: true })}
               />
               {errors.intervalo_dias && (
-                <p className="text-xs text-destructive">{errors.intervalo_dias.message}</p>
+                <p className="text-sm text-destructive">{errors.intervalo_dias.message}</p>
               )}
             </div>
           )}

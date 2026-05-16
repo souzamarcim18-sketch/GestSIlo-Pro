@@ -152,7 +152,7 @@ export function FrotaCustos({
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1.5">
-              <Label htmlFor="custo-inicio">Data inicial</Label>
+              <Label htmlFor="custo-inicio" className="text-sm font-semibold">Data inicial</Label>
               <Input
                 id="custo-inicio"
                 type="date"
@@ -162,7 +162,7 @@ export function FrotaCustos({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="custo-fim">Data final</Label>
+              <Label htmlFor="custo-fim" className="text-sm font-semibold">Data final</Label>
               <Input
                 id="custo-fim"
                 type="date"
@@ -197,14 +197,14 @@ export function FrotaCustos({
             <Table aria-labelledby="custo-titulo">
               <TableHeader>
                 <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>Máquina</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Horas</TableHead>
-                  <TableHead className="text-right">Deprec./h</TableHead>
-                  <TableHead className="text-right">Comb./h</TableHead>
-                  <TableHead className="text-right">Manut./h</TableHead>
-                  <TableHead className="text-right font-bold">Total R$/h</TableHead>
+                  <TableHead className="text-sm font-semibold">#</TableHead>
+                  <TableHead className="text-sm font-semibold">Máquina</TableHead>
+                  <TableHead className="text-sm font-semibold">Tipo</TableHead>
+                  <TableHead className="text-right text-sm font-semibold">Horas</TableHead>
+                  <TableHead className="text-right text-sm font-semibold">Deprec./h</TableHead>
+                  <TableHead className="text-right text-sm font-semibold">Comb./h</TableHead>
+                  <TableHead className="text-right text-sm font-semibold">Manut./h</TableHead>
+                  <TableHead className="text-right text-sm font-bold">Total R$/h</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -252,7 +252,7 @@ export function FrotaCustos({
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1.5">
-              <Label htmlFor="comp-maquina">Máquina</Label>
+              <Label htmlFor="comp-maquina" className="text-sm font-semibold">Máquina</Label>
               <select
                 id="comp-maquina"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -266,7 +266,7 @@ export function FrotaCustos({
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="comp-preco">Preço de mercado (R$/h)</Label>
+              <Label htmlFor="comp-preco" className="text-sm font-semibold">Preço de mercado (R$/h)</Label>
               <Input
                 id="comp-preco"
                 type="number"

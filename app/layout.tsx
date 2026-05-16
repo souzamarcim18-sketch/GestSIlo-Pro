@@ -1,13 +1,20 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { Providers } from "@/app/providers";
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
+const satoshi = localFont({
+  src: [
+    { path: '../public/fonts/Satoshi-Variable.ttf', style: 'normal' },
+    { path: '../public/fonts/Satoshi-VariableItalic.ttf', style: 'italic' },
+  ],
+  variable: '--font-satoshi',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'GestSilo | Gestão Agrícola Inteligente',
@@ -30,7 +37,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={cn("font-sans h-full scroll-smooth", geist.variable)}>
+    <html lang="pt-BR" className={cn("font-sans h-full scroll-smooth", satoshi.variable)}>
       <body className="h-full bg-background text-foreground">
         <AuthProvider>
           <Providers>

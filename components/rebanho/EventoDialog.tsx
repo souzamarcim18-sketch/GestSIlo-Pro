@@ -89,7 +89,7 @@ export function EventoDialog({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="tipo-evento">Tipo de Evento *</Label>
+            <Label htmlFor="tipo-evento" className="text-sm font-semibold">Tipo de Evento *</Label>
             <Select
               value={String(tipoEvento)}
               onValueChange={(v) => setTipoEvento(v as TipoEvento | '')}

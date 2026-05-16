@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Silo } from '@/lib/supabase';
-import { ArrowLeft, Edit2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
 
 type SiloStatus = 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
 
@@ -13,6 +13,7 @@ interface SiloDetailHeaderProps {
   status: SiloStatus;
   onBack: () => void;
   onEdit: () => void;
+  onDelete?: () => void;
   talhaoNome?: string | null;
 }
 
@@ -30,6 +31,7 @@ export function SiloDetailHeader({
   status,
   onBack,
   onEdit,
+  onDelete,
   talhaoNome,
 }: SiloDetailHeaderProps) {
   const statusInfo = statusConfig[status];
@@ -50,26 +52,41 @@ export function SiloDetailHeader({
 
       {/* Header Principal */}
       <div className="space-y-3">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div className="flex-1">
             <h1 className="text-3xl font-bold tracking-tight">{silo.nome}</h1>
             <div className="flex flex-wrap gap-2 mt-3">
-              <Badge variant="outline">{silo.tipo}</Badge>
-              <Badge className={`text-white ${statusInfo.color}`}>
+              <Badge variant="outline" className="text-sm">{silo.tipo}</Badge>
+              <Badge className={`text-sm text-white ${statusInfo.color}`}>
                 {statusInfo.emoji} {statusInfo.label}
               </Badge>
             </div>
           </div>
-          <Button
-            onClick={onEdit}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            aria-label="Editar dados do silo"
-          >
-            <Edit2 className="h-4 w-4" />
-            Editar Dados
-          </Button>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              onClick={onEdit}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              aria-label="Editar dados do silo"
+            >
+              <Edit2 className="h-4 w-4" />
+              Editar Dados
+            </Button>
+            {onDelete && (
+              <Button
+                onClick={onDelete}
+                variant="ghost"
+                size="sm"
+                className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                aria-label="Deletar silo"
+              >
+                <Trash2 className="h-4 w-4" />
+                Deletar
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Informações de talhão */}

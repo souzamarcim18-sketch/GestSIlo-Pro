@@ -69,7 +69,7 @@ export function ColheitaFields({
           {/* Máquina de Colheita */}
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="maquina_colheita_id" className="text-xs">
+              <Label htmlFor="maquina_colheita_id" className="text-sm">
                 Colheitadeira
               </Label>
               <Controller
@@ -80,7 +80,7 @@ export function ColheitaFields({
                     value={field.value || ''}
                     onValueChange={field.onChange}
                   >
-                    <SelectTrigger id="maquina_colheita_id" className="text-xs">
+                    <SelectTrigger id="maquina_colheita_id">
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
                     <SelectContent>
@@ -98,7 +98,7 @@ export function ColheitaFields({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="horas_colheita" className="text-xs">
+              <Label htmlFor="horas_colheita" className="text-sm">
                 Horas
               </Label>
               <Controller
@@ -110,7 +110,6 @@ export function ColheitaFields({
                     type="number"
                     step="0.1"
                     placeholder="0"
-                    className="text-xs"
                     {...field}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || undefined)
@@ -124,7 +123,7 @@ export function ColheitaFields({
           {/* Máquina de Transporte */}
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="maquina_transporte_id" className="text-xs">
+              <Label htmlFor="maquina_transporte_id" className="text-sm">
                 Transporte
               </Label>
               <Controller
@@ -137,7 +136,6 @@ export function ColheitaFields({
                   >
                     <SelectTrigger
                       id="maquina_transporte_id"
-                      className="text-xs"
                     >
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
@@ -156,7 +154,7 @@ export function ColheitaFields({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="horas_transporte" className="text-xs">
+              <Label htmlFor="horas_transporte" className="text-sm">
                 Horas
               </Label>
               <Controller
@@ -168,7 +166,6 @@ export function ColheitaFields({
                     type="number"
                     step="0.1"
                     placeholder="0"
-                    className="text-xs"
                     {...field}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || undefined)
@@ -182,7 +179,7 @@ export function ColheitaFields({
           {/* Máquina de Compactação */}
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="maquina_compactacao_id" className="text-xs">
+              <Label htmlFor="maquina_compactacao_id" className="text-sm">
                 Compactação
               </Label>
               <Controller
@@ -195,7 +192,6 @@ export function ColheitaFields({
                   >
                     <SelectTrigger
                       id="maquina_compactacao_id"
-                      className="text-xs"
                     >
                       <SelectValue placeholder="Opcional" />
                     </SelectTrigger>
@@ -214,7 +210,7 @@ export function ColheitaFields({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="horas_compactacao" className="text-xs">
+              <Label htmlFor="horas_compactacao" className="text-sm">
                 Horas
               </Label>
               <Controller
@@ -226,7 +222,6 @@ export function ColheitaFields({
                     type="number"
                     step="0.1"
                     placeholder="0"
-                    className="text-xs"
                     {...field}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || undefined)

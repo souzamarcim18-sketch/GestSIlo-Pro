@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useId, useRef } from 'react';
-import { ComingSoonBanner } from '@/components/ComingSoonBanner';
+import { InviteUserModal } from '@/components/InviteUserModal';
 import {
   Card,
   CardContent,
@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Profile, Fazenda } from '@/lib/supabase';
@@ -38,6 +37,7 @@ import type { CityOption } from '@/hooks/useGeocoding';
 
 export default function ConfiguracoesPage() {
   const { user, fazendaId, loading: authLoading, profile: userProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState<'perfil' | 'fazenda' | 'usuarios'>('perfil');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fazenda, setFazenda]  = useState<Fazenda | null>(null);
   const [users, setUsers]      = useState<Profile[]>([]);
@@ -45,6 +45,7 @@ export default function ConfiguracoesPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingFazenda, setSavingFazenda] = useState(false);
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   const profileNomeRef = useRef<HTMLInputElement>(null);
   const fazendaNomeRef = useRef<HTMLInputElement>(null);
@@ -173,24 +174,31 @@ export default function ConfiguracoesPage() {
         </h1>
       </div>
 
-      <ComingSoonBanner message="Convite de usuários e gestão de acessos será expandida em breve" />
-
       {/* ── Tabs ───────────────────────────────────────────────────────── */}
-      <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
-          <TabsTrigger value="perfil"   aria-label="Aba: Meu Perfil">
-            Meu Perfil
-          </TabsTrigger>
-          <TabsTrigger value="fazenda"  aria-label="Aba: Dados da Fazenda">
-            Dados da Fazenda
-          </TabsTrigger>
-          <TabsTrigger value="usuarios" aria-label="Aba: Usuários e Acessos">
-            Usuários e Acessos
-          </TabsTrigger>
-        </TabsList>
+      <div className="w-full space-y-6">
+        <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] lg:w-[500px]">
+          {([
+            { value: 'perfil', label: 'Meu Perfil' },
+            { value: 'fazenda', label: 'Dados da Fazenda' },
+            { value: 'usuarios', label: 'Usuários e Acessos' },
+          ] as const).map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setActiveTab(value)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                activeTab === value
+                  ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:bg-background hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Aba: Perfil ──────────────────────────────────────────────── */}
-        <TabsContent value="perfil" className="mt-6">
+        {activeTab === 'perfil' && (
+        <div className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>
@@ -211,7 +219,7 @@ export default function ConfiguracoesPage() {
               >
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="prof-nome">Nome Completo</Label>
+                    <Label htmlFor="prof-nome" className="text-sm">Nome Completo</Label>
                     <Input
                       id="prof-nome"
                       ref={profileNomeRef}
@@ -221,7 +229,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="prof-email">E-mail</Label>
+                    <Label htmlFor="prof-email" className="text-sm">E-mail</Label>
                     {/*
                       ✅ aria-disabled reforça disabled para AT que
                       ignoram o atributo nativo em alguns contextos
@@ -239,7 +247,7 @@ export default function ConfiguracoesPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="prof-perfil">Perfil de Acesso</Label>
+                    <Label htmlFor="prof-perfil" className="text-sm">Perfil de Acesso</Label>
                     <Input
                       id="prof-perfil"
                       defaultValue={profile?.perfil}
@@ -248,7 +256,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="prof-senha">Nova Senha</Label>
+                    <Label htmlFor="prof-senha" className="text-sm">Nova Senha</Label>
                     {/*
                       ✅ aria-describedby associa o hint ao campo —
                       AT lê: "Nova Senha — Deixe em branco para manter a atual"
@@ -262,7 +270,7 @@ export default function ConfiguracoesPage() {
                     />
                     <p
                       id={ids.senhaHint}
-                      className="text-xs text-muted-foreground"
+                      className="text-sm text-muted-foreground"
                     >
                       Deixe em branco para manter a senha atual.
                     </p>
@@ -276,10 +284,12 @@ export default function ConfiguracoesPage() {
               </form>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
+        )}
 
         {/* ── Aba: Fazenda ─────────────────────────────────────────────── */}
-        <TabsContent value="fazenda" className="mt-6">
+        {activeTab === 'fazenda' && (
+        <div className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>
@@ -299,7 +309,7 @@ export default function ConfiguracoesPage() {
                 noValidate
               >
                 <div className="space-y-2">
-                  <Label htmlFor="faz-nome">Nome da Fazenda</Label>
+                  <Label htmlFor="faz-nome" className="text-sm">Nome da Fazenda</Label>
                   <Input
                     id="faz-nome"
                     ref={fazendaNomeRef}
@@ -317,7 +327,7 @@ export default function ConfiguracoesPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="faz-area">Área Total (ha)</Label>
+                    <Label htmlFor="faz-area" className="text-sm">Área Total (ha)</Label>
                     <Input
                       id="faz-area"
                       ref={fazendaAreaRef}
@@ -334,7 +344,7 @@ export default function ConfiguracoesPage() {
                 {(selectedCity || fazenda?.latitude) && (
                   <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
                     <div className="space-y-2">
-                      <Label htmlFor="faz-lat">Latitude</Label>
+                      <Label htmlFor="faz-lat" className="text-sm">Latitude</Label>
                       <Input
                         id="faz-lat"
                         type="text"
@@ -346,7 +356,7 @@ export default function ConfiguracoesPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="faz-lon">Longitude</Label>
+                      <Label htmlFor="faz-lon" className="text-sm">Longitude</Label>
                       <Input
                         id="faz-lon"
                         type="text"
@@ -367,10 +377,12 @@ export default function ConfiguracoesPage() {
               </form>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
+        )}
 
         {/* ── Aba: Usuários ─────────────────────────────────────────────── */}
-        <TabsContent value="usuarios" className="mt-6">
+        {activeTab === 'usuarios' && (
+        <div className="mt-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -387,24 +399,26 @@ export default function ConfiguracoesPage() {
                 ✅ Botão sem dialog associado recebe toast de feedback
                 em vez de silêncio — evita armadilha de foco
               */}
-              <Button
-                size="sm"
-                onClick={() => toast.info('Convite de usuário em breve.')}
-                aria-label="Convidar novo usuário para a fazenda"
-              >
-                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                Convidar Usuário
-              </Button>
+              {userProfile?.perfil === 'Administrador' && (
+                <Button
+                  size="sm"
+                  onClick={() => setInviteModalOpen(true)}
+                  aria-label="Convidar novo usuário para a fazenda"
+                >
+                  <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Convidar Usuário
+                </Button>
+              )}
             </CardHeader>
 
             <CardContent>
               <Table aria-labelledby={ids.usuariosTitle}>
                 <TableHeader>
                   <TableRow>
-                    <TableHead scope="col">Nome</TableHead>
-                    <TableHead scope="col">E-mail</TableHead>
-                    <TableHead scope="col">Perfil</TableHead>
-                    <TableHead scope="col">Status</TableHead>
+                    <TableHead scope="col" className="text-sm">Nome</TableHead>
+                    <TableHead scope="col" className="text-sm">E-mail</TableHead>
+                    <TableHead scope="col" className="text-sm">Perfil</TableHead>
+                    <TableHead scope="col" className="text-sm">Status</TableHead>
                     {/* ✅ Coluna de ações com texto visível apenas para AT */}
                     <TableHead scope="col" className="text-right">
                       <span className="sr-only">Ações</span>
@@ -466,9 +480,14 @@ export default function ConfiguracoesPage() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+        )}
+      </div>
 
+      <InviteUserModal
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+      />
     </div>
   );
 }

@@ -28,11 +28,11 @@ export function GraficoNatalidadeMortalidade(props: GraficoNatalidadeMortalidade
           angle={-45}
           textAnchor="end"
           height={80}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 14 }}
         />
         <YAxis
           label={{ value: 'Percentual (%)', angle: -90, position: 'insideLeft' }}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 14 }}
         />
         <Tooltip
           formatter={(value) => `${Number(value).toFixed(2)}%`}

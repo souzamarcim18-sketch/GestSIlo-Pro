@@ -64,7 +64,7 @@ export function EstoqueTab({
     <div className="space-y-6">
       {/* Resumo de Estoque */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-green-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Entradas Totais
@@ -78,7 +78,7 @@ export function EstoqueTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-amber-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Saídas Totais
@@ -92,7 +92,7 @@ export function EstoqueTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Estoque Atual
@@ -106,7 +106,7 @@ export function EstoqueTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-purple-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Dias Restantes
@@ -138,7 +138,7 @@ export function EstoqueTab({
               {Object.entries(saidasPorSubtipo).map(([subtipo, quantidade]) => (
                 <div key={subtipo} className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{subtipo}</span>
-                  <Badge variant="outline">{quantidade.toFixed(1)} t</Badge>
+                  <Badge variant="outline" className="text-sm">{quantidade.toFixed(1)} t</Badge>
                 </div>
               ))}
             </div>
@@ -195,14 +195,14 @@ export function EstoqueTab({
                           {mov.tipo === 'Entrada' ? (
                             <>
                               <ArrowDownRight className="h-4 w-4 text-green-500" aria-hidden="true" />
-                              <Badge variant="secondary" className="bg-green-100 text-green-700">
+                              <Badge variant="secondary" className="text-sm bg-green-100 text-green-700">
                                 Entrada
                               </Badge>
                             </>
                           ) : (
                             <>
                               <ArrowUpRight className="h-4 w-4 text-amber-500" aria-hidden="true" />
-                              <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                              <Badge variant="secondary" className="text-sm bg-amber-100 text-amber-700">
                                 Saída
                               </Badge>
                             </>

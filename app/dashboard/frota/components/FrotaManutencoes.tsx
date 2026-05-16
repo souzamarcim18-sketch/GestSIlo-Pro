@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -54,7 +53,7 @@ function ProgressoPlano({
   const alerta = verificarAlertaPlanoManutencao(plano, horimetroAtual);
 
   if (!plano.intervalo_horas || !plano.horimetro_base) {
-    return <span className="text-xs text-muted-foreground">Sem dados de horímetro</span>;
+    return <span className="text-sm text-muted-foreground">Sem dados de horímetro</span>;
   }
 
   const proxima = plano.horimetro_base + plano.intervalo_horas;
@@ -67,7 +66,7 @@ function ProgressoPlano({
         value={progresso}
         className={`h-2 ${alerta.urgente ? 'bg-destructive/20' : alerta.emAlerta ? 'bg-yellow-100' : ''}`}
       />
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         {alerta.horasRestantes !== null ? (
           alerta.horasRestantes <= 0
             ? <span className="text-destructive font-medium">Vencido em {Math.abs(alerta.horasRestantes).toFixed(0)} h</span>
@@ -91,6 +90,7 @@ export function FrotaManutencoes({
   onRefreshMaquinas,
   onMaquinaStatusChange,
 }: FrotaManutencoesProps) {
+  const [activeTab, setActiveTab] = useState<'registros' | 'planos'>('registros');
   const [addOpen, setAddOpen] = useState(false);
   const [editManutencao, setEditManutencao] = useState<Manutencao | undefined>(undefined);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -146,14 +146,28 @@ export function FrotaManutencoes({
 
   return (
     <>
-      <Tabs defaultValue="registros" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="registros">Registros</TabsTrigger>
-          <TabsTrigger value="planos">Planos de Manutenção</TabsTrigger>
-        </TabsList>
+      <div className="w-full space-y-4">
+        <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
+          {([
+            { value: 'registros', label: 'Registros' },
+            { value: 'planos', label: 'Planos de Manutenção' },
+          ] as const).map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setActiveTab(value)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                activeTab === value
+                  ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:bg-background hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Sub-aba: Registros ─────────────────────────────────────────── */}
-        <TabsContent value="registros">
+        {activeTab === 'registros' && (
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -170,13 +184,13 @@ export function FrotaManutencoes({
                 <Table aria-labelledby="man-titulo">
                   <TableHeader>
                     <TableRow>
-                      <TableHead scope="col">Data</TableHead>
-                      <TableHead scope="col">Máquina</TableHead>
-                      <TableHead scope="col">Tipo</TableHead>
-                      <TableHead scope="col">Status</TableHead>
-                      <TableHead scope="col">Descrição</TableHead>
-                      <TableHead scope="col">Custo</TableHead>
-                      <TableHead scope="col">Próxima</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Data</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Máquina</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Tipo</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Status</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Descrição</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Custo</TableHead>
+                      <TableHead scope="col" className="text-sm font-semibold">Próxima</TableHead>
                       <TableHead scope="col" className="w-10" />
                     </TableRow>
                   </TableHeader>
@@ -257,10 +271,10 @@ export function FrotaManutencoes({
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* ── Sub-aba: Planos ────────────────────────────────────────────── */}
-        <TabsContent value="planos">
+        {activeTab === 'planos' && (
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -293,11 +307,11 @@ export function FrotaManutencoes({
                   <Table aria-labelledby="plano-titulo">
                     <TableHeader>
                       <TableRow>
-                        <TableHead scope="col">Máquina</TableHead>
-                        <TableHead scope="col">Serviço</TableHead>
-                        <TableHead scope="col">Intervalo</TableHead>
-                        <TableHead scope="col">Progresso</TableHead>
-                        <TableHead scope="col">Status</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Máquina</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Serviço</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Intervalo</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Progresso</TableHead>
+                        <TableHead scope="col" className="text-sm font-semibold">Status</TableHead>
                         <TableHead scope="col" className="w-20" />
                       </TableRow>
                     </TableHeader>
@@ -312,7 +326,7 @@ export function FrotaManutencoes({
                               {maquina?.nome ?? '—'}
                             </TableCell>
                             <TableCell>{plano.descricao}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
+                            <TableCell className="text-sm text-muted-foreground font-semibold">
                               {plano.intervalo_horas ? `${plano.intervalo_horas} h` : ''}
                               {plano.intervalo_horas && plano.intervalo_dias ? ' / ' : ''}
                               {plano.intervalo_dias ? `${plano.intervalo_dias} dias` : ''}
@@ -363,8 +377,8 @@ export function FrotaManutencoes({
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
 
       {/* Dialogs — Manutenção */}
       <ManutencaoDialog

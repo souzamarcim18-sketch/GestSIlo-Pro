@@ -173,7 +173,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <footer className="mt-8 text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             © 2026 GestSilo · Todos os direitos reservados
           </p>
         </footer>

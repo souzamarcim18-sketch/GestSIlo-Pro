@@ -94,9 +94,9 @@ export default function LotesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Animais Ativos</TableHead>
+                      <TableHead className="text-sm font-medium">Nome</TableHead>
+                      <TableHead className="text-sm font-medium">Descrição</TableHead>
+                      <TableHead className="text-sm font-medium">Animais Ativos</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>

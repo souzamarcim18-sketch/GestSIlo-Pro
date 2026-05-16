@@ -30,9 +30,10 @@ export function VisaoGeralTab({
 }: VisaoGeralTabProps) {
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
       {/* 1. Dados do Silo */}
-      <Card className="rounded-2xl bg-card shadow-sm">
+      <Card className="rounded-2xl bg-card shadow-sm lg:col-span-2">
         <CardHeader className="pb-3">
           <CardTitle>Dados do Silo</CardTitle>
           <CardDescription>Informações básicas de estrutura e capacidade</CardDescription>
@@ -44,7 +45,7 @@ export function VisaoGeralTab({
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Tipo de Estrutura</p>
-            <Badge variant="secondary">{silo.tipo}</Badge>
+            <Badge variant="secondary" className="text-sm">{silo.tipo}</Badge>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Volume Ensilado</p>
@@ -97,7 +98,7 @@ export function VisaoGeralTab({
           <CardTitle>Rastreabilidade & Custo</CardTitle>
           <CardDescription>Informações de produção e economia</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {silo.talhao_id && talhao && (
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Talhão de Origem</p>
@@ -142,7 +143,7 @@ export function VisaoGeralTab({
           <CardTitle>Datas Importantes</CardTitle>
           <CardDescription>Ciclos de armazenamento</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Fechamento</p>
             <p className="font-medium">
@@ -178,6 +179,8 @@ export function VisaoGeralTab({
           )}
         </CardContent>
       </Card>
+
+      </div>{/* fim grid 2 colunas */}
 
       {/* 4. Insumos */}
       <Card className="rounded-2xl bg-card shadow-sm">

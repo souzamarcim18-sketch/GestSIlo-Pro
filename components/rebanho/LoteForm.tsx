@@ -55,7 +55,7 @@ export function LoteForm({ lote, onSubmit, onSuccess, isLoading = false }: LoteF
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="nome">Nome do Lote *</Label>
+        <Label htmlFor="nome" className="text-sm font-semibold">Nome do Lote *</Label>
         <Input
           id="nome"
           placeholder="Ex: Lote A, Bezerros 2024, etc"
@@ -66,7 +66,7 @@ export function LoteForm({ lote, onSubmit, onSuccess, isLoading = false }: LoteF
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="descricao">Descrição</Label>
+        <Label htmlFor="descricao" className="text-sm font-semibold">Descrição</Label>
         <Textarea
           id="descricao"
           placeholder="Informações adicionais sobre o lote"

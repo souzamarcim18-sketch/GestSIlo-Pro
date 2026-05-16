@@ -18,52 +18,52 @@ export function CardResumoGeral({ resultados }: CardResumoGeralProps) {
       {/* Demanda MS */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Demanda MS Total</CardTitle>
+          <CardTitle>Demanda MS Total</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
             {formatTon(resultados.demanda_ms_total_ton)}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">ton</p>
+          <p className="text-sm text-muted-foreground mt-1">ton</p>
         </CardContent>
       </Card>
 
       {/* Demanda MO com perdas */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Demanda MO (com perdas)</CardTitle>
+          <CardTitle>Demanda MO (com perdas)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
             {formatTon(resultados.demanda_mo_com_perdas_ton)}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">ton</p>
+          <p className="text-sm text-muted-foreground mt-1">ton</p>
         </CardContent>
       </Card>
 
       {/* Consumo diário */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Consumo Diário MO</CardTitle>
+          <CardTitle>Consumo Diário MO</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
             {formatKgDia(resultados.consumo_diario_mo_kg)}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">kg/dia</p>
+          <p className="text-sm text-muted-foreground mt-1">kg/dia</p>
         </CardContent>
       </Card>
 
       {/* Área de plantio */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Área de Plantio</CardTitle>
+          <CardTitle>Área de Plantio</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
             {formatHa(resultados.area_plantio_ha)}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">ha</p>
+          <p className="text-sm text-muted-foreground mt-1">ha</p>
         </CardContent>
       </Card>
     </div>

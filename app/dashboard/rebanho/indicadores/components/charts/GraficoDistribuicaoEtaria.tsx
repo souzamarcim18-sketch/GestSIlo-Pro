@@ -25,7 +25,7 @@ export function GraficoDistribuicaoEtaria(props: GraficoDistribuicaoEtariaProps)
           dataKey="categoria"
           type="category"
           width={90}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 14 }}
         />
         <Tooltip
           formatter={(value) => `${Number(value).toFixed(2)}%`}

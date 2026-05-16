@@ -112,7 +112,7 @@ export default function SaidaForm({
             )}
           />
           {form.formState.errors.insumo_id && (
-            <p className="text-xs text-destructive">{form.formState.errors.insumo_id.message}</p>
+            <p className="text-sm text-destructive">{form.formState.errors.insumo_id.message}</p>
           )}
 
           {/* Tipo Saída */}

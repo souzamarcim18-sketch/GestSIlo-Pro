@@ -10,7 +10,28 @@
       "Bash(powershell -Command \"Get-ChildItem components\\\\rebanho -Recurse -File -Include *.ts,*.tsx | Select-String 'as any'\")",
       "PowerShell(head -20)",
       "Read(//c/Projetos/GestSilo/GestSIlo-Pro/app/dashboard/rebanho/**)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(Get-Content \"C:\\\\Users\\\\marci\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projetos-GestSilo-GestSIlo-Pro\\\\551b9edf-1ed5-4a3f-8824-4826979ac78d\\\\tasks\\\\bag8scr4e.output\" -Wait)",
+      "Bash(Select-String -Pattern \"Build|Error|error|warn|✓|✗|Failed|compiled|Route\")",
+      "Bash(Get-Content \"C:\\\\Users\\\\marci\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projetos-GestSilo-GestSIlo-Pro\\\\551b9edf-1ed5-4a3f-8824-4826979ac78d\\\\tasks\\\\bag8scr4e.output\" -Tail 50)",
+      "Bash(grep -E \"\\\\.tsx$\")",
+      "Bash(grep -E \"rebanho.*\\\\.tsx$\")",
+      "Bash(find . -type f \\\\\\( -name \"*Form*.tsx\" -o -name \"*Dialog*.tsx\" \\\\\\) -path \"*/app/dashboard/*\" -o -path \"*/components/rebanho/*\" | sort > /tmp/form_files.txt && wc -l /tmp/form_files.txt)",
+      "PowerShell(cd 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro'; git status --short | Where-Object { $_ -match \"^ M\" } | Measure-Object | Select-Object -Property Count)",
+      "PowerShell(cd 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro'; \\(git status --short | Measure-Object -Line\\).Lines)",
+      "Bash(npx eslint *)",
+      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
+      "Skill(supabase)",
+      "Skill(supabase:*)",
+      "Bash(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/confirm\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/set-password\")",
+      "Bash(Write-Output \"ok\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/confirm\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/set-password\")"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

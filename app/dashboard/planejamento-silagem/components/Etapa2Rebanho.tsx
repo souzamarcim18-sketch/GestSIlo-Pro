@@ -219,7 +219,7 @@ export function Etapa2Rebanho({
               onChange={(e) => handleDataAlvoChange(e.target.value)}
               className="w-full md:w-48"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Mínimo: hoje | Máximo: 365 dias a partir de hoje
             </p>
           </div>
@@ -259,7 +259,7 @@ export function Etapa2Rebanho({
                   <p className="font-medium text-sm">
                     {usarDadosReais ? 'Usar dados reais' : 'Ajustar manualmente'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {usarDadosReais
                       ? 'Os valores abaixo estão bloqueados'
                       : 'Você pode ajustar os valores'}
@@ -279,7 +279,7 @@ export function Etapa2Rebanho({
               {categoriasNaoMapeadas.length > 0 && (
                 <Alert className="bg-blue-50 border-blue-200">
                   <AlertCircle className="h-4 w-4 text-blue-600" />
-                  <AlertTitle className="text-blue-900">
+                  <AlertTitle className="text-blue-900 text-sm">
                     Categorias não mapeadas
                   </AlertTitle>
                   <AlertDescription className="text-blue-800 text-sm">
@@ -375,11 +375,11 @@ export function Etapa2Rebanho({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead className="text-right">PV (kg)</TableHead>
-                  <TableHead className="text-right">CMS base (kg/dia)</TableHead>
-                  <TableHead className="text-right">% Silagem</TableHead>
-                  <TableHead className="text-right">Qtd. Cabeças</TableHead>
+                  <TableHead className="text-sm">Categoria</TableHead>
+                  <TableHead className="text-right text-sm">PV (kg)</TableHead>
+                  <TableHead className="text-right text-sm">CMS base (kg/dia)</TableHead>
+                  <TableHead className="text-right text-sm">% Silagem</TableHead>
+                  <TableHead className="text-right text-sm">Qtd. Cabeças</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -388,7 +388,7 @@ export function Etapa2Rebanho({
                     <TableCell>
                       <div>
                         <p className="font-medium text-sm">{cat.nome}</p>
-                        <p className="text-xs text-muted-foreground">{cat.id}</p>
+                        <p className="text-sm text-muted-foreground">{cat.id}</p>
                       </div>
                     </TableCell>
                     <TableCell className="text-right text-sm">

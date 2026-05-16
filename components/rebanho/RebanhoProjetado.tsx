@@ -75,11 +75,11 @@ export function RebanhoProjetadoComponent({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="font-semibold">Categoria</TableHead>
-              <TableHead className="text-right font-semibold">
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Categoria</TableHead>
+              <TableHead className="text-right text-sm font-semibold uppercase tracking-[0.13em]">
                 Quantidade
               </TableHead>
-              <TableHead className="text-right font-semibold">
+              <TableHead className="text-right text-sm font-semibold uppercase tracking-[0.13em]">
                 Peso médio (kg)
               </TableHead>
             </TableRow>

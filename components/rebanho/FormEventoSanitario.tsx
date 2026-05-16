@@ -163,7 +163,7 @@ export function FormEventoSanitario({
     <form onSubmit={onSubmit} className="space-y-6">
       {/* Tipo de Evento */}
       <div className="space-y-3">
-        <Label>Tipo de Evento *</Label>
+        <Label className="text-sm font-semibold uppercase tracking-[0.13em]">Tipo de Evento *</Label>
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(TIPO_LABELS) as TipoForm[]).map((tipo) => (
             <button
@@ -189,7 +189,7 @@ export function FormEventoSanitario({
       {/* Seleção de Animal(is) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Animal(is) *</Label>
+          <Label className="text-sm font-semibold uppercase tracking-[0.13em]">Animal(is) *</Label>
           {!animalPre && (
             <div className="flex items-center gap-2">
               <Checkbox
@@ -255,7 +255,7 @@ export function FormEventoSanitario({
 
       {/* Data do Evento */}
       <div className="space-y-2">
-        <Label htmlFor="data-evento">Data do Evento *</Label>
+        <Label htmlFor="data-evento" className="text-sm font-semibold">Data do Evento *</Label>
         <Input
           id="data-evento"
           type="date"
@@ -271,7 +271,7 @@ export function FormEventoSanitario({
       {tipoValue === 'vacinacao' && (
         <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
           <div className="space-y-2">
-            <Label htmlFor="vacina-nome">Nome da Vacina *</Label>
+            <Label htmlFor="vacina-nome" className="text-sm font-semibold">Nome da Vacina *</Label>
             <Input
               id="vacina-nome"
               placeholder="Ex: Febre Aftosa"
@@ -284,7 +284,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dose">Dose *</Label>
+            <Label htmlFor="dose" className="text-sm font-semibold">Dose *</Label>
             <Input
               id="dose"
               placeholder="Ex: 1ª dose, Reforço anual"
@@ -295,7 +295,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="via-aplicacao">Via de Aplicação *</Label>
+            <Label htmlFor="via-aplicacao" className="text-sm font-semibold">Via de Aplicação *</Label>
             <Select defaultValue="intramuscular">
               <SelectTrigger disabled={isLoading}>
                 <SelectValue placeholder="Selecione" />
@@ -312,7 +312,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lote-produto">Lote do Produto</Label>
+            <Label htmlFor="lote-produto" className="text-sm font-semibold">Lote do Produto</Label>
             <Input
               id="lote-produto"
               placeholder="Número do lote"
@@ -322,7 +322,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="data-proxima">Data da Próxima Dose</Label>
+            <Label htmlFor="data-proxima" className="text-sm font-semibold">Data da Próxima Dose</Label>
             <Input
               id="data-proxima"
               type="date"
@@ -337,7 +337,7 @@ export function FormEventoSanitario({
       {tipoValue === 'vermifugacao' && (
         <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <div className="space-y-2">
-            <Label htmlFor="produto-nome">Produto *</Label>
+            <Label htmlFor="produto-nome" className="text-sm font-semibold">Produto *</Label>
             <Input
               id="produto-nome"
               placeholder="Ex: Vermífugo ABC"
@@ -350,7 +350,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="via-aplicacao2">Via de Aplicação *</Label>
+            <Label htmlFor="via-aplicacao2" className="text-sm font-semibold">Via de Aplicação *</Label>
             <Select defaultValue="oral">
               <SelectTrigger disabled={isLoading}>
                 <SelectValue placeholder="Selecione" />
@@ -367,7 +367,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lote-produto2">Lote do Produto</Label>
+            <Label htmlFor="lote-produto2" className="text-sm font-semibold">Lote do Produto</Label>
             <Input
               id="lote-produto2"
               placeholder="Número do lote"
@@ -377,7 +377,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="data-proxima2">Data da Próxima Aplicação</Label>
+            <Label htmlFor="data-proxima2" className="text-sm font-semibold">Data da Próxima Aplicação</Label>
             <Input
               id="data-proxima2"
               type="date"
@@ -392,7 +392,7 @@ export function FormEventoSanitario({
       {tipoValue === 'tratamento_veterinario' && (
         <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
           <div className="space-y-2">
-            <Label htmlFor="diagnostico">Diagnóstico *</Label>
+            <Label htmlFor="diagnostico" className="text-sm font-semibold">Diagnóstico *</Label>
             <Textarea
               id="diagnostico"
               placeholder="Descreva o diagnóstico..."
@@ -406,7 +406,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="medicamento">Medicamento *</Label>
+            <Label htmlFor="medicamento" className="text-sm font-semibold">Medicamento *</Label>
             <Input
               id="medicamento"
               placeholder="Nome do medicamento"
@@ -419,7 +419,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duracao">Duração do Tratamento (dias)</Label>
+            <Label htmlFor="duracao" className="text-sm font-semibold">Duração do Tratamento (dias)</Label>
             <Input
               id="duracao"
               type="number"
@@ -430,7 +430,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="resultado">Resultado</Label>
+            <Label htmlFor="resultado" className="text-sm font-semibold">Resultado</Label>
             <Select>
               <SelectTrigger disabled={isLoading}>
                 <SelectValue placeholder="Selecione" />
@@ -452,7 +452,7 @@ export function FormEventoSanitario({
       {tipoValue === 'exame_laboratorial' && (
         <div className="space-y-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
           <div className="space-y-2">
-            <Label htmlFor="tipo-exame">Tipo de Exame *</Label>
+            <Label htmlFor="tipo-exame" className="text-sm font-semibold">Tipo de Exame *</Label>
             <Input
               id="tipo-exame"
               placeholder="Ex: Brucelose, Tuberculose"
@@ -465,7 +465,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="resultado-exame">Resultado</Label>
+            <Label htmlFor="resultado-exame" className="text-sm font-semibold">Resultado</Label>
             <Input
               id="resultado-exame"
               placeholder="Resultado (será preenchido depois)"
@@ -475,7 +475,7 @@ export function FormEventoSanitario({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="numero-protocolo">Número do Protocolo</Label>
+            <Label htmlFor="numero-protocolo" className="text-sm font-semibold">Número do Protocolo</Label>
             <Input
               id="numero-protocolo"
               placeholder="Número do protocolo do laboratório"
@@ -488,7 +488,7 @@ export function FormEventoSanitario({
 
       {/* Responsável */}
       <div className="space-y-2">
-        <Label htmlFor="responsavel">Responsável</Label>
+        <Label htmlFor="responsavel" className="text-sm font-semibold">Responsável</Label>
         <Input
           id="responsavel"
           placeholder="Nome do responsável"
@@ -499,7 +499,7 @@ export function FormEventoSanitario({
 
       {/* Observações */}
       <div className="space-y-2">
-        <Label htmlFor="observacoes">Observações</Label>
+        <Label htmlFor="observacoes" className="text-sm font-semibold">Observações</Label>
         <Textarea
           id="observacoes"
           placeholder="Observações adicionais..."

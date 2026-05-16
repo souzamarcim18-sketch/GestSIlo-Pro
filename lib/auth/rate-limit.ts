@@ -42,6 +42,16 @@ export const forgotPasswordRateLimit = redis
     })
   : null;
 
+// Rate limit para convite de usuário: 10 convites por hora por fazenda/IP
+export const inviteRateLimit = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, '1 h'),
+      analytics: true,
+      prefix: 'ratelimit:invite',
+    })
+  : null;
+
 export async function checkRateLimit(
   limiter: Ratelimit | null,
   key: string

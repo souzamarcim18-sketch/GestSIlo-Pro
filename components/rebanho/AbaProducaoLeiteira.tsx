@@ -182,11 +182,11 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <p className="text-sm text-muted-foreground">Status Atual</p>
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.13em]">Status Atual</p>
             <p className="text-lg font-semibold">{statusLactacao}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Produção Média Diária</p>
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.13em]">Produção Média Diária</p>
             <p className="text-lg font-semibold">{producaoMediaDiaria.toFixed(1)} L/dia</p>
           </div>
         </CardContent>
@@ -225,11 +225,11 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Turno</TableHead>
-                    <TableHead>Volume</TableHead>
-                    <TableHead>Observações</TableHead>
-                    {(isAdmin || canRegister) && <TableHead className="text-right">Ações</TableHead>}
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Data</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Turno</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Volume</TableHead>
+                    <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Observações</TableHead>
+                    {(isAdmin || canRegister) && <TableHead className="text-right text-sm font-semibold uppercase tracking-[0.13em]">Ações</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -284,7 +284,7 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="data">Data</Label>
+              <Label htmlFor="data" className="text-sm font-semibold">Data</Label>
               <Input
                 id="data"
                 type="date"
@@ -295,7 +295,7 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
             </div>
 
             <div>
-              <Label htmlFor="turno">Turno</Label>
+              <Label htmlFor="turno" className="text-sm font-semibold">Turno</Label>
               <Select
                 value={formData.turno}
                 onValueChange={(value) => setFormData({ ...formData, turno: value as TurnoProducao })}
@@ -313,7 +313,7 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
             </div>
 
             <div>
-              <Label htmlFor="volume">Volume (L)</Label>
+              <Label htmlFor="volume" className="text-sm font-semibold">Volume (L)</Label>
               <Input
                 id="volume"
                 type="number"
@@ -328,7 +328,7 @@ export function AbaProducaoLeiteira({ animal, isAdmin, canRegister }: AbaProduca
             </div>
 
             <div>
-              <Label htmlFor="observacoes">Observações (opcional)</Label>
+              <Label htmlFor="observacoes" className="text-sm font-semibold">Observações (opcional)</Label>
               <Textarea
                 id="observacoes"
                 value={formData.observacoes}

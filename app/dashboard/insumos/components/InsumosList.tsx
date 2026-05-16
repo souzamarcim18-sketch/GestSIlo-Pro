@@ -126,7 +126,7 @@ export default function InsumosList({
                         <TableCell className="text-right font-mono text-sm">
                           {insumo.estoque_minimo} {insumo.unidade}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
+                        <TableCell className="text-sm text-muted-foreground">
                           {insumo.local_armazen || '—'}
                         </TableCell>
                         <TableCell>

@@ -107,7 +107,7 @@ export function AvaliacaoPspsDialog({
                 {...form.register('data')}
               />
               {form.formState.errors.data && (
-                <p className="text-xs text-destructive">{form.formState.errors.data.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.data.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -129,7 +129,7 @@ export function AvaliacaoPspsDialog({
                 )}
               />
               {form.formState.errors.momento && (
-                <p className="text-xs text-destructive">{form.formState.errors.momento.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.momento.message}</p>
               )}
             </div>
           </div>
@@ -141,7 +141,7 @@ export function AvaliacaoPspsDialog({
               Total: {totalPeneiras.toFixed(1)}%{' '}
               {somaValida ? '✓ válido' : '(deve ser 100% ± 0.5%)'}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Faixas ideais: {'>'}19mm: {FAIXAS_PSPS.peneira_19mm.min}–{FAIXAS_PSPS.peneira_19mm.max}% •
               8–19mm: {FAIXAS_PSPS.peneira_8_19mm.min}–{FAIXAS_PSPS.peneira_8_19mm.max}% •
               4–8mm: {FAIXAS_PSPS.peneira_4_8mm.min}–{FAIXAS_PSPS.peneira_4_8mm.max}% •
@@ -161,7 +161,7 @@ export function AvaliacaoPspsDialog({
                 {...form.register('peneira_19mm', { valueAsNumber: true })}
               />
               {form.formState.errors.peneira_19mm && (
-                <p className="text-xs text-destructive">{form.formState.errors.peneira_19mm.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.peneira_19mm.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -175,7 +175,7 @@ export function AvaliacaoPspsDialog({
                 {...form.register('peneira_8_19mm', { valueAsNumber: true })}
               />
               {form.formState.errors.peneira_8_19mm && (
-                <p className="text-xs text-destructive">{form.formState.errors.peneira_8_19mm.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.peneira_8_19mm.message}</p>
               )}
             </div>
           </div>
@@ -192,7 +192,7 @@ export function AvaliacaoPspsDialog({
                 {...form.register('peneira_4_8mm', { valueAsNumber: true })}
               />
               {form.formState.errors.peneira_4_8mm && (
-                <p className="text-xs text-destructive">{form.formState.errors.peneira_4_8mm.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.peneira_4_8mm.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -206,7 +206,7 @@ export function AvaliacaoPspsDialog({
                 {...form.register('peneira_fundo_4mm', { valueAsNumber: true })}
               />
               {form.formState.errors.peneira_fundo_4mm && (
-                <p className="text-xs text-destructive">{form.formState.errors.peneira_fundo_4mm.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.peneira_fundo_4mm.message}</p>
               )}
             </div>
           </div>
@@ -258,7 +258,7 @@ export function AvaliacaoPspsDialog({
           </div>
 
           {/* Nota sobre TMP */}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             O TMP (Tamanho Médio de Partícula) é calculado automaticamente pelo banco de dados após salvar.
           </p>
 

@@ -294,7 +294,7 @@ export function SiloForm({
               {...form.register('nome')}
             />
             {form.formState.errors.nome && (
-              <p className="text-xs text-destructive">{form.formState.errors.nome.message}</p>
+              <p className="text-sm text-destructive">{form.formState.errors.nome.message}</p>
             )}
           </div>
 
@@ -333,7 +333,7 @@ export function SiloForm({
                 {...form.register('data_fechamento')}
               />
               {form.formState.errors.data_fechamento && (
-                <p className="text-xs text-destructive">
+                <p className="text-sm text-destructive">
                   {form.formState.errors.data_fechamento.message}
                 </p>
               )}
@@ -364,7 +364,7 @@ export function SiloForm({
                 {...form.register('data_abertura_real')}
               />
               {form.formState.errors.data_abertura_real && (
-                <p className="text-xs text-destructive">
+                <p className="text-sm text-destructive">
                   {form.formState.errors.data_abertura_real.message}
                 </p>
               )}
@@ -409,7 +409,7 @@ export function SiloForm({
               {...form.register('cultura_ensilada')}
             />
             {talhaoId && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Cultura vinculada ao talhão selecionado
               </p>
             )}
@@ -430,7 +430,7 @@ export function SiloForm({
               })}
             />
             {form.formState.errors.volume_ensilado_ton_mv && (
-              <p className="text-xs text-destructive">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.volume_ensilado_ton_mv.message}
               </p>
             )}

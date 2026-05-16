@@ -282,8 +282,8 @@ export default function RelatoriosPage() {
                       <report.icon className={`h-6 w-6 ${report.color}`} aria-hidden="true" />
                     </div>
                     <div className="space-y-1">
-                      <CardTitle className="text-lg">{report.title}</CardTitle>
-                      <CardDescription className="text-xs leading-relaxed">
+                      <CardTitle className="text-base">{report.title}</CardTitle>
+                      <CardDescription className="text-sm leading-relaxed">
                         {report.description}
                       </CardDescription>
                     </div>

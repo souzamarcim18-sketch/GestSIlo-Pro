@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils"
 function Card({
   className,
   size = "default",
+  style,
+  children,
   ...props
 }: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
   return (
@@ -12,11 +14,27 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 shadow-lg has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col gap-4 py-4 text-sm text-card-foreground has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
         className
       )}
+      style={{
+        background: 'rgba(255,255,255,0.033)',
+        border: '1px solid rgba(255,255,255,0.065)',
+        borderRadius: '13px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.28), 0 8px 28px rgba(0,0,0,0.16)',
+        overflow: 'hidden',
+        position: 'relative',
+        ...style,
+      }}
       {...props}
-    />
+    >
+      <div aria-hidden="true" style={{
+        position: 'absolute', top: 0, left: '1.125rem', right: '1.125rem',
+        height: 1, pointerEvents: 'none',
+        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.055), transparent)'
+      }} />
+      {children}
+    </div>
   )
 }
 

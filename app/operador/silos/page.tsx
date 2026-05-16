@@ -205,7 +205,7 @@ export default function OperadorSilosPage() {
       <header className="flex items-center justify-between mb-8 pt-4">
         <div>
           <h1 className="text-2xl font-bold">GestSilo</h1>
-          <p className="text-xs text-green-100">Saída de Silagem</p>
+          <p className="text-sm text-green-100">Saída de Silagem</p>
         </div>
         <Button
           variant="ghost"
@@ -253,7 +253,7 @@ export default function OperadorSilosPage() {
                   </SelectContent>
                 </Select>
                 {formErrors.silo_id && (
-                  <p className="text-xs text-destructive">{formErrors.silo_id}</p>
+                  <p className="text-sm text-destructive">{formErrors.silo_id}</p>
                 )}
                 {siloSelecionado && (
                   <p className="text-sm text-green-600 font-semibold">
@@ -285,7 +285,7 @@ export default function OperadorSilosPage() {
                   aria-label="Quantidade em toneladas"
                 />
                 {formErrors.quantidade && (
-                  <p className="text-xs text-destructive">{formErrors.quantidade}</p>
+                  <p className="text-sm text-destructive">{formErrors.quantidade}</p>
                 )}
               </div>
 
@@ -319,7 +319,7 @@ export default function OperadorSilosPage() {
                   </SelectContent>
                 </Select>
                 {formErrors.subtipo && (
-                  <p className="text-xs text-destructive">{formErrors.subtipo}</p>
+                  <p className="text-sm text-destructive">{formErrors.subtipo}</p>
                 )}
               </div>
 
@@ -339,7 +339,7 @@ export default function OperadorSilosPage() {
                   aria-label="Data da saída"
                 />
                 {formErrors.data && (
-                  <p className="text-xs text-destructive">{formErrors.data}</p>
+                  <p className="text-sm text-destructive">{formErrors.data}</p>
                 )}
               </div>
 
@@ -368,7 +368,7 @@ export default function OperadorSilosPage() {
       </div>
 
       {/* Footer */}
-      <footer className="text-center text-green-100 text-xs mt-8">
+      <footer className="text-center text-green-100 text-sm mt-8">
         <p>GestSilo Pro — Operador v1.0</p>
       </footer>
     </div>

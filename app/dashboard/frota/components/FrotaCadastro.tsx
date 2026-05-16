@@ -150,7 +150,7 @@ export function FrotaCadastro({ maquinas, usos, loading, onRefresh, profile }: F
                   <div className="space-y-3">
                     {/* Status + dados técnicos */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {[maquina.marca, maquina.modelo, maquina.ano].filter(Boolean).join(' ')}
                       </span>
                       {maquina.status && (
@@ -163,7 +163,7 @@ export function FrotaCadastro({ maquinas, usos, loading, onRefresh, profile }: F
                     {/* Depreciação */}
                     {dep && (
                       <div className="p-3 bg-muted/30 rounded-lg space-y-1">
-                        <div className="flex justify-between text-xs font-semibold text-muted-foreground uppercase">
+                        <div className="flex justify-between text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">
                           <span>Valor Atual Estimado</span>
                           <span className="text-emerald-600 dark:text-emerald-400">
                             -{(100 - dep.percentualRestante).toFixed(1)}%
@@ -172,7 +172,7 @@ export function FrotaCadastro({ maquinas, usos, loading, onRefresh, profile }: F
                         <div className="text-base font-bold">
                           R$ {dep.valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-sm text-muted-foreground">
                           Aquisição: R$ {maquina.valor_aquisicao?.toLocaleString('pt-BR')} •{' '}
                           {maquina.vida_util_anos} anos
                         </div>
@@ -182,14 +182,14 @@ export function FrotaCadastro({ maquinas, usos, loading, onRefresh, profile }: F
                     {/* Métricas de uso */}
                     <div className="flex gap-4 pt-2 border-t">
                       <div
-                        className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400"
+                        className="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400"
                         aria-label={`${horasTotais} horas trabalhadas`}
                       >
                         <Clock className="w-3 h-3" aria-hidden="true" />
                         {horasTotais}h
                       </div>
                       <div
-                        className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+                        className="flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400"
                         aria-label={`${kmTotais} km`}
                       >
                         <Gauge className="w-3 h-3" aria-hidden="true" />
@@ -197,7 +197,7 @@ export function FrotaCadastro({ maquinas, usos, loading, onRefresh, profile }: F
                       </div>
                       {maquina.consumo_medio_lh && (
                         <div
-                          className="flex items-center gap-1 text-xs font-medium text-secondary"
+                          className="flex items-center gap-1 text-sm font-medium text-secondary"
                           aria-label={`${maquina.consumo_medio_lh} L/h`}
                         >
                           <Fuel className="w-3 h-3" aria-hidden="true" />

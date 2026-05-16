@@ -199,7 +199,7 @@ export default function RegisterPage() {
                   <SelectItem value="Operador">Operador</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 <strong>Administrador:</strong> acesso completo ao dashboard.{' '}
                 <strong>Operador:</strong> acesso restrito à tela de operações.
               </p>
@@ -262,7 +262,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <footer className="mt-8 text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             © 2026 GestSilo · Todos os direitos reservados
           </p>
         </footer>

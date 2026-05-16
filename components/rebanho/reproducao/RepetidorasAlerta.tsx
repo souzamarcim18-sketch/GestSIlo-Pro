@@ -60,7 +60,7 @@ export function RepetidorasAlerta({ animais }: RepetidorasAlertaProps) {
                     {animal.brinco} {animal.nome ? `- ${animal.nome}` : ''}
                   </p>
                   {animal.lote_id && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.13em]">
                       Lote: {animal.lote_id}
                     </p>
                   )}

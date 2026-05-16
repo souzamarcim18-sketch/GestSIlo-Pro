@@ -140,9 +140,9 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2">Brinco</th>
-                    <th className="text-right py-2">Total (L)</th>
-                    <th className="text-right py-2">Média/dia</th>
+                    <th className="text-left py-2 text-sm font-medium">Brinco</th>
+                    <th className="text-right py-2 text-sm font-medium">Total (L)</th>
+                    <th className="text-right py-2 text-sm font-medium">Média/dia</th>
                   </tr>
                 </thead>
                 <tbody>

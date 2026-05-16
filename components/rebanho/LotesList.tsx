@@ -74,10 +74,10 @@ export function LotesList({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="font-semibold">Nome do Lote</TableHead>
-              <TableHead className="font-semibold">Animais Ativos</TableHead>
-              <TableHead className="font-semibold">Total</TableHead>
-              {isAdmin && <TableHead className="text-right font-semibold">Ações</TableHead>}
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Nome do Lote</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Animais Ativos</TableHead>
+              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Total</TableHead>
+              {isAdmin && <TableHead className="text-right text-sm font-semibold uppercase tracking-[0.13em]">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
