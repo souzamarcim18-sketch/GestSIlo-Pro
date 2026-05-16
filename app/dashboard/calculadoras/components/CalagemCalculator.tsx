@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Collapsible,
@@ -122,24 +121,29 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
           {/* SELEÇÃO DE MÉTODO */}
           <div className="space-y-3">
             <Label>Método de Cálculo</Label>
-            <Tabs value={metodo} onValueChange={v => handleMethodChange(v as MetodoCalagemType)}>
-              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-                <TabsTrigger value="saturacao" className="text-sm">
-                  Saturação V%
-                </TabsTrigger>
-                <TabsTrigger value="al_ca_mg" className="text-sm">
-                  Al+Ca/Mg
-                </TabsTrigger>
-                <TabsTrigger value="mg_manual" className="text-sm">
-                  MG Manual
-                </TabsTrigger>
-                <TabsTrigger value="smp" className="text-sm">
-                  SMP
-                </TabsTrigger>
-                <TabsTrigger value="ufla" className="text-sm">
-                  UFLA
-                </TabsTrigger>
-              </TabsList>
+            <div>
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+                {([
+                  { value: 'saturacao', label: 'Saturação V%' },
+                  { value: 'al_ca_mg', label: 'Al+Ca/Mg' },
+                  { value: 'mg_manual', label: 'MG Manual' },
+                  { value: 'smp', label: 'SMP' },
+                  { value: 'ufla', label: 'UFLA' },
+                ] as { value: MetodoCalagemType; label: string }[]).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handleMethodChange(value)}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                      metodo === value
+                        ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                        : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
               {/* CAMPOS COMUNS */}
               <div className="space-y-4 mt-6 pb-6 border-b">
@@ -195,7 +199,8 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
               </div>
 
               {/* CAMPOS POR MÉTODO */}
-              <TabsContent value="saturacao" className="space-y-4 mt-6">
+              {metodo === 'saturacao' && (
+              <div className="space-y-4 mt-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
@@ -261,9 +266,11 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                     />
                   </div>
                 </div>
-              </TabsContent>
+              </div>
+              )}
 
-              <TabsContent value="al_ca_mg" className="space-y-4 mt-6">
+              {metodo === 'al_ca_mg' && (
+              <div className="space-y-4 mt-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
@@ -329,9 +336,11 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                     />
                   </div>
                 </div>
-              </TabsContent>
+              </div>
+              )}
 
-              <TabsContent value="mg_manual" className="space-y-4 mt-6">
+              {metodo === 'mg_manual' && (
+              <div className="space-y-4 mt-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
@@ -397,9 +406,11 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                     />
                   </div>
                 </div>
-              </TabsContent>
+              </div>
+              )}
 
-              <TabsContent value="smp" className="space-y-4 mt-6">
+              {metodo === 'smp' && (
+              <div className="space-y-4 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
@@ -451,9 +462,11 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                     </Select>
                   </div>
                 </div>
-              </TabsContent>
+              </div>
+              )}
 
-              <TabsContent value="ufla" className="space-y-4 mt-6">
+              {metodo === 'ufla' && (
+              <div className="space-y-4 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
@@ -505,8 +518,9 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                     </Select>
                   </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+              )}
+            </div>
           </div>
 
           {/* BOTÃO CALCULAR */}

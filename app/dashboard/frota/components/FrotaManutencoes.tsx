@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -91,6 +90,7 @@ export function FrotaManutencoes({
   onRefreshMaquinas,
   onMaquinaStatusChange,
 }: FrotaManutencoesProps) {
+  const [activeTab, setActiveTab] = useState<'registros' | 'planos'>('registros');
   const [addOpen, setAddOpen] = useState(false);
   const [editManutencao, setEditManutencao] = useState<Manutencao | undefined>(undefined);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -146,14 +146,28 @@ export function FrotaManutencoes({
 
   return (
     <>
-      <Tabs defaultValue="registros" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="registros">Registros</TabsTrigger>
-          <TabsTrigger value="planos">Planos de Manutenção</TabsTrigger>
-        </TabsList>
+      <div className="w-full space-y-4">
+        <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
+          {([
+            { value: 'registros', label: 'Registros' },
+            { value: 'planos', label: 'Planos de Manutenção' },
+          ] as const).map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setActiveTab(value)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                activeTab === value
+                  ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:bg-background hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Sub-aba: Registros ─────────────────────────────────────────── */}
-        <TabsContent value="registros">
+        {activeTab === 'registros' && (
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -257,10 +271,10 @@ export function FrotaManutencoes({
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
         {/* ── Sub-aba: Planos ────────────────────────────────────────────── */}
-        <TabsContent value="planos">
+        {activeTab === 'planos' && (
           <Card className="rounded-2xl bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -363,8 +377,8 @@ export function FrotaManutencoes({
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
 
       {/* Dialogs — Manutenção */}
       <ManutencaoDialog

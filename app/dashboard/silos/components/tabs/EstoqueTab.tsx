@@ -64,7 +64,7 @@ export function EstoqueTab({
     <div className="space-y-6">
       {/* Resumo de Estoque */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-green-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Entradas Totais
@@ -78,7 +78,7 @@ export function EstoqueTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-amber-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Saídas Totais
@@ -92,7 +92,7 @@ export function EstoqueTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Estoque Atual
@@ -106,7 +106,7 @@ export function EstoqueTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl bg-card shadow-sm">
+        <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-purple-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Dias Restantes

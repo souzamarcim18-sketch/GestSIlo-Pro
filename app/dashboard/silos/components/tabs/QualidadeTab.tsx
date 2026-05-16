@@ -44,7 +44,7 @@ export function QualidadeTab({
   return (
     <div className="space-y-6">
       {/* Seção: Análise Bromatológica */}
-      <Card className="rounded-2xl bg-card shadow-sm">
+      <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-blue-500">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <div className="flex items-center gap-2">
             <Microscope className="h-5 w-5 text-blue-600" aria-hidden="true" />
@@ -133,7 +133,7 @@ export function QualidadeTab({
       </Card>
 
       {/* Seção: Análise PSPS */}
-      <Card className="rounded-2xl bg-card shadow-sm">
+      <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-purple-500">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-purple-600" aria-hidden="true" />

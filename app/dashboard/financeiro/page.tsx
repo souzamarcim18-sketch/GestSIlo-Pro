@@ -14,7 +14,6 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,6 +82,7 @@ const tooltipFormatter = (
 // ---------------------------------------------------------------------------
 export default function FinanceiroPage() {
   const { fazendaId, loading: authLoading, profile } = useAuth();
+  const [abaLancamentos, setAbaLancamentos] = useState<'todos' | 'receitas' | 'despesas'>('todos');
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -644,59 +644,55 @@ export default function FinanceiroPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="todos">
-            <TabsList className="mb-4">
-              <TabsTrigger value="todos" aria-label={`Todos os lançamentos: ${lancamentosFiltrados.length}`}>
-                Todos ({lancamentosFiltrados.length})
-              </TabsTrigger>
-              <TabsTrigger value="receitas" aria-label={`Receitas: ${receitas.length}`}>
-                Receitas ({receitas.length})
-              </TabsTrigger>
-              <TabsTrigger value="despesas" aria-label={`Despesas: ${despesas.length}`}>
-                Despesas ({despesas.length})
-              </TabsTrigger>
-            </TabsList>
+          <div className="space-y-4">
+            <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
+              {([
+                { value: 'todos', label: `Todos (${lancamentosFiltrados.length})` },
+                { value: 'receitas', label: `Receitas (${receitas.length})` },
+                { value: 'despesas', label: `Despesas (${despesas.length})` },
+              ] as const).map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setAbaLancamentos(value)}
+                  aria-label={label}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                    abaLancamentos === value
+                      ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                      : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-            {(['todos', 'receitas', 'despesas'] as const).map((aba) => {
-              const lista =
-                aba === 'todos'    ? lancamentosFiltrados :
-                aba === 'receitas' ? receitas : despesas;
-
-              const labelMap = {
-                todos:    'Todos os lançamentos',
-                receitas: 'Lançamentos de receitas',
-                despesas: 'Lançamentos de despesas',
-              };
-
-              return (
-                <TabsContent key={aba} value={aba}>
-                  <div className="w-full overflow-x-auto">
-                    <Table aria-label={labelMap[aba]}>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead scope="col">Data</TableHead>
-                        <TableHead scope="col">Descrição</TableHead>
-                        <TableHead scope="col">Categoria</TableHead>
-                        <TableHead scope="col">Referência</TableHead>
-                        <TableHead scope="col">Valor</TableHead>
-                        <TableHead scope="col">Pagamento</TableHead>
-                        <TableHead scope="col" className="w-[80px]">
-                          <span className="sr-only">Ações</span>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {lista.length === 0
-                        ? <TabelaVazia />
-                        : lista.map((l) => <LancamentoRow key={l.id} l={l} />)
-                      }
-                    </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-              );
-            })}
-          </Tabs>
+            <div className="w-full overflow-x-auto">
+              <Table aria-label={
+                abaLancamentos === 'todos' ? 'Todos os lançamentos' :
+                abaLancamentos === 'receitas' ? 'Lançamentos de receitas' : 'Lançamentos de despesas'
+              }>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Data</TableHead>
+                    <TableHead scope="col">Descrição</TableHead>
+                    <TableHead scope="col">Categoria</TableHead>
+                    <TableHead scope="col">Referência</TableHead>
+                    <TableHead scope="col">Valor</TableHead>
+                    <TableHead scope="col">Pagamento</TableHead>
+                    <TableHead scope="col" className="w-[80px]">
+                      <span className="sr-only">Ações</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(abaLancamentos === 'todos' ? lancamentosFiltrados : abaLancamentos === 'receitas' ? receitas : despesas).length === 0
+                    ? <TabelaVazia />
+                    : (abaLancamentos === 'todos' ? lancamentosFiltrados : abaLancamentos === 'receitas' ? receitas : despesas).map((l) => <LancamentoRow key={l.id} l={l} />)
+                  }
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

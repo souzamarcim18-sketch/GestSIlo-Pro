@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Profile, Fazenda } from '@/lib/supabase';
@@ -38,6 +37,7 @@ import type { CityOption } from '@/hooks/useGeocoding';
 
 export default function ConfiguracoesPage() {
   const { user, fazendaId, loading: authLoading, profile: userProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState<'perfil' | 'fazenda' | 'usuarios'>('perfil');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fazenda, setFazenda]  = useState<Fazenda | null>(null);
   const [users, setUsers]      = useState<Profile[]>([]);
@@ -176,21 +176,30 @@ export default function ConfiguracoesPage() {
       <ComingSoonBanner message="Convite de usuários e gestão de acessos será expandida em breve" />
 
       {/* ── Tabs ───────────────────────────────────────────────────────── */}
-      <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
-          <TabsTrigger value="perfil"   aria-label="Aba: Meu Perfil">
-            Meu Perfil
-          </TabsTrigger>
-          <TabsTrigger value="fazenda"  aria-label="Aba: Dados da Fazenda">
-            Dados da Fazenda
-          </TabsTrigger>
-          <TabsTrigger value="usuarios" aria-label="Aba: Usuários e Acessos">
-            Usuários e Acessos
-          </TabsTrigger>
-        </TabsList>
+      <div className="w-full space-y-6">
+        <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] lg:w-[500px]">
+          {([
+            { value: 'perfil', label: 'Meu Perfil' },
+            { value: 'fazenda', label: 'Dados da Fazenda' },
+            { value: 'usuarios', label: 'Usuários e Acessos' },
+          ] as const).map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setActiveTab(value)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                activeTab === value
+                  ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:bg-background hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Aba: Perfil ──────────────────────────────────────────────── */}
-        <TabsContent value="perfil" className="mt-6">
+        {activeTab === 'perfil' && (
+        <div className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>
@@ -276,10 +285,12 @@ export default function ConfiguracoesPage() {
               </form>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
+        )}
 
         {/* ── Aba: Fazenda ─────────────────────────────────────────────── */}
-        <TabsContent value="fazenda" className="mt-6">
+        {activeTab === 'fazenda' && (
+        <div className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>
@@ -367,10 +378,12 @@ export default function ConfiguracoesPage() {
               </form>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
+        )}
 
         {/* ── Aba: Usuários ─────────────────────────────────────────────── */}
-        <TabsContent value="usuarios" className="mt-6">
+        {activeTab === 'usuarios' && (
+        <div className="mt-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -466,8 +479,9 @@ export default function ConfiguracoesPage() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+        )}
+      </div>
 
     </div>
   );

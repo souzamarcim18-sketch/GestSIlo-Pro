@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant data-horizontal (&[data-orientation="horizontal"]);
+@custom-variant data-vertical (&[data-orientation="vertical"]);
+@custom-variant data-active (&[data-active]);
+@custom-variant data-selected (&[data-selected]);
+
 @theme inline {
   --font-heading: var(--font-satoshi), system-ui, sans-serif;
   --font-sans: var(--font-satoshi), system-ui, sans-serif;

@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,6 +30,7 @@ export default function TalhaoDetailPage() {
   const { profile } = useAuth();
   const talhaoId = params.id as string;
 
+  const [activeTab, setActiveTab] = useState<'resumo' | 'operacoes' | 'historico'>('resumo');
   const [talhao, setTalhao] = useState<Talhao | null>(null);
   const [ciclos, setCiclos] = useState<CicloAgricola[]>([]);
   const [atividades, setAtividades] = useState<AtividadeCampo[]>([]);
@@ -133,14 +133,27 @@ export default function TalhaoDetailPage() {
           profile={profile}
         />
 
-        <Tabs defaultValue="resumo" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="resumo">Resumo e Custos</TabsTrigger>
-            <TabsTrigger value="operacoes">Operações Agrícolas</TabsTrigger>
-            <TabsTrigger value="historico">Histórico e Calendário</TabsTrigger>
-          </TabsList>
+        <div className="w-full space-y-4">
+          <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+            {(['resumo', 'operacoes', 'historico'] as const).map((tab) => {
+              const labels = { resumo: 'Resumo e Custos', operacoes: 'Operações Agrícolas', historico: 'Histórico e Calendário' };
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                    activeTab === tab
+                      ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                      : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                  }`}
+                >
+                  {labels[tab]}
+                </button>
+              );
+            })}
+          </div>
 
-          <TabsContent value="resumo" className="space-y-4">
+          {activeTab === 'resumo' && (
             <TalhaoResumoTab
               talhao={talhao}
               cicloAtivo={cicloAtivo}
@@ -150,9 +163,8 @@ export default function TalhaoDetailPage() {
               onRefresh={fetchData}
               profile={profile}
             />
-          </TabsContent>
-
-          <TabsContent value="operacoes" className="space-y-4">
+          )}
+          {activeTab === 'operacoes' && (
             <TalhaoOperacoesTab
               talhaoId={talhaoId}
               talhaoAreaHa={talhao?.area_ha}
@@ -160,12 +172,11 @@ export default function TalhaoDetailPage() {
               atividades={atividades}
               onRefresh={fetchData}
             />
-          </TabsContent>
-
-          <TabsContent value="historico" className="space-y-4">
+          )}
+          {activeTab === 'historico' && (
             <TalhaoHistoricoTab ciclos={ciclos} />
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
 
       {/* Dialogs */}

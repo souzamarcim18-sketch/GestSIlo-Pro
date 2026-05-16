@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, List, Grid3x3 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -447,46 +446,37 @@ export default function CalendarioPage() {
       </Card>
 
       {/* Abas de Visualização */}
-      <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as ViewTab)}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="lista" className="gap-2">
-            <List className="w-4 h-4" />
-            Lista
-          </TabsTrigger>
-          <TabsTrigger value="semanal" className="gap-2">
-            <Grid3x3 className="w-4 h-4" />
-            Semanal
-          </TabsTrigger>
-          <TabsTrigger value="mensal" className="gap-2">
-            <Calendar className="w-4 h-4" />
-            Mensal
-          </TabsTrigger>
-        </TabsList>
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+          {([
+            { value: 'lista', label: 'Lista', icon: List },
+            { value: 'semanal', label: 'Semanal', icon: Grid3x3 },
+            { value: 'mensal', label: 'Mensal', icon: Calendar },
+          ] as { value: ViewTab; label: string; icon: React.ElementType }[]).map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              onClick={() => setViewTab(value)}
+              className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                viewTab === value
+                  ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:bg-background hover:text-foreground'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
 
-        <TabsContent value="lista" className="mt-4">
+        <div className="mt-4">
           {loading ? (
             <div className="text-center py-8">Carregando...</div>
-          ) : (
-            renderListView()
-          )}
-        </TabsContent>
-
-        <TabsContent value="semanal" className="mt-4">
-          {loading ? (
-            <div className="text-center py-8">Carregando...</div>
-          ) : (
-            renderWeekView()
-          )}
-        </TabsContent>
-
-        <TabsContent value="mensal" className="mt-4">
-          {loading ? (
-            <div className="text-center py-8">Carregando...</div>
-          ) : (
-            renderMonthView()
-          )}
-        </TabsContent>
-      </Tabs>
+          ) : viewTab === 'lista' ? renderListView()
+            : viewTab === 'semanal' ? renderWeekView()
+            : renderMonthView()
+          }
+        </div>
+      </div>
     </div>
   );
 }
