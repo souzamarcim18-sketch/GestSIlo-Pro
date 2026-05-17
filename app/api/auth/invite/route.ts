@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
           fazenda_id: adminProfile.fazenda_id,
           convidado_por: adminProfile.nome ?? user.email,
         },
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       },
     });
 

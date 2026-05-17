@@ -67,5 +67,6 @@ export const config = {
     '/login',
     '/register',
     '/auth/:path*',
+    '/auth/callback',
   ],
 };

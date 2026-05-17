@@ -28,7 +28,9 @@
       "Bash(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/set-password\")",
       "Bash(Write-Output \"ok\")",
       "PowerShell(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/confirm\")",
-      "PowerShell(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/set-password\")"
+      "PowerShell(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/set-password\")",
+      "Bash(del \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\auth\\\\confirm\\\\page.tsx\")",
+      "Bash(Remove-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\auth\\\\confirm\\\\page.tsx\")"
     ],
     "additionalDirectories": [
       "\\tmp"

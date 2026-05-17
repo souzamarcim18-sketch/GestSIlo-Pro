@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       type: 'recovery',
       email: emailNorm,
       options: {
-        redirectTo: `${siteUrl}/auth/confirm`,
+        redirectTo: `${siteUrl}/auth/callback`,
       },
     });
 
