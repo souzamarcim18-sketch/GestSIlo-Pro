@@ -30,13 +30,13 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
   const [email, setEmail] = useState('');
   const [perfil, setPerfil] = useState<'Operador' | 'Visualizador'>('Operador');
   const [loading, setLoading] = useState(false);
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [senhaTemporaria, setSenhaTemporaria] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const handleClose = () => {
     setEmail('');
     setPerfil('Operador');
-    setInviteLink(null);
+    setSenhaTemporaria(null);
     setCopied(false);
     onOpenChange(false);
   };
@@ -61,7 +61,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
       }
 
       toast.success(`Convite enviado para ${email.trim()}!`);
-      setInviteLink(data.inviteLink ?? null);
+      setSenhaTemporaria(data.senhaTemporaria ?? null);
     } catch {
       toast.error('Erro de conexão. Tente novamente.');
     } finally {
@@ -70,10 +70,10 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
   };
 
   const handleCopy = async () => {
-    if (!inviteLink) return;
-    await navigator.clipboard.writeText(inviteLink);
+    if (!senhaTemporaria) return;
+    await navigator.clipboard.writeText(senhaTemporaria);
     setCopied(true);
-    toast.success('Link copiado!');
+    toast.success('Senha copiada!');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -90,7 +90,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        {!inviteLink ? (
+        {!senhaTemporaria ? (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label htmlFor="invite-email" className="text-sm">E-mail do convidado</Label>
@@ -146,27 +146,30 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
         ) : (
           <div className="space-y-4 pt-2">
             <div className="rounded-md border border-border bg-muted/40 p-3 space-y-1">
-              <p className="text-sm font-medium">Email enviado com sucesso!</p>
+              <p className="text-sm font-medium">Convite enviado!</p>
               <p className="text-sm text-muted-foreground">
-                O convite foi enviado para <strong>{email}</strong>. Use o link abaixo como backup caso o email demore a chegar.
+                As credenciais de acesso foram enviadas para <strong>{email}</strong>.
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm">Link de convite (backup)</Label>
+              <Label className="text-sm">Senha temporária (backup)</Label>
+              <p className="text-xs text-muted-foreground">
+                Caso o email demore, compartilhe a senha abaixo diretamente com o usuário.
+              </p>
               <div className="flex gap-2">
                 <Input
-                  value={inviteLink}
+                  value={senhaTemporaria ?? ''}
                   readOnly
-                  className="text-xs font-mono bg-muted"
-                  aria-label="Link de convite gerado"
+                  className="text-sm font-mono bg-muted tracking-widest"
+                  aria-label="Senha temporária gerada"
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
                   onClick={handleCopy}
-                  aria-label="Copiar link"
+                  aria-label="Copiar senha"
                 >
                   {copied
                     ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
@@ -180,7 +183,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => { setInviteLink(null); setEmail(''); }}
+                onClick={() => { setSenhaTemporaria(null); setEmail(''); }}
               >
                 Novo convite
               </Button>

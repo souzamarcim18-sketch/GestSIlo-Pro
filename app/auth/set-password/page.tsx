@@ -43,7 +43,10 @@ export default function SetPasswordPage() {
     setLoading(true);
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({
+        password,
+        data: { primeiro_acesso: false },
+      });
 
       if (error) {
         toast.error(error.message ?? 'Erro ao definir senha.');

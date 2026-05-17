@@ -6,14 +6,16 @@ const FROM = 'GestSilo <noreply@gestsilo.com.br>';
 
 export async function sendInviteEmail({
   to,
-  inviteLink,
   perfil,
   convidadoPor,
+  senhaTemporaria,
+  loginUrl,
 }: {
   to: string;
-  inviteLink: string;
   perfil: string;
   convidadoPor: string;
+  senhaTemporaria: string;
+  loginUrl: string;
 }) {
   return resend.emails.send({
     from: FROM,
@@ -27,20 +29,28 @@ export async function sendInviteEmail({
         </div>
         <div style="background:#ffffff;padding:32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
           <h1 style="font-size:20px;color:#111827;margin:0 0 12px">Você foi convidado!</h1>
-          <p style="color:#374151;font-size:15px;margin:0 0 8px;line-height:1.6">
+          <p style="color:#374151;font-size:15px;margin:0 0 16px;line-height:1.6">
             <strong>${convidadoPor}</strong> convidou você para acessar o <strong>GestSilo Pro</strong> como <strong>${perfil}</strong>.
           </p>
-          <p style="color:#374151;font-size:15px;margin:0 0 28px;line-height:1.6">
-            Clique no botão abaixo para criar sua senha e acessar o sistema.
+          <p style="color:#374151;font-size:15px;margin:0 0 8px;line-height:1.6">
+            Use as credenciais abaixo para fazer seu primeiro acesso:
           </p>
-          <a href="${inviteLink}"
+          <div style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin:0 0 24px">
+            <p style="margin:0 0 8px;font-size:14px;color:#374151">
+              <strong>E-mail:</strong> ${to}
+            </p>
+            <p style="margin:0;font-size:14px;color:#374151">
+              <strong>Senha temporária:</strong>
+              <span style="font-family:monospace;font-size:16px;color:#111827;letter-spacing:1px"> ${senhaTemporaria}</span>
+            </p>
+          </div>
+          <p style="color:#374151;font-size:14px;margin:0 0 24px;line-height:1.6">
+            Ao entrar, você será solicitado a criar uma senha pessoal.
+          </p>
+          <a href="${loginUrl}"
              style="display:inline-block;background:#00A651;color:#ffffff;font-weight:600;font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none">
-            Aceitar convite
+            Acessar o GestSilo Pro
           </a>
-          <p style="color:#6b7280;font-size:13px;margin:28px 0 0;line-height:1.6">
-            Se o botão não funcionar, copie e cole este link no navegador:<br/>
-            <a href="${inviteLink}" style="color:#00A651;word-break:break-all">${inviteLink}</a>
-          </p>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0"/>
           <p style="color:#9ca3af;font-size:12px;margin:0">
             © 2026 GestSilo · Todos os direitos reservados

@@ -8,6 +8,15 @@ import { NextRequest, NextResponse } from 'next/server';
 const PERFIS_PERMITIDOS = ['Operador', 'Visualizador'] as const;
 type PerfilConvite = (typeof PERFIS_PERMITIDOS)[number];
 
+function gerarSenhaTemporaria(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let senha = '';
+  for (let i = 0; i < 10; i++) {
+    senha += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return senha;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIP(request);
@@ -98,21 +107,24 @@ export async function POST(request: NextRequest) {
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gestsilo.com.br';
+    const senhaTemporaria = gerarSenhaTemporaria();
 
-    // 1. Criar o usuário diretamente via admin (sem enviar email pelo Supabase)
-    //    email_confirm: true — já confirma o email, não precisa de verificação
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    // Criar usuário com senha temporária e email já confirmado
+    const { error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: emailNorm,
+      password: senhaTemporaria,
       email_confirm: true,
       app_metadata: {
         perfil,
         fazenda_id: adminProfile.fazenda_id,
         convidado_por: adminProfile.nome ?? user.email,
+        primeiro_acesso: true,
       },
       user_metadata: {
         perfil,
         fazenda_id: adminProfile.fazenda_id,
         nome: '',
+        primeiro_acesso: true,
       },
     });
 
@@ -130,43 +142,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Gerar magic link para o primeiro acesso (não usa OTP de convite)
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: emailNorm,
-      options: {
-        redirectTo: `${siteUrl}/auth/callback`,
-      },
+    // Enviar email com credenciais temporárias via Resend
+    const { error: emailError } = await sendInviteEmail({
+      to: emailNorm,
+      perfil,
+      convidadoPor: adminProfile.nome ?? user.email ?? 'Administrador',
+      senhaTemporaria,
+      loginUrl: `${siteUrl}/login`,
     });
 
-    if (linkError) {
-      console.error('[INVITE] Erro ao gerar magic link:', linkError);
-      return NextResponse.json(
-        { error: 'Erro ao gerar link de acesso. Tente novamente.' },
-        { status: 500 }
-      );
-    }
-
-    const actionLink = linkData?.properties?.action_link ?? null;
-
-    // 3. Enviar email via Resend
-    if (actionLink) {
-      const { error: emailError } = await sendInviteEmail({
-        to: emailNorm,
-        inviteLink: actionLink,
-        perfil,
-        convidadoPor: adminProfile.nome ?? user.email ?? 'Administrador',
-      });
-
-      if (emailError) {
-        console.error('[INVITE] Erro ao enviar email via Resend:', emailError);
-      }
+    if (emailError) {
+      console.error('[INVITE] Erro ao enviar email via Resend:', emailError);
     }
 
     return NextResponse.json({
       success: true,
       message: `Convite enviado para ${emailNorm}`,
-      inviteLink: actionLink,
+      // Retorna senha temporária para o admin copiar como backup
+      senhaTemporaria,
     });
 
   } catch (error) {
