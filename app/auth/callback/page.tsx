@@ -4,8 +4,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase';
 
-// Página client-side que captura o hash fragment (#access_token=...) enviado
-// pelo Supabase após processar o token de convite/recovery em supabase.co/auth/v1/verify
 export default function AuthCallbackPage() {
   const router = useRouter();
 
@@ -14,14 +12,10 @@ export default function AuthCallbackPage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        const invitedAt = session.user.app_metadata?.invited_at;
-        const isNewInvite = !!invitedAt;
-
-        if (isNewInvite) {
-          router.replace('/auth/set-password');
-        } else {
-          router.replace('/dashboard');
-        }
+        // Usuário convidado não tem senha — detecta pela ausência de last_sign_in_at
+        // ou pela presença de convidado_por no app_metadata
+        const isConvidado = !!session.user.app_metadata?.convidado_por;
+        router.replace(isConvidado ? '/auth/set-password' : '/dashboard');
       }
 
       if (event === 'PASSWORD_RECOVERY') {
@@ -29,10 +23,9 @@ export default function AuthCallbackPage() {
       }
     });
 
-    // Fallback: se não houve evento em 4s, link inválido
     const timeout = setTimeout(() => {
       router.replace('/login?error=link_invalido');
-    }, 4000);
+    }, 5000);
 
     return () => {
       subscription.unsubscribe();

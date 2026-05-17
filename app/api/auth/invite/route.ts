@@ -10,7 +10,6 @@ type PerfilConvite = (typeof PERFIS_PERMITIDOS)[number];
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Rate limiting por IP
     const ip = getClientIP(request);
     const { success, remaining, resetIn } = await checkRateLimit(inviteRateLimit, ip);
     if (!success) {
@@ -20,7 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Verificar sessão e perfil do solicitante (deve ser Administrador)
     const cookieStore = await cookies();
     const supabaseServer = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,8 +40,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
     }
 
-    // 3. Buscar perfil e fazenda_id do admin via service_role
-    //    (evita bloqueio da RLS profiles_select_mesma_fazenda em contexto SSR)
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json(
         { error: 'Serviço de convite não configurado. Contate o suporte.' },
@@ -81,7 +77,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Validar body
     const body = await request.json();
     const { email, perfil } = body as { email?: string; perfil?: string };
 
@@ -102,39 +97,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Gerar invite link via service_role — o Supabase envia o email automaticamente
-    //    e também retornamos o link para o admin copiar como backup
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'invite',
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gestsilo.com.br';
+
+    // 1. Criar o usuário diretamente via admin (sem enviar email pelo Supabase)
+    //    email_confirm: true — já confirma o email, não precisa de verificação
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: emailNorm,
-      options: {
-        data: {
-          // app_metadata — lido pelo trigger handle_new_user para preencher o profile
-          perfil,
-          fazenda_id: adminProfile.fazenda_id,
-          convidado_por: adminProfile.nome ?? user.email,
-        },
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      email_confirm: true,
+      app_metadata: {
+        perfil,
+        fazenda_id: adminProfile.fazenda_id,
+        convidado_por: adminProfile.nome ?? user.email,
+      },
+      user_metadata: {
+        perfil,
+        fazenda_id: adminProfile.fazenda_id,
+        nome: '',
       },
     });
 
-    if (inviteError) {
-      if (inviteError.message?.includes('already registered')) {
+    if (createError) {
+      if (createError.message?.includes('already been registered') || createError.message?.includes('already registered')) {
         return NextResponse.json(
           { error: 'Este e-mail já possui uma conta cadastrada.' },
           { status: 409 }
         );
       }
-      console.error('[INVITE] Erro ao gerar link:', inviteError);
+      console.error('[INVITE] Erro ao criar usuário:', createError);
       return NextResponse.json(
-        { error: 'Erro ao gerar convite. Tente novamente.' },
+        { error: 'Erro ao criar convite. Tente novamente.' },
         { status: 500 }
       );
     }
 
-    const actionLink = inviteData?.properties?.action_link ?? null;
+    // 2. Gerar magic link para o primeiro acesso (não usa OTP de convite)
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: emailNorm,
+      options: {
+        redirectTo: `${siteUrl}/auth/callback`,
+      },
+    });
 
-    // Enviar email via Resend SDK (bypassa SMTP do Supabase)
+    if (linkError) {
+      console.error('[INVITE] Erro ao gerar magic link:', linkError);
+      return NextResponse.json(
+        { error: 'Erro ao gerar link de acesso. Tente novamente.' },
+        { status: 500 }
+      );
+    }
+
+    const actionLink = linkData?.properties?.action_link ?? null;
+
+    // 3. Enviar email via Resend
     if (actionLink) {
       const { error: emailError } = await sendInviteEmail({
         to: emailNorm,
@@ -145,7 +160,6 @@ export async function POST(request: NextRequest) {
 
       if (emailError) {
         console.error('[INVITE] Erro ao enviar email via Resend:', emailError);
-        // Não falha a requisição — retorna o link para o admin copiar manualmente
       }
     }
 
