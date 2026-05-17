@@ -43,9 +43,9 @@ export default function DashboardLayout({
     }
 
     // Usuário convidado no primeiro acesso — redireciona para troca de senha
-    const isPrimeiroAcesso =
-      user.user_metadata?.primeiro_acesso === true ||
-      user.app_metadata?.primeiro_acesso === true;
+    // Verifica apenas user_metadata (controlado pelo próprio usuário via updateUser)
+    // app_metadata é setado pelo admin e não é limpo pelo updateUser do cliente
+    const isPrimeiroAcesso = user.user_metadata?.primeiro_acesso === true;
     if (isPrimeiroAcesso && pathname !== '/auth/set-password') {
       router.replace('/auth/set-password');
       return;
