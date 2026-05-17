@@ -73,18 +73,19 @@ export default function LoginPage() {
           redirect: 'follow'
         });
 
-        if (response.ok && response.redirected) {
-          authLog('handleLogin: redirect received, navigating...');
-          toast.success('Login realizado com sucesso!');
-          window.location.href = response.url;
-          return;
-        }
+        const data = await response.json();
 
         if (!response.ok) {
-          const data = await response.json();
           setError(data.error || 'Erro ao realizar login.');
           toast.error(data.error || 'Erro ao realizar login.');
           authLog('handleLogin: API error:', data.error);
+          return;
+        }
+
+        if (data.success) {
+          authLog('handleLogin: login ok — aguardando AuthProvider carregar perfil para redirect');
+          toast.success('Login realizado com sucesso!');
+          // O useEffect acima detecta profile carregado e faz redirect por perfil
           return;
         }
       } catch (err: unknown) {

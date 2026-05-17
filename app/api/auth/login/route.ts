@@ -60,16 +60,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Redirect direto para /dashboard com cookies já definidos
-    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url), { status: 303 });
+    // Retorna sucesso — o client (página de login) faz o redirect por perfil
+    const successResponse = NextResponse.json({ success: true });
 
-    // Copie todos os cookies para o response de redirect
+    // Propaga cookies de sessão para o response
     const cookieList = cookieStore.getAll();
     cookieList.forEach(({ name, value }) => {
-      redirectResponse.cookies.set(name, value);
+      successResponse.cookies.set(name, value);
     });
 
-    return redirectResponse;
+    return successResponse;
   } catch (error) {
     console.error('Erro na rota de login:', error);
     return NextResponse.json(
