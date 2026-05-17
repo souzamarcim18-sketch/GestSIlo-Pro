@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { forgotPasswordRateLimit, checkRateLimit, getClientIP } from '@/lib/auth/rate-limit';
+import { sendPasswordResetEmail } from '@/lib/email/resend';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIP(request);
-    const { success, remaining, resetIn } = await checkRateLimit(forgotPasswordRateLimit, ip);
+    const { success, resetIn } = await checkRateLimit(forgotPasswordRateLimit, ip);
 
     if (!success) {
       return NextResponse.json(
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, redirectUrl } = await request.json();
+    const { email } = await request.json();
 
     if (!email) {
       return NextResponse.json(
@@ -27,31 +28,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient(
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json(
+        { error: 'Serviço não configurado. Contate o suporte.' },
+        { status: 500 }
+      );
+    }
+
+    const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || redirectUrl || 'http://localhost:3000';
-    const resetUrl = `${siteUrl}/auth/confirm`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const emailNorm = email.trim().toLowerCase();
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-      redirectTo: resetUrl,
+    // Gera o link de recovery via service role (retorna o link diretamente)
+    const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: emailNorm,
+      options: {
+        redirectTo: `${siteUrl}/auth/confirm`,
+      },
     });
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message || 'Erro ao enviar e-mail de recuperação.' },
-        { status: 400 }
-      );
+      // Não revelar se o email existe ou não (segurança)
+      console.error('[FORGOT-PASSWORD] Erro ao gerar link:', error.message);
+      return NextResponse.json({
+        success: true,
+        message: 'Se este e-mail estiver cadastrado, você receberá as instruções em breve.',
+      });
+    }
+
+    const resetLink = data?.properties?.action_link;
+
+    if (resetLink) {
+      const { error: emailError } = await sendPasswordResetEmail({
+        to: emailNorm,
+        resetLink,
+      });
+
+      if (emailError) {
+        console.error('[FORGOT-PASSWORD] Erro ao enviar email via Resend:', emailError);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'E-mail de recuperação enviado. Verifique sua caixa de entrada.',
+      message: 'Se este e-mail estiver cadastrado, você receberá as instruções em breve.',
     });
   } catch (error) {
-    console.error('Erro na rota de recuperação de senha:', error);
+    console.error('[FORGOT-PASSWORD] Erro inesperado:', error);
     return NextResponse.json(
       { error: 'Erro ao processar recuperação. Tente novamente.' },
       { status: 500 }

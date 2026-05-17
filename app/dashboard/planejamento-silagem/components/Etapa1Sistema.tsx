@@ -74,7 +74,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
                 className="w-4 h-4"
               />
               <Label htmlFor="leite" className="cursor-pointer flex-1 font-medium">
-                🥛 Leite
+                Gado de leite
               </Label>
               <span className="text-sm text-muted-foreground">
                 Vacas leiteiras, novilhas e bezerras
@@ -101,10 +101,10 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
                 className="w-4 h-4"
               />
               <Label htmlFor="corte" className="cursor-pointer flex-1 font-medium">
-                🐄 Corte
+                Gado de Corte
               </Label>
               <span className="text-sm text-muted-foreground">
-                Animais para terminação e reposição
+                Animais para terminação, reposição, cria e recria
               </span>
             </div>
           </div>
@@ -146,7 +146,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
                 className="w-4 h-4"
               />
               <Label htmlFor="pasto" className="cursor-pointer flex-1 font-medium">
-                🌾 Pasto + Suplementação
+                Pasto + Suplementação
               </Label>
             </div>
 
@@ -170,7 +170,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
                 className="w-4 h-4"
               />
               <Label htmlFor="semiconfinado" className="cursor-pointer flex-1 font-medium">
-                🏢 Semi-confinado
+                Semi-confinado
               </Label>
               <span className="text-sm text-muted-foreground">(Referência)</span>
             </div>
@@ -195,7 +195,7 @@ export function Etapa1Sistema({ wizard, onNext, errors }: Etapa1SistemaProps) {
                 className="w-4 h-4"
               />
               <Label htmlFor="confinado" className="cursor-pointer flex-1 font-medium">
-                🏭 Confinado
+                Confinado
               </Label>
             </div>
           </div>

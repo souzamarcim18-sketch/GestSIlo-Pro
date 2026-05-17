@@ -1,9 +1,8 @@
-'use server';
-
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { inviteRateLimit, checkRateLimit, getClientIP } from '@/lib/auth/rate-limit';
+import { sendInviteEmail } from '@/lib/email/resend';
 import { NextRequest, NextResponse } from 'next/server';
 
 const PERFIS_PERMITIDOS = ['Operador', 'Visualizador'] as const;
@@ -120,7 +119,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (inviteError) {
-      // Usuário já registrado: email já em uso
       if (inviteError.message?.includes('already registered')) {
         return NextResponse.json(
           { error: 'Este e-mail já possui uma conta cadastrada.' },
@@ -134,8 +132,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // O link de convite está em inviteData.properties.action_link
     const actionLink = inviteData?.properties?.action_link ?? null;
+
+    // Enviar email via Resend SDK (bypassa SMTP do Supabase)
+    if (actionLink) {
+      const { error: emailError } = await sendInviteEmail({
+        to: emailNorm,
+        inviteLink: actionLink,
+        perfil,
+        convidadoPor: adminProfile.nome ?? user.email ?? 'Administrador',
+      });
+
+      if (emailError) {
+        console.error('[INVITE] Erro ao enviar email via Resend:', emailError);
+        // Não falha a requisição — retorna o link para o admin copiar manualmente
+      }
+    }
 
     return NextResponse.json({
       success: true,
