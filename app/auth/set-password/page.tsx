@@ -54,11 +54,14 @@ export default function SetPasswordPage() {
       }
 
       // Força refresh do JWT para que primeiro_acesso: false seja refletido imediatamente
-      await supabase.auth.refreshSession();
+      const { data: { session } } = await supabase.auth.refreshSession();
 
       toast.success('Senha definida com sucesso! Bem-vindo ao GestSilo Pro.');
-      // Usa window.location para forçar recarga completa do AuthProvider
-      window.location.href = '/dashboard';
+
+      // Redireciona por perfil
+      const perfil = session?.user?.user_metadata?.perfil || session?.user?.app_metadata?.perfil;
+      const destino = perfil === 'Operador' ? '/operador' : '/dashboard';
+      window.location.href = destino;
     } catch {
       toast.error('Erro inesperado. Tente novamente.');
     } finally {
