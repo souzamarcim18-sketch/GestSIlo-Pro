@@ -99,7 +99,7 @@ export function FrotaRelatorios({
       .map((u) => ({
         tipo: 'Uso',
         data: u.data,
-        descricao: u.atividade ?? u.tipo_operacao ?? 'Operação',
+        descricao: u.tipo_operacao ?? 'Operação',
         valor: '—',
         horas: u.horas?.toFixed(1) ?? '—',
       }));

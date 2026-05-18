@@ -94,9 +94,7 @@ export function FrotaDiarioBordo({
                 <TableRow>
                   <TableHead scope="col" className="text-sm font-semibold">Data</TableHead>
                   <TableHead scope="col" className="text-sm font-semibold">Máquina</TableHead>
-                  <TableHead scope="col" className="text-sm font-semibold">Operador</TableHead>
-                  <TableHead scope="col" className="text-sm font-semibold">Atividade</TableHead>
-                  <TableHead scope="col" className="text-sm font-semibold">Tipo</TableHead>
+                  <TableHead scope="col" className="text-sm font-semibold">Tipo de Operação</TableHead>
                   <TableHead scope="col" className="text-sm font-semibold">Horas</TableHead>
                   <TableHead scope="col" className="text-sm font-semibold">KM</TableHead>
                   <TableHead scope="col" className="text-sm font-semibold">Área (ha)</TableHead>
@@ -112,8 +110,6 @@ export function FrotaDiarioBordo({
                     <TableCell className="font-medium">
                       {maquinas.find((m) => m.id === uso.maquina_id)?.nome ?? 'Máquina removida'}
                     </TableCell>
-                    <TableCell>{uso.operador ?? '—'}</TableCell>
-                    <TableCell>{uso.atividade ?? '—'}</TableCell>
                     <TableCell>{uso.tipo_operacao ?? '—'}</TableCell>
                     <TableCell>{uso.horas != null ? `${uso.horas}h` : '—'}</TableCell>
                     <TableCell>{uso.km != null ? `${uso.km}km` : '—'}</TableCell>
@@ -135,7 +131,7 @@ export function FrotaDiarioBordo({
                 {usos.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={7}
                       className="text-center py-10 text-muted-foreground"
                       role="status"
                       aria-live="polite"

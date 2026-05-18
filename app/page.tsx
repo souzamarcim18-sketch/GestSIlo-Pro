@@ -129,7 +129,7 @@ export default function LandingPage() {
                     borderColor: 'rgba(0,166,81,0.3)',
                   }}
                 >
-                  Plataforma feita para o pecuarista e agricultor brasileiro
+                  Uma plataforma feita para o pecuarista e agricultor brasileiro
                 </span>
               </div>
 

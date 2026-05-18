@@ -1056,7 +1056,7 @@ const usoMaquinas = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('uso_maquinas')
-      .select('id, maquina_id, data, operador, atividade, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
+      .select('id, maquina_id, data, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
       .eq('maquina_id', maquinaId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1068,7 +1068,7 @@ const usoMaquinas = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('uso_maquinas')
-      .select('id, maquina_id, data, operador, atividade, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
+      .select('id, maquina_id, data, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
       .in('maquina_id', maquinaIds)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -1089,7 +1089,7 @@ const usoMaquinas = {
     const { data, error } = await supabase
       .from('uso_maquinas')
       .insert(payload)
-      .select('id, maquina_id, data, operador, atividade, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
+      .select('id, maquina_id, data, horas, km, horimetro_inicio, horimetro_fim, implemento_id, talhao_id, tipo_operacao, area_ha, origem')
       .single();
     if (error) throw error;
     return data as UsoMaquina;

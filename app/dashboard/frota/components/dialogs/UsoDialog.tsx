@@ -34,8 +34,6 @@ const usoSchema = z
   .object({
     maquina_id: z.string().min(1, 'Selecione uma máquina'),
     data: z.string().min(1, 'Data é obrigatória'),
-    operador: z.string().optional(),
-    atividade: z.string().optional(),
     tipo_operacao: z.string().optional(),
     // Horímetro: se ambos preenchidos, horas é calculado automaticamente.
     // Se ambos vazios, aceita entrada manual de horas.
@@ -145,8 +143,6 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
       await q.usoMaquinas.create({
         maquina_id: data.maquina_id,
         data: data.data,
-        operador: data.operador || null,
-        atividade: data.atividade || null,
         tipo_operacao: data.tipo_operacao || null,
         horimetro_inicio: data.horimetro_inicio ?? null,
         horimetro_fim: data.horimetro_fim ?? null,
@@ -214,18 +210,6 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
               {errors.data && (
                 <p className="text-sm text-destructive">{errors.data.message}</p>
               )}
-            </div>
-          </div>
-
-          {/* Operador + Atividade */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="uso-operador">Operador</Label>
-              <Input id="uso-operador" placeholder="Nome do operador" {...register('operador')} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="uso-atividade">Atividade</Label>
-              <Input id="uso-atividade" placeholder="Ex: Plantio de milho" {...register('atividade')} />
             </div>
           </div>
 

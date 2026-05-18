@@ -139,11 +139,8 @@ export type UsoMaquina = {
   id: string;
   maquina_id: string;
   data: string;
-  operador: string | null;
-  atividade: string | null;
   horas: number | null;
   km: number | null;
-  // Campos adicionados na migration 20260423_frota_expansao (opcionais para compatibilidade)
   horimetro_inicio?: number | null;
   horimetro_fim?: number | null;
   implemento_id?: string | null;
