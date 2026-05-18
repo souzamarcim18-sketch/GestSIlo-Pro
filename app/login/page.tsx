@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [timeout, setTimeout] = useState(false);
+  const [loginAttempted, setLoginAttempted] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -73,31 +74,36 @@ export default function LoginPage() {
       setLoading(true);
       setError('');
       setTimeout(false);
+      setLoginAttempted(true);
 
       try {
-        authLog('handleLogin: starting POST /api/auth/login');
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-          redirect: 'follow'
+        authLog('handleLogin: signInWithPassword');
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          setError(data.error || 'Erro ao realizar login.');
-          toast.error(data.error || 'Erro ao realizar login.');
-          authLog('handleLogin: API error:', data.error);
+        if (signInError) {
+          const msg = signInError.message?.includes('Invalid login credentials')
+            ? 'E-mail ou senha inválidos.'
+            : signInError.message || 'Erro ao realizar login.';
+          setError(msg);
+          toast.error(msg);
+          authLog('handleLogin: signIn error:', signInError.message);
           return;
         }
 
-        if (data.success) {
-          authLog('handleLogin: login ok — aguardando AuthProvider carregar perfil para redirect');
-          toast.success('Login realizado com sucesso!');
-          // O useEffect acima detecta profile carregado e faz redirect por perfil
+        // Primeiro acesso: redireciona imediatamente sem esperar o AuthProvider
+        const isPrimeiroAcesso = data.user?.user_metadata?.primeiro_acesso === true;
+        if (isPrimeiroAcesso) {
+          authLog('handleLogin: primeiro_acesso — redirect /auth/set-password');
+          router.push('/auth/set-password');
           return;
         }
+
+        authLog('handleLogin: login ok — aguardando AuthProvider carregar perfil para redirect');
+        toast.success('Login realizado com sucesso!');
+        // O useEffect acima detecta profile carregado e faz redirect por perfil
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
         authLog('handleLogin: caught error:', errorMessage);
@@ -107,7 +113,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     },
-    [email, password]
+    [email, password, router]
   );
 
   return (
@@ -302,7 +308,7 @@ export default function LoginPage() {
               </div>
 
               {/* Erro */}
-              {(error || profileError || timeout) && (
+              {(error || (loginAttempted && profileError) || (loginAttempted && timeout)) && (
                 <div
                   id="form-error"
                   role="alert"
