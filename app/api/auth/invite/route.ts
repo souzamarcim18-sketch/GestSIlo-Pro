@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     const senhaTemporaria = gerarSenhaTemporaria();
 
     // Criar usuário com senha temporária e email já confirmado
-    const { error: createError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: emailNorm,
       password: senhaTemporaria,
       email_confirm: true,
@@ -140,6 +140,24 @@ export async function POST(request: NextRequest) {
         { error: 'Erro ao criar convite. Tente novamente.' },
         { status: 500 }
       );
+    }
+
+    // Criar profile explicitamente — o trigger handle_new_user pode não disparar
+    // para usuários criados via admin.createUser
+    if (newUserData?.user) {
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .upsert({
+          id: newUserData.user.id,
+          email: emailNorm,
+          nome: '',
+          perfil,
+          fazenda_id: adminProfile.fazenda_id,
+        }, { onConflict: 'id' });
+
+      if (profileError) {
+        console.error('[INVITE] Erro ao criar profile:', profileError);
+      }
     }
 
     // Enviar email com credenciais temporárias via Resend
