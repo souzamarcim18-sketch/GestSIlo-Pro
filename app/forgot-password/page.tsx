@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Home, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
+import { AuthPageWrapper } from '@/components/auth/AuthPageWrapper';
+import { AuthCard } from '@/components/auth/AuthCard';
+import { AuthLabel } from '@/components/auth/AuthLabel';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -43,29 +46,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-metal">
-      {/* Grid pattern verde decorativo */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-          <defs>
-            <pattern id="grid-forgot" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--brand-green-vivid)" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid-forgot)" />
-        </svg>
-      </div>
-
-      {/* Botão Voltar ao Início */}
-      <button
-        onClick={() => router.push('/')}
-        aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-card hover:text-brand-primary transition-all shadow-md cursor-pointer"
-      >
-        <Home className="w-4 h-4" aria-hidden="true" />
-        <span>Voltar ao Início</span>
-      </button>
-
+    <AuthPageWrapper gridId="grid-forgot" showBackButton={true}>
       {/* Conteúdo principal */}
       <div className="w-full max-w-md relative z-10">
 
@@ -82,7 +63,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Card principal */}
-        <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-border/60 p-8">
+        <AuthCard>
 
           {/* Voltar ao login */}
           <button
@@ -94,7 +75,7 @@ export default function ForgotPasswordPage() {
           </button>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-2 text-brand-deep">
+            <h1 className="text-2xl font-black tracking-tight text-foreground mb-2">
               Recuperar senha
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -103,7 +84,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           {sent ? (
-            <div className="p-4 rounded-xl text-sm border bg-status-success/10 border-status-success/30 text-brand-deep">
+            <div className="p-4 bg-green-dim border border-green-border rounded-[8px] text-foreground text-sm">
               <p className="font-semibold mb-1">E-mail enviado!</p>
               <p>
                 Verifique sua caixa de entrada em <strong>{email}</strong> e siga
@@ -113,12 +94,7 @@ export default function ForgotPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-semibold mb-2 text-foreground"
-                >
-                  E-mail
-                </label>
+                <AuthLabel htmlFor="email">E-mail</AuthLabel>
                 <input
                   id="email"
                   type="email"
@@ -177,7 +153,7 @@ export default function ForgotPasswordPage() {
               </button>
             </form>
           )}
-        </div>
+        </AuthCard>
 
         {/* Footer */}
         <footer className="mt-8 text-center">
@@ -186,6 +162,6 @@ export default function ForgotPasswordPage() {
           </p>
         </footer>
       </div>
-    </div>
+    </AuthPageWrapper>
   );
 }

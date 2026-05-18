@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Home } from 'lucide-react';
+import { AuthPageWrapper } from '@/components/auth/AuthPageWrapper';
+import { AuthCard } from '@/components/auth/AuthCard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authLog, authError } from '@/lib/auth/logger';
@@ -60,38 +61,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 relative overflow-hidden bg-metal">
-      {/* Grid pattern verde decorativo */}
-      <div
-        className="absolute inset-0 opacity-15 pointer-events-none"
-        aria-hidden="true"
-      >
-        <svg
-          width="100%"
-          height="100%"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <defs>
-            <pattern id="grid-register" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--brand-green-vivid)" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid-register)" />
-        </svg>
-      </div>
-
-      {/* Botão Voltar */}
-      <button
-        onClick={() => router.push('/')}
-        aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-card hover:text-brand-primary transition-all shadow-md cursor-pointer"
-      >
-        <Home className="w-4 h-4" aria-hidden="true" />
-        <span>Voltar ao Início</span>
-      </button>
-
+    <AuthPageWrapper gridId="grid-register" showBackButton={true}>
       {/* Conteúdo principal */}
       <main
         id="main-content"
@@ -110,10 +80,10 @@ export default function RegisterPage() {
         </div>
 
         {/* Card principal */}
-        <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-border/60 p-8">
+        <AuthCard>
 
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-brand-deep">
+            <h1 className="text-2xl font-black tracking-tight text-foreground">
               Criar Conta
             </h1>
             <p className="text-sm mt-1 text-muted-foreground">
@@ -125,7 +95,7 @@ export default function RegisterPage() {
 
             {/* Nome */}
             <div className="space-y-2">
-              <Label htmlFor="nome" className="font-semibold text-foreground">
+              <Label htmlFor="nome" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
                 Nome Completo
               </Label>
               <Input
@@ -143,7 +113,7 @@ export default function RegisterPage() {
 
             {/* E-mail */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-semibold text-foreground">
+              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
                 E-mail
               </Label>
               <Input
@@ -161,7 +131,7 @@ export default function RegisterPage() {
 
             {/* Senha */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-semibold text-foreground">
+              <Label htmlFor="password" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
                 Senha
               </Label>
               <Input
@@ -180,7 +150,7 @@ export default function RegisterPage() {
 
             {/* Perfil */}
             <div className="space-y-2">
-              <Label htmlFor="perfil" className="font-semibold text-foreground">
+              <Label htmlFor="perfil" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
                 Perfil de Acesso
               </Label>
               <Select
@@ -199,9 +169,9 @@ export default function RegisterPage() {
                   <SelectItem value="Operador">Operador</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground">
-                <strong>Administrador:</strong> acesso completo ao dashboard.{' '}
-                <strong>Operador:</strong> acesso restrito à tela de operações.
+              <p className="text-xs text-muted-foreground">
+                <strong className="font-bold text-foreground">Administrador:</strong> acesso completo ao dashboard.{' '}
+                <strong className="font-bold text-foreground">Operador:</strong> acesso restrito à tela de operações.
               </p>
             </div>
 
@@ -258,7 +228,7 @@ export default function RegisterPage() {
               </Link>
             </p>
           </form>
-        </div>
+        </AuthCard>
 
         {/* Footer */}
         <footer className="mt-8 text-center">
@@ -267,6 +237,6 @@ export default function RegisterPage() {
           </p>
         </footer>
       </main>
-    </div>
+    </AuthPageWrapper>
   );
 }

@@ -7,6 +7,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Home } from 'lucide-react';
+import { AuthCard } from '@/components/auth/AuthCard';
+import { AuthLabel } from '@/components/auth/AuthLabel';
 import { AUTH_PROFILE_FETCH_TIMEOUT_MS } from '@/lib/auth/constants';
 import { authLog } from '@/lib/auth/logger';
 
@@ -124,7 +126,7 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="min-h-screen flex relative bg-metal">
+    <div className="min-h-screen flex relative bg-background">
 
       {/* Botão Voltar */}
       <button
@@ -139,6 +141,7 @@ export default function LoginPage() {
       {/* ===== LADO ESQUERDO — Hero ===== */}
       <div
         className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-16 overflow-hidden"
+        style={{ background: 'var(--sidebar)' }}
         aria-hidden="true"
       >
         {/* Grid pattern verde decorativo */}
@@ -206,9 +209,9 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-border/60 p-8">
+          <AuthCard>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2 text-brand-deep">
+              <h1 className="text-2xl font-black tracking-tight text-foreground mb-2">
                 Bem-vindo de volta
               </h1>
               <p className="text-base text-muted-foreground">
@@ -220,12 +223,7 @@ export default function LoginPage() {
 
               {/* E-mail */}
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-semibold mb-2 text-foreground"
-                >
-                  E-mail
-                </label>
+                <AuthLabel htmlFor="email">E-mail</AuthLabel>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg
@@ -248,7 +246,7 @@ export default function LoginPage() {
                     required
                     autoComplete="email"
                     aria-describedby={error ? 'form-error' : undefined}
-                    className="w-full pl-12 pr-4 py-4 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
+                    className="w-full pl-12 pr-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
                   />
                 </div>
               </div>
@@ -256,12 +254,7 @@ export default function LoginPage() {
               {/* Senha */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-semibold text-foreground"
-                  >
-                    Senha
-                  </label>
+                  <AuthLabel htmlFor="password">Senha</AuthLabel>
                   <a
                     href="/forgot-password"
                     className="text-sm font-semibold text-brand-primary hover:opacity-80 transition-opacity"
@@ -291,7 +284,7 @@ export default function LoginPage() {
                     required
                     autoComplete="current-password"
                     aria-describedby={error ? 'form-error' : undefined}
-                    className="w-full pl-12 pr-12 py-4 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
+                    className="w-full pl-12 pr-12 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
                   />
                   <button
                     type="button"
@@ -320,7 +313,7 @@ export default function LoginPage() {
                   id="form-error"
                   role="alert"
                   aria-live="assertive"
-                  className="flex items-center gap-3 p-4 bg-status-danger/10 border border-status-danger/30 rounded-xl"
+                  className="flex items-center gap-3 p-4 bg-red-dim border border-red-border rounded-xl"
                 >
                   <svg
                     className="w-5 h-5 text-status-danger flex-shrink-0"
@@ -400,7 +393,7 @@ export default function LoginPage() {
                 </a>
               </p>
             </div>
-          </div>
+          </AuthCard>
 
           {/* Footer */}
           <footer className="mt-8 text-center">

@@ -4,8 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Home } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
+import { AuthLoadingScreen } from '@/components/auth/AuthLoadingScreen';
+import { AuthPageWrapper } from '@/components/auth/AuthPageWrapper';
+import { AuthCard } from '@/components/auth/AuthCard';
+import { AuthLabel } from '@/components/auth/AuthLabel';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -57,39 +61,11 @@ export default function ResetPasswordPage() {
   };
 
   if (!sessionReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-metal">
-        <p className="font-semibold text-brand-deep">
-          Validando link...
-        </p>
-      </div>
-    );
+    return <AuthLoadingScreen message="Validando link..." />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-metal">
-      {/* Grid decorativo */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid-reset" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--brand-green-vivid)" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid-reset)" />
-        </svg>
-      </div>
-
-      {/* Botão Voltar */}
-      <button
-        onClick={() => router.push('/')}
-        aria-label="Voltar para a página inicial"
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-card hover:text-brand-primary transition-all shadow-md cursor-pointer"
-      >
-        <Home className="w-4 h-4" aria-hidden="true" />
-        <span>Voltar ao Início</span>
-      </button>
-
+    <AuthPageWrapper gridId="grid-reset">
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="flex justify-center mb-8">
@@ -104,9 +80,17 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-border/60 p-8">
+        <AuthCard>
+          <button
+            onClick={() => router.push('/login')}
+            className="flex items-center gap-2 text-sm font-medium mb-6 text-muted-foreground hover:text-brand-primary transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            Voltar ao login
+          </button>
+
           <div className="mb-6">
-            <h1 className="text-2xl font-bold mb-2 text-brand-deep">
+            <h1 className="text-2xl font-black tracking-tight text-foreground mb-2">
               Redefinir senha
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -116,12 +100,7 @@ export default function ResetPasswordPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-semibold mb-2 text-foreground"
-              >
-                Nova senha
-              </label>
+              <AuthLabel htmlFor="password">Nova senha</AuthLabel>
               <input
                 id="password"
                 type="password"
@@ -136,12 +115,7 @@ export default function ResetPasswordPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-semibold mb-2 text-foreground"
-              >
-                Confirmar nova senha
-              </label>
+              <AuthLabel htmlFor="confirmPassword">Confirmar nova senha</AuthLabel>
               <input
                 id="confirmPassword"
                 type="password"
@@ -170,7 +144,7 @@ export default function ResetPasswordPage() {
               {loading ? 'Salvando...' : 'Redefinir senha'}
             </button>
           </form>
-        </div>
+        </AuthCard>
 
         <footer className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
@@ -178,6 +152,6 @@ export default function ResetPasswordPage() {
           </p>
         </footer>
       </div>
-    </div>
+    </AuthPageWrapper>
   );
 }

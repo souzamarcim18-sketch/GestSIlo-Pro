@@ -18,6 +18,10 @@ import {
   Instagram,
   Mail,
   Sprout,
+  Zap,
+  MapPin,
+  TrendingDown,
+  Shield,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -57,7 +61,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background flex flex-col">
 
       {/* ===== NAVBAR ===== */}
-      <header className="bg-metal fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-border/60 shadow-sm">
+      <header
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-border shadow-sm"
+        style={{ background: 'rgba(28,28,28,0.92)' }}
+      >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
@@ -70,16 +77,16 @@ export default function LandingPage() {
             />
           </div>
 
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-foreground">
-            <a href="#funcionalidades" className="hover:text-brand-primary transition-colors">Funcionalidades</a>
-            <a href="#beneficios" className="hover:text-brand-primary transition-colors">Benefícios</a>
-            <a href="#planos" className="hover:text-brand-primary transition-colors">Planos</a>
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold">
+            <a href="#funcionalidades" className="text-muted-foreground hover:text-brand-primary transition-colors">Funcionalidades</a>
+            <a href="#beneficios" className="text-muted-foreground hover:text-brand-primary transition-colors">Benefícios</a>
+            <a href="#planos" className="text-muted-foreground hover:text-brand-primary transition-colors">Planos</a>
           </nav>
 
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => router.push('/login')}
-              className="hidden md:block text-sm font-semibold text-foreground hover:text-brand-primary transition-colors"
+              className="hidden md:block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
             >
               Entrar
             </button>
@@ -95,7 +102,7 @@ export default function LandingPage() {
       </header>
 
       {/* ===== HERO ===== */}
-      <section className="bg-metal relative min-h-[80vh] flex items-center overflow-hidden pt-20">
+      <section className="bg-background relative min-h-[80vh] flex items-center overflow-hidden pt-20">
         {/* Grid pattern */}
         <div className="absolute left-0 top-0 h-full w-full z-0 opacity-10">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -154,7 +161,7 @@ export default function LandingPage() {
                 <span className="text-foreground/85">da sua propriedade</span>
               </h1>
 
-              <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-2xl text-foreground/80">
+              <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-2xl text-muted-foreground">
                 Sua propriedade merece mais do que cadernos e planilhas.
                 Controle sua silagem, suas lavouras, sua frota e seus insumos em uma plataforma feita para o
                 produtor brasileiro — do campo à gestão, com poucos cliques.
@@ -190,40 +197,41 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FUNCIONALIDADES ===== */}
-      <section id="funcionalidades" className="bg-metal py-24 px-6">
+      <section id="funcionalidades" className="bg-bg2 py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-brand-deep">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
               O sistema que a sua fazenda precisa
             </h2>
-            <p className="text-lg max-w-xl mx-auto text-foreground">
+            <p className="text-lg max-w-xl mx-auto text-muted-foreground">
               Uma plataforma completa para gestão. Do campo à administração.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Tenha controle total das suas silagens em tempo real — acompanhe entradas, saídas, volumes armazenados e a qualidade de cada lote, evitando perdas e garantindo forragem de alto valor nutricional para o seu rebanho.', border: '#BBF7D0', iconColor: '#BBF7D0' },
-              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.', border: '#BFDBFE', iconColor: '#BFDBFE' },
-              { Icon: Tractor, title: 'Gestão de Máquinas e Implementos', desc: 'Controle as manutenções, os abastecimentos, as horas trabalhadas e os custos operacionais.', border: '#FED7AA', iconColor: '#FED7AA' },
-              { Icon: Calculator, title: 'Calculadoras', desc: 'Tenha nas suas mãos calculadoras que te ajudarão a tomar decisões em relação à compras de fertilizantes e calcário.', border: '#E9D5FF', iconColor: '#E9D5FF' },
-              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'Acompanhe as receitas, as despesas, da sua propriedade com formatação em BRL e cálculos automáticos.', border: '#FEF08A', iconColor: '#FEF08A' },
-              { Icon: NotebookPen, title: 'Planejamento de silagens', desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.', border: '#FECACA', iconColor: '#FECACA' },
-              { Icon: Package, title: 'Gestão de Insumos', desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.', border: '#A5F3FC', iconColor: '#A5F3FC' },
-              { Icon: BarChart3, title: 'Relatórios & Simulador', desc: 'Gere relatórios consolidados por período e simule cenários agrícolas para apoiar suas decisões estratégicas.', border: '#DDD6FE', iconColor: '#DDD6FE' },
+              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Tenha controle total das suas silagens em tempo real — acompanhe entradas, saídas, volumes armazenados e a qualidade de cada lote, evitando perdas e garantindo forragem de alto valor nutricional para o seu rebanho.', iconColor: '#BBF7D0' },
+              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.', iconColor: '#BFDBFE' },
+              { Icon: Tractor, title: 'Gestão de Máquinas e Implementos', desc: 'Controle as manutenções, os abastecimentos, as horas trabalhadas e os custos operacionais.', iconColor: '#FED7AA' },
+              { Icon: Calculator, title: 'Calculadoras', desc: 'Tenha nas suas mãos calculadoras que te ajudarão a tomar decisões em relação à compras de fertilizantes e calcário.', iconColor: '#E9D5FF' },
+              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'Acompanhe as receitas, as despesas, da sua propriedade com formatação em BRL e cálculos automáticos.', iconColor: '#FEF08A' },
+              { Icon: NotebookPen, title: 'Planejamento de silagens', desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.', iconColor: '#FECACA' },
+              { Icon: Package, title: 'Gestão de Insumos', desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.', iconColor: '#A5F3FC' },
+              { Icon: BarChart3, title: 'Relatórios & Simulador', desc: 'Gere relatórios consolidados por período e simule cenários agrícolas para apoiar suas decisões estratégicas.', iconColor: '#DDD6FE' },
             ].map((item) => (
               <div
                 key={item.title}
-                className="rounded-2xl p-6 border-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-default bg-brand-deep"
-                style={{ borderColor: item.border }}
+                className="bg-surface border border-border2 rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-8 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
               >
+                {/* Shimmer line */}
+                <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
                 <div className="mb-4">
                   <item.Icon size={40} strokeWidth={1.8} color={item.iconColor} />
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2">
+                <h3 className="font-bold text-foreground text-lg mb-2">
                   {item.title}
                 </h3>
-                <p className="text-gray-300 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {item.desc}
                 </p>
               </div>
@@ -233,35 +241,29 @@ export default function LandingPage() {
       </section>
 
       {/* ===== BENEFÍCIOS ===== */}
-      <section id="beneficios" className="bg-metal py-24 px-6">
+      <section id="beneficios" className="bg-background py-24 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <span className="text-sm font-bold uppercase tracking-widest mb-4 block text-brand-primary">
+            <span className="text-xs font-bold uppercase tracking-widest mb-4 block text-brand-primary">
               Por que utilizar o GestSilo na sua propriedade?
             </span>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight text-brand-deep">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight text-foreground">
               Decisões mais inteligentes,<br />resultado no campo!
             </h2>
             <div className="space-y-5">
               {[
-                { icon: '⚡', title: 'Agilidade', desc: 'Acesse qualquer informação em segundos, do celular ou do computador.' },
-                { icon: '📍', title: 'Rastreabilidade', desc: 'Histórico completo de cada silo, de cada lavoura e das máquinas da sua fazenda.' },
-                { icon: '💰', title: 'Gestão de custos', desc: 'Identifique os gargalos e reduza os desperdícios, através de dados precisos.' },
-                { icon: '🔒', title: 'Segurança', desc: 'Seus dados protegidos com criptografia e backup automático.' },
+                { Icon: Zap, title: 'Agilidade', desc: 'Acesse qualquer informação em segundos, do celular ou do computador.' },
+                { Icon: MapPin, title: 'Rastreabilidade', desc: 'Histórico completo de cada silo, de cada lavoura e das máquinas da sua fazenda.' },
+                { Icon: TrendingDown, title: 'Gestão de custos', desc: 'Identifique os gargalos e reduza os desperdícios, através de dados precisos.' },
+                { Icon: Shield, title: 'Segurança', desc: 'Seus dados protegidos com criptografia e backup automático.' },
               ].map((b) => (
                 <div key={b.title} className="flex items-start gap-4">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-sm border"
-                    style={{
-                      background: 'rgba(0,166,81,0.15)',
-                      borderColor: 'rgba(0,166,81,0.25)',
-                    }}
-                  >
-                    {b.icon}
+                  <div className="bg-green-dim border border-green-border rounded-[8px] w-12 h-12 flex items-center justify-center flex-shrink-0">
+                    <b.Icon className="w-5 h-5 text-brand-primary" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1 text-brand-deep">{b.title}</h4>
-                    <p className="text-sm text-foreground/80">{b.desc}</p>
+                    <h4 className="font-bold mb-1 text-foreground">{b.title}</h4>
+                    <p className="text-sm text-muted-foreground">{b.desc}</p>
                   </div>
                 </div>
               ))}
@@ -300,24 +302,18 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div
-              className="absolute -top-4 -right-4 text-sm font-bold px-4 py-2 rounded-full shadow-lg"
-              style={{ background: '#FEF08A', color: '#854d0e' }}
-            >
-              🏆 #1 no agro
-            </div>
           </div>
         </div>
       </section>
 
       {/* ===== PLANOS ===== */}
-      <section id="planos" className="bg-metal py-24 px-6">
+      <section id="planos" className="bg-bg2 py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-brand-deep">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
               O plano certo para cada fazenda!
             </h2>
-            <p className="text-lg text-foreground">
+            <p className="text-lg text-muted-foreground">
               Grátis para começar. Sem surpresa e sem limites para crescer!
             </p>
           </div>
@@ -354,8 +350,8 @@ export default function LandingPage() {
             ].map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-2xl p-8 border-2 relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
-                  plan.highlight ? 'shadow-2xl scale-105' : 'bg-card border-border'
+                className={`rounded-[13px] p-8 border relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+                  plan.highlight ? 'shadow-2xl scale-105' : 'bg-surface border-border2'
                 }`}
                 style={
                   plan.highlight
@@ -365,20 +361,20 @@ export default function LandingPage() {
               >
                 {plan.highlight && (
                   <div
-                    className="absolute -top-4 left-1/2 -translate-x-1/2 text-sm font-bold px-4 py-1.5 rounded-full shadow"
+                    className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow whitespace-nowrap"
                     style={{ background: '#FEF08A', color: '#854d0e' }}
                   >
-                    ⭐ Mais popular
+                    Mais popular
                   </div>
                 )}
-                <h3 className={`font-bold text-xl mb-1 ${plan.highlight ? 'text-white' : 'text-brand-deep'}`}>
+                <h3 className={`font-bold text-xl mb-1 ${plan.highlight ? 'text-white' : 'text-foreground'}`}>
                   {plan.name}
                 </h3>
                 <p className={`text-sm mb-4 ${plan.highlight ? 'text-white/85' : 'text-muted-foreground'}`}>
                   {plan.desc}
                 </p>
                 <div className="mb-6">
-                  <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-brand-deep'}`}>
+                  <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-foreground'}`}>
                     {plan.price}
                   </span>
                   {plan.period && (
@@ -398,7 +394,7 @@ export default function LandingPage() {
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
                       </svg>
-                      <span className={plan.highlight ? 'text-white/95' : 'text-foreground/85'}>
+                      <span className={plan.highlight ? 'text-white/95' : 'text-muted-foreground'}>
                         {f}
                       </span>
                     </li>
@@ -422,7 +418,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== CTA FINAL ===== */}
-      <section className="bg-metal py-24 px-6 text-center relative overflow-hidden">
+      <section className="bg-background py-24 px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -435,10 +431,10 @@ export default function LandingPage() {
         </div>
 
         <div className="relative z-10 max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-brand-deep">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-foreground">
             Pronto para gerenciar<br />suas silagens e sua propriedade?
           </h2>
-          <p className="text-lg mb-10 text-foreground/80">
+          <p className="text-lg mb-10 text-muted-foreground">
             Mais controle. Menos perdas. Mais resultados para seu rebanho e para sua propriedade.
           </p>
           <button
@@ -455,7 +451,10 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-metal py-12 px-6 border-t border-border/60">
+      <footer
+        className="py-12 px-6 border-t border-border"
+        style={{ background: 'var(--sidebar)' }}
+      >
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
 
           {/* COLUNA 1 — Logo + copyright */}
@@ -467,14 +466,14 @@ export default function LandingPage() {
               height={50}
               className="object-contain"
             />
-            <span className="text-sm font-medium text-foreground">
+            <span className="text-sm font-medium text-muted-foreground">
               © 2026 · Todos os direitos reservados
             </span>
           </div>
 
           {/* COLUNA 2 — Contatos */}
           <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-border md:pl-8">
-            <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-brand-deep">
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
               Contatos
             </h4>
 
@@ -482,7 +481,7 @@ export default function LandingPage() {
               href="https://wa.me/5531990875346"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-brand-primary transition-colors"
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
               aria-label="WhatsApp"
             >
               <Phone size={16} />
@@ -493,7 +492,7 @@ export default function LandingPage() {
               href="https://instagram.com/gestsilo"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-brand-primary transition-colors"
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
               aria-label="Instagram"
             >
               <Instagram size={16} />
@@ -502,7 +501,7 @@ export default function LandingPage() {
 
             <a
               href="mailto:gestsilo.app@gmail.com"
-              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-brand-primary transition-colors"
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
               aria-label="E-mail"
             >
               <Mail size={16} />
@@ -512,14 +511,14 @@ export default function LandingPage() {
 
           {/* COLUNA 3 — Links institucionais */}
           <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-border md:pl-8">
-            <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-brand-deep">
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
               Institucional
             </h4>
 
-            <a href="#" className="text-sm font-medium text-foreground hover:text-brand-primary transition-colors">
+            <a href="/privacidade" className="text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors">
               Privacidade
             </a>
-            <a href="#" className="text-sm font-medium text-foreground hover:text-brand-primary transition-colors">
+            <a href="/termos" className="text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors">
               Termos de uso
             </a>
           </div>

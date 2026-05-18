@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SuportePage() {
@@ -12,7 +14,6 @@ export default function SuportePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Abre o cliente de e-mail com os dados preenchidos
     const subject = encodeURIComponent(`[GestSilo Suporte] Mensagem de ${nome}`);
     const body = encodeURIComponent(
       `Nome: ${nome}\nE-mail: ${email}\n\nMensagem:\n${mensagem}`
@@ -23,25 +24,50 @@ export default function SuportePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background">
-      <div className="max-w-2xl mx-auto px-6 py-16">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="absolute inset-0 opacity-15 pointer-events-none" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid-suporte" width="60" height="60" patternUnits="userSpaceOnUse">
+              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--brand-green-vivid)" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid-suporte)" />
+        </svg>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-6 py-16 relative">
+        <div className="flex items-center justify-center mb-10">
+          <Image
+            src="/logo_degrad-hor.png"
+            alt="GestSilo"
+            width={200}
+            height={50}
+            className="object-contain brightness-110"
+            priority
+          />
+        </div>
+
         <div className="mb-8">
           <Link
             href="/login"
-            className="text-sm text-gray-500 dark:text-muted-foreground hover:text-gray-700 dark:hover:text-foreground transition-colors"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Voltar ao login
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            Voltar ao login
           </Link>
         </div>
 
-        <div className="bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border p-10">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-foreground mb-2">Suporte</h1>
-          <p className="text-gray-600 dark:text-muted-foreground text-sm mb-8">
+        <div className="bg-surface border border-border2 rounded-[13px] p-8 relative overflow-hidden">
+          <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
+
+          <h1 className="text-2xl font-black tracking-tight text-foreground mb-2">Suporte</h1>
+          <p className="text-sm text-muted-foreground mb-8">
             Precisa de ajuda? Preencha o formulário abaixo ou envie um e-mail
             diretamente para{' '}
             <a
               href="mailto:suporte@gestsilo.com.br"
-              className="text-primary dark:text-primary hover:underline"
+              className="text-brand-primary hover:opacity-80"
             >
               suporte@gestsilo.com.br
             </a>
@@ -49,7 +75,7 @@ export default function SuportePage() {
           </p>
 
           {enviado ? (
-            <div className="p-4 bg-primary/10 dark:bg-primary/10 border border-primary/30 dark:border-primary/30 rounded-xl text-primary dark:text-primary text-sm">
+            <div className="p-4 bg-green-dim border border-green-border rounded-[8px] text-foreground text-sm">
               <p className="font-semibold mb-1">Mensagem preparada!</p>
               <p>
                 Seu cliente de e-mail foi aberto com os dados preenchidos. Envie a
@@ -61,7 +87,7 @@ export default function SuportePage() {
               <div>
                 <label
                   htmlFor="nome"
-                  className="block text-sm font-semibold text-gray-700 dark:text-foreground mb-2"
+                  className="block text-xs font-bold uppercase tracking-[0.1em] mb-2 text-muted-foreground"
                 >
                   Nome
                 </label>
@@ -72,18 +98,14 @@ export default function SuportePage() {
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome"
                   required
-                  className="w-full px-4 py-3 bg-white dark:bg-muted/30 border border-gray-200 dark:border-border rounded-xl text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-muted-foreground focus:outline-none text-base shadow-sm"
-                  onFocus={(e) =>
-                    (e.target.style.boxShadow = window.matchMedia('(prefers-color-scheme: dark)').matches ? '0 0 0 3px rgba(0,255,77,0.15)' : '0 0 0 3px rgba(0,166,81,0.15)')
-                  }
-                  onBlur={(e) => (e.target.style.boxShadow = '')}
+                  className="w-full px-4 py-3 bg-input border border-border rounded-[8px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm shadow-sm transition-all"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold text-gray-700 dark:text-foreground mb-2"
+                  className="block text-xs font-bold uppercase tracking-[0.1em] mb-2 text-muted-foreground"
                 >
                   E-mail para resposta
                 </label>
@@ -95,18 +117,14 @@ export default function SuportePage() {
                   placeholder="seu@email.com"
                   required
                   autoComplete="email"
-                  className="w-full px-4 py-3 bg-white dark:bg-muted/30 border border-gray-200 dark:border-border rounded-xl text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-muted-foreground focus:outline-none text-base shadow-sm"
-                  onFocus={(e) =>
-                    (e.target.style.boxShadow = window.matchMedia('(prefers-color-scheme: dark)').matches ? '0 0 0 3px rgba(0,255,77,0.15)' : '0 0 0 3px rgba(0,166,81,0.15)')
-                  }
-                  onBlur={(e) => (e.target.style.boxShadow = '')}
+                  className="w-full px-4 py-3 bg-input border border-border rounded-[8px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm shadow-sm transition-all"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="mensagem"
-                  className="block text-sm font-semibold text-gray-700 dark:text-foreground mb-2"
+                  className="block text-xs font-bold uppercase tracking-[0.1em] mb-2 text-muted-foreground"
                 >
                   Mensagem
                 </label>
@@ -117,11 +135,7 @@ export default function SuportePage() {
                   placeholder="Descreva sua dúvida ou problema..."
                   required
                   rows={5}
-                  className="w-full px-4 py-3 bg-white dark:bg-muted/30 border border-gray-200 dark:border-border rounded-xl text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-muted-foreground focus:outline-none text-base shadow-sm resize-none"
-                  onFocus={(e) =>
-                    (e.target.style.boxShadow = window.matchMedia('(prefers-color-scheme: dark)').matches ? '0 0 0 3px rgba(0,255,77,0.15)' : '0 0 0 3px rgba(0,166,81,0.15)')
-                  }
-                  onBlur={(e) => (e.target.style.boxShadow = '')}
+                  className="w-full px-4 py-3 bg-input border border-border rounded-[8px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm shadow-sm transition-all resize-none"
                 />
               </div>
 

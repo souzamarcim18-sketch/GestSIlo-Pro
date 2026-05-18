@@ -6,6 +6,10 @@ import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase';
 import Image from 'next/image';
 import { KeyRound, Eye, EyeOff } from 'lucide-react';
+import { AuthLoadingScreen } from '@/components/auth/AuthLoadingScreen';
+import { AuthPageWrapper } from '@/components/auth/AuthPageWrapper';
+import { AuthCard } from '@/components/auth/AuthCard';
+import { AuthLabel } from '@/components/auth/AuthLabel';
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -71,27 +75,11 @@ export default function SetPasswordPage() {
   };
 
   if (!sessionReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-metal">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <AuthLoadingScreen message="Verificando sessão..." />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-metal">
-      {/* Grid decorativo */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid-setpw" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--brand-green-vivid)" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid-setpw)" />
-        </svg>
-      </div>
-
+    <AuthPageWrapper gridId="grid-setpw">
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
@@ -106,22 +94,20 @@ export default function SetPasswordPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-border/60 p-8">
+        <AuthCard>
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <KeyRound className="w-5 h-5 text-primary" aria-hidden="true" />
+            <div className="w-10 h-10 rounded-[8px] bg-green-dim border border-green-border flex items-center justify-center">
+              <KeyRound className="w-5 h-5 text-brand-primary" aria-hidden="true" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-brand-deep">Criar sua senha</h1>
+              <h1 className="text-xl font-black tracking-tight text-foreground">Criar sua senha</h1>
               <p className="text-sm text-muted-foreground">Defina uma senha para acessar o sistema</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold mb-2 text-foreground">
-                Nova senha
-              </label>
+              <AuthLabel htmlFor="password">Nova senha</AuthLabel>
               <div className="relative">
                 <input
                   id="password"
@@ -148,9 +134,7 @@ export default function SetPasswordPage() {
             </div>
 
             <div>
-              <label htmlFor="confirm" className="block text-sm font-semibold mb-2 text-foreground">
-                Confirmar senha
-              </label>
+              <AuthLabel htmlFor="confirm">Confirmar senha</AuthLabel>
               <input
                 id="confirm"
                 type={showPassword ? 'text' : 'password'}
@@ -194,7 +178,7 @@ export default function SetPasswordPage() {
               )}
             </button>
           </form>
-        </div>
+        </AuthCard>
 
         <footer className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
@@ -202,6 +186,6 @@ export default function SetPasswordPage() {
           </p>
         </footer>
       </div>
-    </div>
+    </AuthPageWrapper>
   );
 }
