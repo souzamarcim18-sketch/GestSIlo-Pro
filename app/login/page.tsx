@@ -42,16 +42,18 @@ export default function LoginPage() {
       return () => clearTimeout(timeoutId);
     }
 
-    if (!authLoading && user && profile && !timeout) {
-      authLog('Profile loaded, redirecting...');
-
-      // Usuário convidado no primeiro acesso — vai definir senha antes de entrar
+    // Primeiro acesso: redireciona imediatamente assim que user está disponível
+    // sem esperar o fetchProfile terminar
+    if (!authLoading && user) {
       const isPrimeiroAcesso = user.user_metadata?.primeiro_acesso === true;
       if (isPrimeiroAcesso) {
         router.push('/auth/set-password');
         return;
       }
+    }
 
+    if (!authLoading && user && profile && !timeout) {
+      authLog('Profile loaded, redirecting...');
       if (profile.perfil === 'Operador') {
         router.push('/operador');
       } else {
