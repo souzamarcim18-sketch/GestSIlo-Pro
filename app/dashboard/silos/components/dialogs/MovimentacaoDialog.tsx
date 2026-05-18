@@ -77,7 +77,7 @@ export function MovimentacaoDialog({
       .then((has) => setJaTemEntrada(has))
       .catch(() => setJaTemEntrada(false))
       .finally(() => setChecandoEntrada(false));
-  }, [open, siloId, siloIdAtual]);
+  }, [open, siloId, siloIdAtual]); // q é import de módulo estável; setters de useState são estáveis por garantia do React
 
   // Reset ao fechar
   useEffect(() => {

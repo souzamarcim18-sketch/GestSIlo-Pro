@@ -8,23 +8,13 @@ import { AuthCard } from '@/components/auth/AuthCard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authLog, authError } from '@/lib/auth/logger';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { toast } from 'sonner';
 import Image from 'next/image';
-
-type Perfil = 'Administrador' | 'Operador';
 
 export default function RegisterPage() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [perfil, setPerfil] = useState<Perfil>('Administrador');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -38,7 +28,7 @@ export default function RegisterPage() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, nome, perfil }),
+        body: JSON.stringify({ email, password, nome, perfil: 'Administrador' }),
       });
 
       const data = await response.json();
@@ -146,33 +136,6 @@ export default function RegisterPage() {
                 minLength={8}
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               />
-            </div>
-
-            {/* Perfil */}
-            <div className="space-y-2">
-              <Label htmlFor="perfil" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-                Perfil de Acesso
-              </Label>
-              <Select
-                value={perfil}
-                onValueChange={(v) => setPerfil(v as Perfil)}
-              >
-                <SelectTrigger
-                  id="perfil"
-                  aria-label="Selecione o perfil de acesso"
-                  className="bg-input border-border text-foreground"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Administrador">Administrador</SelectItem>
-                  <SelectItem value="Operador">Operador</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                <strong className="font-bold text-foreground">Administrador:</strong> acesso completo ao dashboard.{' '}
-                <strong className="font-bold text-foreground">Operador:</strong> acesso restrito à tela de operações.
-              </p>
             </div>
 
             {/* Botão submit */}

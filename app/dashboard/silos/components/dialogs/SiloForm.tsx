@@ -128,7 +128,7 @@ export function SiloForm({
         insumo_inoculante_id: null,
       });
     }
-  }, [open]);
+  }, [open, mode, form]);
 
   const comprimento = form.watch('comprimento_m');
   const largura = form.watch('largura_m');
