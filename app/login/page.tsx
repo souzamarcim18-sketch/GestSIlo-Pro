@@ -159,10 +159,10 @@ export default function LoginPage() {
         {/* Logo horizontal (padrão do footer/navbar) */}
         <div className="relative z-10 flex items-center">
           <Image
-            src="/logo_degrad-hor.png"
+            src="/logo_verde.png"
             alt="GestSilo"
-            width={220}
-            height={55}
+            width={280}
+            height={70}
             className="object-contain brightness-130"
             priority
           />
@@ -178,7 +178,7 @@ export default function LoginPage() {
               <span className="text-brand-primary">nível</span>
             </p>
             <p className="text-xl leading-relaxed max-w-md text-foreground/80">
-              Controle silos, talhões, frota, insumos e financeiro em um único lugar. Do campo ao escritório.
+              Controle silos, talhões, rebanho, frota, insumos e financeiro em um único lugar. Do campo ao escritório.
             </p>
           </div>
         </div>
