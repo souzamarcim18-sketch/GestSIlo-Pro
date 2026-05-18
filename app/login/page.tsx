@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
@@ -20,6 +20,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [timeout, setTimeout] = useState(false);
   const [loginAttempted, setLoginAttempted] = useState(false);
+  // Impede redirect automático antes do usuário tentar login (evita loop com sessão stale)
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -31,11 +33,14 @@ export default function LoginPage() {
   useEffect(() => {
     authLog('LoginPage useEffect: authLoading=', authLoading, 'user=', !!user, 'profile=', !!profile, 'profileError=', profileError);
 
+    // Só redireciona após o usuário ter tentado login — evita loop com sessão stale/expirada
+    if (!loginAttempted) return;
+
+    if (redirectingRef.current) return;
+
     if (authLoading && user && !timeout) {
-      console.log(`⏳ [LOGIN-PAGE] Profile still loading, setting ${AUTH_PROFILE_FETCH_TIMEOUT_MS}ms timeout...`);
       authLog('Profile still loading, setting timeout...');
       const timeoutId = window.setTimeout(() => {
-        console.log('⏰ [LOGIN-PAGE] Profile loading timeout!');
         authLog('Profile loading timeout!');
         setTimeout(true);
       }, AUTH_PROFILE_FETCH_TIMEOUT_MS);
@@ -44,10 +49,10 @@ export default function LoginPage() {
     }
 
     // Primeiro acesso: redireciona imediatamente assim que user está disponível
-    // sem esperar o fetchProfile terminar
     if (!authLoading && user) {
       const isPrimeiroAcesso = user.user_metadata?.primeiro_acesso === true;
       if (isPrimeiroAcesso) {
+        redirectingRef.current = true;
         router.push('/auth/set-password');
         return;
       }
@@ -55,6 +60,7 @@ export default function LoginPage() {
 
     if (!authLoading && user && profile && !timeout) {
       authLog('Profile loaded, redirecting...');
+      redirectingRef.current = true;
       if (profile.perfil === 'Operador') {
         router.push('/operador');
       } else {
@@ -66,7 +72,7 @@ export default function LoginPage() {
       authLog('Timeout occurred and profile error or missing');
       setError('Tempo limite ao carregar seu perfil. Tente fazer login novamente.');
     }
-  }, [authLoading, user, profile, profileError, timeout, router]);
+  }, [authLoading, user, profile, profileError, timeout, router, loginAttempted]);
 
   const handleLogin = useCallback(
     async (e: React.FormEvent) => {
@@ -97,6 +103,7 @@ export default function LoginPage() {
         const isPrimeiroAcesso = data.user?.user_metadata?.primeiro_acesso === true;
         if (isPrimeiroAcesso) {
           authLog('handleLogin: primeiro_acesso — redirect /auth/set-password');
+          redirectingRef.current = true;
           router.push('/auth/set-password');
           return;
         }

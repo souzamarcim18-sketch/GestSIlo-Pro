@@ -17,8 +17,10 @@ export default function SetPasswordPage() {
 
   useEffect(() => {
     const supabase = getSupabaseClient();
-    supabase.auth.getUser().then(({ data: { user }, error }) => {
-      if (error || !user) {
+    // getSession() é local (não faz roundtrip de rede) — garante que a sessão
+    // recém estabelecida via signInWithPassword já esteja disponível
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
         toast.error('Sessão inválida. Faça login novamente.');
         router.push('/login');
       } else {
