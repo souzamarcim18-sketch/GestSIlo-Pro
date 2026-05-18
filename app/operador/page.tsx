@@ -316,7 +316,7 @@ export default function ModoOperadorPage() {
       {/* Header fixo */}
       <header className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-primary leading-none">GestSiloPRO</h1>
+          <h1 className="text-xl font-black tracking-tight text-primary leading-none">GestSilo  </h1>
           <p className="text-xs text-zinc-400 uppercase tracking-widest mt-0.5">
             {(profile as unknown as { fazendas?: { nome?: string } })?.fazendas?.nome ?? 'Fazenda'}
           </p>

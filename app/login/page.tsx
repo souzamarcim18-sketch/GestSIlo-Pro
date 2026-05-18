@@ -44,6 +44,14 @@ export default function LoginPage() {
 
     if (!authLoading && user && profile && !timeout) {
       authLog('Profile loaded, redirecting...');
+
+      // Usuário convidado no primeiro acesso — vai definir senha antes de entrar
+      const isPrimeiroAcesso = user.user_metadata?.primeiro_acesso === true;
+      if (isPrimeiroAcesso) {
+        router.push('/auth/set-password');
+        return;
+      }
+
       if (profile.perfil === 'Operador') {
         router.push('/operador');
       } else {
