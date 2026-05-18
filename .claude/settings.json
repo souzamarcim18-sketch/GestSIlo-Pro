@@ -31,7 +31,11 @@
       "PowerShell(New-Item -ItemType Directory -Force \"c:/Projetos/GestSilo/GestSIlo-Pro/app/auth/set-password\")",
       "Bash(del \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\auth\\\\confirm\\\\page.tsx\")",
       "Bash(Remove-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\auth\\\\confirm\\\\page.tsx\")",
-      "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Name)"
+      "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Name)",
+      "Bash(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\icon.png\")",
+      "Bash(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\apple-icon.png\")",
+      "PowerShell(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\icon.png\")",
+      "PowerShell(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\apple-icon.png\")"
     ],
     "additionalDirectories": [
       "\\tmp"
