@@ -5,41 +5,44 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
+  ResponsiveContainer,
+  Cell,
 } from 'recharts';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import type { ComparativoLotesProps } from '@/types/rebanho-indicadores';
 
-const CORES_INDICADOR = {
-  gmd: '#3b82f6',
-  natalidade: '#10b981',
-  prenhez: '#8b5cf6',
+const CORES_INDICADOR: Record<string, string> = {
+  gmd: '#00A651',
+  natalidade: '#3b82f6',
+  prenhez: '#a78bfa',
   peso: '#f59e0b',
 };
 
-const CHAVES_INDICADOR = {
+const CHAVES_INDICADOR: Record<string, string> = {
   gmd: 'gmd',
   natalidade: 'taxaNatalidade',
   prenhez: 'taxaPrenhez',
   peso: 'pesoMedio',
 };
 
-const UNIDADES = {
+const UNIDADES: Record<string, string> = {
   gmd: 'kg/dia',
   natalidade: '%',
   prenhez: '%',
   peso: 'kg',
 };
+
+const TOOLTIP_STYLE = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '10px',
+  color: 'hsl(var(--foreground))',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+  padding: '10px 14px',
+};
+
+const TICK_STYLE = { fill: 'hsl(var(--muted-foreground))', fontSize: 12 };
 
 export function ComparativoLotes(props: ComparativoLotesProps) {
   const { dados, indicador, onSelectLote } = props;
@@ -50,103 +53,111 @@ export function ComparativoLotes(props: ComparativoLotesProps) {
 
   const dadosGrafico = dados.map((lote) => ({
     loteNome: lote.loteNome,
-    valor: lote[chaveIndicador as keyof typeof lote] ?? 0,
+    valor: Number(lote[chaveIndicador as keyof typeof lote] ?? 0),
+    loteId: lote.loteId,
   }));
+
+  const maxValor = Math.max(...dadosGrafico.map((d) => d.valor));
 
   return (
     <div className="space-y-6">
-      {/* Tabela */}
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead className="w-12 text-center">Rank</TableHead>
-              <TableHead>Lote</TableHead>
-              <TableHead className="text-right">Animais</TableHead>
-              <TableHead className="text-right">{unidade}</TableHead>
-              <TableHead className="text-center">Trend</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {dados.map((lote, idx) => (
-              <TableRow
-                key={lote.loteId}
-                onClick={() => onSelectLote?.(lote.loteId)}
-                className="cursor-pointer hover:bg-blue-50"
-              >
-                <TableCell className="text-center font-semibold text-gray-600">
-                  #{idx + 1}
-                </TableCell>
-                <TableCell className="font-medium text-gray-900">
-                  {lote.loteNome}
-                </TableCell>
-                <TableCell className="text-right text-gray-600">
-                  {lote.quantidadeAnimais}
-                </TableCell>
-                <TableCell className="text-right font-semibold text-gray-900">
-                  {Number(lote[chaveIndicador as keyof typeof lote] ?? 0).toFixed(2)} {unidade}
-                </TableCell>
-                <TableCell className="text-center">
+      {/* Ranking cards */}
+      <div className="space-y-2">
+        {dados.map((lote, idx) => {
+          const valorNum = Number(lote[chaveIndicador as keyof typeof lote] ?? 0);
+          const pct = maxValor > 0 ? (valorNum / maxValor) * 100 : 0;
+          return (
+            <button
+              key={lote.loteId}
+              onClick={() => onSelectLote?.(lote.loteId)}
+              className="w-full text-left rounded-xl border border-border bg-card/60 px-4 py-3 hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-muted-foreground w-6">#{idx + 1}</span>
+                  <span className="text-sm font-semibold text-foreground">{lote.loteNome}</span>
+                  <span className="text-xs text-muted-foreground">{lote.quantidadeAnimais} animais</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-foreground">
+                    {valorNum.toFixed(2)} {unidade}
+                  </span>
                   {lote.trend === 'up' && (
-                    <div className="flex items-center justify-center gap-1 text-green-600">
-                      <TrendingUp className="h-4 w-4" />
-                      <span className="text-xs font-medium">
-                        +{lote.trendValor?.toFixed(2)}
-                      </span>
+                    <div className="flex items-center gap-0.5 text-green-400 text-xs font-medium">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      +{lote.trendValor?.toFixed(2)}
                     </div>
                   )}
                   {lote.trend === 'down' && (
-                    <div className="flex items-center justify-center gap-1 text-red-600">
-                      <TrendingDown className="h-4 w-4" />
-                      <span className="text-xs font-medium">
-                        {lote.trendValor?.toFixed(2)}
-                      </span>
+                    <div className="flex items-center gap-0.5 text-red-400 text-xs font-medium">
+                      <TrendingDown className="h-3.5 w-3.5" />
+                      {lote.trendValor?.toFixed(2)}
                     </div>
                   )}
                   {lote.trend === 'stable' && (
-                    <span className="text-xs text-gray-500">→</span>
+                    <div className="flex items-center gap-0.5 text-muted-foreground text-xs">
+                      <Minus className="h-3.5 w-3.5" />
+                    </div>
                   )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+              {/* Barra de progresso inline */}
+              <div className="h-1.5 w-full rounded-full bg-muted/40 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${pct}%`,
+                    background: cor,
+                    boxShadow: `0 0 6px ${cor}80`,
+                  }}
+                />
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Gráfico */}
-      <div className="w-full overflow-x-auto">
-        <BarChart
-          data={dadosGrafico}
-          width={Math.max(600, dados.length * 100)}
-          height={300}
-          margin={{ top: 5, right: 30, left: 0, bottom: 40 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
+      {/* Gráfico de barras premium */}
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={dadosGrafico} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+          <defs>
+            <linearGradient id="gradLote" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={cor} stopOpacity={0.95} />
+              <stop offset="100%" stopColor={cor} stopOpacity={0.5} />
+            </linearGradient>
+          </defs>
           <XAxis
             dataKey="loteNome"
-            angle={-45}
-            textAnchor="end"
-            height={80}
-            tick={{ fontSize: 14 }}
+            tick={TICK_STYLE}
+            axisLine={{ stroke: 'hsl(var(--border))' }}
+            tickLine={false}
           />
           <YAxis
-            label={{ value: `${unidade}`, angle: -90, position: 'insideLeft' }}
-            tick={{ fontSize: 14 }}
+            tick={TICK_STYLE}
+            axisLine={false}
+            tickLine={false}
+            width={50}
+            tickFormatter={(v) => `${v} ${unidade}`}
           />
           <Tooltip
-            formatter={(value) => `${Number(value).toFixed(2)} ${unidade}`}
-            contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
+            formatter={(value) => [`${Number(value).toFixed(2)} ${unidade}`, 'Valor']}
+            contentStyle={TOOLTIP_STYLE}
+            cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
           />
-          <Legend />
           <Bar
             dataKey="valor"
-            fill={cor}
-            name={`${indicador.charAt(0).toUpperCase()}${indicador.slice(1)} (${unidade})`}
-            isAnimationActive={false}
+            fill="url(#gradLote)"
             radius={[8, 8, 0, 0]}
-          />
+            isAnimationActive={false}
+            maxBarSize={64}
+            style={{ filter: `drop-shadow(0 0 6px ${cor}50)` }}
+          >
+            {dadosGrafico.map((_, idx) => (
+              <Cell key={`cell-${idx}`} fill="url(#gradLote)" />
+            ))}
+          </Bar>
         </BarChart>
-      </div>
+      </ResponsiveContainer>
     </div>
   );
 }

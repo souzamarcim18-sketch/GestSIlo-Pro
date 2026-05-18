@@ -60,7 +60,12 @@ export function GraficoDistribuicaoEtaria(props: GraficoDistribuicaoEtariaProps)
           isAnimationActive={false}
         >
           {dadosFiltrados.map((entry, index) => (
-            <Cell key={`cell-${entry.categoria}`} fill={CORES[index % CORES.length]} />
+            <Cell
+              key={`cell-${entry.categoria}`}
+              fill={CORES[index % CORES.length]}
+              stroke="transparent"
+              style={{ filter: `drop-shadow(0 0 5px ${CORES[index % CORES.length]}60)` }}
+            />
           ))}
         </Pie>
         <Tooltip
@@ -68,8 +73,10 @@ export function GraficoDistribuicaoEtaria(props: GraficoDistribuicaoEtariaProps)
           contentStyle={{
             backgroundColor: 'hsl(var(--card))',
             border: '1px solid hsl(var(--border))',
-            borderRadius: '8px',
+            borderRadius: '10px',
             color: 'hsl(var(--foreground))',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+            padding: '10px 14px',
           }}
         />
         <Legend
