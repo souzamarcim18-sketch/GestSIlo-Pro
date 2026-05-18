@@ -16,11 +16,10 @@ export default function SetPasswordPage() {
   const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    // Verificar se há sessão ativa (vinda do /auth/confirm)
     const supabase = getSupabaseClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        toast.error('Link inválido ou expirado. Solicite um novo convite.');
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error || !user) {
+        toast.error('Sessão inválida. Faça login novamente.');
         router.push('/login');
       } else {
         setSessionReady(true);
