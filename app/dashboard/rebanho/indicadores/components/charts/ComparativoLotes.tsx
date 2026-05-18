@@ -42,7 +42,7 @@ const TOOLTIP_STYLE = {
   padding: '10px 14px',
 };
 
-const TICK_STYLE = { fill: 'hsl(var(--muted-foreground))', fontSize: 12 };
+const TICK_STYLE = { fill: '#688070', fontSize: 12 };
 
 export function ComparativoLotes(props: ComparativoLotesProps) {
   const { dados, indicador, onSelectLote } = props;
@@ -129,7 +129,7 @@ export function ComparativoLotes(props: ComparativoLotesProps) {
           <XAxis
             dataKey="loteNome"
             tick={TICK_STYLE}
-            axisLine={{ stroke: 'hsl(var(--border))' }}
+            axisLine={{ stroke: '#2a4433' }}
             tickLine={false}
           />
           <YAxis
@@ -142,7 +142,7 @@ export function ComparativoLotes(props: ComparativoLotesProps) {
           <Tooltip
             formatter={(value) => [`${Number(value).toFixed(2)} ${unidade}`, 'Valor']}
             contentStyle={TOOLTIP_STYLE}
-            cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
+            cursor={{ fill: '#222222', opacity: 0.5 }}
           />
           <Bar
             dataKey="valor"

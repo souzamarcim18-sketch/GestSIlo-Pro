@@ -23,7 +23,7 @@ const TOOLTIP_STYLE = {
   padding: '10px 14px',
 };
 
-const TICK_STYLE = { fill: 'hsl(var(--muted-foreground))', fontSize: 12 };
+const TICK_STYLE = { fill: '#688070', fontSize: 12 };
 
 function prepararDados(props: GraficoGMDProps) {
   const { dados, modo } = props;
@@ -94,7 +94,7 @@ export function GraficoGMD(props: GraficoGMDProps) {
         <XAxis
           dataKey="data"
           tick={TICK_STYLE}
-          axisLine={{ stroke: 'hsl(var(--border))' }}
+          axisLine={{ stroke: '#2a4433' }}
           tickLine={false}
         />
         <YAxis
@@ -108,7 +108,7 @@ export function GraficoGMD(props: GraficoGMDProps) {
           formatter={(value) => [`${Number(value).toFixed(1)} kg`, undefined]}
           labelFormatter={(label) => `Data: ${label}`}
           contentStyle={TOOLTIP_STYLE}
-          cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '4 4' }}
+          cursor={{ stroke: '#2a4433', strokeWidth: 1, strokeDasharray: '4 4' }}
         />
         <Legend
           wrapperStyle={{ paddingTop: 16 }}

@@ -24,7 +24,7 @@ const TOOLTIP_STYLE = {
   padding: '10px 14px',
 };
 
-const TICK_STYLE = { fill: 'hsl(var(--muted-foreground))', fontSize: 12 };
+const TICK_STYLE = { fill: '#688070', fontSize: 12 };
 
 export function GraficoNatalidadeMortalidade(props: GraficoNatalidadeMortalidadeProps) {
   const { dados } = props;
@@ -46,7 +46,7 @@ export function GraficoNatalidadeMortalidade(props: GraficoNatalidadeMortalidade
         <XAxis
           dataKey="mes"
           tick={TICK_STYLE}
-          axisLine={{ stroke: 'hsl(var(--border))' }}
+          axisLine={{ stroke: '#2a4433' }}
           tickLine={false}
         />
         <YAxis
@@ -59,7 +59,7 @@ export function GraficoNatalidadeMortalidade(props: GraficoNatalidadeMortalidade
         <Tooltip
           formatter={(value, name) => [`${Number(value).toFixed(1)}%`, name]}
           contentStyle={TOOLTIP_STYLE}
-          cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
+          cursor={{ fill: '#222222', opacity: 0.5 }}
         />
         <Legend
           formatter={(value) => (
