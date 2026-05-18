@@ -8,24 +8,23 @@ const CORES = [
   '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16',
 ];
 
-interface CustomLabelProps {
-  cx: number;
-  cy: number;
-  midAngle: number;
-  innerRadius: number;
-  outerRadius: number;
-  percent: number;
-}
+import type { PieLabelRenderProps } from 'recharts';
 
-function CustomLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: CustomLabelProps) {
-  if (percent < 0.05) return null;
+function CustomLabel(props: PieLabelRenderProps) {
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+  if (
+    cx === undefined || cy === undefined ||
+    midAngle === undefined || innerRadius === undefined ||
+    outerRadius === undefined || percent === undefined ||
+    percent < 0.05
+  ) return null;
   const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const radius = (Number(innerRadius) + Number(outerRadius)) * 0.5;
+  const x = Number(cx) + radius * Math.cos(-Number(midAngle) * RADIAN);
+  const y = Number(cy) + radius * Math.sin(-Number(midAngle) * RADIAN);
   return (
     <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={13} fontWeight={600}>
-      {`${(percent * 100).toFixed(0)}%`}
+      {`${(Number(percent) * 100).toFixed(0)}%`}
     </text>
   );
 }
@@ -65,7 +64,7 @@ export function GraficoDistribuicaoEtaria(props: GraficoDistribuicaoEtariaProps)
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: number) => [`${value.toFixed(1)}%`, 'Percentual']}
+          formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Percentual']}
           contentStyle={{
             backgroundColor: 'hsl(var(--card))',
             border: '1px solid hsl(var(--border))',
