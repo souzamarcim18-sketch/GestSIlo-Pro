@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
         {/* Logo horizontal (padrão do footer/navbar) */}
         <div className="flex items-center justify-center mb-8">
           <Image
-            src="/logo_degrad-hor.png"
+            src="/logo_verde.png"
             alt="GestSilo"
             width={220}
             height={55}

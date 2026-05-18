@@ -454,22 +454,7 @@ export default function IndicadoresClient({
             </CardHeader>
             <CardContent>
               <GraficoGMD
-                dados={[
-                  {
-                    animal_id: 'mock-1',
-                    brinco: 'A001',
-                    datas: [new Date('2026-03-01'), new Date('2026-04-01'), new Date('2026-05-01')],
-                    pesos: [450, 470, 490],
-                    gmd: 1.3,
-                  },
-                  {
-                    animal_id: 'mock-2',
-                    brinco: 'A002',
-                    datas: [new Date('2026-03-01'), new Date('2026-04-01'), new Date('2026-05-01')],
-                    pesos: [480, 505, 530],
-                    gmd: 1.5,
-                  },
-                ]}
+                dados={[]}
                 modo="por-animal"
                 periodo={filtros}
               />
@@ -498,13 +483,7 @@ export default function IndicadoresClient({
             </CardHeader>
             <CardContent>
               <GraficoNatalidadeMortalidade
-                dados={[
-                  { mes: 'JAN', natalidade: 85, mortalidade: 2.1 },
-                  { mes: 'FEV', natalidade: 88, mortalidade: 1.8 },
-                  { mes: 'MAR', natalidade: 87, mortalidade: 2.3 },
-                  { mes: 'ABR', natalidade: 89, mortalidade: 1.9 },
-                  { mes: 'MAI', natalidade: 87.5, mortalidade: 2.1 },
-                ]}
+                dados={[]}
                 periodo={filtros}
               />
             </CardContent>
@@ -518,41 +497,7 @@ export default function IndicadoresClient({
             </CardHeader>
             <CardContent>
               <ComparativoLotes
-                dados={[
-                  {
-                    loteId: 'lote-1',
-                    loteNome: 'Lote A',
-                    quantidadeAnimais: 45,
-                    gmd: 1.35,
-                    taxaNatalidade: 87.5,
-                    taxaPrenhez: 86,
-                    pesoMedio: 580,
-                    trend: 'up',
-                    trendValor: 0.12,
-                  },
-                  {
-                    loteId: 'lote-2',
-                    loteNome: 'Lote B',
-                    quantidadeAnimais: 38,
-                    gmd: 1.28,
-                    taxaNatalidade: 85,
-                    taxaPrenhez: 84,
-                    pesoMedio: 560,
-                    trend: 'stable',
-                    trendValor: 0,
-                  },
-                  {
-                    loteId: 'lote-3',
-                    loteNome: 'Lote C',
-                    quantidadeAnimais: 52,
-                    gmd: 1.42,
-                    taxaNatalidade: 90,
-                    taxaPrenhez: 88,
-                    pesoMedio: 595,
-                    trend: 'down',
-                    trendValor: -0.08,
-                  },
-                ]}
+                dados={[]}
                 indicador="gmd"
                 periodo={filtros}
               />

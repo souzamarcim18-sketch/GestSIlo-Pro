@@ -39,7 +39,7 @@ export default function SuportePage() {
       <div className="max-w-2xl mx-auto px-6 py-16 relative">
         <div className="flex items-center justify-center mb-10">
           <Image
-            src="/logo_degrad-hor.png"
+            src="/logo_verde.png"
             alt="GestSilo"
             width={200}
             height={50}

@@ -29,6 +29,10 @@ const TICK_STYLE = { fill: '#688070', fontSize: 12 };
 export function GraficoNatalidadeMortalidade(props: GraficoNatalidadeMortalidadeProps) {
   const { dados } = props;
 
+  if (!dados.length) {
+    return <p className="text-sm text-muted-foreground py-8 text-center">Sem dados de natalidade/mortalidade para o período</p>;
+  }
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={dados} margin={{ top: 10, right: 20, left: 0, bottom: 10 }} barGap={4}>

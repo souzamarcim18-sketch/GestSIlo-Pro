@@ -201,7 +201,7 @@ export default function LoginPage() {
           {/* Logo mobile */}
           <div className="lg:hidden flex items-center justify-center mb-10" aria-hidden="true">
             <Image
-              src="/logo_degrad-hor.png"
+              src="/logo_verde.png"
               alt="GestSilo"
               width={200}
               height={50}

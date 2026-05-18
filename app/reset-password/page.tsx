@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Image
-            src="/logo_degrad-hor.png"
+            src="/logo_verde.png"
             alt="GestSilo"
             width={220}
             height={55}

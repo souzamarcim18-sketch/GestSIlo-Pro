@@ -51,6 +51,10 @@ export function ComparativoLotes(props: ComparativoLotesProps) {
   const unidade = UNIDADES[indicador];
   const cor = CORES_INDICADOR[indicador];
 
+  if (!dados.length) {
+    return <p className="text-sm text-muted-foreground py-8 text-center">Sem dados de lotes para comparar no período</p>;
+  }
+
   const dadosGrafico = dados.map((lote) => ({
     loteNome: lote.loteNome,
     valor: Number(lote[chaveIndicador as keyof typeof lote] ?? 0),

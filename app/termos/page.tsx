@@ -12,7 +12,7 @@ export default function TermosPage() {
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="flex items-center justify-center mb-10">
           <Image
-            src="/logo_degrad-hor.png"
+            src="/logo_verde.png"
             alt="GestSilo"
             width={200}
             height={50}
