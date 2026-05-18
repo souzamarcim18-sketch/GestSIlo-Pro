@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { AlertTriangle, Loader2, Edit, Trash2 } from 'lucide-react';
 import {
   Dialog,
@@ -162,8 +161,7 @@ export default function LoteDetailPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         <div>
-          <Breadcrumbs />
-          <div className="flex items-start justify-between mt-4 gap-4">
+          <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{lote.nome}</h1>
               {lote.descricao && (

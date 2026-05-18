@@ -229,7 +229,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
           aria-label="GestSilo — ir para o Dashboard"
         >
           <Image
-            src="/logo_degrad-hor.png"
+            src="/logo_verde.png"
             alt="GestSilo"
             width={170}
             height={43}

@@ -68,7 +68,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo_degrad-hor.png"
+              src="/logo_verde.png"
               alt="GestSilo"
               width={180}
               height={45}
@@ -460,7 +460,7 @@ export default function LandingPage() {
           {/* COLUNA 1 — Logo + copyright */}
           <div className="flex flex-col items-center md:items-start gap-3">
             <Image
-              src="/logo_degrad-hor.png"
+              src="/logo_verde.png"
               alt="GestSilo"
               width={200}
               height={50}

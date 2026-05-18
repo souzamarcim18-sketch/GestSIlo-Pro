@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   Card,
   CardContent,
@@ -62,8 +61,7 @@ export default function LotesPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         <div>
-          <Breadcrumbs />
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold tracking-tight">Lotes</h1>
             {isAdmin && (
               <Button onClick={() => router.push('/dashboard/rebanho/lotes/novo')}>

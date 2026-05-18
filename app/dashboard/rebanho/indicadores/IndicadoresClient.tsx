@@ -177,12 +177,12 @@ export default function IndicadoresClient({
                     <Link
                       key={alerta.id}
                       href={`/dashboard/rebanho/${alerta.animal_id}`}
-                      className="block p-2 rounded border border-amber-200 hover:bg-amber-50 transition-colors"
+                      className="block p-2 rounded border border-amber-500/30 hover:bg-amber-500/10 transition-colors"
                     >
                       <p className="text-sm font-medium">
                         {alerta.animais?.brinco || 'N/A'} - {alerta.vacina_nome}
                       </p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted-foreground">
                         {alerta.dias_para_vencimento} dias
                       </p>
                     </Link>
@@ -212,10 +212,10 @@ export default function IndicadoresClient({
                     <Link
                       key={alerta.id}
                       href={`/dashboard/rebanho/${alerta.id}`}
-                      className="block p-2 rounded border border-blue-200 hover:bg-blue-50 transition-colors"
+                      className="block p-2 rounded border border-blue-500/30 hover:bg-blue-500/10 transition-colors"
                     >
                       <p className="text-sm font-medium">{alerta.brinco} {alerta.nome && `- ${alerta.nome}`}</p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted-foreground">
                         {alerta.categoria} • {alerta.data_parto_previsto}
                       </p>
                     </Link>
@@ -250,10 +250,10 @@ export default function IndicadoresClient({
                     <Link
                       key={alerta.id}
                       href={`/dashboard/rebanho/${alerta.id}`}
-                      className="block p-2 rounded border border-red-200 hover:bg-red-50 transition-colors"
+                      className="block p-2 rounded border border-red-500/30 hover:bg-red-500/10 transition-colors"
                     >
                       <p className="text-sm font-medium">{alerta.brinco} {alerta.nome && `- ${alerta.nome}`}</p>
-                      <p className="text-xs text-gray-600">{alerta.categoria}</p>
+                      <p className="text-xs text-muted-foreground">{alerta.categoria}</p>
                     </Link>
                   ))}
                 </div>
@@ -281,10 +281,10 @@ export default function IndicadoresClient({
                     <Link
                       key={alerta.id}
                       href={`/dashboard/rebanho/${alerta.id}`}
-                      className="block p-2 rounded border border-orange-200 hover:bg-orange-50 transition-colors"
+                      className="block p-2 rounded border border-orange-500/30 hover:bg-orange-500/10 transition-colors"
                     >
                       <p className="text-sm font-medium">{alerta.brinco} {alerta.nome && `- ${alerta.nome}`}</p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted-foreground">
                         Parto: {alerta.data_parto_previsto}
                       </p>
                     </Link>
@@ -422,7 +422,7 @@ export default function IndicadoresClient({
                   periodo={filtros}
                 />
               ) : (
-                <p className="text-sm text-gray-600">Sem dados para o período selecionado</p>
+                <p className="text-sm text-muted-foreground">Sem dados para o período selecionado</p>
               )}
             </CardContent>
           </Card>

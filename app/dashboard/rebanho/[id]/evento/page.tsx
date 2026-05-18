@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 
 import { TipoEvento } from '@/lib/types/rebanho';
 import { registrarEventoAction } from '@/app/dashboard/rebanho/actions';
@@ -165,8 +164,6 @@ export default function EventoPage() {
 
   return (
     <div className="container max-w-2xl py-6 space-y-6">
-      <Breadcrumbs />
-
       <div className="flex items-center gap-3">
         <Link
           href={`/dashboard/rebanho/${animalId}`}

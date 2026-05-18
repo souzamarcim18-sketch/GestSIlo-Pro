@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Plus, Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   Card,
   CardContent,
@@ -206,8 +205,7 @@ export default function MovimentacoesPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <Breadcrumbs />
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold tracking-tight">Movimentações</h1>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleExportarCSV} disabled={movimentacoes.length === 0}>

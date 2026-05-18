@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { AlertTriangle, Loader2, Edit, Trash2, Plus } from 'lucide-react';
 import {
   Dialog,
@@ -331,8 +330,7 @@ export default function AnimalDetailPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         <div>
-          <Breadcrumbs />
-          <div className="flex items-start justify-between mt-4 gap-4">
+          <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Brinco: {animal.brinco}</h1>
               <p className="text-muted-foreground mt-1">{animal.categoria} • {animal.sexo}</p>

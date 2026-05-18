@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Loader2 } from 'lucide-react';
 import { editarAnimalAction } from '../../actions';
 import { listAnimais, listLotes } from '@/lib/supabase/rebanho';
@@ -123,8 +122,7 @@ export default function EditarAnimalPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6 max-w-2xl">
         <div>
-          <Breadcrumbs />
-          <h1 className="text-3xl font-bold tracking-tight mt-4">Editar Animal</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Editar Animal</h1>
         </div>
 
         <Card>

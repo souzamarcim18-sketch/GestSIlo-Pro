@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   listProducoesLeiteirasNoPeriodo,
   totalProducaoLeiteiraPeriodo,
@@ -65,8 +64,7 @@ export default async function LeiteiraPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         <div>
-          <Breadcrumbs />
-          <h1 className="text-3xl font-bold tracking-tight mt-4">Gestão Leiteira</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Gestão Leiteira</h1>
           <p className="text-muted-foreground mt-1">Acompanhe a produção de leite da propriedade</p>
         </div>
 

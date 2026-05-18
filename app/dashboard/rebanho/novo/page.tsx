@@ -17,7 +17,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { criarAnimalAction } from '../actions';
 import { listLotes } from '@/lib/supabase/rebanho';
 import type { Lote } from '@/lib/types/rebanho';
@@ -74,8 +73,7 @@ export default function NovoAnimalPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6 max-w-2xl">
         <div>
-          <Breadcrumbs />
-          <h1 className="text-3xl font-bold tracking-tight mt-4">Novo Animal</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Novo Animal</h1>
         </div>
 
         <Card>

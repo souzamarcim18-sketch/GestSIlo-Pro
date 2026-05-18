@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardCorte } from '@/components/rebanho/corte/DashboardCorte';
 import type { Animal, PesoAnimal, Lote } from '@/lib/types/rebanho';
@@ -57,8 +56,7 @@ export default async function CortePage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         <div>
-          <Breadcrumbs />
-          <h1 className="text-3xl font-bold tracking-tight mt-4">Gestão de Corte</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Gestão de Corte</h1>
           <p className="text-muted-foreground mt-1">
             Acompanhe o ganho de peso e projeção de abate do rebanho
           </p>

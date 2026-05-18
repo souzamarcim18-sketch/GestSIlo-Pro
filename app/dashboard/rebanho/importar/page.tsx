@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { ImportadorCSV } from '@/components/rebanho/ImportadorCSV';
 
 export default async function ImportarPage() {
@@ -38,8 +37,7 @@ export default async function ImportarPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Breadcrumbs />
-        <h1 className="mt-4 text-3xl font-bold tracking-tight">Importar Animais</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Importar Animais</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Faça upload de um arquivo CSV para importar múltiplos animais de uma vez.
           Linhas com erros serão exibidas, enquanto animais válidos serão importados.

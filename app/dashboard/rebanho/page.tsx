@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, Loader2, BarChart3, Heart, Milk, Scale, Stethoscope, ArrowRightLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   Card,
   CardContent,
@@ -95,8 +94,7 @@ export default function RebanhosPage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         <div>
-          <Breadcrumbs />
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold tracking-tight">Gestão de Rebanho</h1>
             <div className="space-x-2">
               {isAdmin && (

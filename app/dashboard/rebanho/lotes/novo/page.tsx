@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { criarLoteAction } from '../../actions';
 
 export default function NovoLotePage() {
@@ -64,8 +63,7 @@ export default function NovoLotePage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6 max-w-2xl">
         <div>
-          <Breadcrumbs />
-          <h1 className="text-3xl font-bold tracking-tight mt-4">Novo Lote</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Novo Lote</h1>
         </div>
 
         <Card>

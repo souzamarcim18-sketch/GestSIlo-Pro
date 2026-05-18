@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   listAlertasVacinacao,
   listEventosSanitarios,
@@ -64,8 +63,7 @@ export default async function SanidadePage() {
     <div className="p-6 md:p-8">
       <div className="space-y-6">
         <div>
-          <Breadcrumbs />
-          <h1 className="text-3xl font-bold tracking-tight mt-4">Sanidade Animal</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Sanidade Animal</h1>
           <p className="text-muted-foreground mt-1">
             Acompanhe vacinações, vermifugações, tratamentos e exames
           </p>

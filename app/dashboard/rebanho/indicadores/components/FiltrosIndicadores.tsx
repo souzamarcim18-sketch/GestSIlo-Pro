@@ -161,13 +161,13 @@ export function FiltrosIndicadores({
     .join(', ');
 
   return (
-    <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4">
-      <h3 className="text-sm font-semibold text-gray-900">Filtros</h3>
+    <div className="space-y-4 rounded-lg border border-border bg-card p-4">
+      <h3 className="text-sm font-semibold text-foreground">Filtros</h3>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Período */}
         <div className="space-y-2">
-          <Label htmlFor="periodo" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="periodo" className="text-sm font-medium text-foreground">
             Período
           </Label>
           <Select value={periodo} onValueChange={(v) => setPeriodo(v as PeriodoPreset)}>
@@ -187,7 +187,7 @@ export function FiltrosIndicadores({
         {/* Data Início (custom) */}
         {periodo === 'custom' && (
           <div className="space-y-2">
-            <Label htmlFor="dataInicio" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="dataInicio" className="text-sm font-medium text-foreground">
               Data Início
             </Label>
             <Input
@@ -203,7 +203,7 @@ export function FiltrosIndicadores({
         {/* Data Fim (custom) */}
         {periodo === 'custom' && (
           <div className="space-y-2">
-            <Label htmlFor="dataFim" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="dataFim" className="text-sm font-medium text-foreground">
               Data Fim
             </Label>
             <Input
@@ -218,7 +218,7 @@ export function FiltrosIndicadores({
 
         {/* Lotes */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Lotes</Label>
+          <Label className="text-sm font-medium text-foreground">Lotes</Label>
           <DropdownMenu>
             <DropdownMenuTrigger className="h-9 w-full justify-between text-sm inline-flex items-center rounded-lg border border-input bg-background px-3 py-2 hover:bg-muted disabled:opacity-50" disabled={isLoading}>
               <span className="truncate text-xs">
@@ -232,7 +232,7 @@ export function FiltrosIndicadores({
               <DropdownMenuLabel className="text-xs">Lotes disponíveis</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {lotes.length === 0 ? (
-                <div className="px-2 py-1.5 text-xs text-gray-500">
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">
                   Nenhum lote disponível
                 </div>
               ) : (
@@ -253,7 +253,7 @@ export function FiltrosIndicadores({
 
         {/* Categorias */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Categorias</Label>
+          <Label className="text-sm font-medium text-foreground">Categorias</Label>
           <DropdownMenu>
             <DropdownMenuTrigger className="h-9 w-full justify-between text-sm inline-flex items-center rounded-lg border border-input bg-background px-3 py-2 hover:bg-muted disabled:opacity-50" disabled={isLoading}>
               <span className="truncate text-xs">
@@ -319,7 +319,7 @@ export function FiltrosIndicadores({
       )}
 
       {/* Botões de ação */}
-      <div className="flex gap-2 border-t border-gray-200 pt-4">
+      <div className="flex gap-2 border-t border-border pt-4">
         <Button
           onClick={handleAplicar}
           disabled={isLoading}
