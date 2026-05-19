@@ -24,6 +24,8 @@ import {
   Scale,
   Stethoscope,
   ArrowRightLeft,
+  NotebookPen,
+  Beef,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,8 +56,8 @@ const gerencialRoutes: RouteItem[] = [
 ];
 
 const ferramentasRoutes: RouteItem[] = [
-  { label: 'Plan. Silagem',     icon: Calculator, href: '/dashboard/planejamento-silagem' },
-  { label: 'Calculadoras',      icon: Beaker,     href: '/dashboard/calculadoras'         },
+  { label: 'Plan. Silagem',     icon: NotebookPen, href: '/dashboard/planejamento-silagem' },
+  { label: 'Calculadoras',      icon: Calculator,     href: '/dashboard/calculadoras'         },
 ];
 
 const sistemaRoutes: RouteItem[] = [
@@ -70,7 +72,7 @@ const sistemaRoutes: RouteItem[] = [
 //   { label: 'Reprodutores',   icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores' },
 //   { label: 'Parâmetros',     icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros'   },
 //   { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira'                },
-//   { label: 'Corte',          icon: Scale,               href: '/dashboard/rebanho/corte'                   },
+//   { label: 'Corte',          icon: Beef,               href: '/dashboard/rebanho/corte'                   },
 //   { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade'                },
 //   { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes'           },
 // ];
@@ -127,7 +129,7 @@ function NavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-xs font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
+            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0"
           >
             Em breve
           </Badge>
@@ -185,7 +187,7 @@ function SubNavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-xs font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
+            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0"
           >
             Em breve
           </Badge>
@@ -207,7 +209,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
   return (
     <div
-      className="flex flex-col h-full w-60 relative"
+      className="flex flex-col h-full w-64 relative"
       style={{ background: '#0a140d', borderRight: '1px solid rgba(255,255,255,0.065)' }}
     >
       {/* Glow topo */}
