@@ -73,6 +73,9 @@ export type MovimentacaoSilo = {
   talhao_id: string | null;
   responsavel: string | null;
   observacao: string | null;
+  valor_unitario?: number | null;
+  comprador?: string | null;
+  receita_id?: string | null;
 };
 
 export type Talhao = {

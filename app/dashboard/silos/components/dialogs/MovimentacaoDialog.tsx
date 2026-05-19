@@ -23,10 +23,19 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { movimentacaoSiloSchema, type MovimentacaoSiloInput, SUBTIPOS_MOVIMENTACAO } from '@/lib/validations/silos';
+import { z } from 'zod';
 import { type Silo } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
 import { AlertTriangle } from 'lucide-react';
+
+const movimentacaoDialogSchema = movimentacaoSiloSchema.and(
+  z.object({
+    valor_unitario: z.number().positive().optional(),
+    comprador: z.string().max(150).optional(),
+  })
+);
+type MovimentacaoDialogInput = z.infer<typeof movimentacaoDialogSchema>;
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -48,8 +57,8 @@ export function MovimentacaoDialog({
   const [jaTemEntrada, setJaTemEntrada] = useState(false);
   const [checandoEntrada, setChecandoEntrada] = useState(false);
 
-  const form = useForm<MovimentacaoSiloInput>({
-    resolver: zodResolver(movimentacaoSiloSchema),
+  const form = useForm<MovimentacaoDialogInput>({
+    resolver: zodResolver(movimentacaoDialogSchema),
     defaultValues: {
       silo_id: siloId || '',
       tipo: 'Saída',
@@ -58,10 +67,13 @@ export function MovimentacaoDialog({
       data: TODAY,
       responsavel: '',
       observacao: '',
+      valor_unitario: undefined,
+      comprador: '',
     },
   });
 
   const tipoAtual = form.watch('tipo');
+  const subtipoAtual = form.watch('subtipo');
   const siloIdAtual = form.watch('silo_id');
 
   // Verificar hasEntrada quando o silo muda ou o dialog abre
@@ -90,12 +102,22 @@ export function MovimentacaoDialog({
         data: TODAY,
         responsavel: '',
         observacao: '',
+        valor_unitario: undefined,
+        comprador: '',
       });
       setJaTemEntrada(false);
     }
   }, [open, form, siloId]);
 
-  const handleSubmit = async (data: MovimentacaoSiloInput) => {
+  // Limpar campos de venda quando o subtipo mudar para algo diferente de 'Venda'
+  useEffect(() => {
+    if (subtipoAtual !== 'Venda') {
+      form.setValue('valor_unitario', undefined);
+      form.setValue('comprador', '');
+    }
+  }, [subtipoAtual, form]);
+
+  const handleSubmit = async (data: MovimentacaoDialogInput) => {
     try {
       await q.movimentacoesSilo.create({
         silo_id: data.silo_id,
@@ -106,7 +128,9 @@ export function MovimentacaoDialog({
         responsavel: data.responsavel || null,
         observacao: data.observacao || null,
         talhao_id: null,
-      });
+        valor_unitario: data.subtipo === 'Venda' ? (data.valor_unitario ?? null) : null,
+        comprador: data.subtipo === 'Venda' ? (data.comprador || null) : null,
+      } as any);
       toast.success('Movimentação registrada com sucesso!');
       onOpenChange(false);
       onSuccess();
@@ -250,6 +274,32 @@ export function MovimentacaoDialog({
               <p className="text-sm text-destructive">{form.formState.errors.quantidade.message}</p>
             )}
           </div>
+
+          {/* Campos condicionais para Venda */}
+          {subtipoAtual === 'Venda' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="mov-valor">Valor unitário (R$)</Label>
+                <Input
+                  id="mov-valor"
+                  type="number"
+                  step="0.01"
+                  {...form.register('valor_unitario', { valueAsNumber: true })}
+                />
+                {form.formState.errors.valor_unitario && (
+                  <p className="text-sm text-destructive">{form.formState.errors.valor_unitario.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mov-comprador">Comprador</Label>
+                <Input
+                  id="mov-comprador"
+                  maxLength={150}
+                  {...form.register('comprador')}
+                />
+              </div>
+            </>
+          )}
 
           {/* Responsável */}
           <div className="space-y-2">

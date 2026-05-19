@@ -678,6 +678,30 @@ export type Database = {
         }
         Relationships: []
       }
+      categorias_produto: {
+        Row: {
+          created_at: string
+          icone: string | null
+          id: string
+          nome: string
+          unidade_padrao: string
+        }
+        Insert: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome: string
+          unidade_padrao: string
+        }
+        Update: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome?: string
+          unidade_padrao?: string
+        }
+        Relationships: []
+      }
       categorias_rebanho: {
         Row: {
           consumo_ms_kg_cab_dia: number
@@ -1591,6 +1615,7 @@ export type Database = {
           insumo_id: string | null
           observacoes: string | null
           origem: string | null
+          produto_id_origem: string | null
           quantidade: number
           responsavel: string | null
           sinal_ajuste: number | null
@@ -1609,6 +1634,7 @@ export type Database = {
           insumo_id?: string | null
           observacoes?: string | null
           origem?: string | null
+          produto_id_origem?: string | null
           quantidade: number
           responsavel?: string | null
           sinal_ajuste?: number | null
@@ -1627,6 +1653,7 @@ export type Database = {
           insumo_id?: string | null
           observacoes?: string | null
           origem?: string | null
+          produto_id_origem?: string | null
           quantidade?: number
           responsavel?: string | null
           sinal_ajuste?: number | null
@@ -1649,10 +1676,97 @@ export type Database = {
             referencedRelation: "insumos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "movimentacoes_insumo_produto_id_origem_fkey"
+            columns: ["produto_id_origem"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimentacoes_produto: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          data: string
+          id: string
+          insumo_id_destino: string | null
+          observacoes: string | null
+          origem: string
+          produto_id: string
+          quantidade: number
+          receita_id: string | null
+          responsavel: string | null
+          sinal_ajuste: number | null
+          tipo: string
+          tipo_entrada: string | null
+          tipo_saida: string | null
+          valor_unitario: number | null
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          id?: string
+          insumo_id_destino?: string | null
+          observacoes?: string | null
+          origem?: string
+          produto_id: string
+          quantidade: number
+          receita_id?: string | null
+          responsavel?: string | null
+          sinal_ajuste?: number | null
+          tipo: string
+          tipo_entrada?: string | null
+          tipo_saida?: string | null
+          valor_unitario?: number | null
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          id?: string
+          insumo_id_destino?: string | null
+          observacoes?: string | null
+          origem?: string
+          produto_id?: string
+          quantidade?: number
+          receita_id?: string | null
+          responsavel?: string | null
+          sinal_ajuste?: number | null
+          tipo?: string
+          tipo_entrada?: string | null
+          tipo_saida?: string | null
+          valor_unitario?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_produto_insumo_id_destino_fkey"
+            columns: ["insumo_id_destino"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_produto_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_produto_receita_id_fkey"
+            columns: ["receita_id"]
+            isOneToOne: false
+            referencedRelation: "financeiro"
+            referencedColumns: ["id"]
+          },
         ]
       }
       movimentacoes_silo: {
         Row: {
+          comprador: string | null
           created_at: string | null
           created_by: string | null
           data: string
@@ -1660,13 +1774,16 @@ export type Database = {
           id: string
           observacao: string | null
           quantidade: number
+          receita_id: string | null
           responsavel: string | null
           silo_id: string | null
           subtipo: string | null
           talhao_id: string | null
           tipo: string
+          valor_unitario: number | null
         }
         Insert: {
+          comprador?: string | null
           created_at?: string | null
           created_by?: string | null
           data?: string
@@ -1674,13 +1791,16 @@ export type Database = {
           id?: string
           observacao?: string | null
           quantidade: number
+          receita_id?: string | null
           responsavel?: string | null
           silo_id?: string | null
           subtipo?: string | null
           talhao_id?: string | null
           tipo: string
+          valor_unitario?: number | null
         }
         Update: {
+          comprador?: string | null
           created_at?: string | null
           created_by?: string | null
           data?: string
@@ -1688,11 +1808,13 @@ export type Database = {
           id?: string
           observacao?: string | null
           quantidade?: number
+          receita_id?: string | null
           responsavel?: string | null
           silo_id?: string | null
           subtipo?: string | null
           talhao_id?: string | null
           tipo?: string
+          valor_unitario?: number | null
         }
         Relationships: [
           {
@@ -1700,6 +1822,13 @@ export type Database = {
             columns: ["fazenda_id"]
             isOneToOne: false
             referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_silo_receita_id_fkey"
+            columns: ["receita_id"]
+            isOneToOne: false
+            referencedRelation: "financeiro"
             referencedColumns: ["id"]
           },
           {
@@ -2005,6 +2134,78 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          atualizado_por: string | null
+          categoria_id: string
+          created_at: string
+          criado_por: string | null
+          custo_referencia: number | null
+          data_cadastro: string
+          estoque_atual: number
+          estoque_minimo: number
+          fazenda_id: string | null
+          id: string
+          local_armazen: string | null
+          nome: string
+          observacoes: string | null
+          unidade: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          atualizado_por?: string | null
+          categoria_id: string
+          created_at?: string
+          criado_por?: string | null
+          custo_referencia?: number | null
+          data_cadastro?: string
+          estoque_atual?: number
+          estoque_minimo?: number
+          fazenda_id?: string | null
+          id?: string
+          local_armazen?: string | null
+          nome: string
+          observacoes?: string | null
+          unidade: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          atualizado_por?: string | null
+          categoria_id?: string
+          created_at?: string
+          criado_por?: string | null
+          custo_referencia?: number | null
+          data_cadastro?: string
+          estoque_atual?: number
+          estoque_minimo?: number
+          fazenda_id?: string | null
+          id?: string
+          local_armazen?: string | null
+          nome?: string
+          observacoes?: string | null
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produtos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_produto"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produtos_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
             referencedColumns: ["id"]
           },
         ]
@@ -2434,6 +2635,7 @@ export type Database = {
       get_meu_perfil: { Args: never; Returns: string }
       get_minha_fazenda_id: { Args: never; Returns: string }
       get_my_fazenda_id: { Args: never; Returns: string }
+      get_my_fazenda_id_jwt: { Args: never; Returns: string }
       get_my_perfil: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_gerente_or_admin: { Args: never; Returns: boolean }
@@ -2461,6 +2663,7 @@ export type Database = {
         }[]
       }
       sou_admin: { Args: never; Returns: boolean }
+      sou_admin_ou_visualizador: { Args: never; Returns: boolean }
       sou_gerente_ou_admin: { Args: never; Returns: boolean }
     }
     Enums: {

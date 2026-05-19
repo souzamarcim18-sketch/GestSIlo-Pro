@@ -35,7 +35,8 @@
       "Bash(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\icon.png\")",
       "Bash(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\apple-icon.png\")",
       "PowerShell(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\icon.png\")",
-      "PowerShell(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\apple-icon.png\")"
+      "PowerShell(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\public\\\\icon-512.png\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\apple-icon.png\")",
+      "Bash(Test-Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\produtos\\\\page.tsx\")"
     ],
     "additionalDirectories": [
       "\\tmp"

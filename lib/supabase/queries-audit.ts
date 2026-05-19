@@ -172,7 +172,7 @@ const movimentacoesSilo = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('movimentacoes_silo')
-      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
+      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao, valor_unitario, comprador, receita_id')
       .eq('silo_id', siloId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -185,19 +185,19 @@ const movimentacoesSilo = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('movimentacoes_silo')
-      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
+      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao, valor_unitario, comprador, receita_id')
       .in('silo_id', siloIds)
       .order('data', { ascending: false });
     if (error) throw error;
     return data as MovimentacaoSilo[];
   },
 
-  async create(payload: Omit<MovimentacaoSilo, 'id'>): Promise<MovimentacaoSilo> {
+  async create(payload: Omit<MovimentacaoSilo, 'id'> & { valor_unitario?: number | null; comprador?: string | null }): Promise<MovimentacaoSilo> {
     // Verificar que o silo_id pertence à fazenda antes de inserir
     const fazendaId = await getFazendaId();
     const { data: silo, error: checkError } = await supabase
       .from('silos')
-      .select('id, data_abertura_real')
+      .select('id, nome, data_abertura_real')
       .eq('id', payload.silo_id)
       .eq('fazenda_id', fazendaId)
       .single();
@@ -209,12 +209,14 @@ const movimentacoesSilo = {
     const { data, error } = await supabase
       .from('movimentacoes_silo')
       .insert(payload)
-      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao')
+      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao, valor_unitario, comprador, receita_id')
       .single();
     if (error) throw error;
 
+    const mov = data as MovimentacaoSilo & { valor_unitario?: number | null; comprador?: string | null; receita_id?: string | null };
+
     // Auto-registrar data de abertura real na primeira saída
-    if (payload.tipo === 'Saída' && !silo.data_abertura_real) {
+    if (payload.tipo === 'Saída' && !(silo as any).data_abertura_real) {
       const { count: countSaidas, error: countError } = await supabase
         .from('movimentacoes_silo')
         .select('id', { count: 'exact', head: true })
@@ -231,11 +233,57 @@ const movimentacoesSilo = {
       }
     }
 
-    return data as MovimentacaoSilo;
+    // Integração financeiro: registrar receita em vendas de silagem
+    if (payload.subtipo === 'Venda' && payload.valor_unitario != null) {
+      const { createSupabaseServerClient } = await import('./server');
+      const supabaseServer = await createSupabaseServerClient();
+      try {
+        const receitaPayload = {
+          tipo: 'Receita' as const,
+          categoria: 'Silagem',
+          descricao: `Venda de silagem — Silo: ${(silo as any).nome}`,
+          valor: payload.quantidade * payload.valor_unitario,
+          data: payload.data,
+          referencia_tipo: 'Silo',
+          referencia_id: payload.silo_id,
+        };
+        const { data: receitaData, error: receitaError } = await supabaseServer
+          .from('financeiro')
+          .insert(receitaPayload)
+          .select('id')
+          .single();
+        if (receitaError) throw receitaError;
+
+        await supabaseServer
+          .from('movimentacoes_silo')
+          .update({ receita_id: receitaData.id })
+          .eq('id', mov.id);
+      } catch {
+        // Rollback: remover a movimentação criada
+        await supabase.from('movimentacoes_silo').delete().eq('id', mov.id);
+        throw new Error('Falha ao registrar receita da venda');
+      }
+    }
+
+    return mov;
   },
 
   async remove(id: string): Promise<void> {
     await getFazendaId(); // garante sessão ativa antes de deletar
+
+    // Cleanup: remover receita financeira vinculada (se existir)
+    const { data: mov } = await supabase
+      .from('movimentacoes_silo')
+      .select('id, receita_id')
+      .eq('id', id)
+      .single();
+
+    if (mov?.receita_id) {
+      const { createSupabaseServerClient } = await import('./server');
+      const supabaseServer = await createSupabaseServerClient();
+      await supabaseServer.from('financeiro').delete().eq('id', mov.receita_id);
+    }
+
     const { error } = await supabase
       .from('movimentacoes_silo')
       .delete()
@@ -954,6 +1002,16 @@ const financeiroServer = {
       .single();
     if (error) throw error;
     return data as Financeiro;
+  },
+
+  async remove(id: string): Promise<void> {
+    const { createSupabaseServerClient } = await import('./server');
+    const supabaseServer = await createSupabaseServerClient();
+    const { error } = await supabaseServer
+      .from('financeiro')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
   },
 };
 

@@ -34,6 +34,7 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { CowIcon } from '@/components/icons/CowIcon';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/providers/AuthProvider';
 
 
 type RouteItem = {
@@ -48,7 +49,7 @@ const gerencialRoutes: RouteItem[] = [
   { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes',                        badge: null },
   { label: 'Rebanho',     icon: CowIcon,       href: '/dashboard/rebanho',                        badge: null },
   { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
-  { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: 'comingSoon' },
+  { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: null },
   { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },
   { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro',                     badge: null },
   { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario',                     badge: null },
@@ -201,6 +202,11 @@ function SubNavItem({
 export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
+  const { profile } = useAuth();
+
+  const visibleGerencialRoutes = gerencialRoutes.filter(
+    (route) => !(route.href === '/dashboard/produtos' && profile?.perfil === 'Operador')
+  );
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -265,7 +271,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                 Gerencial
               </div>
               <ul className="space-y-0.5 list-none">
-                {gerencialRoutes.map((route) => (
+                {visibleGerencialRoutes.map((route) => (
                   <div key={route.href}>
                     <NavItem
                       href={route.href}
