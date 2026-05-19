@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2, BarChart3, Heart, Milk, Scale, Stethoscope, ArrowRightLeft } from 'lucide-react';
+import { Plus, Loader2, BarChart3, Heart, Milk, Scale, Stethoscope, ArrowRightLeft, Beef, Dna } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -121,9 +121,9 @@ export default function RebanhosPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'Dashboard com KPIs e 4 alertas proativos' },
-              { href: '/dashboard/rebanho/reproducao', icon: Heart, titulo: 'Reprodução', descricao: 'Calendário reprodutivo, eventos, reprodutores' },
+              { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Calendário reprodutivo, eventos, reprodutores' },
               { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Leiteira', descricao: 'Registro e curva de lactação' },
-              { href: '/dashboard/rebanho/corte', icon: Scale, titulo: 'Corte', descricao: 'GMD, arrobas, projeção de abate' },
+              { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Corte', descricao: 'GMD, arrobas, projeção de abate' },
               { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação, sanitários, alertas' },
               { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas, saídas, transferências' },
             ].map(({ href, icon: Icon, titulo, descricao }) => (

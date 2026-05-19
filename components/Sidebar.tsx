@@ -104,7 +104,7 @@ function NavItem({
         prefetch={false}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3',
+          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2',
           isActive
             ? 'text-[#00c45a]'
             : 'text-[#688070] hover:text-[#dceede] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-150',
@@ -162,7 +162,7 @@ function SubNavItem({
         prefetch={false}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 pl-8 pr-3',
+          'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 pl-8 pr-3 mr-2',
           isActive
             ? 'text-[#00c45a]'
             : 'text-[#688070] hover:text-[#dceede] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-150',
