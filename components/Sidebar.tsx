@@ -26,6 +26,7 @@ import {
   ArrowRightLeft,
   NotebookPen,
   Beef,
+  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -305,6 +306,15 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                     onNavigate={onNavigate}
                   />
                 ))}
+                {(profile?.perfil === 'Administrador' || profile?.perfil === 'Visualizador') && (
+                  <NavItem
+                    href="/dashboard/planejamento-compras"
+                    icon={ShoppingCart}
+                    label="Plan. Compras"
+                    isActive={pathname.startsWith('/dashboard/planejamento-compras')}
+                    onNavigate={onNavigate}
+                  />
+                )}
               </ul>
             </div>
 

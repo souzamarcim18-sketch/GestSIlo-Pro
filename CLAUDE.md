@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 646 testes passando (inclui suite de auditoria RLS em `tests/security/`)
+- **Testes**: Vitest — 704 testes passando (inclui suite de auditoria RLS em `tests/security/`)
 
 ---
 
@@ -85,6 +85,9 @@ sou_admin() → boolean
 
 -- Verifica se usuário é Administrador ou Gerente via JWT
 sou_gerente_ou_admin() → boolean
+
+-- Verifica se usuário é Administrador ou Visualizador via JWT (bloqueia Operador)
+sou_admin_ou_visualizador() → boolean
 ```
 
 ### Tabelas Principais
@@ -95,7 +98,9 @@ sou_gerente_ou_admin() → boolean
 `animais`, `lotes`, `eventos_rebanho`, `pesos_animal`, `reprodutores`,
 `lactacoes`, `producoes_leiteiras`, `eventos_sanitarios`,
 `eventos_parto_crias`, `parametros_reprodutivos_fazenda`,
-`categorias_rebanho`
+`categorias_rebanho`,
+`produtos`, `movimentacoes_produto`, `categorias_produto`,
+`planejamentos_atividade`, `planejamento_insumos`
 
 ### Índices Existentes (criados em 29/04/2026)
 - `idx_planos_manutencao_fazenda_id`
@@ -128,7 +133,27 @@ app/
 │   ├── financeiro/
 │   ├── relatorios/
 │   ├── assessoria/                  # Em breve (badge no Sidebar)
-│   ├── produtos/                    # Em breve (badge no Sidebar)
+│   ├── produtos/                    # Módulo completo (2026-05-19)
+│   │   ├── layout.tsx               # Guard: redireciona Operador → /dashboard
+│   │   ├── page.tsx                 # Página principal (estado, hooks, composição)
+│   │   ├── actions.ts               # 7 Server Actions (criar/atualizar/deletar produto, entrada, saída, ajuste, deletar mov)
+│   │   └── components/
+│   │       ├── ProdutoForm.tsx       # Modal criar/editar produto
+│   │       ├── EntradaForm.tsx       # Modal registrar entrada
+│   │       ├── SaidaForm.tsx         # Modal registrar saída (+ campos condicionais por tipo_saida)
+│   │       ├── TransferenciaInsumoForm.tsx  # Modal saída tipo TRANSFERENCIA_INSUMO
+│   │       ├── AjusteInventario.tsx  # Modal ajuste de estoque
+│   │       ├── AlertsSection.tsx     # Faixa de alertas estoque abaixo do mínimo
+│   │       ├── ProdutosList.tsx      # Tabela de produtos com ações inline
+│   │       ├── ProdutosFilters.tsx   # Busca + filtros categoria/status
+│   │       ├── UltimasMovimentacoes.tsx  # Card com 10 movimentações mais recentes
+│   │       ├── DeleteProdutoDialog.tsx   # Confirm dialog exclusão
+│   │       └── ProdutoAutocomplete.tsx   # Combobox assíncrono (usado em TransferenciaInsumoForm)
+│   ├── planejamento-compras/           # Módulo completo (2026-05-19)
+│   │   ├── layout.tsx                   # Guard: redireciona Operador → /dashboard
+│   │   ├── page.tsx                     # 2 abas: Atividades Planejadas + Lista de Compras
+│   │   ├── actions.ts                   # 8 Server Actions
+│   │   └── [id]/page.tsx                # Detalhe da atividade com insumos vinculados
 │   ├── suporte/
 │   ├── configuracoes/
 │   ├── onboarding/
@@ -168,6 +193,7 @@ app/
 components/
 ├── ui/                              # shadcn/ui
 ├── widgets/
+├── planejamento-compras/                # 10 componentes UI do módulo
 ├── Header.tsx
 ├── Sidebar.tsx
 ├── Breadcrumbs.tsx
@@ -189,7 +215,9 @@ lib/
 │   ├── rebanho-sanitario.ts         # Queries eventos_sanitarios + listAlertasSanitarios()
 │   ├── rebanho-movimentacoes.ts     # Queries de movimentações consolidadas
 │   ├── rebanho-movimentacoes-actions.ts  # Helpers de movimentações
-│   └── rebanho-indicadores.ts       # Queries de alertas: partos, pesagens, vacas secas
+│   ├── rebanho-indicadores.ts       # Queries de alertas: partos, pesagens, vacas secas
+│   ├── produtos.ts                  # Queries produtos, movimentacoes_produto, categorias_produto
+│   └── planejamento-compras.ts      # Queries + função pura calcularLinhasRelatorio()
 ├── sentry/
 │   └── allowlist.ts                 # Padrões de dados sensíveis filtrados do Sentry
 ├── auth/
@@ -307,11 +335,39 @@ Não modifique sem instrução explícita:
 
 ---
 
-## Integração Insumos → Financeiro
+## Integrações Cross-Módulo
+
+### Insumos → Financeiro
 Quando `registrar_como_despesa === true` em uma saída de insumo:
 - `criarSaidaAction` cria automaticamente lançamento em `financeiro` (categoria "Insumos", tipo "Despesa")
 - `movimentacoes_insumo.despesa_id` é preenchido para rastreabilidade bidirecional
 - Ao deletar movimentação com `despesa_id`, o registro em `financeiro` é removido junto (cleanup automático)
+
+### Produtos → Financeiro
+Quando `tipo_saida === 'VENDA'` e `registrar_como_receita === true` em uma saída de produto:
+- `criarSaidaProdutoAction` cria lançamento em `financeiro` (categoria "Produtos", tipo "Receita")
+- `movimentacoes_produto.receita_id` é preenchido para rastreabilidade bidirecional
+- Ao deletar movimentação com `receita_id`, o registro em `financeiro` é removido junto (cleanup automático)
+- Rollback transacional: se a criação da receita falhar, a movimentação é desfeita (DELETE)
+
+### Produtos → Insumos
+Quando `tipo_saida === 'TRANSFERENCIA_INSUMO'`:
+- `criarSaidaProdutoAction` cria entrada em `movimentacoes_insumo` com `produto_id_origem` preenchido
+- Rastreabilidade bidirecional: `movimentacoes_produto.insumo_id_destino` ↔ `movimentacoes_insumo.produto_id_origem`
+
+### Silos → Financeiro (venda de silagem)
+Quando `subtipo === 'Venda'` e `valor_unitario != null` em movimentação de silo:
+- `movimentacoesSilo.create()` cria lançamento em `financeiro` (categoria "Silagem", tipo "Receita")
+- `movimentacoes_silo.receita_id` é preenchido para rastreabilidade bidirecional
+- Ao deletar movimentação com `receita_id`, o registro em `financeiro` é removido junto (cleanup automático)
+- Rollback transacional: se a criação da receita falhar, a movimentação é desfeita (DELETE)
+
+### Planejamento de Compras → Insumos
+Quando um insumo planejado é marcado como comprado em `marcarComoCompradoAction`:
+- Cria entrada em `movimentacoes_insumo` com `tipo = 'Entrada'` e `origem = 'planejamento'`
+- `movimentacoes_insumo.planejamento_insumo_id` é preenchido para rastreabilidade bidirecional
+- Valor `'planejamento'` foi adicionado ao CHECK `chk_origem` via migration suplementar em 2026-05-19
+- Não cria lançamento financeiro automático (compra real é registrada via módulo Insumos pelo Admin)
 
 ---
 
@@ -383,7 +439,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 646+ testes passam e build não tem erros TypeScript
+4. Confirmar que 704+ testes passam e build não tem erros TypeScript
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -423,6 +479,81 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 
 ### 🧮 Calculadoras Agronômicas
 - Calagem, adubação NPK, fertilizantes
+
+### 🌽 Produtos (100% implementado — 2026-05-19)
+
+**Tabelas do banco**:
+`produtos`, `movimentacoes_produto`, `categorias_produto`
+
+**9 categorias seed** (tabela pública, sem fazenda_id):
+Grãos (sacas), Feno (fardos), Pré-secado (kg), Sementes (kg), Leite (litros),
+Arrobas (@), Animais (cabeças), Material Genético (doses), Outros (unidade)
+
+**Tipos de movimentação**:
+- Entrada: `COLHEITA`, `COMPRA`, `AJUSTE_INICIAL`
+- Saída: `VENDA`, `CONSUMO_PROPRIO`, `PERDA`, `DOACAO`, `TRANSFERENCIA_INSUMO`, `DESCARTE`
+- Ajuste: delta positivo/negativo com campo `sinal_ajuste` (+1/-1) e `motivo`
+
+**Controle de estoque**: trigger `AFTER INSERT` em `movimentacoes_produto` atualiza `produtos.estoque_atual` automaticamente. Compensação em DELETE feita manualmente na action (UPDATE antes do DELETE).
+
+**Permissões por perfil**:
+- **Admin**: CRUD completo de produtos e todas as movimentações
+- **Operador**: sem acesso ao módulo (guard no `layout.tsx` redireciona para `/dashboard`)
+- **Visualizador**: consultar apenas (SELECT via `sou_admin_ou_visualizador()`)
+
+**Soft-delete vs hard-delete**:
+- Produto COM movimentações → `ativo = false` (soft-delete, linha preservada)
+- Produto SEM movimentações → `DELETE` (hard-delete)
+
+**Navegação**: item "Produtos" no Sidebar oculto para Operador; badge `comingSoon` removido.
+
+**Arquivos principais**:
+- `lib/supabase/produtos.ts` — queries produtos, movimentacoes_produto, categorias_produto
+- `lib/validations/produtos.ts` — 4 schemas Zod: `produtoFormSchema`, `entradaFormSchema`, `saidaFormSchema`, `ajusteInventarioSchema`
+- `app/dashboard/produtos/actions.ts` — 7 Server Actions: `criarProdutoAction`, `atualizarProdutoAction`, `deletarProdutoAction`, `criarEntradaAction`, `criarSaidaProdutoAction`, `criarAjusteProdutoAction`, `deletarMovimentacaoProdutoAction`
+- `app/dashboard/produtos/layout.tsx` — guard de perfil (redireciona Operador)
+- `app/dashboard/produtos/page.tsx` — composição dos 11 componentes
+- `app/dashboard/produtos/components/` — 11 componentes UI (ver árvore em Estrutura Principal)
+
+### 🛒 Planejamento de Compras (100% implementado — 2026-05-19)
+
+**Tabelas do banco**:
+`planejamentos_atividade`, `planejamento_insumos`
+
+**Conceito**: planejar atividades de campo futuras (plantio, adubação, pulverização, etc.) com os insumos necessários, e gerar uma **lista consolidada de compras** com status derivado em runtime (`planejada` → `parcialmente_comprada` → `comprada`).
+
+**Tipos de operação suportados**:
+plantio, adubação, pulverização, calagem, colheita, irrigação, outros
+
+**Status da atividade** (`planejamentos_atividade.status`):
+`planejada`, `cancelada` (concluída é derivada pelos insumos)
+
+**Status de compra do insumo** (derivado em runtime, não persistido):
+`pendente`, `parcialmente_comprado`, `comprado`
+
+**Permissões por perfil**:
+- **Admin**: CRUD completo de atividades, insumos vinculados e marcar como comprado
+- **Operador**: sem acesso ao módulo (guard no `layout.tsx` redireciona para `/dashboard`)
+- **Visualizador**: consultar apenas (SELECT via `sou_admin_ou_visualizador()`)
+
+**Integração com Insumos**:
+Ao marcar um insumo como comprado, `marcarComoCompradoAction` cria entrada em `movimentacoes_insumo` com:
+- `origem = 'planejamento'` (valor adicionado ao CHECK `chk_origem` em migration suplementar)
+- `planejamento_insumo_id` preenchido para rastreabilidade bidirecional
+
+**Navegação**: item "Plan. Compras" no Sidebar oculto para Operador.
+
+**Arquivos principais**:
+- `lib/supabase/planejamento-compras.ts` — queries + função pura `calcularLinhasRelatorio()` (compartilhada client/server)
+- `lib/validations/planejamento-compras.ts` — schemas Zod (planejamento, insumo vinculado, marcar como comprado)
+- `lib/types/planejamento-compras.ts` — tipos TypeScript (TipoOperacao, StatusCompra, LinhaRelatorio, etc.)
+- `app/dashboard/planejamento-compras/actions.ts` — 8 Server Actions
+- `app/dashboard/planejamento-compras/layout.tsx` — guard de perfil
+- `app/dashboard/planejamento-compras/page.tsx` — 2 abas (Atividades Planejadas + Lista de Compras)
+- `app/dashboard/planejamento-compras/[id]/page.tsx` — detalhe da atividade
+- `components/planejamento-compras/` — 10 componentes UI
+
+**Testes**: 31 casos novos (10 validação Zod + 21 cálculo/agrupamento) — total do projeto: 704 passando
 
 ### 🐄 Rebanho (100% implementado — 2026-05-08, refatoração v3 concluída)
 
@@ -505,4 +636,3 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 
 ### 🔮 Em Breve (badge no Sidebar)
 - Assessoria Agronômica
-- Produtos (grãos, origem animal, forragens)

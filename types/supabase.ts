@@ -1979,6 +1979,119 @@ export type Database = {
           },
         ]
       }
+      planejamento_insumos: {
+        Row: {
+          created_at: string
+          fazenda_id: string
+          id: string
+          insumo_id: string
+          planejamento_id: string
+          quantidade: number
+        }
+        Insert: {
+          created_at?: string
+          fazenda_id: string
+          id?: string
+          insumo_id: string
+          planejamento_id: string
+          quantidade: number
+        }
+        Update: {
+          created_at?: string
+          fazenda_id?: string
+          id?: string
+          insumo_id?: string
+          planejamento_id?: string
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planejamento_insumos_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planejamento_insumos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planejamento_insumos_planejamento_id_fkey"
+            columns: ["planejamento_id"]
+            isOneToOne: false
+            referencedRelation: "planejamentos_atividade"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planejamentos_atividade: {
+        Row: {
+          ciclo_id: string | null
+          created_at: string
+          created_by: string | null
+          data_prevista: string
+          fazenda_id: string
+          id: string
+          observacoes: string | null
+          status: string
+          talhao_id: string
+          tipo_operacao: string
+          updated_at: string
+        }
+        Insert: {
+          ciclo_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_prevista: string
+          fazenda_id: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          talhao_id: string
+          tipo_operacao: string
+          updated_at?: string
+        }
+        Update: {
+          ciclo_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_prevista?: string
+          fazenda_id?: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          talhao_id?: string
+          tipo_operacao?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planejamentos_atividade_ciclo_id_fkey"
+            columns: ["ciclo_id"]
+            isOneToOne: false
+            referencedRelation: "ciclos_agricolas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planejamentos_atividade_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planejamentos_atividade_talhao_id_fkey"
+            columns: ["talhao_id"]
+            isOneToOne: false
+            referencedRelation: "talhoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planejamentos_silagem: {
         Row: {
           created_at: string | null
