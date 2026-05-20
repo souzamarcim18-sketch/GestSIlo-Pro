@@ -469,12 +469,10 @@ export default function FinanceiroPage() {
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <div className="p-6 md:p-8">
-      <div className="space-y-6">
-
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Gestão Financeira</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão Financeira</h2>
 
         <div className="flex flex-wrap gap-2 items-center">
 
@@ -696,7 +694,7 @@ export default function FinanceiroPage() {
         </CardContent>
       </Card>
 
-      {/* ── Dialog: Confirmar exclusão ─────────────────────────────────── */}
+      {/* Dialog: Confirmar exclusão */}
       <Dialog
         open={!!deletingLancamento}
         onOpenChange={(open) => { if (!open) setDeletingLancamento(null); }}
@@ -724,8 +722,6 @@ export default function FinanceiroPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      </div>
     </div>
   );
 }

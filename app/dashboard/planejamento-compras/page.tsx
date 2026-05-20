@@ -144,11 +144,11 @@ export default function PlanejamentoComprasPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Planejamento de Compras</h1>
+          <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Planejamento de Compras</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             Planeje atividades de campo e gerencie os insumos necessários
           </p>

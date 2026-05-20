@@ -103,6 +103,7 @@ describe('Assessoria Validations', () => {
             horario_disponivel_id: '550e8400-e29b-41d4-a716-446655440000',
             consultor_id: '550e8400-e29b-41d4-a716-446655440001',
             tipo,
+            observacoes: 'Gostaria de discutir sobre adubação',
           })
         ).not.toThrow();
       });
@@ -123,6 +124,7 @@ describe('Assessoria Validations', () => {
         horario_disponivel_id: '550e8400-e29b-41d4-a716-446655440000',
         consultor_id: '550e8400-e29b-41d4-a716-446655440001',
         tipo: 'reuniao_video' as const,
+        observacoes: 'Gostaria de discutir sobre adubação',
         link_reuniao: 'https://meet.google.com/abc-defg-hij',
       };
       expect(() => criarAgendamentoSchema.parse(valido)).not.toThrow();

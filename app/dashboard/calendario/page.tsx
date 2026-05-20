@@ -349,7 +349,7 @@ export default function CalendarioPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Calendário de Operações</h1>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Calendário de Operações</h2>
         <p className="text-muted-foreground">Visualize e gerencie eventos DAP do ciclo agrícola</p>
       </div>
 

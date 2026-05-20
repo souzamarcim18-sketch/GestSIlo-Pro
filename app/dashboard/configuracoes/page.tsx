@@ -165,16 +165,14 @@ export default function ConfiguracoesPage() {
   // ---------------------------------------------------------------------------
   return (
     <div className="space-y-6">
-
-      {/* ── Header ─────────────────────────────────────────────────────── */}
+      {/* Header */}
       <div className="flex items-center justify-between">
-        {/* ✅ h1 real da página */}
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">
           Configurações do Sistema
-        </h1>
+        </h2>
       </div>
 
-      {/* ── Tabs ───────────────────────────────────────────────────────── */}
+      {/* Tabs */}
       <div className="w-full space-y-6">
         <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] lg:w-[500px]">
           {([
@@ -196,7 +194,7 @@ export default function ConfiguracoesPage() {
           ))}
         </div>
 
-        {/* ── Aba: Perfil ──────────────────────────────────────────────── */}
+        {/* Aba: Perfil */}
         {activeTab === 'perfil' && (
         <div className="mt-6">
           <Card>
@@ -287,7 +285,7 @@ export default function ConfiguracoesPage() {
         </div>
         )}
 
-        {/* ── Aba: Fazenda ─────────────────────────────────────────────── */}
+        {/* Aba: Fazenda */}
         {activeTab === 'fazenda' && (
         <div className="mt-6">
           <Card>
@@ -380,7 +378,7 @@ export default function ConfiguracoesPage() {
         </div>
         )}
 
-        {/* ── Aba: Usuários ─────────────────────────────────────────────── */}
+        {/* Aba: Usuários */}
         {activeTab === 'usuarios' && (
         <div className="mt-6">
           <Card>

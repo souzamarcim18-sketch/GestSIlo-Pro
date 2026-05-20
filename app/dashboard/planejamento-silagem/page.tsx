@@ -9,9 +9,9 @@ export default function PlanejamentoSilagemPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">
             Planejamento de Silagem
-          </h1>
+          </h2>
           <p className="text-muted-foreground mt-1">
             Calcule a demanda de silagem, estime a necessidade de área para plantio e dimensione seus silos em 4 etapas simples.
           </p>

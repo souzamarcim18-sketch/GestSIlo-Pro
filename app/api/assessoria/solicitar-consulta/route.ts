@@ -122,6 +122,8 @@ export async function POST(request: NextRequest) {
         data_agendada: dataAgendada,
         observacoes: observacoes,
         status: 'solicitado',
+        telefone: telefone,
+        email: email,
       })
       .select()
       .single();

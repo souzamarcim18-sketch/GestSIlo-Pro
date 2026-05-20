@@ -8,19 +8,19 @@ export default function CalculadorasPage() {
   const [activeTab, setActiveTab] = useState<'calagem' | 'npk'>('calagem');
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-      {/* HEADER */}
+    <div className="space-y-6">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">
           Calculadoras Agronômicas
-        </h1>
+        </h2>
         <p className="text-muted-foreground mt-1">
-          Ferramentas para cálculo de calagem e adubação NPK.
-          Resultados indicativos — consulte seu agrônomo.
+          Ferramentas para cálculo de calagem e melhor viabilidade de custos de adubos.
+          Os resultados são indicativos — consulte sempre seu agrônomo.
         </p>
       </div>
 
-      {/* CALCULADORAS */}
+      {/* Calculadoras */}
       <div className="w-full space-y-6">
         <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] max-w-md">
           <button
@@ -43,7 +43,7 @@ export default function CalculadorasPage() {
             }`}
           >
             <Sprout className="h-4 w-4" />
-            Adubação NPK
+            Viabilidade de fertilizantes
           </button>
         </div>
 

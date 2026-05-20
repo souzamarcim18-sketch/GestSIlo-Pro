@@ -37,7 +37,7 @@ export default function FrotaPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Frota e Máquinas</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Frota e Maquinários</h2>
         <p className="text-sm text-muted-foreground mt-2">
           Gerencie equipamentos, manutenções e abastecimentos da fazenda.
         </p>

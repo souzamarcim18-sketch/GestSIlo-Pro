@@ -124,11 +124,11 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
             <div>
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
                 {([
-                  { value: 'saturacao', label: 'Saturação V%' },
-                  { value: 'al_ca_mg', label: 'Al+Ca/Mg' },
-                  { value: 'mg_manual', label: 'MG Manual' },
-                  { value: 'smp', label: 'SMP' },
-                  { value: 'ufla', label: 'UFLA' },
+                  { value: 'saturacao', label: 'Saturação de bases' },
+                  { value: 'al_ca_mg', label: 'Neutralização de Al³⁺' },
+                  { value: 'mg_manual', label: '5ª Aproximação' },
+                  { value: 'smp', label: 'Índice SMP' },
+                  { value: 'ufla', label: 'Teor de Cálcio (UFLA)' },
                 ] as { value: MetodoCalagemType; label: string }[]).map(({ value, label }) => (
                   <button
                     key={value}

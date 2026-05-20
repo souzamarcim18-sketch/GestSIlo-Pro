@@ -52,7 +52,7 @@ export default function SilosPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão das Silagens</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Silagens</h2>
         <Button onClick={() => setIsAddSiloOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Silo

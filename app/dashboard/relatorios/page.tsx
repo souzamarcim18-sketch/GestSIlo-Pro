@@ -245,10 +245,9 @@ export default function RelatoriosPage() {
 
   return (
     <div className="space-y-6">
-
-      {/* ── Header ─────────────────────────────────────────────────────── */}
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Relatórios e Análises</h1>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Relatórios e Análises</h2>
         <Button
           variant="outline"
           aria-label="Configurar dashboards personalizados"
@@ -259,7 +258,7 @@ export default function RelatoriosPage() {
         </Button>
       </div>
 
-      {/* ── Grid de relatórios ─────────────────────────────────────────── */}
+      {/* Grid de relatórios */}
       <section aria-labelledby="relatorios-heading">
         <h2 id="relatorios-heading" className="sr-only">
           Tipos de relatório disponíveis

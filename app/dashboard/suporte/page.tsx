@@ -59,17 +59,11 @@ const faqItems = [
 
 export default function SuportePage() {
   return (
-    <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
-
-      {/* Cabeçalho */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-          <HelpCircle className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Suporte Técnico</h1>
-          <p className="text-sm text-muted-foreground">Entre em contato com nossa equipe</p>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Suporte Técnico</h2>
+        <p className="text-sm text-muted-foreground">Entre em contato com nossa equipe</p>
       </div>
 
       {/* Canais de contato */}

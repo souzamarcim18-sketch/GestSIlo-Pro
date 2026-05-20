@@ -94,7 +94,7 @@ export default function RebanhosPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Rebanho</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão do Rebanho</h2>
         <div className="space-x-2">
           {isAdmin && (
             <>

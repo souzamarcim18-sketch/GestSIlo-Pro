@@ -77,7 +77,7 @@ export default function TalhoesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Talhões</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Lavouras e Talhões</h2>
           <Button onClick={() => setIsAddOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Talhão

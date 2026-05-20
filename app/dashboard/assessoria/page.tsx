@@ -52,7 +52,7 @@ export default function AssessoriaPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-6">
         <Skeleton className="h-64" />
         <Skeleton className="h-64" />
       </div>
@@ -60,9 +60,9 @@ export default function AssessoriaPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Assessoria Agronômica</h1>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Assessoria Agronômica</h2>
         <p className="text-sm text-muted-foreground">Anote suas dúvidas e conecte-se com um Agrônomo para consultoria individualizada</p>
       </div>
 
