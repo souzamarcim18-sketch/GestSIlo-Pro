@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { AnotacaoAssessoria, AgendamentoUsuario } from '@/lib/types/assessoria';
@@ -21,7 +21,7 @@ export default function AssessoriaPage() {
     }
   }, [profile, router]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!profile?.fazenda_id) return;
     try {
       setIsLoading(true);
@@ -44,11 +44,11 @@ export default function AssessoriaPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [profile?.fazenda_id]);
 
   useEffect(() => {
     loadData();
-  }, [profile?.fazenda_id]);
+  }, [loadData]);
 
   if (isLoading) {
     return (

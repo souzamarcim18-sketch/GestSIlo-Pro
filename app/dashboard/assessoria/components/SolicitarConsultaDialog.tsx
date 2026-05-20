@@ -88,7 +88,7 @@ export default function SolicitarConsultaDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="tipo"
               render={({ field }) => (
                 <FormItem>
@@ -113,7 +113,7 @@ export default function SolicitarConsultaDialog({
             />
 
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="observacoes"
               render={({ field }) => (
                 <FormItem>
