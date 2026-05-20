@@ -36,7 +36,7 @@ export function PieCulturasAtivas({ data, total }: Props) {
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius="52%"
+            innerRadius="70%"
             outerRadius="85%"
             dataKey="value"
             strokeWidth={2}

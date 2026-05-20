@@ -60,7 +60,6 @@ const gerencialRoutes: RouteItem[] = [
 const ferramentasRoutes: RouteItem[] = [
   { label: 'Plan. Silagem',          icon: NotebookPen,  href: '/dashboard/planejamento-silagem' },
   { label: 'Calculadoras',           icon: Calculator,   href: '/dashboard/calculadoras'         },
-  { label: 'Assessoria agronômica',  icon: GraduationCap, href: '/dashboard/assessoria',    badge: null },
 ];
 
 const sistemaRoutes: RouteItem[] = [
@@ -312,6 +311,15 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                     icon={ShoppingCart}
                     label="Plan. Compras"
                     isActive={pathname.startsWith('/dashboard/planejamento-compras')}
+                    onNavigate={onNavigate}
+                  />
+                )}
+                {profile?.perfil === 'Administrador' && (
+                  <NavItem
+                    href="/dashboard/assessoria"
+                    icon={GraduationCap}
+                    label="Assessoria agronômica"
+                    isActive={pathname.startsWith('/dashboard/assessoria')}
                     onNavigate={onNavigate}
                   />
                 )}

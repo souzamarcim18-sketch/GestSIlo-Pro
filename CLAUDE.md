@@ -634,5 +634,82 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 
 **Testes**: 645/646 passando — 1 falho pré-existente (`__tests__/security/rls.test.ts`) por timeout de rede (tenta conectar ao Supabase real sem credenciais configuradas no ambiente de teste)
 
-### 🔮 Em Breve (badge no Sidebar)
-- Assessoria Agronômica
+### 📋 Assessoria Agronômica (100% implementado — 2026-05-20)
+
+**Tabelas do banco**:
+`anotacoes_assessoria`, `horarios_disponiveis_consultor`, `agendamentos_usuario`, `historico_atendimentos`
+
+**Conceito**: Sistema de agendamento com link mágico para consultores. Usuário solicita reunião → email com link JWT → consultor confirma/recusa/remarca sem login.
+
+**Fluxo simplificado**:
+1. Admin configura horários disponíveis (via painel admin)
+2. Usuário visualiza agenda e clica em horário
+3. Usuário preenche formulário com **telefone** (contato direto)
+4. Sistema envia email para consultor (noreply@gestsilo.com.br via Resend)
+5. Email contém: data/hora, fazenda, responsável, **telefone para contato**, botões de ação
+6. Consultor clica link mágico (JWT válido 24h) → página pública sem autenticação
+7. Consultor: confirma, recusa com motivo, ou sugere nova data
+8. Status atualizado em tempo real para usuário
+
+**Tabelas & RLS**:
+- `anotacoes_assessoria` — bloco de notas da fazenda (soft-delete, RLS por `fazenda_id`, apenas Admin)
+- `horarios_disponiveis_consultor` — agenda do consultor (pública quando `disponivel = TRUE`, Admin cria/edita)
+- `agendamentos_usuario` — solicitações de reunião (RLS: usuários veem seus próprios, consultores veem os deles)
+- `historico_atendimentos` — pós-reunião (rastreamento de assessoria realizada)
+
+**Tipos e Validações**:
+- `tipo_agendamento`: `reuniao_video` | `chamada_telefone`
+- `status_agendamento`: `solicitado` | `confirmado` | `recusado` | `remarcado` | `cancelado` | `concluido`
+- `categoria_anotacao`: `duvida` | `observacao_campo` | `sugestao` | `outro`
+- `prioridade_anotacao`: `baixa` | `normal` | `alta` | `urgente`
+
+**Recurso crítico — Telefone no Email**:
+Usuário fornece telefone ao agendar → incluído no email para consultor → facilita contato direto sem Google Calendar.
+
+**Permissões por perfil**:
+- **Admin**: CRUD completo anotações, visualizar/gerenciar agendamentos da fazenda, painel admin de horários
+- **Operador**: sem acesso ao módulo (guard no `layout.tsx` redireciona para `/dashboard`)
+- **Visualizador**: consultar anotações e agendamentos (SELECT apenas)
+- **Consultor (externo)**: acesso público ao link mágico (sem login), pode confirmar/recusar/remarcar
+
+**Email & Autenticação**:
+- Serviço: Resend (`noreply@gestsilo.com.br`, domínio verificado)
+- Tokens JWT: HS256, validade 24h, payload: `agendamento_id` + `tipo` (confirmar/recusar/remarcar)
+- Geração: `lib/services/email.ts` via `jsonwebtoken`
+
+**Painel Admin para Horários** (`app/dashboard/assessoria/admin/horarios/`):
+- Listar horários por data (grid responsivo)
+- Criar horário individual (data, hora, duração)
+- Gerar período (range de datas, hora início/fim, intervalo, dias da semana)
+- Marcar como disponível/indisponível
+- Deletar horário
+
+**Navegação**:
+- **Sidebar**: item "Assessoria agronômica" em Ferramentas (visível apenas Admin)
+- **Hub** (`/dashboard/assessoria`): 3 seções (BlocoNotas, CalendarioAgendamento, MeusAgendamentos)
+- **Admin** (`/dashboard/assessoria/admin/horarios`): CRUD de horários
+
+**Arquivos principais**:
+- `lib/types/assessoria.ts` — tipos TypeScript (CategoriaAnotacao, HorarioDisponivel, AgendamentoUsuario, etc.)
+- `lib/validations/assessoria.ts` — 4 schemas Zod (anotação, agendamento, status, histórico)
+- `lib/supabase/assessoria.ts` — queries (anotações, horários, agendamentos, histórico)
+- `lib/services/email.ts` — geração JWT e envio email via Resend (com telefone no template)
+- `app/dashboard/assessoria/actions.ts` — Server Actions (CRUD anotações, agendamentos, histórico)
+- `app/dashboard/assessoria/layout.tsx` — guard Admin
+- `app/dashboard/assessoria/page.tsx` — composição das 3 seções
+- `app/dashboard/assessoria/components/` — BlocoNotasSection, AnotacaoForm, AnotacoesFilters, AnotacoesList, CalendarioAgendamento, AgendamentoForm, AgendamentosConfirmadosSection, DeleteAnotacaoDialog, MarcarResolvidaDialog
+- `app/dashboard/assessoria/admin/actions.ts` — Server Actions admin (criar/deletar/marcar disponibilidade/gerar período de horários)
+- `app/dashboard/assessoria/admin/horarios/page.tsx` — painel admin horários
+- `app/dashboard/assessoria/admin/horarios/components/` — CriarHorarioDialog, GerarHorariosPeriodoDialog
+- `app/assessor/confirmar/page.tsx` — página pública (link mágico, sem autenticação)
+- `app/assessor/confirmar/layout.tsx` — Suspense para useSearchParams (dinâmico)
+
+**Variáveis de Ambiente**:
+```
+JWT_SECRET=<sua-chave-256-bits>
+NEXT_PUBLIC_APP_URL=https://gestsilo.com (ou http://localhost:3000)
+NEXT_PUBLIC_CONSULTOR_EMAIL=gestsilo.app@gmail.com
+RESEND_API_KEY=<chave-resend>
+```
+
+---
