@@ -60,6 +60,8 @@ const gerencialRoutes: RouteItem[] = [
 const ferramentasRoutes: RouteItem[] = [
   { label: 'Plan. Silagem',          icon: NotebookPen,  href: '/dashboard/planejamento-silagem' },
   { label: 'Calculadoras',           icon: Calculator,   href: '/dashboard/calculadoras'         },
+  { label: 'Plan. Compras',          icon: ShoppingCart, href: '/dashboard/planejamento-compras' },
+  { label: 'Assessoria agronômica',  icon: GraduationCap, href: '/dashboard/assessoria'          },
 ];
 
 const sistemaRoutes: RouteItem[] = [
@@ -295,34 +297,29 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                 Ferramentas
               </div>
               <ul className="space-y-0.5 list-none">
-                {ferramentasRoutes.map((route) => (
-                  <NavItem
-                    key={route.href}
-                    href={route.href}
-                    icon={route.icon}
-                    label={route.label}
-                    isActive={pathname === route.href}
-                    onNavigate={onNavigate}
-                  />
-                ))}
-                {(profile?.perfil === 'Administrador' || profile?.perfil === 'Visualizador') && (
-                  <NavItem
-                    href="/dashboard/planejamento-compras"
-                    icon={ShoppingCart}
-                    label="Plan. Compras"
-                    isActive={pathname.startsWith('/dashboard/planejamento-compras')}
-                    onNavigate={onNavigate}
-                  />
-                )}
-                {profile?.perfil === 'Administrador' && (
-                  <NavItem
-                    href="/dashboard/assessoria"
-                    icon={GraduationCap}
-                    label="Assessoria agronômica"
-                    isActive={pathname.startsWith('/dashboard/assessoria')}
-                    onNavigate={onNavigate}
-                  />
-                )}
+                {ferramentasRoutes.map((route) => {
+                  const isRestrictedRoute = ['/dashboard/planejamento-compras', '/dashboard/assessoria'].includes(route.href);
+                  const isAssessoria = route.href === '/dashboard/assessoria';
+
+                  if (isRestrictedRoute) {
+                    const hasAccess = isAssessoria
+                      ? profile?.perfil === 'Administrador'
+                      : profile?.perfil === 'Administrador' || profile?.perfil === 'Visualizador';
+
+                    if (!hasAccess) return null;
+                  }
+
+                  return (
+                    <NavItem
+                      key={route.href}
+                      href={route.href}
+                      icon={route.icon}
+                      label={route.label}
+                      isActive={pathname.startsWith(route.href)}
+                      onNavigate={onNavigate}
+                    />
+                  );
+                })}
               </ul>
             </div>
 

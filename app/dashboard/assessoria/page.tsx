@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { AnotacaoAssessoria, AgendamentoUsuario } from '@/lib/types/assessoria';
 import BlocoNotasSection from './components/BlocoNotasSection';
@@ -11,10 +12,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 const CONSULTOR_ID = process.env.NEXT_PUBLIC_CONSULTOR_ID || '00000000-0000-4000-8000-000000000000';
 
 export default function AssessoriaPage() {
+  const router = useRouter();
   const { profile } = useAuth();
   const [anotacoes, setAnotacoes] = useState<AnotacaoAssessoria[]>([]);
   const [agendamentos, setAgendamentos] = useState<AgendamentoUsuario[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (profile && profile.perfil !== 'Administrador') {
+      router.push('/dashboard');
+    }
+  }, [profile, router]);
 
   const loadData = async () => {
     if (!profile?.fazenda_id) return;
