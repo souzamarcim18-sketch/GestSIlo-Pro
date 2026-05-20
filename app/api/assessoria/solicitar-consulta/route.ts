@@ -40,8 +40,9 @@ export async function POST(request: NextRequest) {
 
     console.log('[solicitar-consulta] Dados recebidos:', { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario });
 
-    // Telefone não pode estar vazio - manter formato original
-    if (!telefone || telefone.trim().length === 0) {
+    // Telefone não pode estar vazio - trim para remover espaços
+    telefone = String(telefone || '').trim();
+    if (!telefone) {
       return NextResponse.json(
         { message: 'Telefone é obrigatório' },
         { status: 400 }
@@ -123,7 +124,6 @@ export async function POST(request: NextRequest) {
         observacoes: observacoes,
         status: 'solicitado',
         telefone: telefone,
-        email: email,
       })
       .select()
       .single();

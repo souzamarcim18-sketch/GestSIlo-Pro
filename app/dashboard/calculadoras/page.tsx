@@ -15,7 +15,7 @@ export default function CalculadorasPage() {
           Calculadoras Agronômicas
         </h2>
         <p className="text-muted-foreground mt-1">
-          Ferramentas para cálculo de calagem e melhor viabilidade de custos de adubos.
+          Ferramentas para cálculo de calagem e melhor viabilidade de custos de fertilizantes.
           Os resultados são indicativos — consulte sempre seu agrônomo.
         </p>
       </div>

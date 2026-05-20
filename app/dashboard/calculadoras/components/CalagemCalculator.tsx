@@ -124,10 +124,10 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
             <div>
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
                 {([
-                  { value: 'saturacao', label: 'Saturação de bases' },
+                  { value: 'saturacao', label: 'Saturação de bases (V%)' },
                   { value: 'al_ca_mg', label: 'Neutralização de Al³⁺' },
-                  { value: 'mg_manual', label: '5ª Aproximação' },
-                  { value: 'smp', label: 'Índice SMP' },
+                  { value: 'mg_manual', label: '5ª Aproximação (MG)' },
+                  { value: 'smp', label: 'Índice SMP (Poder tampão)' },
                   { value: 'ufla', label: 'Teor de Cálcio (UFLA)' },
                 ] as { value: MetodoCalagemType; label: string }[]).map(({ value, label }) => (
                   <button
@@ -156,7 +156,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
                           <HelpCircle className="h-4 w-4 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          Tamanho da área a ser calada, em hectares
+                          Tamanho da área a ser calcareada, em hectares
                         </TooltipContent>
                       </Tooltip>
                     </div>
