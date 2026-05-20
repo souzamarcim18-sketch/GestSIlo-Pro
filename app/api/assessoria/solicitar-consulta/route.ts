@@ -46,48 +46,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Buscar dados do consultor para enviar email
-    const { data: { user: consultorData } } = await client.auth.admin.getUserById(consultor_id);
-    const consultorEmail = consultorData?.email || process.env.CONSULTOR_EMAIL || 'noreply@gestsilo.com.br';
+    // Buscar fazenda_id do usuário
+    const { data: minha_fazenda_id } = await client.rpc('get_minha_fazenda_id');
 
     // Enviar email ao consultor
-    await resend.emails.send({
-      from: 'GestSilo <noreply@gestsilo.com.br>',
-      to: consultorEmail,
-      subject: `Nova Solicitação de Consulta - ${nome}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #333;">
-          <h2 style="color: #00c45a;">Nova Solicitação de Consulta Agronômica</h2>
+    const consultorEmail = process.env.CONSULTOR_EMAIL || 'noreply@gestsilo.com.br';
 
-          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Dados do Solicitante:</h3>
-            <p><strong>Nome:</strong> ${nome}</p>
-            <p><strong>Fazenda:</strong> ${fazenda}</p>
-            <p><strong>Localização:</strong> ${localizacao}</p>
-            <p><strong>Telefone/WhatsApp:</strong> ${telefone}</p>
-            <p><strong>Email:</strong> ${email}</p>
+    try {
+      await resend.emails.send({
+        from: 'GestSilo <noreply@gestsilo.com.br>',
+        to: consultorEmail,
+        subject: `Nova Solicitação de Consulta - ${nome}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #00c45a;">Nova Solicitação de Consulta Agronômica</h2>
 
-            <h3 style="color: #333;">Sugestão de Data e Hora:</h3>
-            <p><strong>Data:</strong> ${sugestao_dia}</p>
-            <p><strong>Horário:</strong> ${sugestao_horario}</p>
+            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Dados do Solicitante:</h3>
+              <p><strong>Nome:</strong> ${nome}</p>
+              <p><strong>Fazenda:</strong> ${fazenda}</p>
+              <p><strong>Localização:</strong> ${localizacao}</p>
+              <p><strong>Telefone/WhatsApp:</strong> ${telefone}</p>
+              <p><strong>Email:</strong> ${email}</p>
+
+              <h3 style="color: #333;">Sugestão de Data e Hora:</h3>
+              <p><strong>Data:</strong> ${sugestao_dia}</p>
+              <p><strong>Horário:</strong> ${sugestao_horario}</p>
+            </div>
+
+            <p style="color: #888; font-size: 12px; margin-top: 30px;">
+              Esta solicitação foi enviada através do sistema GestSilo Pro.
+            </p>
           </div>
-
-          <p style="color: #888; font-size: 12px; margin-top: 30px;">
-            Esta solicitação foi enviada através do sistema GestSilo Pro.
-          </p>
-        </div>
-      `,
-    });
+        `,
+      });
+    } catch (emailError) {
+      console.error('Erro ao enviar email:', emailError);
+    }
 
     // Criar registro em agendamentos_usuario para rastrear
+    const dataAgendada = new Date(sugestao_dia + 'T' + sugestao_horario).toISOString();
+
     const { data: agendamento, error } = await client
       .from('agendamentos_usuario')
       .insert({
-        fazenda_id: user.user_metadata?.fazenda_id || user.id,
-        consultor_id,
+        fazenda_id: minha_fazenda_id || user.id,
+        consultor_id: consultor_id || '00000000-0000-4000-8000-000000000000',
         tipo: 'reuniao_video',
-        data_agendada: new Date(sugestao_dia + 'T' + sugestao_horario).toISOString(),
-        observacoes: `Solicitação de consulta - ${nome} (${telefone})`,
+        data_agendada: dataAgendada,
+        observacoes: `Solicitação de consulta - ${nome} | Tel: ${telefone} | Email: ${email}`,
         status: 'solicitado',
       })
       .select()
@@ -95,6 +102,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Erro ao criar agendamento:', error);
+      throw new Error(`Erro ao registrar solicitação: ${error.message}`);
     }
 
     return NextResponse.json(
@@ -103,8 +111,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Erro ao processar solicitação:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
     return NextResponse.json(
-      { message: 'Erro ao processar solicitação' },
+      { message: `Erro: ${errorMsg}` },
       { status: 500 }
     );
   }

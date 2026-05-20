@@ -95,11 +95,25 @@ export const queryAnotacoes = {
 
   async delete(id: string) {
     const client = await getClient();
+
+    // Primeiro, buscar a anotação para obter fazenda_id
+    const { data: anotacao, error: getError } = await client
+      .from('anotacoes_assessoria')
+      .select('fazenda_id')
+      .eq('id', id)
+      .single();
+
+    if (getError) throw getError;
+    if (!anotacao) throw new Error('Anotação não encontrada');
+
+    // Depois, atualizar com o filtro de fazenda_id (para passar na RLS)
     const { error } = await client
       .from('anotacoes_assessoria')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
+      .eq('fazenda_id', anotacao.fazenda_id)
       .select();
+
     if (error) throw error;
   },
 
