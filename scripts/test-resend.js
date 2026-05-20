@@ -33,7 +33,7 @@ async function testarResend() {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'onboarding@resend.dev', // Domínio de teste; em produção será noreply@gestsilo.com.br
+        from: 'noreply@gestsilo.com.br', // Domínio verificado
         to: process.argv[2] || 'delivered@resend.dev',
         subject: 'Teste GestSilo - Link Mágico',
         html: `
@@ -56,7 +56,7 @@ async function testarResend() {
     console.log('✅ Email enviado com sucesso!');
     console.log('\nDetalhes:');
     console.log(`  ID: ${data.id}`);
-    console.log(`  From: onboarding@resend.dev`);
+    console.log(`  From: noreply@gestsilo.com.br`);
     console.log(`  To: ${process.argv[2] || 'delivered@resend.dev'}`);
     console.log(`  Status: ${response.status}`);
     console.log('\n💡 Dica: Email de teste usando onboarding@resend.dev');

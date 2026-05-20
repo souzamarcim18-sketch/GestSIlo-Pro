@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
+// Esta página é totalmente dinâmica (não fazer prerender estático)
+export const dynamic = 'force-dynamic';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
