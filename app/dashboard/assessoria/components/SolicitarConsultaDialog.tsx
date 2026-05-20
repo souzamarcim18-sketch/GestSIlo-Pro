@@ -41,8 +41,6 @@ const solicitacaoConsultaSchema = z.object({
 
 type SolicitacaoConsultaInput = z.infer<typeof solicitacaoConsultaSchema>;
 
-const CONSULTOR_ID = process.env.NEXT_PUBLIC_CONSULTOR_ID || '00000000-0000-4000-8000-000000000000';
-
 export default function SolicitarConsultaDialog({
   isOpen,
   onClose,
@@ -71,10 +69,7 @@ export default function SolicitarConsultaDialog({
       const response = await fetch('/api/assessoria/solicitar-consulta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          consultor_id: CONSULTOR_ID,
-        }),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {

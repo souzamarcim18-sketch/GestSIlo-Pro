@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    let { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario, consultor_id } = body;
+    let { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario } = body;
 
     console.log('[solicitar-consulta] Dados recebidos:', { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario });
 
@@ -105,7 +105,6 @@ export async function POST(request: NextRequest) {
 
     console.log('[solicitar-consulta] Tentando inserir:', {
       fazenda_id: minha_fazenda_id || user.id,
-      consultor_id: consultor_id || '00000000-0000-4000-8000-000000000000',
       horario_disponivel_id: dummyHorarioId,
       tipo: 'reuniao_video',
       data_agendada: dataAgendada,
@@ -117,7 +116,6 @@ export async function POST(request: NextRequest) {
       .from('agendamentos_usuario')
       .insert({
         fazenda_id: minha_fazenda_id || user.id,
-        consultor_id: consultor_id || '00000000-0000-4000-8000-000000000000',
         horario_disponivel_id: dummyHorarioId,
         tipo: 'reuniao_video',
         data_agendada: dataAgendada,
