@@ -27,6 +27,7 @@ export const criarAgendamentoSchema = z.object({
   horario_disponivel_id: z.string().uuid('ID de horário inválido'),
   consultor_id: z.string().uuid('ID do consultor inválido'),
   tipo: z.enum(['reuniao_video', 'chamada_telefone']),
+  telefone: z.string().min(10, 'Telefone inválido').max(20),
   observacoes: z.string().max(2000).optional(),
   link_reuniao: z.string().url().optional(),
 });

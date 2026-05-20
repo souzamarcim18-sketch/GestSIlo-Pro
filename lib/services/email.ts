@@ -77,12 +77,13 @@ export async function enviarEmailSolicitacaoAgendamento(
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
           .header { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
           .details { background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; }
-          .actions { display: flex; gap: 10px; margin: 20px 0; }
+          .actions { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
           .btn { display: inline-block; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; }
           .btn-success { background: #22c55e; color: white; }
           .btn-danger { background: #ef4444; color: white; }
           .btn-info { background: #3b82f6; color: white; }
           .footer { font-size: 12px; color: #999; margin-top: 30px; }
+          .contact-info { background: #fff3cd; padding: 12px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #ffc107; }
         </style>
       </head>
       <body>
@@ -96,6 +97,7 @@ export async function enviarEmailSolicitacaoAgendamento(
             <p><strong>📅 Data:</strong> ${dataFormatada} às ${horaFormatada}</p>
             <p><strong>🏠 Fazenda:</strong> ${fazenda.nome || 'Não informado'}</p>
             <p><strong>👤 Responsável:</strong> ${usuario.nome || 'Não informado'}</p>
+            <p><strong>📱 Telefone:</strong> ${agendamento.telefone || 'Não informado'}</p>
             <p><strong>${tipoIcon} Tipo:</strong> ${tipoLabel}</p>
             ${agendamento.observacoes ? `<p><strong>📝 Observações:</strong> ${agendamento.observacoes}</p>` : ''}
           </div>
@@ -104,6 +106,10 @@ export async function enviarEmailSolicitacaoAgendamento(
             <a href="${linkConfirmar}" class="btn btn-success">✅ Confirmar</a>
             <a href="${linkRecusar}" class="btn btn-danger">❌ Recusar</a>
             <a href="${linkRemarcar}" class="btn btn-info">🔄 Remarcar</a>
+          </div>
+
+          <div class="contact-info">
+            <strong>ℹ️ Nota:</strong> Você pode entrar em contato diretamente pelo telefone: <strong>${agendamento.telefone}</strong>
           </div>
 
           <p style="color: #666; font-size: 14px;">

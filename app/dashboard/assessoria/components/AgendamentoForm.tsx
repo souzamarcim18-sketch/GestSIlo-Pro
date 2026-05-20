@@ -55,6 +55,7 @@ export default function AgendamentoForm({
       horario_disponivel_id: horarioSelecionado?.id || '',
       consultor_id: consultorId,
       tipo: 'reuniao_video' as const,
+      telefone: '',
       observacoes: '',
       link_reuniao: '',
     },
@@ -110,6 +111,23 @@ export default function AgendamentoForm({
                       <SelectItem value="chamada_telefone">☎️ Chamada Telefônica</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control as any}
+              name="telefone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="(11) 98765-4321"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

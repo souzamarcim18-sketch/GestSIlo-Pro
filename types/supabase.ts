@@ -100,6 +100,7 @@ export type Database = {
           observacoes: string | null
           status: string | null
           sugestao_nova_data: string | null
+          telefone: string | null
           tipo: string
           updated_at: string | null
         }
@@ -118,6 +119,7 @@ export type Database = {
           observacoes?: string | null
           status?: string | null
           sugestao_nova_data?: string | null
+          telefone?: string | null
           tipo: string
           updated_at?: string | null
         }
@@ -136,6 +138,7 @@ export type Database = {
           observacoes?: string | null
           status?: string | null
           sugestao_nova_data?: string | null
+          telefone?: string | null
           tipo?: string
           updated_at?: string | null
         }
