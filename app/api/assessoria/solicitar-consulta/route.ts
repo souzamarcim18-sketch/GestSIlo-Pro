@@ -61,10 +61,10 @@ export async function POST(request: NextRequest) {
     const { data: minha_fazenda_id } = await client.rpc('get_minha_fazenda_id');
 
     // Enviar email ao consultor
-    const consultorEmail = process.env.CONSULTOR_EMAIL || 'noreply@gestsilo.com.br';
+    const consultorEmail = process.env.NEXT_PUBLIC_CONSULTOR_EMAIL || 'gestsilo.app@gmail.com';
 
     try {
-      await resend.emails.send({
+      const emailResult = await resend.emails.send({
         from: 'GestSilo <noreply@gestsilo.com.br>',
         to: consultorEmail,
         subject: `Nova Solicitação de Consulta - ${nome}`,
@@ -91,8 +91,9 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       });
+      console.log('[solicitar-consulta] Email enviado com sucesso:', emailResult);
     } catch (emailError) {
-      console.error('Erro ao enviar email:', emailError);
+      console.error('[solicitar-consulta] Erro ao enviar email:', emailError);
     }
 
     // Criar registro em agendamentos_usuario para rastrear
