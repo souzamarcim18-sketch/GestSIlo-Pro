@@ -96,11 +96,23 @@ export async function atualizarAnotacaoAction(id: string, payload: unknown) {
 
 export async function deletarAnotacaoAction(id: string) {
   try {
+    console.log('[deletarAnotacaoAction] Iniciando deleção de:', id);
     await queryAnotacoes.delete(id);
+    console.log('[deletarAnotacaoAction] Deleção bem-sucedida');
     return { success: true, message: 'Anotação deletada com sucesso' };
   } catch (error) {
-    console.error('[deletarAnotacaoAction]', error);
-    const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('[deletarAnotacaoAction] Erro completo:', error);
+    console.error('[deletarAnotacaoAction] Tipo de erro:', typeof error);
+    console.error('[deletarAnotacaoAction] Stack:', (error as any)?.stack);
+
+    let errorMsg = 'Erro desconhecido';
+    if (error instanceof Error) {
+      errorMsg = error.message;
+    } else if (typeof error === 'object' && error !== null) {
+      errorMsg = JSON.stringify(error);
+    }
+
+    console.error('[deletarAnotacaoAction] Mensagem final:', errorMsg);
     return { success: false, message: `Erro ao deletar: ${errorMsg}` };
   }
 }

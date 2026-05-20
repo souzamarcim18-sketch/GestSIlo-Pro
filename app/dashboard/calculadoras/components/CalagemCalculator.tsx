@@ -584,9 +584,8 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
             color="primary"
             tips={[
               'Realize a calagem 60-90 dias antes do plantio',
-              'Incorporar o mais profundamente possível',
-              'Se NC > 3 t/ha, considere parcelar em 2 safras',
-            ]}
+              'Incorporar no mínimo a 20 cm de profundidade',
+               ]}
           />
 
           <Card>

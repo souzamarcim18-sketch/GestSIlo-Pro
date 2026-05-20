@@ -87,11 +87,15 @@ export async function POST(request: NextRequest) {
     // Criar registro em agendamentos_usuario para rastrear
     const dataAgendada = new Date(sugestao_dia + 'T' + sugestao_horario).toISOString();
 
+    // Gerar um UUID dummy para horario_disponivel_id (campo obrigatório)
+    const dummyHorarioId = crypto.randomUUID();
+
     const { data: agendamento, error } = await client
       .from('agendamentos_usuario')
       .insert({
         fazenda_id: minha_fazenda_id || user.id,
         consultor_id: consultor_id || '00000000-0000-4000-8000-000000000000',
+        horario_disponivel_id: dummyHorarioId,
         tipo: 'reuniao_video',
         data_agendada: dataAgendada,
         observacoes: `Solicitação de consulta - ${nome} | Tel: ${telefone} | Email: ${email}`,
