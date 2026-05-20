@@ -98,32 +98,13 @@ export const queryAnotacoes = {
 
     console.log('[queryAnotacoes.delete] Iniciando deleção de:', id);
 
-    // Primeiro, buscar a anotação para obter fazenda_id
-    const { data: anotacao, error: getError } = await client
+    // Hard delete ao invés de soft delete
+    const { error } = await client
       .from('anotacoes_assessoria')
-      .select('fazenda_id')
-      .eq('id', id)
-      .single();
+      .delete()
+      .eq('id', id);
 
-    console.log('[queryAnotacoes.delete] Fetch resultado:', { anotacao, getError });
-
-    if (getError) {
-      console.error('[queryAnotacoes.delete] Erro ao buscar:', getError);
-      throw new Error(`Erro ao buscar anotação: ${getError.message}`);
-    }
-    if (!anotacao) throw new Error('Anotação não encontrada');
-
-    console.log('[queryAnotacoes.delete] Anotação encontrada, fazenda_id:', anotacao.fazenda_id);
-
-    // Depois, atualizar com o filtro de fazenda_id (para passar na RLS)
-    const { error, data } = await client
-      .from('anotacoes_assessoria')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('fazenda_id', anotacao.fazenda_id)
-      .select();
-
-    console.log('[queryAnotacoes.delete] Update resultado:', { data, error });
+    console.log('[queryAnotacoes.delete] Delete resultado:', { error });
 
     if (error) {
       console.error('[queryAnotacoes.delete] Erro ao deletar:', error);

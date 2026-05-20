@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario, consultor_id } = body;
+    let { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario, consultor_id } = body;
+
+    // Limpar e validar telefone - remover caracteres especiais
+    telefone = telefone?.replace(/\D/g, '') || '';
 
     // Validar campos obrigatórios
     if (!nome || !fazenda || !localizacao || !telefone || !email || !sugestao_dia || !sugestao_horario) {
