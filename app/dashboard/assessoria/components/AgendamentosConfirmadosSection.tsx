@@ -44,6 +44,18 @@ const statusConfig: Record<
     label: 'Remarcado',
     bgColor: 'bg-blue-50',
   },
+  cancelado: {
+    icon: XCircle,
+    color: 'text-gray-600',
+    label: 'Cancelado',
+    bgColor: 'bg-gray-50',
+  },
+  concluido: {
+    icon: CheckCircle2,
+    color: 'text-green-600',
+    label: 'Concluído',
+    bgColor: 'bg-green-50',
+  },
 };
 
 export default function AgendamentosConfirmadosSection({
@@ -94,8 +106,13 @@ export default function AgendamentosConfirmadosSection({
         ) : (
           <div className="space-y-3">
             {agendamentos.map((ag) => {
-              const config = statusConfig[ag.status];
-              const Icon = config?.icon;
+              const config = statusConfig[ag.status] || {
+                icon: AlertCircle,
+                color: 'text-gray-600',
+                label: ag.status,
+                bgColor: 'bg-gray-50',
+              };
+              const Icon = config.icon;
 
               return (
                 <div
