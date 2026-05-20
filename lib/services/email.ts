@@ -122,6 +122,10 @@ export async function enviarEmailSolicitacaoAgendamento(
     // Se RESEND_API_KEY está configurado, usar Resend; caso contrário, fazer fallback para log
     if (process.env.RESEND_API_KEY) {
       try {
+        // Em desenvolvimento, usar domínio de teste do Resend
+        const isDev = process.env.NODE_ENV === 'development';
+        const fromEmail = isDev ? 'onboarding@resend.dev' : 'noreply@gestsilo.com.br';
+
         const response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -129,7 +133,7 @@ export async function enviarEmailSolicitacaoAgendamento(
             Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: 'noreply@gestsilo.com',
+            from: fromEmail,
             to: process.env.NEXT_PUBLIC_CONSULTOR_EMAIL || 'gestsilo.app@gmail.com',
             subject: `Solicitação de Agendamento - ${fazenda.nome || 'Fazenda'}`,
             html: emailHtml,
