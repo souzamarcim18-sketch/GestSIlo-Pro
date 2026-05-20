@@ -100,7 +100,8 @@ export async function deletarAnotacaoAction(id: string) {
     return { success: true, message: 'Anotação deletada com sucesso' };
   } catch (error) {
     console.error('[deletarAnotacaoAction]', error);
-    return { success: false, message: error instanceof Error ? error.message : 'Erro' };
+    const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
+    return { success: false, message: `Erro ao deletar: ${errorMsg}` };
   }
 }
 

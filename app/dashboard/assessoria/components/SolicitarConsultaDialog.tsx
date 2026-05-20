@@ -13,29 +13,33 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { criarAgendamentoAction } from '@/app/dashboard/assessoria/actions';
-import { criarAgendamentoSchema } from '@/lib/validations/assessoria';
+import { z } from 'zod';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface SolicitarConsultaDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onAfterSubmit: () => Promise<void>;
 }
+
+const solicitacaoConsultaSchema = z.object({
+  nome: z.string().min(3, 'Nome é obrigatório'),
+  fazenda: z.string().min(3, 'Nome da fazenda é obrigatório'),
+  localizacao: z.string().min(5, 'Localização é obrigatória'),
+  telefone: z.string().min(10, 'Telefone/WhatsApp inválido'),
+  email: z.string().email('Email inválido'),
+  sugestao_dia: z.string().min(1, 'Sugestão de dia é obrigatória'),
+  sugestao_horario: z.string().min(1, 'Sugestão de horário é obrigatória'),
+});
+
+type SolicitacaoConsultaInput = z.infer<typeof solicitacaoConsultaSchema>;
 
 const CONSULTOR_ID = process.env.NEXT_PUBLIC_CONSULTOR_ID || '00000000-0000-4000-8000-000000000000';
 
@@ -45,31 +49,46 @@ export default function SolicitarConsultaDialog({
   onAfterSubmit,
 }: SolicitarConsultaDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { profile } = useAuth();
 
-  const form = useForm({
-    resolver: zodResolver(criarAgendamentoSchema),
+  const form = useForm<SolicitacaoConsultaInput>({
+    resolver: zodResolver(solicitacaoConsultaSchema),
     defaultValues: {
-      consultor_id: CONSULTOR_ID,
-      tipo: 'reuniao_video',
-      observacoes: '',
-      horario_disponivel_id: '',
-      link_reuniao: undefined,
+      nome: profile?.nome || '',
+      fazenda: '',
+      localizacao: '',
+      telefone: '',
+      email: profile?.email || '',
+      sugestao_dia: '',
+      sugestao_horario: '',
     },
   });
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: SolicitacaoConsultaInput) => {
     try {
       setIsSubmitting(true);
-      const result = await criarAgendamentoAction(data);
-      if (result.success) {
-        toast.success('Solicitação enviada com sucesso!');
-        toast.info('O assessor agronômico entrará em contato em breve para confirmar a data e hora da consulta.');
-        form.reset();
-        onClose();
-        await onAfterSubmit();
-      } else {
-        toast.error(result.message);
+
+      const response = await fetch('/api/assessoria/solicitar-consulta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          consultor_id: CONSULTOR_ID,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar solicitação');
       }
+
+      toast.success('Solicitação enviada com sucesso!');
+      toast.info('O assessor agronômico entrará em contato em breve para confirmar a data e hora da consulta.');
+      form.reset();
+      onClose();
+      await onAfterSubmit();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erro ao enviar solicitação');
     } finally {
       setIsSubmitting(false);
     }
@@ -77,11 +96,11 @@ export default function SolicitarConsultaDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Solicitar Consulta com Assessor</DialogTitle>
           <DialogDescription>
-            Preencha os detalhes da sua solicitação de consulta agronômica
+            Preencha seus dados para que o assessor agronômico possa entrar em contato
           </DialogDescription>
         </DialogHeader>
 
@@ -89,50 +108,98 @@ export default function SolicitarConsultaDialog({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control as any}
-              name="tipo"
+              name="nome"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo de Consulta</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="reuniao_video">Reunião por Vídeo</SelectItem>
-                      <SelectItem value="chamada_telefone">Chamada Telefônica</SelectItem>
-                      <SelectItem value="visita_presencial">Visita Presencial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Escolha o formato preferido para sua consulta
-                  </FormDescription>
+                  <FormLabel>Nome do Usuário *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Seu nome completo" {...field} />
+                  </FormControl>
                 </FormItem>
               )}
             />
 
             <FormField
               control={form.control as any}
-              name="observacoes"
+              name="fazenda"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assunto da Consulta</FormLabel>
+                  <FormLabel>Fazenda *</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Descreva o assunto ou dúvida que deseja abordar com o assessor agronômico"
-                      className="resize-none h-32"
-                      {...field}
-                    />
+                    <Input placeholder="Nome da sua fazenda" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Forneça detalhes sobre o que você precisa discutir
-                  </FormDescription>
                 </FormItem>
               )}
             />
 
-            <div className="flex gap-3 justify-end">
+            <FormField
+              control={form.control as any}
+              name="localizacao"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Localização *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Cidade e Estado" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control as any}
+              name="telefone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone/WhatsApp *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(11) 98765-4321" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control as any}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="seu@email.com" type="email" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control as any}
+                name="sugestao_dia"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sugestão de Dia *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: 15/06/2026" type="date" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control as any}
+                name="sugestao_horario"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sugestão de Horário *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: 14:30" type="time" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4">
               <Button
                 type="button"
                 variant="outline"
