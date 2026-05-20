@@ -27,6 +27,7 @@ interface CicloOption {
 export default function PlanejamentoComprasPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.perfil === 'Administrador';
+  const fazendaId = profile?.fazenda_id;
 
   // ── Aba Atividades ─────────────────────────────────────────────────────────
   const [planejamentos, setPlanejamentos] = useState<PlanejamentoAtividadeComDetalhes[]>([]);
@@ -43,6 +44,10 @@ export default function PlanejamentoComprasPage() {
 
   // Carrega dados da aba Atividades + lista de talhões/ciclos
   const fetchData = useCallback(async () => {
+    if (!fazendaId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [plResult, talhaoResult, cicloResult] = await Promise.all([
@@ -58,14 +63,17 @@ export default function PlanejamentoComprasPage() {
               insumo:insumos(id, nome, unidade, estoque_atual, preco_unitario, ativo)
             )
           `)
+          .eq('fazenda_id', fazendaId)
           .order('data_prevista', { ascending: true }),
         supabase
           .from('talhoes')
           .select('id, nome')
+          .eq('fazenda_id', fazendaId)
           .order('nome', { ascending: true }),
         supabase
           .from('ciclos_agricolas')
           .select('id, cultura')
+          .eq('ativo', true)
           .order('cultura', { ascending: true }),
       ]);
 
@@ -75,10 +83,14 @@ export default function PlanejamentoComprasPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fazendaId]);
 
   // Carrega dados do relatório (aba Lista de Compras)
   const fetchRelatorio = useCallback(async () => {
+    if (!fazendaId) {
+      setLoadingRelatorio(false);
+      return;
+    }
     setLoadingRelatorio(true);
     try {
       const statusFiltro = filtros.status_atividade ?? 'planejada';
@@ -92,6 +104,7 @@ export default function PlanejamentoComprasPage() {
           ),
           insumo:insumos(id, nome, unidade, estoque_atual, preco_unitario, ativo)
         `)
+        .eq('fazenda_id', fazendaId)
         .eq('planejamento.status', statusFiltro);
 
       if (filtros.data_inicio) {
@@ -110,7 +123,7 @@ export default function PlanejamentoComprasPage() {
     } finally {
       setLoadingRelatorio(false);
     }
-  }, [filtros]);
+  }, [filtros, fazendaId]);
 
   useEffect(() => {
     fetchData();

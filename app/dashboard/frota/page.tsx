@@ -37,7 +37,7 @@ export default function FrotaPage() {
     <div className="min-h-screen flex flex-col">
       {/* ── Header ───────────────────────────────────────────────────── */}
       <div className="px-6 md:px-8 pt-6 md:pt-8 pb-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Frota e Máquinas</h1>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Gestão de Frota e Máquinas</h1>
         <p className="text-sm text-muted-foreground mt-2">
           Gerencie equipamentos, manutenções e abastecimentos da fazenda.
         </p>

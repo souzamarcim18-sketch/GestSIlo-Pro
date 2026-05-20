@@ -39,7 +39,11 @@
       "Bash(Test-Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\produtos\\\\page.tsx\")",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\" -Recurse -Directory | Where-Object {$_.Name -match \"\\(insumos|talhoes\\)\"} | Select-Object FullName)",
       "Bash(New-Item -ItemType Directory -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\planejamento-compras\")",
-      "Bash(Write-Host \"OK\")"
+      "Bash(Write-Host \"OK\")",
+      "Bash(npx shadcn-ui@latest add form --yes)",
+      "Bash(npx shadcn@latest add form --yes)",
+      "Bash(npx shadcn@latest add alert-dialog --yes)",
+      "Bash(npx shadcn@latest add form alert-dialog --yes)"
     ],
     "additionalDirectories": [
       "\\tmp"

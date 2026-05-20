@@ -84,6 +84,78 @@ export type Database = {
           },
         ]
       }
+      agendamentos_usuario: {
+        Row: {
+          consultor_id: string
+          created_at: string | null
+          created_by: string | null
+          data_agendada: string
+          deleted_at: string | null
+          duracao_minutos: number | null
+          fazenda_id: string
+          horario_disponivel_id: string
+          id: string
+          link_reuniao: string | null
+          motivo_recusa: string | null
+          observacoes: string | null
+          status: string | null
+          sugestao_nova_data: string | null
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          consultor_id: string
+          created_at?: string | null
+          created_by?: string | null
+          data_agendada: string
+          deleted_at?: string | null
+          duracao_minutos?: number | null
+          fazenda_id: string
+          horario_disponivel_id: string
+          id?: string
+          link_reuniao?: string | null
+          motivo_recusa?: string | null
+          observacoes?: string | null
+          status?: string | null
+          sugestao_nova_data?: string | null
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          consultor_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          data_agendada?: string
+          deleted_at?: string | null
+          duracao_minutos?: number | null
+          fazenda_id?: string
+          horario_disponivel_id?: string
+          id?: string
+          link_reuniao?: string | null
+          motivo_recusa?: string | null
+          observacoes?: string | null
+          status?: string | null
+          sugestao_nova_data?: string | null
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_usuario_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_usuario_horario_disponivel_id_fkey"
+            columns: ["horario_disponivel_id"]
+            isOneToOne: false
+            referencedRelation: "horarios_disponiveis_consultor"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       animais: {
         Row: {
           brinco: string
@@ -218,6 +290,62 @@ export type Database = {
             columns: ["reprodutor_vinculado_id"]
             isOneToOne: false
             referencedRelation: "reprodutores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anotacoes_assessoria: {
+        Row: {
+          assessor_resposta: string | null
+          categoria: string | null
+          conteudo: string
+          created_at: string | null
+          created_by: string | null
+          data_resolvida: string | null
+          deleted_at: string | null
+          fazenda_id: string
+          id: string
+          prioridade: string | null
+          resolvida: boolean | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          assessor_resposta?: string | null
+          categoria?: string | null
+          conteudo: string
+          created_at?: string | null
+          created_by?: string | null
+          data_resolvida?: string | null
+          deleted_at?: string | null
+          fazenda_id: string
+          id?: string
+          prioridade?: string | null
+          resolvida?: boolean | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          assessor_resposta?: string | null
+          categoria?: string | null
+          conteudo?: string
+          created_at?: string | null
+          created_by?: string | null
+          data_resolvida?: string | null
+          deleted_at?: string | null
+          fazenda_id?: string
+          id?: string
+          prioridade?: string | null
+          resolvida?: boolean | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anotacoes_assessoria_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
             referencedColumns: ["id"]
           },
         ]
@@ -1243,6 +1371,99 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      historico_atendimentos: {
+        Row: {
+          agendamento_id: string | null
+          assessor_nome: string | null
+          created_at: string | null
+          created_by: string | null
+          data_atendimento: string
+          deleted_at: string | null
+          fazenda_id: string
+          id: string
+          orientacoes_recebidas: string | null
+          proximos_passos: string | null
+          resumo: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          agendamento_id?: string | null
+          assessor_nome?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          data_atendimento: string
+          deleted_at?: string | null
+          fazenda_id: string
+          id?: string
+          orientacoes_recebidas?: string | null
+          proximos_passos?: string | null
+          resumo: string
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          agendamento_id?: string | null
+          assessor_nome?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          data_atendimento?: string
+          deleted_at?: string | null
+          fazenda_id?: string
+          id?: string
+          orientacoes_recebidas?: string | null
+          proximos_passos?: string | null
+          resumo?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_atendimentos_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos_usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_atendimentos_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horarios_disponiveis_consultor: {
+        Row: {
+          consultor_id: string
+          created_at: string | null
+          data_hora: string
+          disponivel: boolean | null
+          duracao_minutos: number | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          consultor_id: string
+          created_at?: string | null
+          data_hora: string
+          disponivel?: boolean | null
+          duracao_minutos?: number | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          consultor_id?: string
+          created_at?: string | null
+          data_hora?: string
+          disponivel?: boolean | null
+          duracao_minutos?: number | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       insumos: {
         Row: {

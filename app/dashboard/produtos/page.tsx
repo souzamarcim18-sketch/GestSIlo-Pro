@@ -111,7 +111,7 @@ export default function ProdutosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Produtos</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Gestão de Produtos</h2>
           {criticos.length > 0 && (
             <p className="text-sm text-destructive flex items-center gap-1 mt-1">
               <AlertTriangle className="h-3 w-3" />

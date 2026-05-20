@@ -207,7 +207,7 @@ export default function DashboardPage() {
               .eq('fazenda_id', fazendaId),
             supabase
               .from('talhoes')
-              .select('area_ha, cultura')
+              .select('id, area_ha, nome')
               .eq('fazenda_id', fazendaId),
             supabase
               .from('maquinas')
@@ -235,10 +235,9 @@ export default function DashboardPage() {
               .eq('fazenda_id', fazendaId)
               .eq('status', 'Ativo'),
             supabase
-              .from('talhoes')
+              .from('ciclos_agricolas')
               .select('cultura')
-              .eq('fazenda_id', fazendaId)
-              .not('cultura', 'is', null),
+              .eq('ativo', true),
             supabase
               .from('animais')
               .select('tipo_rebanho')

@@ -58,14 +58,14 @@ const gerencialRoutes: RouteItem[] = [
 ];
 
 const ferramentasRoutes: RouteItem[] = [
-  { label: 'Plan. Silagem',     icon: NotebookPen, href: '/dashboard/planejamento-silagem' },
-  { label: 'Calculadoras',      icon: Calculator,     href: '/dashboard/calculadoras'         },
+  { label: 'Plan. Silagem',          icon: NotebookPen,  href: '/dashboard/planejamento-silagem' },
+  { label: 'Calculadoras',           icon: Calculator,   href: '/dashboard/calculadoras'         },
+  { label: 'Assessoria agronômica',  icon: GraduationCap, href: '/dashboard/assessoria',    badge: null },
 ];
 
 const sistemaRoutes: RouteItem[] = [
-  { label: 'Configurações',         icon: Settings,      href: '/dashboard/configuracoes', badge: null },
-  { label: 'Suporte',               icon: HelpCircle,    href: '/dashboard/suporte',       badge: null },
-  { label: 'Assessoria agronômica', icon: GraduationCap, href: '/dashboard/assessoria',    badge: 'comingSoon' },
+  { label: 'Configurações', icon: Settings,   href: '/dashboard/configuracoes', badge: null },
+  { label: 'Suporte',       icon: HelpCircle, href: '/dashboard/suporte',       badge: null },
 ];
 
 // const rebanhoSubRoutes: RouteItem[] = [
