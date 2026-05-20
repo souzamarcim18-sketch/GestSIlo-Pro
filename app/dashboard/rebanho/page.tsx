@@ -91,29 +91,27 @@ export default function RebanhosPage() {
   }, [authLoading, fetchData]);
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="space-y-6">
-        <div>
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold tracking-tight">Gestão de Rebanho</h1>
-            <div className="space-x-2">
-              {isAdmin && (
-                <>
-                  <Button onClick={() => router.push('/dashboard/rebanho/novo')}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Novo Animal
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/dashboard/rebanho/lotes')}
-                  >
-                    Lotes
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Rebanho</h2>
+        <div className="space-x-2">
+          {isAdmin && (
+            <>
+              <Button onClick={() => router.push('/dashboard/rebanho/novo')}>
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Animal
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard/rebanho/lotes')}
+              >
+                Lotes
+              </Button>
+            </>
+          )}
         </div>
+      </div>
 
         {/* Acesso Rápido */}
         <div>
@@ -316,10 +314,9 @@ export default function RebanhosPage() {
           </CardContent>
         </Card>
 
-        <p className="text-sm text-muted-foreground">
-          Total de {animaisFiltrados.length} animal(is) encontrado(s)
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Total de {animaisFiltrados.length} animal(is) encontrado(s)
+      </p>
     </div>
   );
 }

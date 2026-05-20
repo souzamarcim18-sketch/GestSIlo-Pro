@@ -43,7 +43,8 @@
       "Bash(npx shadcn-ui@latest add form --yes)",
       "Bash(npx shadcn@latest add form --yes)",
       "Bash(npx shadcn@latest add alert-dialog --yes)",
-      "Bash(npx shadcn@latest add form alert-dialog --yes)"
+      "Bash(npx shadcn@latest add form alert-dialog --yes)",
+      "Bash(npm run dev > /tmp/dev.log 2>&1 & *)"
     ],
     "additionalDirectories": [
       "\\tmp"

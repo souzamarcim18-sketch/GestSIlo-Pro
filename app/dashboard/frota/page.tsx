@@ -34,22 +34,22 @@ export default function FrotaPage() {
   } = useFrotaData(activeTab);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* ── Header ───────────────────────────────────────────────────── */}
-      <div className="px-6 md:px-8 pt-6 md:pt-8 pb-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Gestão de Frota e Máquinas</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Frota e Máquinas</h2>
         <p className="text-sm text-muted-foreground mt-2">
           Gerencie equipamentos, manutenções e abastecimentos da fazenda.
         </p>
       </div>
 
-      {/* ── Tabs Navigation ──────────────────────────────────────────── */}
+      {/* Tabs Navigation */}
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as FrotaTab)}
         className="w-full flex-1 flex flex-col"
       >
-        <div className="px-6 md:px-8 pt-2 pb-4">
+        <div className="pt-2 pb-4">
           <TabsList className="grid grid-cols-4 sm:grid-cols-7 gap-2 h-auto rounded-xl bg-muted/50 border border-border p-[3px] w-full">
             <TabsTrigger value="visao-geral" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
               <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -82,10 +82,10 @@ export default function FrotaPage() {
           </TabsList>
         </div>
 
-        {/* ── Content Area ──────────────────────────────────────────── */}
-        <div className="flex-1 px-6 md:px-8 py-6 md:py-8 overflow-y-auto">
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
 
-        {/* ── Visão Geral ───────────────────────────────────────────────── */}
+        {/* Visão Geral */}
         <TabsContent value="visao-geral" className="mt-6">
           <FrotaOverview
             maquinas={maquinas}
@@ -97,7 +97,7 @@ export default function FrotaPage() {
           />
         </TabsContent>
 
-        {/* ── Cadastro ──────────────────────────────────────────────── */}
+        {/* Cadastro */}
         <TabsContent value="cadastro" className="mt-6">
           <FrotaCadastro
             maquinas={maquinas}
@@ -111,7 +111,7 @@ export default function FrotaPage() {
           />
         </TabsContent>
 
-        {/* ── Diário de Bordo ───────────────────────────────────────── */}
+        {/* Diário de Bordo */}
         <TabsContent value="uso" className="mt-6">
           <FrotaDiarioBordo
             maquinas={maquinas}
@@ -122,7 +122,7 @@ export default function FrotaPage() {
           />
         </TabsContent>
 
-        {/* ── Manutenções ───────────────────────────────────────────── */}
+        {/* Manutenções */}
         <TabsContent value="manutencoes" className="mt-6">
           <FrotaManutencoes
             maquinas={maquinas}
@@ -136,7 +136,7 @@ export default function FrotaPage() {
           />
         </TabsContent>
 
-        {/* ── Abastecimento ─────────────────────────────────────────── */}
+        {/* Abastecimento */}
         <TabsContent value="abastecimento" className="mt-6">
           <FrotaAbastecimento
             maquinas={maquinas}
@@ -146,7 +146,7 @@ export default function FrotaPage() {
           />
         </TabsContent>
 
-        {/* ── Custos ────────────────────────────────────────────────── */}
+        {/* Custos */}
         <TabsContent value="custos" className="mt-6">
           <FrotaCustos
             maquinas={maquinas}
@@ -157,7 +157,7 @@ export default function FrotaPage() {
           />
         </TabsContent>
 
-        {/* ── Relatórios ────────────────────────────────────────────── */}
+        {/* Relatórios */}
         <TabsContent value="relatorios" className="mt-6">
           <FrotaRelatorios
             maquinas={maquinas}

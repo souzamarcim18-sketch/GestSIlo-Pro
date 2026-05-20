@@ -38,11 +38,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     let { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario, consultor_id } = body;
 
-    // Limpar e validar telefone - remover caracteres especiais
-    telefone = telefone?.replace(/\D/g, '') || '';
+    console.log('[solicitar-consulta] Dados recebidos:', { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario });
+
+    // Telefone não pode estar vazio - manter formato original
+    if (!telefone || telefone.trim().length === 0) {
+      return NextResponse.json(
+        { message: 'Telefone é obrigatório' },
+        { status: 400 }
+      );
+    }
 
     // Validar campos obrigatórios
-    if (!nome || !fazenda || !localizacao || !telefone || !email || !sugestao_dia || !sugestao_horario) {
+    if (!nome || !fazenda || !localizacao || !email || !sugestao_dia || !sugestao_horario) {
       return NextResponse.json(
         { message: 'Campos obrigatórios ausentes' },
         { status: 400 }
@@ -93,6 +100,18 @@ export async function POST(request: NextRequest) {
     // Gerar um UUID dummy para horario_disponivel_id (campo obrigatório)
     const dummyHorarioId = crypto.randomUUID();
 
+    const observacoes = `Solicitação de consulta - ${nome} | Tel: ${telefone} | Email: ${email}`;
+
+    console.log('[solicitar-consulta] Tentando inserir:', {
+      fazenda_id: minha_fazenda_id || user.id,
+      consultor_id: consultor_id || '00000000-0000-4000-8000-000000000000',
+      horario_disponivel_id: dummyHorarioId,
+      tipo: 'reuniao_video',
+      data_agendada: dataAgendada,
+      observacoes,
+      status: 'solicitado',
+    });
+
     const { data: agendamento, error } = await client
       .from('agendamentos_usuario')
       .insert({
@@ -101,7 +120,7 @@ export async function POST(request: NextRequest) {
         horario_disponivel_id: dummyHorarioId,
         tipo: 'reuniao_video',
         data_agendada: dataAgendada,
-        observacoes: `Solicitação de consulta - ${nome} | Tel: ${telefone} | Email: ${email}`,
+        observacoes: observacoes,
         status: 'solicitado',
       })
       .select()

@@ -74,10 +74,10 @@ export default function TalhoesPage() {
   }
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold tracking-tight">Gestão de Talhões</h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Talhões</h2>
           <Button onClick={() => setIsAddOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Talhão
@@ -102,7 +102,6 @@ export default function TalhoesPage() {
             ))}
           </div>
         )}
-      </div>
 
       <TalhaoForm
         open={isAddOpen}

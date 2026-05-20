@@ -49,27 +49,26 @@ export default function SilosPage() {
   }, [authLoading, fetchData]);
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Gestão das Silagens</h1>
-          <Button onClick={() => setIsAddSiloOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Silo
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão das Silagens</h2>
+        <Button onClick={() => setIsAddSiloOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Silo
+        </Button>
+      </div>
 
-        {/* KPI Strip */}
-        {loading ? (
-          <Skeleton className="h-[72px] w-full rounded-xl" />
-        ) : (
-          <SiloKpiStrip data={siloCardData} />
-        )}
+      {/* KPI Strip */}
+      {loading ? (
+        <Skeleton className="h-[72px] w-full rounded-xl" />
+      ) : (
+        <SiloKpiStrip data={siloCardData} />
+      )}
 
-        {/* Grid de Cards */}
-        <section>
-          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {/* Grid de Cards */}
+      <section>
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {loading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <Skeleton key={i} className="h-[200px] w-full rounded-xl" />
@@ -93,19 +92,18 @@ export default function SilosPage() {
                 <CardContent className="p-0" />
               </Card>
             )}
-          </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Dialogs */}
-        <SiloForm
-          open={isAddSiloOpen}
-          onOpenChange={setIsAddSiloOpen}
-          mode="create"
-          talhoes={talhoes}
-          insumos={insumos}
-          onSuccess={fetchData}
-        />
-      </div>
+      {/* Dialogs */}
+      <SiloForm
+        open={isAddSiloOpen}
+        onOpenChange={setIsAddSiloOpen}
+        mode="create"
+        talhoes={talhoes}
+        insumos={insumos}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }
