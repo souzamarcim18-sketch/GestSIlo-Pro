@@ -22,13 +22,12 @@ export const marcarAnotacaoResolvidaSchema = z.object({
 
 export type MarcarAnotacaoResolvidaInput = z.infer<typeof marcarAnotacaoResolvidaSchema>;
 
-// Criar Agendamento (usuário escolhe horário)
+// Criar Agendamento (usuário solicita consulta via formulário)
 export const criarAgendamentoSchema = z.object({
-  horario_disponivel_id: z.string().uuid('ID de horário inválido'),
   consultor_id: z.string().uuid('ID do consultor inválido'),
-  tipo: z.enum(['reuniao_video', 'chamada_telefone']),
-  telefone: z.string().min(10, 'Telefone inválido').max(20),
-  observacoes: z.string().max(2000).optional(),
+  tipo: z.enum(['reuniao_video', 'chamada_telefone', 'visita_presencial']),
+  observacoes: z.string().min(10, 'Mínimo 10 caracteres').max(2000),
+  horario_disponivel_id: z.string().uuid().optional(),
   link_reuniao: z.string().url().optional(),
 });
 

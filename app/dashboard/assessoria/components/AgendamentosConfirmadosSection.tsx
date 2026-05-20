@@ -3,12 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertCircle, XCircle, Plus } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { AgendamentoUsuario } from '@/lib/types/assessoria';
 import { cancelarAgendamentoAction } from '@/app/dashboard/assessoria/actions';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import SolicitarConsultaDialog from './SolicitarConsultaDialog';
 
 interface AgendamentosConfirmadosProps {
   agendamentos: AgendamentoUsuario[];
@@ -50,6 +51,7 @@ export default function AgendamentosConfirmadosSection({
   onRefresh,
 }: AgendamentosConfirmadosProps) {
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleCancel = async (id: string) => {
     try {
@@ -67,16 +69,23 @@ export default function AgendamentosConfirmadosSection({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Meus Agendamentos
-        </CardTitle>
-        <CardDescription>
-          Acompanhe o status de suas solicitações de reunião com o assessor
-        </CardDescription>
-      </CardHeader>
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Meus Agendamentos
+            </CardTitle>
+            <CardDescription>
+              Acompanhe o status de suas solicitações de reunião com o assessor
+            </CardDescription>
+          </div>
+          <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Solicitar Consulta
+          </Button>
+        </CardHeader>
       <CardContent>
         {agendamentos.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
@@ -178,5 +187,14 @@ export default function AgendamentosConfirmadosSection({
         )}
       </CardContent>
     </Card>
+
+    <SolicitarConsultaDialog
+      isOpen={isDialogOpen}
+      onClose={() => {
+        setIsDialogOpen(false);
+      }}
+      onAfterSubmit={onRefresh}
+    />
+    </>
   );
 }

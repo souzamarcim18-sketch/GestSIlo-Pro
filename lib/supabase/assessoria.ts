@@ -98,7 +98,8 @@ export const queryAnotacoes = {
     const { error } = await client
       .from('anotacoes_assessoria')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+      .eq('id', id)
+      .select();
     if (error) throw error;
   },
 
@@ -213,24 +214,29 @@ export const queryAgendamentos = {
   async create(fazendaId: string, consultorId: string, payload: CriarAgendamentoInput) {
     const client = await getClient();
 
-    const { data: horario } = await client
-      .from('horarios_disponiveis_consultor')
-      .select('data_hora')
-      .eq('id', payload.horario_disponivel_id)
-      .single();
+    // Se tiver horário_disponivel_id, buscar data_hora
+    let dataAgendada: string | null = null;
+    if (payload.horario_disponivel_id) {
+      const { data: horario } = await client
+        .from('horarios_disponiveis_consultor')
+        .select('data_hora')
+        .eq('id', payload.horario_disponivel_id)
+        .single();
 
-    if (!horario) throw new Error('Horário não encontrado');
+      if (!horario) throw new Error('Horário não encontrado');
+      dataAgendada = horario.data_hora;
+    }
 
     const { data, error } = await client
       .from('agendamentos_usuario')
       .insert({
         fazenda_id: fazendaId,
         consultor_id: consultorId,
-        horario_disponivel_id: payload.horario_disponivel_id,
+        horario_disponivel_id: payload.horario_disponivel_id || null,
         tipo: payload.tipo,
-        data_agendada: horario.data_hora,
+        data_agendada: dataAgendada || new Date().toISOString(),
         observacoes: payload.observacoes,
-        link_reuniao: payload.link_reuniao,
+        link_reuniao: payload.link_reuniao || null,
       })
       .select()
       .single();
