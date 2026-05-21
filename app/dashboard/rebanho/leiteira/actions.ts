@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { sou_admin, sou_operador_ou_admin } from '@/lib/auth/helpers';
+import { sou_admin } from '@/lib/auth/helpers';
 import {
   criarProducaoLeiteira,
   editarProducaoLeiteira,
@@ -18,9 +18,9 @@ export async function criarProducaoLeiteiraAction(
   formData: unknown
 ): Promise<{ success: boolean; producao_id?: string; error?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, error: 'Permissão insuficiente para registrar produção.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, error: 'Apenas administradores podem registrar produção leiteira.' };
     }
 
     const parsed = criarProducaoLeiteiraSchema.parse(formData);
@@ -46,9 +46,9 @@ export async function editarProducaoLeiteiraAction(
   formData: unknown
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, error: 'Permissão insuficiente para editar produção.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, error: 'Apenas administradores podem editar produção leiteira.' };
     }
 
     const schema = z.object({

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { sou_operador_ou_admin } from '@/lib/auth/helpers';
+import { sou_admin } from '@/lib/auth/helpers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { PesoAnimal } from '@/lib/types/rebanho';
 
@@ -12,9 +12,9 @@ export async function registrarPesagemLoteAction(
   formData: unknown
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, error: 'Permissão insuficiente para registrar pesagens.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, error: 'Apenas administradores podem registrar pesagens.' };
     }
 
     const schema = z.object({

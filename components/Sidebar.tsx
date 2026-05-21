@@ -206,9 +206,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const router = useRouter();
   const { profile } = useAuth();
 
-  const visibleGerencialRoutes = gerencialRoutes.filter(
-    (route) => !(route.href === '/dashboard/produtos' && profile?.perfil === 'Operador')
-  );
+  const visibleGerencialRoutes = gerencialRoutes;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

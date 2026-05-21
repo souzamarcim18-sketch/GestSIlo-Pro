@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryReprodutores } from '@/lib/supabase/rebanho-reproducao';
-import { sou_operador_ou_admin, getCurrentFazendaId } from '@/lib/auth/helpers';
+import { sou_admin, getCurrentFazendaId } from '@/lib/auth/helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const podeAcessar = await sou_operador_ou_admin();
-    if (!podeAcessar) {
+    const admin = await sou_admin();
+    if (!admin) {
       return NextResponse.json(
-        { erro: 'Permissão insuficiente' },
+        { erro: 'Apenas administradores podem acessar reprodutores.' },
         { status: 403 }
       );
     }

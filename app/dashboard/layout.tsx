@@ -13,7 +13,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { loading, needsOnboarding, user } = useAuth();
+  const { loading, needsOnboarding, user, profile } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
@@ -51,6 +51,12 @@ export default function DashboardLayout({
       return;
     }
 
+    // Operador não tem acesso ao dashboard — pertence exclusivamente à página /operador
+    if (profile?.perfil === 'Operador') {
+      router.replace('/operador');
+      return;
+    }
+
     if (needsOnboarding && !isOnboardingPage) {
       router.replace('/dashboard/onboarding');
       return;
@@ -60,7 +66,7 @@ export default function DashboardLayout({
       router.replace('/dashboard');
       return;
     }
-  }, [loading, needsOnboarding, user, isOnboardingPage, pathname, router]);
+  }, [loading, needsOnboarding, user, profile, isOnboardingPage, pathname, router]);
 
   // Loading geral
   if (loading) {

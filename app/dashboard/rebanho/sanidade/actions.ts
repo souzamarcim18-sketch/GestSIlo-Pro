@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z, ZodError } from 'zod';
+import { sou_admin } from '@/lib/auth/helpers';
 import {
   criarEventoSanitario,
   editarEventoSanitario,
@@ -19,6 +20,11 @@ export async function criarEventoSanitarioAction(
   error?: string;
 }> {
   try {
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, error: 'Apenas administradores podem registrar eventos sanitários.' };
+    }
+
     const parsed = criarEventoSanitarioSchema.parse(formData) as EventoSanitarioInput;
 
     // Suportar seleção de múltiplos animais enviados pelo formulário
@@ -62,6 +68,11 @@ export async function editarEventoSanitarioAction(
   formData: unknown
 ): Promise<{ success: boolean; data?: EventoSanitarioRow; error?: string }> {
   try {
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, error: 'Apenas administradores podem editar eventos sanitários.' };
+    }
+
     const parsed = formData as Partial<EventoSanitarioInput>;
     const resultado = await editarEventoSanitario(id, parsed);
 
@@ -83,6 +94,11 @@ export async function deletarEventoSanitarioAction(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, error: 'Apenas administradores podem deletar eventos sanitários.' };
+    }
+
     await deletarEventoSanitario(id);
 
     revalidatePath('/dashboard/rebanho/sanidade');

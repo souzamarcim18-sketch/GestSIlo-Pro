@@ -14,17 +14,17 @@ interface AnotacoesListProps {
 }
 
 const categoriaConfig: Record<string, { label: string; color: string }> = {
-  duvida: { label: 'Dúvida', color: 'bg-blue-100 text-blue-800' },
-  observacao_campo: { label: 'Observação de Campo', color: 'bg-green-100 text-green-800' },
-  sugestao: { label: 'Sugestão', color: 'bg-purple-100 text-purple-800' },
-  outro: { label: 'Outro', color: 'bg-gray-100 text-gray-800' },
+  duvida: { label: 'Dúvida', color: 'bg-blue-900/40 text-blue-300' },
+  observacao_campo: { label: 'Observação de Campo', color: 'bg-green-900/40 text-green-300' },
+  sugestao: { label: 'Sugestão', color: 'bg-purple-900/40 text-purple-300' },
+  outro: { label: 'Outro', color: 'bg-muted text-muted-foreground' },
 };
 
 const prioridadeConfig: Record<string, { label: string; color: string }> = {
-  baixa: { label: 'Baixa', color: 'text-gray-600' },
-  normal: { label: 'Normal', color: 'text-blue-600' },
-  alta: { label: 'Alta', color: 'text-orange-600' },
-  urgente: { label: 'Urgente', color: 'text-red-600' },
+  baixa: { label: 'Baixa', color: 'text-muted-foreground' },
+  normal: { label: 'Normal', color: 'text-blue-400' },
+  alta: { label: 'Alta', color: 'text-orange-400' },
+  urgente: { label: 'Urgente', color: 'text-red-400' },
 };
 
 export default function AnotacoesList({
@@ -50,8 +50,8 @@ export default function AnotacoesList({
         return (
           <div
             key={nota.id}
-            className={`border rounded-lg p-4 space-y-3 ${
-              nota.resolvida ? 'bg-slate-50 opacity-75' : ''
+            className={`border border-border rounded-lg p-4 space-y-3 bg-card transition-opacity ${
+              nota.resolvida ? 'opacity-50' : ''
             }`}
           >
             <div className="flex justify-between items-start">
@@ -114,9 +114,9 @@ export default function AnotacoesList({
             </div>
 
             {nota.assessor_resposta && (
-              <div className="bg-blue-50 border-l-2 border-blue-400 p-3 rounded">
-                <p className="text-xs font-semibold text-blue-800 mb-1">Resposta do Assessor:</p>
-                <p className="text-sm text-blue-700">{nota.assessor_resposta}</p>
+              <div className="border-l-2 border-border pl-3 rounded">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">Resposta do Assessor:</p>
+                <p className="text-sm">{nota.assessor_resposta}</p>
               </div>
             )}
           </div>

@@ -50,6 +50,19 @@ profile.perfil  // 'Administrador' | 'Operador' | 'Visualizador'
 profile.role    // campo legado removido
 ```
 
+### Modelo de Autorização (definido em 2026-05-21)
+
+| Perfil | Acesso |
+|---|---|
+| **Administrador** | Acesso total: todo o `/dashboard/*`, todas as operações CRUD |
+| **Visualizador** | Apenas leitura: todo o `/dashboard/*`, nenhuma escrita |
+| **Operador** | Exclusivamente `/operador` — registra saídas/fornecimentos/descartes de silos |
+
+- **Operador nunca acessa `/dashboard`** — o `app/dashboard/layout.tsx` redireciona para `/operador`
+- **Visualizador nunca escreve** — bloqueado via RLS (`sou_admin_ou_visualizador()`) e ausência de botões de ação na UI
+- `sou_gerente_ou_admin()` existe no banco mas equivale a `sou_admin()` na prática (perfil Gerente não existe)
+- **Nunca usar `sou_operador_ou_admin()`** em novas Server Actions — função obsoleta, não reflete o modelo atual
+
 ### Proteção de Rotas UI
 Botões de DELETE e ações destrutivas devem verificar perfil antes de renderizar:
 ```tsx
@@ -83,11 +96,13 @@ get_minha_fazenda_id() → uuid
 -- Verifica se usuário é Administrador via JWT
 sou_admin() → boolean
 
--- Verifica se usuário é Administrador ou Gerente via JWT
-sou_gerente_ou_admin() → boolean
-
 -- Verifica se usuário é Administrador ou Visualizador via JWT (bloqueia Operador)
+-- ✅ Usar esta para SELECT em módulos que Operador não acessa (produtos, planejamentos, financeiro)
 sou_admin_ou_visualizador() → boolean
+
+-- Existe no banco mas equivale a sou_admin() na prática (Gerente não existe)
+-- ⚠️ Não usar em novas policies — preferir sou_admin() explicitamente
+sou_gerente_ou_admin() → boolean
 ```
 
 ### Tabelas Principais
@@ -666,11 +681,15 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 **Recurso crítico — Telefone no Email**:
 Usuário fornece telefone ao agendar → incluído no email para consultor → facilita contato direto sem Google Calendar.
 
+> ⚠️ O campo `telefone` **não está** na interface `AgendamentoUsuario` em `lib/types/assessoria.ts`. Verificar se é capturado via `observacoes` ou campo separado no formulário antes de assumir que está persistido.
+
 **Permissões por perfil**:
 - **Admin**: CRUD completo anotações, visualizar/gerenciar agendamentos da fazenda, painel admin de horários
-- **Operador**: sem acesso ao módulo (guard no `layout.tsx` redireciona para `/dashboard`)
-- **Visualizador**: consultar anotações e agendamentos (SELECT apenas)
+- **Operador**: sem acesso ao módulo (redireciona para `/dashboard`)
+- **Visualizador**: sem acesso ao módulo (redireciona para `/dashboard`)
 - **Consultor (externo)**: acesso público ao link mágico (sem login), pode confirmar/recusar/remarcar
+
+> ⚠️ O guard de perfil **não está no `layout.tsx`** (arquivo está vazio). O redirecionamento é feito via `useEffect` no `page.tsx` — qualquer perfil diferente de `Administrador` é redirecionado.
 
 **Email & Autenticação**:
 - Serviço: Resend (`noreply@gestsilo.com.br`, domínio verificado)
@@ -686,18 +705,18 @@ Usuário fornece telefone ao agendar → incluído no email para consultor → f
 
 **Navegação**:
 - **Sidebar**: item "Assessoria agronômica" em Ferramentas (visível apenas Admin)
-- **Hub** (`/dashboard/assessoria`): 3 seções (BlocoNotas, CalendarioAgendamento, MeusAgendamentos)
+- **Hub** (`/dashboard/assessoria`): 2 seções — `BlocoNotasSection` (anotações) + `AgendamentosConfirmadosSection` (agendamentos confirmados)
 - **Admin** (`/dashboard/assessoria/admin/horarios`): CRUD de horários
 
 **Arquivos principais**:
-- `lib/types/assessoria.ts` — tipos TypeScript (CategoriaAnotacao, HorarioDisponivel, AgendamentoUsuario, etc.)
+- `lib/types/assessoria.ts` — tipos TypeScript (CategoriaAnotacao, HorarioDisponivel, AgendamentoUsuario, HistoricoAtendimento, etc.)
 - `lib/validations/assessoria.ts` — 4 schemas Zod (anotação, agendamento, status, histórico)
 - `lib/supabase/assessoria.ts` — queries (anotações, horários, agendamentos, histórico)
 - `lib/services/email.ts` — geração JWT e envio email via Resend (com telefone no template)
 - `app/dashboard/assessoria/actions.ts` — Server Actions (CRUD anotações, agendamentos, histórico)
-- `app/dashboard/assessoria/layout.tsx` — guard Admin
-- `app/dashboard/assessoria/page.tsx` — composição das 3 seções
-- `app/dashboard/assessoria/components/` — BlocoNotasSection, AnotacaoForm, AnotacoesFilters, AnotacoesList, CalendarioAgendamento, AgendamentoForm, AgendamentosConfirmadosSection, DeleteAnotacaoDialog, MarcarResolvidaDialog
+- `app/dashboard/assessoria/layout.tsx` — arquivo vazio (guard feito no `page.tsx`)
+- `app/dashboard/assessoria/page.tsx` — composição das 2 seções; guard Admin via `useEffect` (redireciona não-Admin)
+- `app/dashboard/assessoria/components/` — BlocoNotasSection, AnotacaoForm, AnotacoesFilters, AnotacoesList, CalendarioAgendamento, AgendamentoForm, AgendamentosConfirmadosSection, SolicitarConsultaDialog, DeleteAnotacaoDialog
 - `app/dashboard/assessoria/admin/actions.ts` — Server Actions admin (criar/deletar/marcar disponibilidade/gerar período de horários)
 - `app/dashboard/assessoria/admin/horarios/page.tsx` — painel admin horários
 - `app/dashboard/assessoria/admin/horarios/components/` — CriarHorarioDialog, GerarHorariosPeriodoDialog

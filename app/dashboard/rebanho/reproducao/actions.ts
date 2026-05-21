@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { sou_admin, sou_operador_ou_admin, getCurrentUserId } from '@/lib/auth/helpers';
+import { sou_admin, getCurrentUserId } from '@/lib/auth/helpers';
 import {
   criarReprodutorSchema,
   criarCoberturaSchema,
@@ -93,9 +93,9 @@ export async function lancarCoberturaAction(
   formData: unknown
 ): Promise<{ success: boolean; evento_id?: string; erro?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, erro: 'Permissão insuficiente para lançar cobertura.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, erro: 'Apenas administradores podem lançar cobertura.' };
     }
 
     const parsed = criarCoberturaSchema.parse(formData);
@@ -115,9 +115,9 @@ export async function lancarDiagnosticoAction(
   formData: unknown
 ): Promise<{ success: boolean; evento_id?: string; erro?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, erro: 'Permissão insuficiente para lançar diagnóstico.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, erro: 'Apenas administradores podem lançar diagnóstico.' };
     }
 
     const parsed = criarDiagnosticoSchema.parse(formData);
@@ -137,29 +137,20 @@ export async function lancarPartoAction(
   formData: unknown
 ): Promise<{ success: boolean; evento_id?: string; bezerros_criados?: number; erro?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, erro: 'Permissão insuficiente para lançar parto.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, erro: 'Apenas administradores podem lançar parto.' };
     }
 
     const parsed = criarPartoSchema.parse(formData);
     const userId = await getCurrentUserId();
-    const admin = await sou_admin();
 
     // Validar prenhez confirmada nos últimos 295 dias
     const ultimoDiag = await queryEventosRebanho.getUltimoDiagnosticoPositivo(parsed.animal_id, 295);
     const temPrenhez = !!ultimoDiag;
 
     if (!temPrenhez) {
-      // Sem prenhez confirmada
-      if (!admin) {
-        return {
-          success: false,
-          erro: 'Apenas administradores podem lançar parto sem prenhez confirmada.',
-        };
-      }
-
-      // Admin tentando registrar parto sem prenhez → bypass_justificativa obrigatório
+      // Sem prenhez confirmada → bypass_justificativa obrigatório
       const bypass = parsed.bypass_justificativa?.trim() || '';
       if (bypass.length < 10) {
         return {
@@ -191,9 +182,9 @@ export async function lancarSecagemAction(
   formData: unknown
 ): Promise<{ success: boolean; evento_id?: string; erro?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, erro: 'Permissão insuficiente para lançar secagem.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, erro: 'Apenas administradores podem lançar secagem.' };
     }
 
     const parsed = criarSecagemSchema.parse(formData);
@@ -213,9 +204,9 @@ export async function lancarAbortoAction(
   formData: unknown
 ): Promise<{ success: boolean; evento_id?: string; erro?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, erro: 'Permissão insuficiente para lançar aborto.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, erro: 'Apenas administradores podem lançar aborto.' };
     }
 
     const parsed = criarAbortoSchema.parse(formData);
@@ -235,9 +226,9 @@ export async function lancarDescarteAction(
   formData: unknown
 ): Promise<{ success: boolean; evento_id?: string; erro?: string }> {
   try {
-    const podeOperar = await sou_operador_ou_admin();
-    if (!podeOperar) {
-      return { success: false, erro: 'Permissão insuficiente para lançar descarte.' };
+    const admin = await sou_admin();
+    if (!admin) {
+      return { success: false, erro: 'Apenas administradores podem lançar descarte.' };
     }
 
     const parsed = criarDescarteSchema.parse(formData);
