@@ -90,7 +90,7 @@ export function TalhaoOperacoesTab({
           Registrar Atividade
         </Button>
 
-        <div className="grid grid-cols-3 gap-3 flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
           <div className="space-y-2">
             <Label className="text-sm">Tipo de Operação</Label>
             <Select value={tipoFiltro || ''} onValueChange={(v) => setTipoFiltro(v as string)}>

@@ -226,7 +226,8 @@ export default function CalendarioPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="grid grid-cols-7 gap-2 min-w-[560px]">
           {days.map((day, idx) => {
             const dayEventos = eventos.filter(
               (e) => e.data_esperada && new Date(e.data_esperada).toDateString() === day.toDateString()
@@ -258,6 +259,7 @@ export default function CalendarioPage() {
               </Card>
             );
           })}
+        </div>
         </div>
       </div>
     );
@@ -300,7 +302,8 @@ export default function CalendarioPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="grid grid-cols-7 gap-2 min-w-[560px]">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((day) => (
             <div key={day} className="text-center font-semibold text-base p-2">
               {day}
@@ -340,6 +343,7 @@ export default function CalendarioPage() {
               </Card>
             );
           })}
+        </div>
         </div>
       </div>
     );

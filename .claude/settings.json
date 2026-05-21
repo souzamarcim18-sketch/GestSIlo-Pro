@@ -44,7 +44,9 @@
       "Bash(npx shadcn@latest add form --yes)",
       "Bash(npx shadcn@latest add alert-dialog --yes)",
       "Bash(npx shadcn@latest add form alert-dialog --yes)",
-      "Bash(npm run dev > /tmp/dev.log 2>&1 & *)"
+      "Bash(npm run dev > /tmp/dev.log 2>&1 & *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Force)",
+      "Bash(Select-Object Name)"
     ],
     "additionalDirectories": [
       "\\tmp"

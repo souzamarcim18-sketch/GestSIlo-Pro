@@ -607,7 +607,7 @@ export default function DashboardPage() {
       {/* Silagem */}
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Col 1 — Gauge, row-span-2 */}
           <div className="row-span-2 flex">
             <KpiChartCard
@@ -641,7 +641,7 @@ export default function DashboardPage() {
       {/* Rebanho */}
       <section aria-label="Rebanho">
         <SectionLabel>Rebanho</SectionLabel>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {/* Col 1 — Total de Animais por categoria */}
           <KpiChartCard
             label="Total de Animais"

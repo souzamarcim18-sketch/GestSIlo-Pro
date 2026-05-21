@@ -271,7 +271,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
 
               {metodo === 'al_ca_mg' && (
               <div className="space-y-4 mt-6">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
                       <Label htmlFor="al">Al³⁺ (cmolc/dm³)</Label>
@@ -341,7 +341,7 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
 
               {metodo === 'mg_manual' && (
               <div className="space-y-4 mt-6">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
                       <Label htmlFor="al">Al³⁺ (cmolc/dm³)</Label>
