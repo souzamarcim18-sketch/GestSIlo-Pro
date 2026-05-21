@@ -110,10 +110,10 @@ const silos = {
   },
 
   async create(payload: Omit<Silo, 'id' | 'fazenda_id'>): Promise<Silo> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('silos')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, nome, tipo, fazenda_id, talhao_id, materia_seca_percent, insumo_lona_id, insumo_inoculante_id, cultura_ensilada, data_fechamento, data_abertura_prevista, data_abertura_real, volume_ensilado_ton_mv, comprimento_m, largura_m, altura_m, observacoes_gerais, custo_aquisicao_rs_ton')
       .single();
     if (error) throw error;
@@ -332,10 +332,10 @@ const talhoes = {
   },
 
   async create(payload: Omit<Talhao, 'id' | 'fazenda_id'>): Promise<Talhao> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('talhoes')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, nome, area_ha, tipo_solo, status, fazenda_id, observacoes')
       .single();
     if (error) throw error;
@@ -519,10 +519,10 @@ const insumos = {
   },
 
   async create(payload: Omit<Insumo, 'id' | 'fazenda_id'>): Promise<Insumo> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('insumos')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
@@ -1065,10 +1065,10 @@ const maquinas = {
   },
 
   async create(payload: Omit<Maquina, 'id' | 'fazenda_id'>): Promise<Maquina> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('maquinas')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis')
       .single();
     if (error) throw error;
@@ -1317,10 +1317,10 @@ const financeiro = {
   },
 
   async create(payload: Omit<Financeiro, 'id' | 'fazenda_id'>): Promise<Financeiro> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('financeiro')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
       .single();
     if (error) throw error;
@@ -1406,10 +1406,10 @@ const atividadesCampo = {
     // TODO [Bloco Frota/Insumos]: Integrar custo_hora da tabela maquinas
     // e preco_unitario da tabela insumos para cálculo automático de custo_total.
     // Atualmente, custo é calculado client-side e passado aqui como payload.
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('atividades_campo')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, fazenda_id, ciclo_id, talhao_id, tipo_operacao, data, maquina_id, horas_maquina, observacoes, custo_total, custo_manual, tipo_operacao_solo, insumo_id, dose_ton_ha, semente_id, populacao_plantas_ha, sacos_ha, espacamento_entre_linhas_cm, categoria_pulverizacao, dose_valor, dose_unidade, volume_calda_l_ha, produtividade_ton_ha, maquina_colheita_id, horas_colheita, maquina_transporte_id, horas_transporte, maquina_compactacao_id, horas_compactacao, valor_terceirizacao_r, permite_rebrota, custo_amostra_r, metodo_entrada, url_pdf_analise, ph_cacl2, mo_g_dm3, p_mg_dm3, k_mmolc_dm3, ca_mmolc_dm3, mg_mmolc_dm3, al_mmolc_dm3, h_al_mmolc_dm3, s_mg_dm3, b_mg_dm3, cu_mg_dm3, fe_mg_dm3, mn_mg_dm3, zn_mg_dm3, lamina_mm, horas_irrigacao, custo_por_hora_r, created_at, updated_at')
       .single();
     if (error) throw error;
@@ -1633,10 +1633,10 @@ const planejamentosSilagem = {
   async create(
     payload: Omit<PlanejamentoSilagem, 'id' | 'created_at' | 'fazenda_id'>
   ): Promise<PlanejamentoSilagem> {
-    await getFazendaId();
+    const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('planejamentos_silagem')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, fazenda_id, nome, sistema, rebanho, parametros, resultados, created_at')
       .single();
     if (error) throw error;
