@@ -99,14 +99,14 @@ export default function AgendamentosConfirmadosSection({
           </Button>
         </CardHeader>
       <CardContent>
-        {agendamentos.filter(ag => ag.status !== 'cancelado' && ag.status !== 'solicitado').length === 0 ? (
+        {agendamentos.filter(ag => ag.status !== 'cancelado').length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            Nenhum agendamento confirmado. Solicite uma consulta para começar!
+            Nenhum agendamento realizado. Solicite uma consulta para começar!
           </div>
         ) : (
           <div className="space-y-3">
             {agendamentos
-              .filter(ag => ag.status !== 'cancelado' && ag.status !== 'solicitado')
+              .filter(ag => ag.status !== 'cancelado')
               .map((ag) => {
               const config = statusConfig[ag.status] || {
                 icon: AlertCircle,
@@ -135,12 +135,25 @@ export default function AgendamentosConfirmadosSection({
                                   ? 'bg-red-600 text-white'
                                   : ag.status === 'remarcado'
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-600 text-white'
+                                    : ag.status === 'solicitado'
+                                      ? 'bg-yellow-600 text-white'
+                                      : 'bg-gray-600 text-white'
                             }
                           >
                             {config.label}
                           </Badge>
                         </div>
+                        {(ag.status === 'solicitado' || ag.status === 'confirmado') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCancel(ag.id)}
+                            disabled={cancelingId === ag.id}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-950"
+                          >
+                            {cancelingId === ag.id ? 'Cancelando...' : 'Cancelar'}
+                          </Button>
+                        )}
                       </div>
 
                       {/* Data e Hora */}
