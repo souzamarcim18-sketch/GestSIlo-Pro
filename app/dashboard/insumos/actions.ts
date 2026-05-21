@@ -63,6 +63,7 @@ export async function criarInsumoAction(formData: unknown) {
           forma_pagamento: null,
           referencia_id: movimentacao.id,
           referencia_tipo: null,
+          natureza: 'variavel',
         });
 
         despesa_id = despesa.id;
@@ -184,6 +185,7 @@ export async function criarSaidaAction(formData: unknown) {
           forma_pagamento: null,
           referencia_id: movimentacao.id,
           referencia_tipo: null,
+          natureza: 'variavel',
         });
 
         despesa_id = despesa.id;

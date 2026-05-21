@@ -19,7 +19,7 @@ export default async function FinanceiroPage() {
   const [lancamentosRes, categoriasRes, profileRes] = await Promise.all([
     supabase
       .from('financeiro')
-      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_tipo, referencia_id, fazenda_id, created_at')
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_tipo, referencia_id, natureza, fazenda_id, created_at')
       .eq('fazenda_id', fazendaId)
       .order('data', { ascending: false }),
     supabase

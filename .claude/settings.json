@@ -46,7 +46,9 @@
       "Bash(npx shadcn@latest add form alert-dialog --yes)",
       "Bash(npm run dev > /tmp/dev.log 2>&1 & *)",
       "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Force)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Recurse -Filter \"*financeiro*\" -Directory)",
+      "Bash(Select-Object FullName)"
     ],
     "additionalDirectories": [
       "\\tmp"

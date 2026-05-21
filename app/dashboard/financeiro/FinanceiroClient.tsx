@@ -50,6 +50,7 @@ const lancamentoSchema = z.object({
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
   referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
+  natureza: z.enum(['fixo', 'variavel']).optional().nullable(),
 });
 
 type LancamentoFormData = z.infer<typeof lancamentoSchema>;
@@ -74,6 +75,7 @@ interface Props {
 
 export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmin, fazendaId }: Props) {
   const [abaLancamentos, setAbaLancamentos] = useState<'todos' | 'receitas' | 'despesas'>('todos');
+  const [filtroNatureza, setFiltroNatureza] = useState<'todos' | 'fixo' | 'variavel'>('todos');
   const [lancamentos, setLancamentos] = useState<Financeiro[]>(initialLancamentos);
   const [categorias, setCategorias] = useState<string[]>(initialCategorias);
   const [filtroInicio, setFiltroInicio] = useState('');
@@ -87,15 +89,16 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
   const ids = {
     dialogTitle:  `${uid}-dialog-title`,
     dialogDesc:   `${uid}-dialog-desc`,
-    formTipo:     `${uid}-tipo`,
-    formValor:    `${uid}-valor`,
-    formDesc:     `${uid}-desc`,
-    formCat:      `${uid}-cat`,
-    formData:     `${uid}-data`,
-    formPag:      `${uid}-pag`,
-    formRef:      `${uid}-ref`,
-    filtroInicio: `${uid}-filtro-inicio`,
-    filtroFim:    `${uid}-filtro-fim`,
+    formTipo:      `${uid}-tipo`,
+    formValor:     `${uid}-valor`,
+    formDesc:      `${uid}-desc`,
+    formCat:       `${uid}-cat`,
+    formData:      `${uid}-data`,
+    formPag:       `${uid}-pag`,
+    formRef:       `${uid}-ref`,
+    formNatureza:  `${uid}-natureza`,
+    filtroInicio:  `${uid}-filtro-inicio`,
+    filtroFim:     `${uid}-filtro-fim`,
   };
 
   const form = useForm<LancamentoFormData>({
@@ -108,6 +111,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
       data: new Date().toISOString().split('T')[0],
       forma_pagamento: '',
       referencia_tipo: null,
+      natureza: null,
     },
   });
 
@@ -130,21 +134,25 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
     return lancamentos.filter((l) => {
       if (filtroInicio && l.data < filtroInicio) return false;
       if (filtroFim   && l.data > filtroFim)     return false;
+      if (filtroNatureza !== 'todos' && l.natureza !== filtroNatureza) return false;
       return true;
     });
-  }, [lancamentos, filtroInicio, filtroFim]);
+  }, [lancamentos, filtroInicio, filtroFim, filtroNatureza]);
 
   const resumo      = useMemo(() => calcularResumo(lancamentosFiltrados), [lancamentosFiltrados]);
   const fluxoMensal = useMemo(() => calcularFluxoMensal(lancamentos, 6), [lancamentos]);
   const receitas    = useMemo(() => lancamentosFiltrados.filter((l) => l.tipo === 'Receita'), [lancamentosFiltrados]);
   const despesas    = useMemo(() => lancamentosFiltrados.filter((l) => l.tipo === 'Despesa'), [lancamentosFiltrados]);
 
+  const custoFixo    = useMemo(() => despesas.filter((l) => l.natureza === 'fixo').reduce((acc, l) => acc + l.valor, 0), [despesas]);
+  const custoVariavel = useMemo(() => despesas.filter((l) => l.natureza === 'variavel').reduce((acc, l) => acc + l.valor, 0), [despesas]);
+
   const handleOpenNew = () => {
     setEditingLancamento(null);
     reset({
       tipo: 'Despesa', descricao: '', categoria: '', valor: 0,
       data: new Date().toISOString().split('T')[0],
-      forma_pagamento: '', referencia_tipo: null,
+      forma_pagamento: '', referencia_tipo: null, natureza: null,
     });
     setIsFormOpen(true);
   };
@@ -159,6 +167,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
       data: l.data,
       forma_pagamento: l.forma_pagamento ?? '',
       referencia_tipo: l.referencia_tipo ?? null,
+      natureza: l.natureza ?? null,
     });
     setIsFormOpen(true);
   };
@@ -167,7 +176,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
     setSubmitting(true);
     try {
       if (editingLancamento) {
-        await q.financeiro.update(editingLancamento.id, data);
+        await q.financeiro.update(editingLancamento.id, { ...data, natureza: data.natureza ?? null });
         toast.success('Lançamento atualizado.');
       } else {
         await q.financeiro.create({
@@ -175,6 +184,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
           referencia_id: null,
           referencia_tipo: data.referencia_tipo ?? null,
           forma_pagamento: data.forma_pagamento ?? null,
+          natureza: data.natureza ?? null,
         });
         toast.success('Lançamento registrado.');
       }
@@ -341,6 +351,30 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
         </div>
       </div>
 
+      <div className="space-y-1">
+        <Label htmlFor={ids.formNatureza}>Natureza do custo</Label>
+        <Controller
+          name="natureza"
+          control={control}
+          render={({ field }) => (
+            <Select
+              value={field.value ?? ''}
+              onValueChange={(v) => field.onChange(v === '' ? null : v)}
+            >
+              <SelectTrigger id={ids.formNatureza}>
+                <SelectValue placeholder="Não classificado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Não classificado</SelectItem>
+                <SelectItem value="fixo">Custo Fixo</SelectItem>
+                <SelectItem value="variavel">Custo Variável</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
+        <p className="text-xs text-muted-foreground">Fixo: água, luz, salários. Variável: insumos, combustível.</p>
+      </div>
+
       <DialogFooter>
         <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
           Cancelar
@@ -359,6 +393,11 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
       </TableCell>
       <TableCell className="font-medium max-w-[200px] truncate">{l.descricao}</TableCell>
       <TableCell><Badge variant="outline">{l.categoria}</Badge></TableCell>
+      <TableCell>
+        {l.natureza === 'fixo' && <Badge variant="secondary" className="text-xs">Fixo</Badge>}
+        {l.natureza === 'variavel' && <Badge variant="outline" className="text-xs">Variável</Badge>}
+        {!l.natureza && <span className="text-muted-foreground" aria-hidden="true">—</span>}
+      </TableCell>
       <TableCell>
         {l.referencia_tipo
           ? <span className="text-sm text-muted-foreground">{l.referencia_tipo}</span>
@@ -401,7 +440,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
 
   const TabelaVazia = () => (
     <TableRow>
-      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground" role="status" aria-live="polite">
+      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground" role="status" aria-live="polite">
         Nenhum lançamento encontrado.
       </TableCell>
     </TableRow>
@@ -520,6 +559,35 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
             </CardContent>
           </Card>
         </div>
+
+        {(custoFixo > 0 || custoVariavel > 0) && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="rounded-2xl bg-card shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground" id="card-fixo">Custos Fixos</CardTitle>
+                <Badge variant="outline" className="text-xs">Fixo</Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold text-destructive" aria-labelledby="card-fixo" aria-live="polite">
+                  {brl(custoFixo)}
+                </div>
+                <p className="text-xs text-muted-foreground">Água, luz, salários e similares</p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl bg-card shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground" id="card-variavel">Custos Variáveis</CardTitle>
+                <Badge variant="outline" className="text-xs">Variável</Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold text-destructive" aria-labelledby="card-variavel" aria-live="polite">
+                  {brl(custoVariavel)}
+                </div>
+                <p className="text-xs text-muted-foreground">Insumos, combustível e similares</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </section>
 
       {/* Gráfico */}
@@ -566,25 +634,48 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
-              {([
-                { value: 'todos', label: `Todos (${lancamentosFiltrados.length})` },
-                { value: 'receitas', label: `Receitas (${receitas.length})` },
-                { value: 'despesas', label: `Despesas (${despesas.length})` },
-              ] as const).map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => setAbaLancamentos(value)}
-                  aria-label={label}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                    abaLancamentos === value
-                      ? 'bg-[#00A651] text-white font-semibold shadow-sm'
-                      : 'text-muted-foreground hover:bg-background hover:text-foreground'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2 items-center justify-between">
+              <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
+                {([
+                  { value: 'todos', label: `Todos (${lancamentosFiltrados.length})` },
+                  { value: 'receitas', label: `Receitas (${receitas.length})` },
+                  { value: 'despesas', label: `Despesas (${despesas.length})` },
+                ] as const).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => setAbaLancamentos(value)}
+                    aria-label={label}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                      abaLancamentos === value
+                        ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                        : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
+                {([
+                  { value: 'todos', label: 'Todos' },
+                  { value: 'fixo', label: 'Fixo' },
+                  { value: 'variavel', label: 'Variável' },
+                ] as const).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => setFiltroNatureza(value)}
+                    aria-label={`Filtrar por natureza: ${label}`}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                      filtroNatureza === value
+                        ? 'bg-background text-foreground font-semibold shadow-sm'
+                        : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="w-full overflow-x-auto">
@@ -597,6 +688,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
                     <TableHead scope="col">Data</TableHead>
                     <TableHead scope="col">Descrição</TableHead>
                     <TableHead scope="col">Categoria</TableHead>
+                    <TableHead scope="col">Natureza</TableHead>
                     <TableHead scope="col">Referência</TableHead>
                     <TableHead scope="col">Valor</TableHead>
                     <TableHead scope="col">Pagamento</TableHead>

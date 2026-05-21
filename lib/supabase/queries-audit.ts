@@ -246,6 +246,7 @@ const movimentacoesSilo = {
           data: payload.data,
           referencia_tipo: 'Silo',
           referencia_id: payload.silo_id,
+          natureza: 'variavel' as const,
         };
         const { data: receitaData, error: receitaError } = await supabaseServer
           .from('financeiro')
@@ -998,7 +999,7 @@ const financeiroServer = {
     const { data, error } = await supabaseServer
       .from('financeiro')
       .insert(payload)
-      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, natureza, fazenda_id')
       .single();
     if (error) throw error;
     return data as Financeiro;
@@ -1302,7 +1303,7 @@ const financeiro = {
     const fazendaId = await getFazendaId();
     let query = supabase
       .from('financeiro')
-      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, natureza, fazenda_id')
       .eq('fazenda_id', fazendaId)
       .order('data', { ascending: false });
 
@@ -1321,7 +1322,7 @@ const financeiro = {
     const { data, error } = await supabase
       .from('financeiro')
       .insert({ ...payload, fazenda_id: fazendaId })
-      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, natureza, fazenda_id')
       .single();
     if (error) throw error;
     return data as Financeiro;
@@ -1334,7 +1335,7 @@ const financeiro = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, fazenda_id')
+      .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, natureza, fazenda_id')
       .single();
     if (error) throw error;
     return data as Financeiro;

@@ -216,6 +216,7 @@ export type Financeiro = {
   forma_pagamento: string | null;
   referencia_id: string | null;
   referencia_tipo: 'Silo' | 'Talhão' | 'Máquina' | null;
+  natureza: 'fixo' | 'variavel' | null;
   fazenda_id: string;
 };
 

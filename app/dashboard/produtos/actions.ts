@@ -149,6 +149,7 @@ export async function criarSaidaProdutoAction(formData: unknown) {
         forma_pagamento: null,
         referencia_id: mov.id,
         referencia_tipo: 'movimentacoes_produto' as never,
+        natureza: 'variavel',
       });
 
       const supabase = await createSupabaseServerClient();
