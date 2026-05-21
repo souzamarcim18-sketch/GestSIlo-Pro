@@ -1,491 +1,55 @@
-'use client';
+﻿import { redirect } from 'next/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getCurrentFazendaId } from '@/lib/auth/helpers';
+import type { Profile, Fazenda } from '@/lib/supabase';
+import { ConfiguracoesClient } from './ConfiguracoesClient';
 
-import { useState, useEffect, useId, useRef } from 'react';
-import { InviteUserModal } from '@/components/InviteUserModal';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Save, Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Profile, Fazenda } from '@/lib/supabase';
-import { useAuth } from '@/hooks/useAuth';
-import { CityAutocomplete } from '@/components/CityAutocomplete';
-import {
-  getProfile,
-  updateProfile,
-  getFazenda,
-  updateFazenda,
-  getUsersByFazenda,
-} from '@/lib/supabase/configuracoes';
-import type { CityOption } from '@/hooks/useGeocoding';
+export const metadata = {
+  title: 'Configurações | GestSilo',
+};
 
-export default function ConfiguracoesPage() {
-  const { user, fazendaId, loading: authLoading, profile: userProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'perfil' | 'fazenda' | 'usuarios'>('perfil');
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [fazenda, setFazenda]  = useState<Fazenda | null>(null);
-  const [users, setUsers]      = useState<Profile[]>([]);
-  const [loading, setLoading]  = useState(true);
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [savingFazenda, setSavingFazenda] = useState(false);
-  const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+export default async function ConfiguracoesPage() {
+  const supabase = await createSupabaseServerClient();
 
-  const profileNomeRef = useRef<HTMLInputElement>(null);
-  const fazendaNomeRef = useRef<HTMLInputElement>(null);
-  const fazendaAreaRef = useRef<HTMLInputElement>(null);
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect('/login');
 
-  // IDs estáveis para associação label ↔ controle e aria-describedby
-  const uid = useId();
-  const ids = {
-    perfilTitle:   `${uid}-perfil-title`,
-    fazendaTitle:  `${uid}-fazenda-title`,
-    usuariosTitle: `${uid}-usuarios-title`,
-    senhaHint:     `${uid}-senha-hint`,
-  };
+  const fazendaId = await getCurrentFazendaId();
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user || !fazendaId) {
-      setLoading(false);
-      return;
-    }
-    fetchData(user.id, fazendaId);
-  }, [authLoading, user, fazendaId]);
+  const [profileRes, fazendaRes, usersRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, nome, email, perfil, fazenda_id, created_at, updated_at')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('fazendas')
+      .select('id, nome, localizacao, area_total, latitude, longitude, created_at, updated_at')
+      .eq('id', fazendaId)
+      .single(),
+    supabase
+      .from('profiles')
+      .select('id, nome, email, perfil, fazenda_id, created_at, updated_at')
+      .eq('fazenda_id', fazendaId)
+      .neq('id', user.id)
+      .order('nome'),
+  ]);
 
-  const fetchData = async (userId: string, fId: string) => {
-    setLoading(true);
-    try {
-      const [profileData, fazendaData, usersData] = await Promise.all([
-        getProfile(userId),
-        getFazenda(fId),
-        getUsersByFazenda(fId),
-      ]);
-      setProfile(profileData);
-      setFazenda(fazendaData);
-      setUsers(usersData);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao carregar configurações';
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!profileRes.data || !fazendaRes.data) redirect('/login');
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    setSavingProfile(true);
-    try {
-      const nome = profileNomeRef.current?.value ?? profile?.nome ?? '';
-      const updated = await updateProfile(user.id, { nome });
-      setProfile(updated);
-      toast.success('Perfil atualizado com sucesso!');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao salvar perfil';
-      toast.error(msg);
-    } finally {
-      setSavingProfile(false);
-    }
-  };
+  const profile  = profileRes.data  as Profile;
+  const fazenda  = fazendaRes.data  as Fazenda;
+  const users    = (usersRes.data ?? []) as Profile[];
+  const isAdmin  = profile.perfil === 'Administrador';
 
-  const handleSaveFazenda = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fazendaId) return;
-    setSavingFazenda(true);
-    try {
-      const nome        = fazendaNomeRef.current?.value ?? fazenda?.nome ?? '';
-      const area_total  = fazendaAreaRef.current?.value
-        ? parseFloat(fazendaAreaRef.current.value)
-        : fazenda?.area_total ?? null;
-
-      // Usar cidade selecionada ou manter valor existente
-      const localizacao = selectedCity?.displayName ?? fazenda?.localizacao ?? null;
-      const latitude = selectedCity?.latitude ?? fazenda?.latitude ?? null;
-      const longitude = selectedCity?.longitude ?? fazenda?.longitude ?? null;
-
-      const updated = await updateFazenda(fazendaId, {
-        nome,
-        localizacao,
-        area_total,
-        latitude,
-        longitude,
-      });
-      setFazenda(updated);
-      setSelectedCity(null); // Limpar seleção após salvar
-      toast.success('Dados da fazenda atualizados!');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao salvar dados da fazenda';
-      toast.error(msg);
-    } finally {
-      setSavingFazenda(false);
-    }
-  };
-
-  // ---------------------------------------------------------------------------
-  // Loading
-  // ---------------------------------------------------------------------------
-  if (loading) {
-    return (
-      // ✅ role="status" + aria-label anunciam o estado para AT
-      <div
-        className="flex items-center justify-center min-h-[400px]"
-        role="status"
-        aria-label="Carregando configurações..."
-        aria-live="polite"
-      >
-        <div
-          className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
-          aria-hidden="true"
-        />
-        {/* Texto visível apenas para AT */}
-        <span className="sr-only">Carregando configurações...</span>
-      </div>
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">
-          Configurações do Sistema
-        </h2>
-      </div>
-
-      {/* Tabs */}
-      <div className="w-full space-y-6">
-        <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] lg:w-[500px]">
-          {([
-            { value: 'perfil', label: 'Meu Perfil' },
-            { value: 'fazenda', label: 'Dados da Fazenda' },
-            { value: 'usuarios', label: 'Usuários e Acessos' },
-          ] as const).map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setActiveTab(value)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
-                activeTab === value
-                  ? 'bg-[#00A651] text-white font-semibold shadow-sm'
-                  : 'text-muted-foreground hover:bg-background hover:text-foreground'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Aba: Perfil */}
-        {activeTab === 'perfil' && (
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-  <h2 id={ids.perfilTitle} className="text-xl font-semibold leading-none tracking-tight">
-    Informações Pessoais
-  </h2>
-</CardTitle>
-              <CardDescription>
-                Gerencie seus dados de acesso e perfil.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={handleSaveProfile}
-                className="space-y-6"
-                aria-labelledby={ids.perfilTitle}
-                noValidate
-              >
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-nome" className="text-sm">Nome Completo</Label>
-                    <Input
-                      id="prof-nome"
-                      ref={profileNomeRef}
-                      key={profile?.nome}
-                      defaultValue={profile?.nome}
-                      autoComplete="name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-email" className="text-sm">E-mail</Label>
-                    {/*
-                      ✅ aria-disabled reforça disabled para AT que
-                      ignoram o atributo nativo em alguns contextos
-                    */}
-                    <Input
-                      id="prof-email"
-                      type="email"
-                      defaultValue={profile?.email}
-                      disabled
-                      aria-disabled="true"
-                      autoComplete="email"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-perfil" className="text-sm">Perfil de Acesso</Label>
-                    <Input
-                      id="prof-perfil"
-                      defaultValue={profile?.perfil}
-                      disabled
-                      aria-disabled="true"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="prof-senha" className="text-sm">Nova Senha</Label>
-                    {/*
-                      ✅ aria-describedby associa o hint ao campo —
-                      AT lê: "Nova Senha — Deixe em branco para manter a atual"
-                    */}
-                    <Input
-                      id="prof-senha"
-                      type="password"
-                      placeholder="••••••••"
-                      autoComplete="new-password"
-                      aria-describedby={ids.senhaHint}
-                    />
-                    <p
-                      id={ids.senhaHint}
-                      className="text-sm text-muted-foreground"
-                    >
-                      Deixe em branco para manter a senha atual.
-                    </p>
-                  </div>
-                </div>
-
-                <Button type="submit" disabled={savingProfile}>
-                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
-                  {savingProfile ? 'Salvando...' : 'Salvar Alterações'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-        )}
-
-        {/* Aba: Fazenda */}
-        {activeTab === 'fazenda' && (
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-  <h2 id={ids.fazendaTitle} className="text-xl font-semibold leading-none tracking-tight">
-    Dados da Propriedade
-  </h2>
-</CardTitle>
-              <CardDescription>
-                Informações gerais da fazenda ativa.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={handleSaveFazenda}
-                className="space-y-6"
-                aria-labelledby={ids.fazendaTitle}
-                noValidate
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="faz-nome" className="text-sm">Nome da Fazenda</Label>
-                  <Input
-                    id="faz-nome"
-                    ref={fazendaNomeRef}
-                    key={`nome-${fazenda?.nome}`}
-                    defaultValue={fazenda?.nome}
-                  />
-                </div>
-
-                <CityAutocomplete
-                  label="Localização (Cidade)"
-                  placeholder="Digite a cidade para buscar coordenadas"
-                  value={selectedCity?.displayName || fazenda?.localizacao || ''}
-                  onSelect={setSelectedCity}
-                />
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="faz-area" className="text-sm">Área Total (ha)</Label>
-                    <Input
-                      id="faz-area"
-                      ref={fazendaAreaRef}
-                      key={`area-${fazenda?.area_total}`}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      defaultValue={fazenda?.area_total || 0}
-                    />
-                  </div>
-                </div>
-
-                {/* Coordenadas (read-only) */}
-                {(selectedCity || fazenda?.latitude) && (
-                  <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
-                    <div className="space-y-2">
-                      <Label htmlFor="faz-lat" className="text-sm">Latitude</Label>
-                      <Input
-                        id="faz-lat"
-                        type="text"
-                        disabled
-                        value={
-                          selectedCity?.latitude ?? fazenda?.latitude ?? '—'
-                        }
-                        className="bg-muted text-muted-foreground"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="faz-lon" className="text-sm">Longitude</Label>
-                      <Input
-                        id="faz-lon"
-                        type="text"
-                        disabled
-                        value={
-                          selectedCity?.longitude ?? fazenda?.longitude ?? '—'
-                        }
-                        className="bg-muted text-muted-foreground"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <Button type="submit" disabled={savingFazenda}>
-                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
-                  {savingFazenda ? 'Salvando...' : 'Salvar Dados'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-        )}
-
-        {/* Aba: Usuários */}
-        {activeTab === 'usuarios' && (
-        <div className="mt-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>
-  <h2 id={ids.usuariosTitle} className="text-xl font-semibold leading-none tracking-tight">
-    Controle de Usuários
-  </h2>
-</CardTitle>
-                <CardDescription>
-                  Gerencie quem tem acesso ao sistema da fazenda.
-                </CardDescription>
-              </div>
-              {/*
-                ✅ Botão sem dialog associado recebe toast de feedback
-                em vez de silêncio — evita armadilha de foco
-              */}
-              {userProfile?.perfil === 'Administrador' && (
-                <Button
-                  size="sm"
-                  onClick={() => setInviteModalOpen(true)}
-                  aria-label="Convidar novo usuário para a fazenda"
-                >
-                  <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Convidar Usuário
-                </Button>
-              )}
-            </CardHeader>
-
-            <CardContent>
-              <Table aria-labelledby={ids.usuariosTitle}>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead scope="col" className="text-sm">Nome</TableHead>
-                    <TableHead scope="col" className="text-sm">E-mail</TableHead>
-                    <TableHead scope="col" className="text-sm">Perfil</TableHead>
-                    <TableHead scope="col" className="text-sm">Status</TableHead>
-                    {/* ✅ Coluna de ações com texto visível apenas para AT */}
-                    <TableHead scope="col" className="text-right">
-                      <span className="sr-only">Ações</span>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.nome}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={user.perfil === 'Administrador' ? 'default' : 'outline'}
-                        >
-                          {user.perfil}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className="text-primary border-primary"
-                        >
-                          Ativo
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {userProfile?.perfil === 'Administrador' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            aria-label={`Remover acesso de ${user.nome}`}
-                            onClick={() =>
-                              toast.warning(`Remoção de ${user.nome} em breve.`)
-                            }
-                          >
-                            <Trash2 className="h-4 w-4" aria-hidden="true" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-
-                  {/* ✅ Estado vazio anunciado por AT */}
-                  {users.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="text-center py-10 text-muted-foreground"
-                        role="status"
-                        aria-live="polite"
-                      >
-                        Nenhum outro usuário cadastrado para esta fazenda.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-        )}
-      </div>
-
-      <InviteUserModal
-        open={inviteModalOpen}
-        onOpenChange={setInviteModalOpen}
-      />
-    </div>
+    <ConfiguracoesClient
+      initialProfile={profile}
+      initialFazenda={fazenda}
+      initialUsers={users}
+      isAdmin={isAdmin}
+      userId={user.id}
+      fazendaId={fazendaId}
+    />
   );
 }

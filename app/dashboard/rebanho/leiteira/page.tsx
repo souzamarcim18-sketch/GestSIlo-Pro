@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+﻿import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import {
@@ -10,7 +10,7 @@ import { DashboardLeiteiro } from '@/components/rebanho/leiteira/DashboardLeitei
 import type { Animal } from '@/lib/types/rebanho';
 
 export const metadata = {
-  title: 'Gestão Leiteira | GestSilo Pro',
+  title: 'Gestão Leiteira | GestSilo',
 };
 
 export default async function LeiteiraPage() {

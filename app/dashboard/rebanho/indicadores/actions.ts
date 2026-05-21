@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidateTag } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -440,7 +440,7 @@ export async function exportarIndicadoresPDFAction(filtros: FiltrosIndicadoresVa
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(...hexToRgbArray(corVerde));
-    doc.text('GestSilo Pro — Indicadores Zootécnicos', 20, 20);
+    doc.text('GestSilo — Indicadores Zootécnicos', 20, 20);
 
     doc.setFont('Helvetica', 'normal');
     doc.setFontSize(10);
@@ -493,7 +493,7 @@ export async function exportarIndicadoresPDFAction(filtros: FiltrosIndicadoresVa
     doc.setFont('Helvetica', 'italic');
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text(`Gerado por GestSilo Pro em ${new Date().toLocaleDateString('pt-BR')}`, 20, doc.internal.pageSize.getHeight() - 10);
+    doc.text(`Gerado por GestSilo em ${new Date().toLocaleDateString('pt-BR')}`, 20, doc.internal.pageSize.getHeight() - 10);
 
     // Gerar Blob do PDF
     const pdfBlob = doc.output('blob');

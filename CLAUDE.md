@@ -1,7 +1,7 @@
-# GestSilo Pro — Plataforma de Gestão Agrícola
+﻿# GestSilo — Plataforma de Gestão Agrícola
 
 ## Sobre a Aplicação
-**GestSilo Pro** é uma plataforma SaaS de gestão agrícola completa para pequenos e médios produtores brasileiros, com foco especializado em **gestão de silos de silagem**. Oferece visão integrada da propriedade rural através de módulos especializados (silos, talhões, frota, financeiro, etc.), funcionando tanto via web (Vercel) quanto como PWA (offline-ready).
+**GestSilo** é uma plataforma SaaS de gestão agrícola completa para pequenos e médios produtores brasileiros, com foco especializado em **gestão de silos de silagem**. Oferece visão integrada da propriedade rural através de módulos especializados (silos, talhões, frota, financeiro, etc.), funcionando tanto via web (Vercel) quanto como PWA (offline-ready).
 
 ---
 
@@ -268,6 +268,36 @@ instrumentation.ts
 ---
 
 ## Padrões de Código
+
+### RSC — Padrão Obrigatório para Páginas de Dashboard
+
+Todas as páginas em `app/dashboard/*/page.tsx` devem ser **React Server Components**:
+
+- `page.tsx` é RSC: autentica o usuário e busca dados iniciais em `Promise.all` com `createSupabaseServerClient()`
+- Dados são passados como props para `*Client.tsx` (`'use client'`)
+- Client Component **não usa `useAuth()` no mount** para buscar dados iniciais — recebe tudo via props
+- Refetch client-side só ocorre em ação do usuário (filtro, mutação) ou via `router.refresh()` (que re-executa o RSC)
+
+```typescript
+// page.tsx — padrão
+export default async function ExemploPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) redirect('/login');
+
+  const [dados, profileRes] = await Promise.all([
+    supabase.from('tabela').select('id, nome').eq('...', '...'),
+    supabase.from('profiles').select('perfil').eq('id', user.id).single(),
+  ]);
+
+  return <ExemploClient initialDados={dados.data ?? []} isAdmin={profileRes.data?.perfil === 'Administrador'} />;
+}
+```
+
+**Restrições importantes**:
+- `queries-audit.ts` usa o cliente anônimo do browser — **não chamar de RSC**, apenas de Client Components
+- Funções em `lib/supabase/*.ts` que importam `next/headers` (ex: `assessoria.ts`) **não podem ser importadas em Client Components** — usar `router.refresh()` nesses casos
+- `fazenda_id` **nunca enviar em INSERT** — trigger do banco preenche via `get_minha_fazenda_id()`
 
 ### Componentes React
 - Sempre `'use client'` em componentes com estado ou efeitos colaterais

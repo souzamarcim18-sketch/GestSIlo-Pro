@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+﻿import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +6,7 @@ import { DashboardCorte } from '@/components/rebanho/corte/DashboardCorte';
 import type { Animal, PesoAnimal, Lote } from '@/lib/types/rebanho';
 
 export const metadata = {
-  title: 'Gestão de Corte | GestSilo Pro',
+  title: 'Gestão de Corte | GestSilo',
 };
 
 export default async function CortePage() {

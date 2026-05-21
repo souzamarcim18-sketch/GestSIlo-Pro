@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+﻿import { describe, it, expect, beforeAll } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -279,7 +279,7 @@ describe('RLS Security Tests — Data Isolation Verification', () => {
 
   it('Confirms RLS implementation checklist', async () => {
     /**
-     * RLS Checklist for GestSilo Pro:
+     * RLS Checklist for GestSilo:
      *
      * ✓ Requirement 1: Every data table has fazenda_id foreign key
      *   - silos.fazenda_id → fazendas.id

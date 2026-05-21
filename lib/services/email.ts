@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+﻿import jwt from 'jsonwebtoken';
 
 /**
  * Gera JWT para link mágico do consultor
@@ -118,7 +118,7 @@ export async function enviarEmailSolicitacaoAgendamento(
 
           <div class="footer">
             <p>Link válido por 24 horas.</p>
-            <p>© GestSilo Pro - Plataforma de Gestão Agrícola</p>
+            <p>© GestSilo - Plataforma de Gestão Agrícola</p>
           </div>
         </div>
       </body>

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Resend } from 'resend';
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
             </div>
 
             <p style="color: #888; font-size: 12px; margin-top: 30px;">
-              Esta solicitação foi enviada através do sistema GestSilo Pro.
+              Esta solicitação foi enviada através do sistema GestSilo.
             </p>
           </div>
         `,

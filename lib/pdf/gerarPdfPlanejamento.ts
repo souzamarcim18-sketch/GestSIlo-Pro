@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -27,7 +27,7 @@ export function gerarPdfPlanejamento(
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(...hexToRgb(cor_verde));
-  doc.text('GestSilo Pro — Planejamento de Silagem', margemEsquerda, posY);
+  doc.text('GestSilo — Planejamento de Silagem', margemEsquerda, posY);
 
   doc.setFont('Helvetica', 'normal');
   doc.setFontSize(10);
@@ -231,7 +231,7 @@ export function gerarPdfPlanejamento(
   doc.setTextColor(150, 150, 150);
   const totalPaginas = (doc as any).internal.pages.length - 1;
   doc.text(
-    `Gerado por GestSilo Pro — Página 1 de ${totalPaginas}`,
+    `Gerado por GestSilo — Página 1 de ${totalPaginas}`,
     margemEsquerda,
     doc.internal.pageSize.getHeight() - 10
   );

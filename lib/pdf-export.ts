@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import { CalagemResult, NPKResult, CalagemInput, NPKInput } from '@/lib/calculadoras';
 
 export interface PDFOptions {
@@ -31,7 +31,7 @@ export function exportarLaudoCalagem(
   yPos += 15;
 
   doc.setFontSize(10);
-  doc.text(`GestSilo Pro`, margin, yPos);
+  doc.text(`GestSilo`, margin, yPos);
   yPos += 6;
   doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos);
   yPos += 8;
@@ -139,7 +139,7 @@ export function exportarLaudoCalagem(
   doc.setTextColor(128, 128, 128);
   doc.line(margin, yPos, pageWidth - margin, yPos);
   yPos += 5;
-  doc.text('Gerado por GestSilo Pro - Plataforma de Gestão Agrícola', margin, yPos);
+  doc.text('Gerado por GestSilo - Plataforma de Gestão Agrícola', margin, yPos);
   yPos += 5;
   doc.text(`Responsabilidade: Recomendações indicativas. Consulte agrônomo para implementação.`, margin, yPos);
 
@@ -175,7 +175,7 @@ export function exportarRelatorioNPK(
   yPos += 15;
 
   doc.setFontSize(10);
-  doc.text('GestSilo Pro', margin, yPos);
+  doc.text('GestSilo', margin, yPos);
   yPos += 6;
   doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos);
   yPos += 8;
@@ -275,7 +275,7 @@ export function exportarRelatorioNPK(
   yPos = pageHeight - 15;
   doc.setFontSize(8);
   doc.setTextColor(128, 128, 128);
-  doc.text('Gerado por GestSilo Pro - Plataforma de Gestão Agrícola', margin, yPos);
+  doc.text('Gerado por GestSilo - Plataforma de Gestão Agrícola', margin, yPos);
 
   doc.save(`recomendacao_npk_${new Date().getTime()}.pdf`);
 }

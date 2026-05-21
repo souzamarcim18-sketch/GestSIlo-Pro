@@ -1,0 +1,645 @@
+'use client';
+
+import { useState, useCallback, useMemo, useId } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from '@/components/ui/card';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend,
+} from 'recharts';
+import type { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
+import {
+  Plus, TrendingUp, TrendingDown, Wallet, Pencil, Trash2,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import type { Financeiro } from '@/lib/supabase';
+import { q } from '@/lib/supabase/queries-audit';
+import {
+  getCategoriasByFazenda,
+  calcularResumo,
+  calcularFluxoMensal,
+} from '@/lib/supabase/financeiro';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+const REFERENCIA_TIPOS = ['Silo', 'Talhão', 'Máquina'] as const;
+
+const lancamentoSchema = z.object({
+  tipo: z.enum(['Receita', 'Despesa']),
+  descricao: z.string().min(2, 'Descrição deve ter ao menos 2 caracteres'),
+  categoria: z.string().min(1, 'Informe a categoria'),
+  valor: z.number().positive('Valor deve ser maior que zero'),
+  data: z.string().min(1, 'Informe a data'),
+  forma_pagamento: z.string().optional(),
+  referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
+});
+
+type LancamentoFormData = z.infer<typeof lancamentoSchema>;
+
+const brl = (v: number) =>
+  v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const tooltipFormatter = (
+  value: ValueType | undefined,
+  name: NameType | undefined,
+): [string, NameType] => {
+  const formatted = typeof value === 'number' ? brl(value) : String(value ?? '');
+  return [formatted, (name ?? '') as NameType];
+};
+
+interface Props {
+  initialLancamentos: Financeiro[];
+  initialCategorias: string[];
+  isAdmin: boolean;
+  fazendaId: string;
+}
+
+export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmin, fazendaId }: Props) {
+  const [abaLancamentos, setAbaLancamentos] = useState<'todos' | 'receitas' | 'despesas'>('todos');
+  const [lancamentos, setLancamentos] = useState<Financeiro[]>(initialLancamentos);
+  const [categorias, setCategorias] = useState<string[]>(initialCategorias);
+  const [filtroInicio, setFiltroInicio] = useState('');
+  const [filtroFim, setFiltroFim] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingLancamento, setEditingLancamento] = useState<Financeiro | null>(null);
+  const [deletingLancamento, setDeletingLancamento] = useState<Financeiro | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const uid = useId();
+  const ids = {
+    dialogTitle:  `${uid}-dialog-title`,
+    dialogDesc:   `${uid}-dialog-desc`,
+    formTipo:     `${uid}-tipo`,
+    formValor:    `${uid}-valor`,
+    formDesc:     `${uid}-desc`,
+    formCat:      `${uid}-cat`,
+    formData:     `${uid}-data`,
+    formPag:      `${uid}-pag`,
+    formRef:      `${uid}-ref`,
+    filtroInicio: `${uid}-filtro-inicio`,
+    filtroFim:    `${uid}-filtro-fim`,
+  };
+
+  const form = useForm<LancamentoFormData>({
+    resolver: zodResolver(lancamentoSchema),
+    defaultValues: {
+      tipo: 'Despesa',
+      descricao: '',
+      categoria: '',
+      valor: 0,
+      data: new Date().toISOString().split('T')[0],
+      forma_pagamento: '',
+      referencia_tipo: null,
+    },
+  });
+
+  const { register, handleSubmit, control, reset, formState: { errors } } = form;
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [dados, cats] = await Promise.all([
+        q.financeiro.list(),
+        getCategoriasByFazenda(fazendaId),
+      ]);
+      setLancamentos(dados);
+      setCategorias(cats);
+    } catch {
+      toast.error('Erro ao recarregar dados financeiros.');
+    }
+  }, [fazendaId]);
+
+  const lancamentosFiltrados = useMemo(() => {
+    return lancamentos.filter((l) => {
+      if (filtroInicio && l.data < filtroInicio) return false;
+      if (filtroFim   && l.data > filtroFim)     return false;
+      return true;
+    });
+  }, [lancamentos, filtroInicio, filtroFim]);
+
+  const resumo      = useMemo(() => calcularResumo(lancamentosFiltrados), [lancamentosFiltrados]);
+  const fluxoMensal = useMemo(() => calcularFluxoMensal(lancamentos, 6), [lancamentos]);
+  const receitas    = useMemo(() => lancamentosFiltrados.filter((l) => l.tipo === 'Receita'), [lancamentosFiltrados]);
+  const despesas    = useMemo(() => lancamentosFiltrados.filter((l) => l.tipo === 'Despesa'), [lancamentosFiltrados]);
+
+  const handleOpenNew = () => {
+    setEditingLancamento(null);
+    reset({
+      tipo: 'Despesa', descricao: '', categoria: '', valor: 0,
+      data: new Date().toISOString().split('T')[0],
+      forma_pagamento: '', referencia_tipo: null,
+    });
+    setIsFormOpen(true);
+  };
+
+  const handleOpenEdit = (l: Financeiro) => {
+    setEditingLancamento(l);
+    reset({
+      tipo: l.tipo,
+      descricao: l.descricao,
+      categoria: l.categoria,
+      valor: l.valor,
+      data: l.data,
+      forma_pagamento: l.forma_pagamento ?? '',
+      referencia_tipo: l.referencia_tipo ?? null,
+    });
+    setIsFormOpen(true);
+  };
+
+  const handleSave = async (data: LancamentoFormData) => {
+    setSubmitting(true);
+    try {
+      if (editingLancamento) {
+        await q.financeiro.update(editingLancamento.id, data);
+        toast.success('Lançamento atualizado.');
+      } else {
+        await q.financeiro.create({
+          ...data,
+          referencia_id: null,
+          referencia_tipo: data.referencia_tipo ?? null,
+          forma_pagamento: data.forma_pagamento ?? null,
+        });
+        toast.success('Lançamento registrado.');
+      }
+      setIsFormOpen(false);
+      setEditingLancamento(null);
+      await fetchData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar lançamento.';
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingLancamento) return;
+    setSubmitting(true);
+    try {
+      await q.financeiro.remove(deletingLancamento.id);
+      toast.success('Lançamento removido.');
+      setDeletingLancamento(null);
+      await fetchData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao remover lançamento.';
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const formNode = (
+    <form
+      onSubmit={handleSubmit(handleSave)}
+      className="space-y-4 py-2"
+      aria-labelledby={ids.dialogTitle}
+      noValidate
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label htmlFor={ids.formTipo}>Tipo</Label>
+          <Controller
+            name="tipo"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id={ids.formTipo}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Receita">Receita</SelectItem>
+                  <SelectItem value="Despesa">Despesa</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={ids.formValor}>Valor (R$)</Label>
+          <Input
+            id={ids.formValor}
+            type="number"
+            step="0.01"
+            min="0"
+            aria-required="true"
+            aria-invalid={!!errors.valor}
+            aria-describedby={errors.valor ? `${ids.formValor}-err` : undefined}
+            {...register('valor', { valueAsNumber: true })}
+          />
+          {errors.valor && (
+            <p id={`${ids.formValor}-err`} className="text-sm text-destructive" role="alert">
+              {errors.valor.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor={ids.formDesc}>Descrição</Label>
+        <Input
+          id={ids.formDesc}
+          placeholder="Ex: Venda de milho, Compra de defensivo..."
+          aria-required="true"
+          aria-invalid={!!errors.descricao}
+          aria-describedby={errors.descricao ? `${ids.formDesc}-err` : undefined}
+          {...register('descricao')}
+        />
+        {errors.descricao && (
+          <p id={`${ids.formDesc}-err`} className="text-sm text-destructive" role="alert">
+            {errors.descricao.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label htmlFor={ids.formCat}>Categoria</Label>
+          <Input
+            id={ids.formCat}
+            placeholder="Ex: Insumos, Venda Produção..."
+            list="categorias-list"
+            aria-required="true"
+            aria-invalid={!!errors.categoria}
+            aria-describedby={errors.categoria ? `${ids.formCat}-err` : undefined}
+            {...register('categoria')}
+          />
+          <datalist id="categorias-list">
+            {categorias.map((c) => <option key={c} value={c} />)}
+          </datalist>
+          {errors.categoria && (
+            <p id={`${ids.formCat}-err`} className="text-sm text-destructive" role="alert">
+              {errors.categoria.message}
+            </p>
+          )}
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={ids.formData}>Data</Label>
+          <Input
+            id={ids.formData}
+            type="date"
+            aria-required="true"
+            aria-invalid={!!errors.data}
+            aria-describedby={errors.data ? `${ids.formData}-err` : undefined}
+            {...register('data')}
+          />
+          {errors.data && (
+            <p id={`${ids.formData}-err`} className="text-sm text-destructive" role="alert">
+              {errors.data.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label htmlFor={ids.formPag}>Forma de Pagamento</Label>
+          <Input
+            id={ids.formPag}
+            placeholder="Ex: Pix, Boleto..."
+            {...register('forma_pagamento')}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={ids.formRef}>Vincular a</Label>
+          <Controller
+            name="referencia_tipo"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value ?? ''}
+                onValueChange={(v) => field.onChange(v === '' ? null : v)}
+              >
+                <SelectTrigger id={ids.formRef}>
+                  <SelectValue placeholder="Nenhum" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum</SelectItem>
+                  {REFERENCIA_TIPOS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? 'Salvando...' : editingLancamento ? 'Atualizar' : 'Lançar'}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+
+  const LancamentoRow = ({ l }: { l: Financeiro }) => (
+    <TableRow>
+      <TableCell className="whitespace-nowrap">
+        {format(new Date(l.data + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}
+      </TableCell>
+      <TableCell className="font-medium max-w-[200px] truncate">{l.descricao}</TableCell>
+      <TableCell><Badge variant="outline">{l.categoria}</Badge></TableCell>
+      <TableCell>
+        {l.referencia_tipo
+          ? <span className="text-sm text-muted-foreground">{l.referencia_tipo}</span>
+          : <span className="text-muted-foreground" aria-hidden="true">—</span>}
+      </TableCell>
+      <TableCell
+        className={`font-bold tabular-nums ${l.tipo === 'Receita' ? 'text-primary dark:text-primary' : 'text-destructive'}`}
+        aria-label={`${l.tipo === 'Receita' ? 'Receita' : 'Despesa'} de ${brl(l.valor)}`}
+      >
+        {l.tipo === 'Receita' ? '+' : '−'} {brl(l.valor)}
+      </TableCell>
+      <TableCell className="text-muted-foreground text-sm">
+        {l.forma_pagamento ?? <span aria-hidden="true">—</span>}
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => handleOpenEdit(l)}
+            aria-label={`Editar lançamento: ${l.descricao}`}
+          >
+            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+          </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setDeletingLancamento(l)}
+              aria-label={`Excluir lançamento: ${l.descricao}`}
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
+  const TabelaVazia = () => (
+    <TableRow>
+      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground" role="status" aria-live="polite">
+        Nenhum lançamento encontrado.
+      </TableCell>
+    </TableRow>
+  );
+
+  const listaAtiva = abaLancamentos === 'todos' ? lancamentosFiltrados : abaLancamentos === 'receitas' ? receitas : despesas;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão Financeira</h2>
+
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex items-center gap-2 text-sm" role="group" aria-label="Filtro de período">
+            <Label htmlFor={ids.filtroInicio} className="sr-only">Data inicial do filtro</Label>
+            <Input
+              id={ids.filtroInicio}
+              type="date"
+              className="h-9 w-36"
+              value={filtroInicio}
+              onChange={(e) => setFiltroInicio(e.target.value)}
+              aria-label="Data inicial do filtro"
+            />
+            <span className="text-muted-foreground" aria-hidden="true">até</span>
+            <Label htmlFor={ids.filtroFim} className="sr-only">Data final do filtro</Label>
+            <Input
+              id={ids.filtroFim}
+              type="date"
+              className="h-9 w-36"
+              value={filtroFim}
+              onChange={(e) => setFiltroFim(e.target.value)}
+              aria-label="Data final do filtro"
+            />
+            {(filtroInicio || filtroFim) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setFiltroInicio(''); setFiltroFim(''); }}
+                aria-label="Limpar filtro de período"
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+
+          <Button onClick={handleOpenNew}>
+            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+            Novo Lançamento
+          </Button>
+
+          <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) setIsFormOpen(false); }}>
+            <DialogContent aria-labelledby={ids.dialogTitle} aria-describedby={ids.dialogDesc}>
+              <DialogHeader>
+                <DialogTitle id={ids.dialogTitle}>
+                  {editingLancamento ? 'Editar Lançamento' : 'Novo Lançamento Financeiro'}
+                </DialogTitle>
+                <DialogDescription id={ids.dialogDesc}>
+                  {editingLancamento ? 'Atualize os dados do lançamento.' : 'Registre uma nova receita ou despesa.'}
+                </DialogDescription>
+              </DialogHeader>
+              {formNode}
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Cards de resumo */}
+      <section aria-labelledby="resumo-heading">
+        <h2 id="resumo-heading" className="sr-only">Resumo financeiro</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="rounded-2xl bg-card shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium" id="card-receitas">Total Receitas</CardTitle>
+              <TrendingUp className="h-4 w-4 text-primary dark:text-primary" aria-hidden="true" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary dark:text-primary" aria-labelledby="card-receitas" aria-live="polite">
+                {brl(resumo.totalReceitas)}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {filtroInicio || filtroFim ? 'No período filtrado' : 'Total acumulado'}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl bg-card shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium" id="card-despesas">Total Despesas</CardTitle>
+              <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-destructive" aria-labelledby="card-despesas" aria-live="polite">
+                {brl(resumo.totalDespesas)}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {filtroInicio || filtroFim ? 'No período filtrado' : 'Total acumulado'}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl bg-card shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium" id="card-saldo">Saldo Líquido</CardTitle>
+              <Wallet className="h-4 w-4 text-primary" aria-hidden="true" />
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`text-2xl font-bold ${resumo.saldo >= 0 ? 'text-primary' : 'text-destructive'}`}
+                aria-labelledby="card-saldo"
+                aria-live="polite"
+              >
+                {brl(resumo.saldo)}
+              </div>
+              <p className="text-sm text-muted-foreground">Resultado operacional</p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Gráfico */}
+      <Card className="rounded-2xl bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle id="grafico-titulo">Fluxo de Caixa Mensal</CardTitle>
+          <CardDescription>Comparativo de receitas e despesas nos últimos 6 meses.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[280px]" role="img" aria-labelledby="grafico-titulo">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={fluxoMensal} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradDespesa" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.4} />
+                <XAxis dataKey="mes" tick={{ fontSize: 13 }} />
+                <YAxis tick={{ fontSize: 13 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={56} />
+                <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13 }} />
+                <Area type="monotone" dataKey="receita" name="Receita" stroke="hsl(var(--primary))" fill="url(#gradReceita)" strokeWidth={2} dot={false} />
+                <Area type="monotone" dataKey="despesa" name="Despesa" stroke="#ef4444" fill="url(#gradDespesa)" strokeWidth={2} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabela de lançamentos */}
+      <Card className="rounded-2xl bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle id="lancamentos-titulo">Lançamentos</CardTitle>
+          <CardDescription aria-live="polite">
+            {lancamentosFiltrados.length} registro{lancamentosFiltrados.length !== 1 ? 's' : ''}
+            {(filtroInicio || filtroFim) ? ' no período filtrado' : ''}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex gap-2 rounded-xl bg-muted/50 border border-border p-[3px] w-fit">
+              {([
+                { value: 'todos', label: `Todos (${lancamentosFiltrados.length})` },
+                { value: 'receitas', label: `Receitas (${receitas.length})` },
+                { value: 'despesas', label: `Despesas (${despesas.length})` },
+              ] as const).map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setAbaLancamentos(value)}
+                  aria-label={label}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                    abaLancamentos === value
+                      ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                      : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-full overflow-x-auto">
+              <Table aria-label={
+                abaLancamentos === 'todos' ? 'Todos os lançamentos' :
+                abaLancamentos === 'receitas' ? 'Lançamentos de receitas' : 'Lançamentos de despesas'
+              }>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Data</TableHead>
+                    <TableHead scope="col">Descrição</TableHead>
+                    <TableHead scope="col">Categoria</TableHead>
+                    <TableHead scope="col">Referência</TableHead>
+                    <TableHead scope="col">Valor</TableHead>
+                    <TableHead scope="col">Pagamento</TableHead>
+                    <TableHead scope="col" className="w-[80px]"><span className="sr-only">Ações</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {listaAtiva.length === 0
+                    ? <TabelaVazia />
+                    : listaAtiva.map((l) => <LancamentoRow key={l.id} l={l} />)
+                  }
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dialog: Confirmar exclusão */}
+      <Dialog
+        open={!!deletingLancamento}
+        onOpenChange={(open) => { if (!open) setDeletingLancamento(null); }}
+      >
+        <DialogContent aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-desc">
+          <DialogHeader>
+            <DialogTitle id="delete-dialog-title">Confirmar exclusão</DialogTitle>
+            <DialogDescription id="delete-dialog-desc">
+              Remover o lançamento{' '}
+              <strong>&quot;{deletingLancamento?.descricao}&quot;</strong>{' '}
+              de <strong>{deletingLancamento ? brl(deletingLancamento.valor) : ''}</strong>?
+              Essa ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingLancamento(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete} disabled={submitting}>
+              {submitting ? 'Removendo...' : 'Remover'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -1,114 +1,45 @@
-'use client';
-
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, Map, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+﻿import { redirect } from 'next/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type Talhao, type CicloAgricola } from '@/lib/types/talhoes';
-import { useAuth } from '@/hooks/useAuth';
-import { q } from '@/lib/supabase/queries-audit';
-import { TalhaoCard, TalhaoForm } from './components';
+import { TalhoesClient } from './TalhoesClient';
 
-export default function TalhoesPage() {
-  const router = useRouter();
-  const { fazendaId, loading: authLoading } = useAuth();
-  const [talhoes, setTalhoes] = useState<Talhao[]>([]);
-  const [ciclosAtivos, setCiclosAtivos] = useState<Record<string, CicloAgricola>>({});
-  const [loading, setLoading] = useState(true);
-  const [isAddOpen, setIsAddOpen] = useState(false);
+export const metadata = {
+  title: 'Talhões | GestSilo',
+};
 
-  const fetchData = useCallback(async () => {
-    if (!fazendaId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const talhoesData = await q.talhoes.list();
-      setTalhoes(talhoesData as any);
+export default async function TalhoesPage() {
+  const supabase = await createSupabaseServerClient();
 
-      if (talhoesData.length > 0) {
-        const ciclosData = await q.ciclosAgricolas.listByTalhoes(
-          talhoesData.map(t => t.id)
-        );
-        const ciclosMap: Record<string, CicloAgricola> = {};
-        (ciclosData as any).forEach((ciclo: any) => {
-          if (ciclo.ativo && !ciclosMap[ciclo.talhao_id]) {
-            ciclosMap[ciclo.talhao_id] = ciclo;
-          }
-        });
-        setCiclosAtivos(ciclosMap);
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect('/login');
+
+  const talhoesRes = await supabase
+    .from('talhoes')
+    .select('id, nome, area_ha, tipo_solo, status, fazenda_id, observacoes')
+    .order('nome', { ascending: true });
+
+  const talhoes = (talhoesRes.data ?? []) as Talhao[];
+
+  const ciclosAtivos: Record<string, CicloAgricola> = {};
+
+  if (talhoes.length > 0) {
+    const ciclosRes = await supabase
+      .from('ciclos_agricolas')
+      .select('id, talhao_id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, produtividade_ton_ha, custo_total_estimado, permite_rebrota, ativo, created_at, updated_at')
+      .in('talhao_id', talhoes.map(t => t.id))
+      .order('data_plantio', { ascending: false });
+
+    ((ciclosRes.data ?? []) as CicloAgricola[]).forEach((ciclo) => {
+      if (ciclo.ativo && !ciclosAtivos[ciclo.talhao_id]) {
+        ciclosAtivos[ciclo.talhao_id] = ciclo;
       }
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao carregar talhões');
-    } finally {
-      setLoading(false);
-    }
-  }, [fazendaId]);
-
-  useEffect(() => {
-    if (authLoading) return;
-    fetchData();
-  }, [authLoading, fetchData]);
-
-  const handleCardClick = (talhaoId: string) => {
-    router.push(`/dashboard/talhoes/${talhaoId}`);
-  };
-
-  const handleAddSuccess = () => {
-    setIsAddOpen(false);
-    fetchData();
-  };
-
-  if (loading) {
-    return (
-      <div className="p-6 md:p-8">
-        <div className="flex items-center justify-center h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </div>
-      </div>
-    );
+    });
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Lavouras e Talhões</h2>
-          <Button onClick={() => setIsAddOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Talhão
-          </Button>
-        </div>
-
-        {talhoes.length === 0 ? (
-          <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed rounded-2xl bg-card shadow-sm">
-            <Map className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-            <CardTitle className="text-muted-foreground">Nenhum talhão cadastrado</CardTitle>
-            <CardDescription>Clique em &quot;Novo Talhão&quot; para começar a gerenciar suas áreas de cultivo.</CardDescription>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {talhoes.map((talhao) => (
-              <TalhaoCard
-                key={talhao.id}
-                talhao={talhao}
-                cicloAtivo={ciclosAtivos[talhao.id]}
-                onClick={() => handleCardClick(talhao.id)}
-              />
-            ))}
-          </div>
-        )}
-
-      <TalhaoForm
-        open={isAddOpen}
-        onOpenChange={setIsAddOpen}
-        mode="create"
-        onSuccess={handleAddSuccess}
-      />
-    </div>
+    <TalhoesClient
+      initialTalhoes={talhoes}
+      initialCiclosAtivos={ciclosAtivos}
+    />
   );
 }

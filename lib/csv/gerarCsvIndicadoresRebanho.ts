@@ -1,4 +1,4 @@
-import type { IndicadorRebanho, TipoExploracao } from '@/types/rebanho-indicadores';
+﻿import type { IndicadorRebanho, TipoExploracao } from '@/types/rebanho-indicadores';
 
 interface CsvExportOptions {
   fazendaNome: string;
@@ -139,7 +139,7 @@ export function gerarCsvIndicadoresRebanho(options: CsvExportOptions): Blob {
   // Rodapé
   linhas.push('');
   linhas.push('Notas');
-  linhas.push(`Gerado por GestSilo Pro em ${new Date().toISOString()}`);
+  linhas.push(`Gerado por GestSilo em ${new Date().toISOString()}`);
   linhas.push('Relatório confidencial - Propriedade do produtor rural');
 
   // Juntar com quebra de linha

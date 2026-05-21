@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -369,7 +369,7 @@ export default function OperadorSilosPage() {
 
       {/* Footer */}
       <footer className="text-center text-green-100 text-sm mt-8">
-        <p>GestSilo Pro — Operador v1.0</p>
+        <p>GestSilo — Operador v1.0</p>
       </footer>
     </div>
   );

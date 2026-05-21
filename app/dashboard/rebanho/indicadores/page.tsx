@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+﻿import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type FiltrosIndicadores, type TipoExploracao, type PeriodoPreset } from '@/types/rebanho-indicadores';
@@ -20,7 +20,7 @@ export interface AlertasRebanho {
 }
 
 export const metadata = {
-  title: 'Indicadores Zootécnicos | GestSilo Pro',
+  title: 'Indicadores Zootécnicos | GestSilo',
 };
 
 interface PageProps {

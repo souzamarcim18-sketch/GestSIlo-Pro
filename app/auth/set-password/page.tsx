@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -61,7 +61,7 @@ export default function SetPasswordPage() {
       // Força refresh do JWT para que primeiro_acesso: false seja refletido imediatamente
       const { data: { session } } = await supabase.auth.refreshSession();
 
-      toast.success('Senha definida com sucesso! Bem-vindo ao GestSilo Pro.');
+      toast.success('Senha definida com sucesso! Bem-vindo ao GestSilo.');
 
       // Redireciona por perfil
       const perfil = session?.user?.user_metadata?.perfil || session?.user?.app_metadata?.perfil;
@@ -174,7 +174,7 @@ export default function SetPasswordPage() {
                   <span>Salvando...</span>
                 </>
               ) : (
-                'Entrar no GestSilo Pro'
+                'Entrar no GestSilo'
               )}
             </button>
           </form>

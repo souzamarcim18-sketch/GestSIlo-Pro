@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { IndicadorRebanho, TipoExploracao } from '@/types/rebanho-indicadores';
 
@@ -29,7 +29,7 @@ export function gerarPdfIndicadoresRebanho(options: PdfExportOptions): void {
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(...hexToRgb(corVerde));
-  doc.text('GestSilo Pro — Indicadores Zootécnicos', margemEsquerda, posY);
+  doc.text('GestSilo — Indicadores Zootécnicos', margemEsquerda, posY);
 
   doc.setFont('Helvetica', 'normal');
   doc.setFontSize(10);
@@ -259,7 +259,7 @@ export function gerarPdfIndicadoresRebanho(options: PdfExportOptions): void {
   doc.setTextColor(150, 150, 150);
   const totalPaginas = (doc as any).internal.pages.length - 1;
   doc.text(
-    `Gerado por GestSilo Pro — Página 1 de ${totalPaginas} — Usuário: ${usuarioNome}`,
+    `Gerado por GestSilo — Página 1 de ${totalPaginas} — Usuário: ${usuarioNome}`,
     margemEsquerda,
     doc.internal.pageSize.getHeight() - 10
   );

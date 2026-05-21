@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+﻿import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import {
@@ -11,7 +11,7 @@ import type { EventoSanitarioRow } from '@/lib/types/rebanho-sanitario';
 import { SanidadeDashboard } from '@/components/rebanho/sanidade/SanidadeDashboard';
 
 export const metadata = {
-  title: 'Sanidade | GestSilo Pro',
+  title: 'Sanidade | GestSilo',
 };
 
 export default async function SanidadePage() {
@@ -24,40 +24,30 @@ export default async function SanidadePage() {
 
   const fazendaId = await getCurrentFazendaId();
 
-  // Buscar alertas de vacinação (próximos 15 dias + vencidos)
-  const alertas = await listAlertasVacinacao(15);
-
-  // Buscar todos os eventos sanitários (últimos 90 dias)
   const hoje = new Date();
   const inicio90dias = new Date(hoje);
   inicio90dias.setDate(inicio90dias.getDate() - 90);
   const dataInicio = inicio90dias.toISOString().split('T')[0];
   const dataFim = hoje.toISOString().split('T')[0];
 
-  const eventos = await listEventosSanitarios(
-    { data_inicio: dataInicio, data_fim: dataFim },
-    1000,
-    0
-  );
+  const [alertas, eventos, animaisRes, lotesRes] = await Promise.all([
+    listAlertasVacinacao(15),
+    listEventosSanitarios({ data_inicio: dataInicio, data_fim: dataFim }, 1000, 0),
+    supabase
+      .from('animais')
+      .select('id, brinco, nome, sexo, tipo_rebanho, categoria, status, lote_id, deleted_at')
+      .eq('fazenda_id', fazendaId)
+      .is('deleted_at', null)
+      .order('brinco'),
+    supabase
+      .from('lotes')
+      .select('id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
+      .eq('fazenda_id', fazendaId)
+      .order('nome'),
+  ]);
 
-  // Buscar todos os animais para seleção
-  const { data: animaisRes } = await supabase
-    .from('animais')
-    .select('id, brinco, nome, sexo, tipo_rebanho, categoria, status, lote_id, deleted_at')
-    .eq('fazenda_id', fazendaId)
-    .is('deleted_at', null)
-    .order('brinco');
-
-  const animais = JSON.parse(JSON.stringify((animaisRes || []) as Animal[]));
-
-  // Buscar todos os lotes para seleção
-  const { data: lotesRes } = await supabase
-    .from('lotes')
-    .select('id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
-    .eq('fazenda_id', fazendaId)
-    .order('nome');
-
-  const lotes = JSON.parse(JSON.stringify((lotesRes || []) as Lote[]));
+  const animais = JSON.parse(JSON.stringify((animaisRes.data || []) as Animal[]));
+  const lotes = JSON.parse(JSON.stringify((lotesRes.data || []) as Lote[]));
 
   return (
     <div className="p-6 md:p-8">

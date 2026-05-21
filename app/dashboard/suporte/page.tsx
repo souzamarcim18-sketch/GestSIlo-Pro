@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { HelpCircle, Mail, MessageSquare, BookOpen, ExternalLink, Phone } from 'lucide-react';
@@ -49,7 +49,7 @@ const faqItems = [
   },
   {
     q: 'O aplicativo funciona sem internet?',
-    a: 'Sim, o GestSilo Pro é um PWA. Dados recentes ficam em cache e você pode continuar navegando offline. A sincronização ocorre ao reconectar.',
+    a: 'Sim, o GestSilo é um PWA. Dados recentes ficam em cache e você pode continuar navegando offline. A sincronização ocorre ao reconectar.',
   },
   {
     q: 'Como adicionar um novo usuário (operador)?',
@@ -120,7 +120,7 @@ export default function SuportePage() {
       <Card className="rounded-2xl shadow-sm bg-muted/50">
         <CardContent className="p-4 text-center">
           <p className="text-xs text-muted-foreground">
-            GestSilo Pro · Em desenvolvimento ativo · Suporte disponível seg–sex, das 8h às 18h
+            GestSilo · Em desenvolvimento ativo · Suporte disponível seg–sex, das 8h às 18h
           </p>
         </CardContent>
       </Card>
