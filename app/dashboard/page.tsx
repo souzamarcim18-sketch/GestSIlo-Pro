@@ -37,6 +37,7 @@ export default async function DashboardPage() {
     manutRes,
     finRes,
     movsRecentesRes,
+    todasMovsSilosRes,
     animaisCategRes,
     ciclosRes,
     animaisTipoRes,
@@ -46,7 +47,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase
       .from('silos')
-      .select('id, nome, volume_ensilado_ton_mv, cultura_ensilada, data_abertura_real, estoque_atual')
+      .select('id, nome, volume_ensilado_ton_mv, cultura_ensilada, data_abertura_real')
       .eq('fazenda_id', fazendaId),
     supabase
       .from('talhoes')
@@ -72,6 +73,10 @@ export default async function DashboardPage() {
       .select('silo_id, tipo, subtipo, quantidade, data')
       .eq('fazenda_id', fazendaId)
       .gte('data', trintaDiasAtras),
+    supabase
+      .from('movimentacoes_silo')
+      .select('silo_id, tipo, quantidade')
+      .eq('fazenda_id', fazendaId),
     supabase
       .from('animais')
       .select('categoria')
@@ -107,6 +112,15 @@ export default async function DashboardPage() {
 
   // --- Silagem ---
   const silosData = silosRes.data ?? [];
+  const todasMovsSilos = todasMovsSilosRes.data ?? [];
+
+  // Calcula estoque real por silo somando entradas − saídas (silos.estoque_atual não tem trigger)
+  const estoquePorSilo: Record<string, number> = {};
+  for (const mov of todasMovsSilos) {
+    const atual = estoquePorSilo[mov.silo_id] ?? 0;
+    estoquePorSilo[mov.silo_id] = mov.tipo === 'Entrada' ? atual + (mov.quantidade ?? 0) : atual - (mov.quantidade ?? 0);
+  }
+
   let silosOcupacaoPct = '—';
   let silosDetalhe = '—';
   let silosOcupacaoPctNum = 0;
@@ -114,7 +128,7 @@ export default async function DashboardPage() {
 
   if (silosData.length > 0) {
     const totalVolume = silosData.reduce((acc, s) => acc + (s.volume_ensilado_ton_mv ?? 0), 0);
-    const totalEstoque = silosData.reduce((acc, s) => acc + Math.max(s.estoque_atual ?? 0, 0), 0);
+    const totalEstoque = silosData.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
     const ocupPct = totalVolume > 0 ? Math.round((totalEstoque / totalVolume) * 100) : 0;
     silosOcupacaoPct = `${ocupPct}%`;
     silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
@@ -124,7 +138,7 @@ export default async function DashboardPage() {
 
   const silosTotalCadastrados = silosData.length > 0 ? silosData.length.toString() : '—';
 
-  const silosAbertosData = silosData.filter((s) => s.data_abertura_real && (s.estoque_atual ?? 0) > 0);
+  const silosAbertosData = silosData.filter((s) => s.data_abertura_real && (estoquePorSilo[s.id] ?? 0) > 0);
   const silosAbertos = silosAbertosData.length > 0 ? silosAbertosData.length.toString() : '0';
   const silosAbertosDetalhe =
     silosAbertosData.length > 0
@@ -155,7 +169,7 @@ export default async function DashboardPage() {
       ? `${consumoDiario.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} kg/dia`
       : '—';
 
-  const totalEstoqueAtual = silosData.reduce((acc, s) => acc + Math.max(s.estoque_atual ?? 0, 0), 0);
+  const totalEstoqueAtual = silosData.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
   const autonomiaDias = consumoDiario > 0 ? Math.round((totalEstoqueAtual * 1000) / consumoDiario) : null;
   const silosAutonomiaDias = autonomiaDias !== null ? `${autonomiaDias} dias` : '—';
 
