@@ -99,13 +99,15 @@ export default function AgendamentosConfirmadosSection({
           </Button>
         </CardHeader>
       <CardContent>
-        {agendamentos.length === 0 ? (
+        {agendamentos.filter(ag => ag.status !== 'cancelado' && ag.status !== 'solicitado').length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            Nenhum agendamento realizado. Escolha um horário no calendário acima!
+            Nenhum agendamento confirmado. Solicite uma consulta para começar!
           </div>
         ) : (
           <div className="space-y-3">
-            {agendamentos.map((ag) => {
+            {agendamentos
+              .filter(ag => ag.status !== 'cancelado' && ag.status !== 'solicitado')
+              .map((ag) => {
               const config = statusConfig[ag.status] || {
                 icon: AlertCircle,
                 color: 'text-gray-600',
@@ -117,49 +119,38 @@ export default function AgendamentosConfirmadosSection({
               return (
                 <div
                   key={ag.id}
-                  className={`border-2 rounded-lg p-5 space-y-3 ${config?.bgColor} transition-all hover:shadow-md`}
+                  className="border border-slate-700 rounded-lg p-5 space-y-4 bg-slate-950 transition-all hover:border-slate-600"
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
                       {/* Header com Status e Ícone */}
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
                           {Icon && <Icon className={`h-6 w-6 ${config.color}`} />}
                           <Badge
                             className={
                               ag.status === 'confirmado'
-                                ? 'bg-green-100 text-green-800'
+                                ? 'bg-green-600 text-white'
                                 : ag.status === 'recusado'
-                                  ? 'bg-red-100 text-red-800'
+                                  ? 'bg-red-600 text-white'
                                   : ag.status === 'remarcado'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-yellow-100 text-yellow-800'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-600 text-white'
                             }
                           >
                             {config.label}
                           </Badge>
                         </div>
-                        {ag.status === 'solicitado' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCancel(ag.id)}
-                            disabled={cancelingId === ag.id}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            Cancelar
-                          </Button>
-                        )}
                       </div>
 
                       {/* Data e Hora */}
-                      <div className="space-y-2 mb-3">
-                        <div className="flex items-center gap-2 font-semibold text-base">
-                          <Calendar className="h-4 w-4" />
+                      <div className="space-y-2 mb-4 pb-4 border-b border-slate-700">
+                        <div className="flex items-center gap-2 font-semibold text-lg text-white">
+                          <Calendar className="h-5 w-5 text-green-500" />
                           {formatDate(ag.data_agendada)}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4" />
+                        <div className="flex items-center gap-2 text-sm text-slate-300">
+                          <Clock className="h-4 w-4 text-blue-400" />
                           {new Date(ag.data_agendada).toLocaleTimeString('pt-BR', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -169,37 +160,37 @@ export default function AgendamentosConfirmadosSection({
 
                       {/* Observações (Sua Solicitação) */}
                       {ag.observacoes && (
-                        <div className="bg-white bg-opacity-50 p-3 rounded border border-current border-opacity-20 text-sm mb-2">
-                          <p className="font-semibold text-sm mb-1">📋 Sua solicitação:</p>
-                          <p className="text-xs text-gray-700">{ag.observacoes}</p>
+                        <div className="bg-slate-900 p-4 rounded border-l-4 border-blue-500 text-sm mb-3">
+                          <p className="font-semibold text-slate-200 mb-2">📋 Detalhes da solicitação:</p>
+                          <p className="text-slate-400 text-xs leading-relaxed">{ag.observacoes}</p>
                         </div>
                       )}
 
                       {/* Motivo da Recusa */}
                       {ag.motivo_recusa && (
-                        <div className="text-sm text-red-700 bg-white bg-opacity-70 p-3 rounded border-l-4 border-red-600 mb-2">
-                          <p className="font-semibold mb-1">❌ Motivo da recusa:</p>
-                          <p>{ag.motivo_recusa}</p>
+                        <div className="text-sm bg-slate-900 p-4 rounded border-l-4 border-red-600 mb-3">
+                          <p className="font-semibold mb-2 text-red-400">❌ Motivo da recusa:</p>
+                          <p className="text-slate-300">{ag.motivo_recusa}</p>
                         </div>
                       )}
 
                       {/* Sugestão de Remarcação */}
                       {ag.sugestao_nova_data && (
-                        <div className="text-sm text-blue-700 bg-white bg-opacity-70 p-3 rounded border-l-4 border-blue-600 mb-2">
-                          <p className="font-semibold mb-1">📅 Sugestão de remarcação:</p>
-                          <p>{formatDate(ag.sugestao_nova_data)}</p>
+                        <div className="text-sm bg-slate-900 p-4 rounded border-l-4 border-blue-600 mb-3">
+                          <p className="font-semibold mb-2 text-blue-400">📅 Sugestão de remarcação:</p>
+                          <p className="text-slate-300">{formatDate(ag.sugestao_nova_data)}</p>
                         </div>
                       )}
 
                       {/* Link da Reunião */}
                       {ag.link_reuniao && ag.status === 'confirmado' && (
-                        <div className="text-sm bg-white bg-opacity-70 p-3 rounded border-l-4 border-green-600 mb-2">
-                          <p className="font-semibold mb-1 text-green-700">🔗 Link da reunião:</p>
+                        <div className="text-sm bg-slate-900 p-4 rounded border-l-4 border-green-600 mb-3">
+                          <p className="font-semibold mb-2 text-green-400">🔗 Link da reunião:</p>
                           <a
                             href={ag.link_reuniao}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline break-all text-xs"
+                            className="text-blue-500 hover:text-blue-400 hover:underline break-all text-xs"
                           >
                             {ag.link_reuniao}
                           </a>
