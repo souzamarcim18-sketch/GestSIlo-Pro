@@ -8,6 +8,8 @@ import {
   DollarSign,
   TrendingUp,
   AlertTriangle,
+  AlertCircle,
+  Info,
   CheckCircle2,
   Calendar,
   Sprout,
@@ -24,7 +26,7 @@ import { SilagemMetricasCard } from '@/components/widgets/SilagemMetricasCard';
 import { SilosInfoCard } from '@/components/widgets/SilosInfoCard';
 import { LotesAtivosCard } from '@/components/widgets/LotesAtivosCard';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { DashboardData } from './dashboard-data';
+import type { DashboardData, AlertaSeveridade } from './dashboard-data';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -73,6 +75,22 @@ function KpiCard({
     </button>
   );
 }
+
+const ORDEM_SEVERIDADE: Record<AlertaSeveridade, number> = {
+  critico: 0,
+  urgente: 1,
+  aviso: 2,
+};
+
+const ALERTA_CONFIG: Record<AlertaSeveridade, {
+  Icon: React.ElementType;
+  iconClass: string;
+  bgClass: string;
+}> = {
+  critico: { Icon: AlertCircle,   iconClass: 'text-status-danger',   bgClass: 'bg-status-danger/10'   },
+  urgente: { Icon: AlertTriangle, iconClass: 'text-status-warning',  bgClass: 'bg-status-warning/10'  },
+  aviso:   { Icon: Info,          iconClass: 'text-status-info',     bgClass: 'bg-status-info/10'     },
+};
 
 export function DashboardClient({ data, userName }: { data: DashboardData; userName: string }) {
   const router = useRouter();
@@ -249,15 +267,57 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
           <div className="flex flex-col gap-6">
             <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
               <h2 className="text-lg font-semibold text-foreground mb-4">Alertas Críticos</h2>
-              <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 bg-status-success/15 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-7 h-7 text-status-success" aria-hidden="true" />
-                </div>
-                <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Não há alertas críticos ou manutenções pendentes para hoje.
-                </p>
-              </div>
+              {(() => {
+                const alertasOrdenados = [...data.alertas].sort(
+                  (a, b) => ORDEM_SEVERIDADE[a.severidade] - ORDEM_SEVERIDADE[b.severidade]
+                );
+                const alertasExibidos = alertasOrdenados.slice(0, 5);
+                const alertasOcultos = alertasOrdenados.length - alertasExibidos.length;
+
+                if (alertasExibidos.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-14 h-14 bg-status-success/15 rounded-full flex items-center justify-center mb-4">
+                        <CheckCircle2 className="w-7 h-7 text-status-success" aria-hidden="true" />
+                      </div>
+                      <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Não há alertas críticos ou manutenções pendentes para hoje.
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-2">
+                    {alertasExibidos.map((alerta) => {
+                      const { Icon, iconClass, bgClass } = ALERTA_CONFIG[alerta.severidade];
+                      return (
+                        <button
+                          key={alerta.id}
+                          onClick={() => router.push(alerta.href)}
+                          className="w-full text-left p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors flex items-start gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                        >
+                          <div className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center mt-0.5 ${bgClass}`}>
+                            <Icon className={`w-4 h-4 ${iconClass}`} aria-hidden="true" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground leading-tight">{alerta.mensagem}</p>
+                            {alerta.detalhe && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{alerta.detalhe}</p>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    {alertasOcultos > 0 && (
+                      <p className="text-xs text-muted-foreground text-right pt-1">
+                        +{alertasOcultos} alerta{alertasOcultos > 1 ? 's' : ''} adicional{alertasOcultos > 1 ? 'is' : ''}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </Card>
           </div>
         </div>

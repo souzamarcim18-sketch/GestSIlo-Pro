@@ -40,7 +40,6 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-const REFERENCIA_TIPOS = ['Silo', 'Talhão', 'Máquina'] as const;
 
 const lancamentoSchema = z.object({
   tipo: z.enum(['Receita', 'Despesa']),
@@ -49,7 +48,7 @@ const lancamentoSchema = z.object({
   valor: z.number().positive('Valor deve ser maior que zero'),
   data: z.string().min(1, 'Informe a data'),
   forma_pagamento: z.string().optional(),
-  referencia_tipo: z.enum(REFERENCIA_TIPOS).optional().nullable(),
+  referencia_tipo: z.enum(['Silo', 'Talhão', 'Máquina']).optional().nullable(),
   natureza: z.enum(['fixo', 'variavel']).optional().nullable(),
 });
 
@@ -95,10 +94,9 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
     formCat:       `${uid}-cat`,
     formData:      `${uid}-data`,
     formPag:       `${uid}-pag`,
-    formRef:       `${uid}-ref`,
-    formNatureza:  `${uid}-natureza`,
-    filtroInicio:  `${uid}-filtro-inicio`,
-    filtroFim:     `${uid}-filtro-fim`,
+    formNatureza: `${uid}-natureza`,
+    filtroInicio: `${uid}-filtro-inicio`,
+    filtroFim:    `${uid}-filtro-fim`,
   };
 
   const form = useForm<LancamentoFormData>({
@@ -317,38 +315,13 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label htmlFor={ids.formPag}>Forma de Pagamento</Label>
-          <Input
-            id={ids.formPag}
-            placeholder="Ex: Pix, Boleto..."
-            {...register('forma_pagamento')}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor={ids.formRef}>Vincular a</Label>
-          <Controller
-            name="referencia_tipo"
-            control={control}
-            render={({ field }) => (
-              <Select
-                value={field.value ?? ''}
-                onValueChange={(v) => field.onChange(v === '' ? null : v)}
-              >
-                <SelectTrigger id={ids.formRef}>
-                  <SelectValue placeholder="Nenhum" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
-                  {REFERENCIA_TIPOS.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
+      <div className="space-y-1">
+        <Label htmlFor={ids.formPag}>Forma de Pagamento</Label>
+        <Input
+          id={ids.formPag}
+          placeholder="Ex: Pix, Boleto..."
+          {...register('forma_pagamento')}
+        />
       </div>
 
       <div className="space-y-1">

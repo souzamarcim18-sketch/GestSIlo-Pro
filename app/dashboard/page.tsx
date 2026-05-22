@@ -4,7 +4,39 @@ import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 import type { CicloAgricola } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
-import type { DashboardData, ProximaOperacaoComBadge } from './dashboard-data';
+import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
+import { daysBetween, formatarDataBR, derivarAlertasEtapa1 } from './alertas-helpers';
+
+type InsumoAlertaRow = {
+  id: string;
+  nome: string;
+  unidade: string;
+  estoque_atual: number;
+  estoque_minimo: number;
+};
+
+type ManutencaoAlertaRow = {
+  id: string;
+  proxima_manutencao: string;
+  status: string;
+  maquinas: { nome: string } | null;
+};
+
+type ProdutoAlertaRow = {
+  id: string;
+  nome: string;
+  unidade: string;
+  estoque_atual: number;
+  estoque_minimo: number;
+};
+
+type VacinacaoAlertaRow = {
+  id: string;
+  animal_id: string;
+  vacina_nome: string | null;
+  data_proxima_dose: string;
+  animais: { brinco: string | null; nome: string | null } | null;
+};
 
 function formatBRL(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -29,6 +61,12 @@ export default async function DashboardPage() {
   const doisDiasAtras = new Date(now);
   doisDiasAtras.setDate(now.getDate() - 2);
   const doisDiasAtrasStr = doisDiasAtras.toISOString().split('T')[0];
+  const proximosSete = new Date(now);
+  proximosSete.setDate(now.getDate() + 7);
+  const proximosSeteStr = proximosSete.toISOString().split('T')[0];
+  const proximosQuinze = new Date(now);
+  proximosQuinze.setDate(now.getDate() + 15);
+  const proximosQuinzeStr = proximosQuinze.toISOString().split('T')[0];
 
   const [
     silosRes,
@@ -44,6 +82,10 @@ export default async function DashboardPage() {
     lotesRes,
     animaisPorLoteRes,
     eventosOperacoesRes,
+    insumosAlertaRes,
+    manutencoesAlertaRes,
+    vacinacoesAlertaRes,
+    produtosAlertaRes,
   ] = await Promise.all([
     supabase
       .from('silos')
@@ -108,6 +150,29 @@ export default async function DashboardPage() {
       .gte('data_esperada', doisDiasAtrasStr)
       .lte('data_esperada', proximosDiasStr)
       .order('data_esperada', { ascending: true }),
+    supabase.rpc('get_insumos_abaixo_minimo', { p_fazenda_id: fazendaId }),
+    supabase
+      .from('manutencoes')
+      .select('id, proxima_manutencao, status, maquinas(nome)')
+      .eq('fazenda_id', fazendaId)
+      .neq('status', 'concluida')
+      .lte('proxima_manutencao', proximosSeteStr)
+      .order('proxima_manutencao', { ascending: true })
+      .limit(5),
+    supabase
+      .from('eventos_sanitarios')
+      .select('id, animal_id, vacina_nome, data_proxima_dose, animais(brinco, nome)')
+      .eq('tipo', 'vacinacao')
+      .is('deleted_at', null)
+      .lte('data_proxima_dose', proximosQuinzeStr)
+      .order('data_proxima_dose', { ascending: true })
+      .limit(10),
+    supabase
+      .from('produtos')
+      .select('id, nome, unidade, estoque_atual, estoque_minimo')
+      .eq('fazenda_id', fazendaId)
+      .eq('ativo', true)
+      .gt('estoque_minimo', 0),
   ]);
 
   // --- Silagem ---
@@ -292,6 +357,85 @@ export default async function DashboardPage() {
     })
     .slice(0, 10);
 
+  // Campos numéricos brutos para alertas
+  const silosAutonomiaDiasNum = autonomiaDias;
+  const silosTaxaPerdasNum = totalSaidas > 0 ? (totalDescarte / totalSaidas) * 100 : null;
+  const manutencoesPendentesCount = manutRes.count ?? 0;
+
+  // Etapa 1 — alertas derivados de dados já disponíveis
+  const alertasEtapa1 = derivarAlertasEtapa1({
+    proximasOperacoes,
+    autonomiaDiasNum: silosAutonomiaDiasNum,
+    taxaPerdasNum: silosTaxaPerdasNum,
+  });
+
+  // Etapa 2 — alertas de insumos
+  const insumosAbaixoMinimo = (insumosAlertaRes.data ?? []) as InsumoAlertaRow[];
+  const alertasInsumos: AlertaCritico[] = insumosAbaixoMinimo.map((i) => ({
+    id: `insumo_${i.id}`,
+    tipo: i.estoque_atual === 0 ? ('insumo_critico' as const) : ('insumo_urgente' as const),
+    severidade: i.estoque_atual === 0 ? ('critico' as const) : ('urgente' as const),
+    mensagem: `${i.nome} — Estoque ${i.estoque_atual === 0 ? 'esgotado' : 'abaixo do mínimo'}`,
+    detalhe: `${i.estoque_atual} ${i.unidade} (mín: ${i.estoque_minimo} ${i.unidade})`,
+    href: '/dashboard/insumos',
+  }));
+
+  // Etapa 2 — alertas de manutenções refinadas
+  const manutencoesVencidas = (manutencoesAlertaRes.data ?? []) as unknown as ManutencaoAlertaRow[];
+  const alertasManutencao: AlertaCritico[] = manutencoesVencidas.map((m) => {
+    const vencida = m.proxima_manutencao <= hoje;
+    const nomeMaquina = (m.maquinas as { nome: string } | null)?.nome ?? 'Máquina sem nome';
+    const diasRestantes = daysBetween(hoje, m.proxima_manutencao);
+    return {
+      id: `manutencao_${m.id}`,
+      tipo: vencida ? ('manutencao_vencida' as const) : ('manutencao_urgente' as const),
+      severidade: vencida ? ('critico' as const) : ('urgente' as const),
+      mensagem: vencida
+        ? `Manutenção vencida — ${nomeMaquina}`
+        : `Manutenção em ${diasRestantes} dia(s) — ${nomeMaquina}`,
+      detalhe: `Prevista para ${formatarDataBR(m.proxima_manutencao)}`,
+      href: '/dashboard/frota',
+    };
+  });
+
+  // Etapa 2 — alertas de vacinações
+  const vacinacoesVencendo = (vacinacoesAlertaRes.data ?? []) as unknown as VacinacaoAlertaRow[];
+  const alertasVacinacao: AlertaCritico[] = vacinacoesVencendo.map((v) => {
+    const dias = daysBetween(hoje, v.data_proxima_dose);
+    const vencida = dias < 0;
+    const nomeAnimal = v.animais?.nome ?? v.animais?.brinco ?? 'Animal sem identificação';
+    return {
+      id: `vacinacao_${v.id}`,
+      tipo: vencida ? ('vacinacao_vencida' as const) : ('vacinacao_urgente' as const),
+      severidade: vencida ? ('critico' as const) : ('urgente' as const),
+      mensagem: vencida
+        ? `Vacinação vencida há ${Math.abs(dias)} dia(s) — ${nomeAnimal}`
+        : `Vacinação em ${dias} dia(s) — ${nomeAnimal}`,
+      detalhe: v.vacina_nome ?? 'Vacina não especificada',
+      href: '/dashboard/rebanho/sanidade',
+    };
+  });
+
+  // Etapa 2 — alertas de produtos
+  const produtosAbaixoMinimo = ((produtosAlertaRes.data ?? []) as ProdutoAlertaRow[])
+    .filter((p) => p.estoque_atual < p.estoque_minimo);
+  const alertasProdutos: AlertaCritico[] = produtosAbaixoMinimo.map((p) => ({
+    id: `produto_${p.id}`,
+    tipo: 'produto_urgente' as const,
+    severidade: 'urgente' as const,
+    mensagem: `${p.nome} — Estoque abaixo do mínimo`,
+    detalhe: `${p.estoque_atual} ${p.unidade} (mín: ${p.estoque_minimo} ${p.unidade})`,
+    href: '/dashboard/produtos',
+  }));
+
+  const alertas: AlertaCritico[] = [
+    ...alertasEtapa1,
+    ...alertasInsumos,
+    ...alertasManutencao,
+    ...alertasVacinacao,
+    ...alertasProdutos,
+  ];
+
   const rawUserName =
     user.user_metadata?.nome?.split(' ')[0] ||
     user.user_metadata?.full_name?.split(' ')[0] ||
@@ -326,6 +470,10 @@ export default async function DashboardPage() {
     composicaoRebanho,
     lotesAtivos,
     proximasOperacoes,
+    silosAutonomiaDiasNum,
+    silosTaxaPerdasNum,
+    manutencoesPendentesCount,
+    alertas,
   };
 
   return <DashboardClient data={data} userName={userName} />;

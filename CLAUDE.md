@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 704 testes passando (inclui suite de auditoria RLS em `tests/security/`)
+- **Testes**: Vitest — 741 testes passando (inclui suite de auditoria RLS em `tests/security/`)
 
 ---
 
@@ -137,6 +137,10 @@ app/
 │   ├── weather/route.ts
 │   └── geocoding/route.ts
 ├── dashboard/                       # Rotas autenticadas
+│   ├── dashboard-data.ts            # Tipos DashboardData, AlertaCritico, AlertaTipo, AlertaSeveridade
+│   ├── alertas-helpers.ts           # Funções puras: derivarAlertasEtapa1, daysBetween, formatarDataBR
+│   ├── page.tsx                     # RSC: 17 queries paralelas + construção de alertas
+│   ├── DashboardClient.tsx          # Card Alertas Críticos dinâmico (ordenado por severidade)
 │   ├── silos/
 │   ├── talhoes/
 │   ├── frota/
@@ -484,12 +488,42 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 704+ testes passam e build não tem erros TypeScript
+4. Confirmar que 741+ testes passam e build não tem erros TypeScript
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
 
 ## Funcionalidades por Módulo
+
+### 🏠 Dashboard — Alertas Críticos (implementado 2026-05-21)
+
+O card "Alertas Críticos" no dashboard é **totalmente dinâmico**: agrega alertas de múltiplos módulos em tempo real, sem nenhuma tabela ou migration nova.
+
+**Arquivos envolvidos**:
+- `app/dashboard/dashboard-data.ts` — tipos `AlertaTipo`, `AlertaSeveridade`, `AlertaCritico`; campos `silosAutonomiaDiasNum`, `silosTaxaPerdasNum`, `manutencoesPendentesCount`, `alertas` em `DashboardData`
+- `app/dashboard/alertas-helpers.ts` — funções puras `derivarAlertasEtapa1`, `daysBetween`, `formatarDataBR` (testáveis sem RSC)
+- `app/dashboard/page.tsx` — 4 queries adicionadas ao `Promise.all`; constrói o array `alertas`
+- `app/dashboard/DashboardClient.tsx` — renderiza lista ordenada por severidade; estado vazio mantido
+- `__tests__/dashboard/alertas-helpers.test.ts` — 13 testes unitários das funções puras
+
+**Fontes de alertas (5 origens, todas paralelas no `Promise.all`)**:
+
+| Origem | Condição | Severidade |
+|---|---|---|
+| Operações de talhão | `status === 'Atrasado'` | `critico` |
+| Silagem — autonomia | `autonomiaDias < 30` | `critico` (<10d) / `urgente` (10–29d) |
+| Silagem — perdas | `taxaPerdas > 10%` | `critico` (>20%) / `urgente` (10–20%) |
+| Manutenções (`manutencoes`) | vencida ou próximos 7 dias, `status != 'concluida'` | `critico` (vencida) / `urgente` |
+| Insumos (`get_insumos_abaixo_minimo`) | `estoque_atual < estoque_minimo` | `critico` (esgotado) / `urgente` |
+| Vacinações (`eventos_sanitarios`) | próximos 15 dias, `tipo = 'vacinacao'` | `critico` (vencida) / `urgente` |
+| Produtos (`produtos`) | `estoque_atual < estoque_minimo`, filtrado em JS | `urgente` |
+
+**Regras importantes**:
+- Operador vê alertas do dashboard; queries de insumos/produtos retornam vazio via RLS (`sou_admin_ou_visualizador()`) — sem lógica condicional de perfil
+- O alerta `manutencao_pendente` da Etapa 1 foi **removido** da função pura para evitar duplicidade com os alertas individuais por máquina da Etapa 2
+- Joins do Supabase com relação many-to-one (ex: `maquinas(nome)`) requerem `as unknown as TipoLocal[]` porque o SDK infere array mesmo sendo objeto único
+- Exibição: máx. 5 alertas ordenados por severidade (`critico → urgente → aviso`); excedente mostrado como "+N alertas adicionais"
+- Funções puras em `alertas-helpers.ts` — **não** em `page.tsx` — para permitir testes sem dependências RSC
 
 ### 🌾 Silos & Estoque (Core)
 - Cadastro e monitoramento de silos de silagem por fazenda
@@ -598,7 +632,7 @@ Ao marcar um insumo como comprado, `marcarComoCompradoAction` cria entrada em `m
 - `app/dashboard/planejamento-compras/[id]/page.tsx` — detalhe da atividade
 - `components/planejamento-compras/` — 10 componentes UI
 
-**Testes**: 31 casos novos (10 validação Zod + 21 cálculo/agrupamento) — total do projeto: 704 passando
+**Testes**: 31 casos (10 validação Zod + 21 cálculo/agrupamento)
 
 ### 🐄 Rebanho (100% implementado — 2026-05-08, refatoração v3 concluída)
 
@@ -677,7 +711,7 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 - `app/dashboard/rebanho/corte/actions.ts` — pesagem em lote
 - `app/dashboard/rebanho/indicadores/actions.ts` — Server Actions KPIs e alertas
 
-**Testes**: 645/646 passando — 1 falho pré-existente (`__tests__/security/rls.test.ts`) por timeout de rede (tenta conectar ao Supabase real sem credenciais configuradas no ambiente de teste)
+**Testes**: 2 falhos pré-existentes sem relação com o código: `__tests__/security/rls.test.ts` (timeout de rede — tenta conectar ao Supabase real) e `lib/supabase/__tests__/projetar-rebanho.test.ts` (falha de lógica pré-existente em classificação de categoria)
 
 ### 📋 Assessoria Agronômica (100% implementado — 2026-05-20)
 
@@ -752,6 +786,17 @@ Usuário fornece telefone ao agendar → incluído no email para consultor → f
 - `app/dashboard/assessoria/admin/horarios/components/` — CriarHorarioDialog, GerarHorariosPeriodoDialog
 - `app/assessor/confirmar/page.tsx` — página pública (link mágico, sem autenticação)
 - `app/assessor/confirmar/layout.tsx` — Suspense para useSearchParams (dinâmico)
+
+Fluxo obrigatório para novas features:
+1. Pesquisa → gera PRD-[feature].md
+2. Especificação → lê PRD, gera SPEC-[feature].md  
+3. Execução → lê SPEC, implementa em camadas (banco → backend → UI)
+4. Validação → npm run build + npm run test (mínimo 741 testes passando)
+
+Nunca escrever código na fase de pesquisa ou especificação.
+Nunca entrar em modo plan na fase de execução.
+Sempre consultar database-snapshot.md antes de propor schema.
+Sempre seguir padrões do CLAUDE.md.
 
 **Variáveis de Ambiente**:
 ```
