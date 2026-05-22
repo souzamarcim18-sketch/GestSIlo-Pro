@@ -438,10 +438,23 @@ export default async function DashboardPage() {
     href: '/dashboard/produtos',
   }));
 
-  // Etapa 2 — alertas de pastagens
-  const alertasPastagens = derivarAlertasPastagens(
-    ((piquetesAlertaRes.data ?? []) as unknown as Parameters<typeof derivarAlertasPastagens>[0])
-  );
+  // Etapa 2 — alertas de pastagens + KPIs de pastagens
+  const piquetesParaAlertas = (piquetesAlertaRes.data ?? []) as unknown as Parameters<typeof derivarAlertasPastagens>[0];
+  const alertasPastagens = derivarAlertasPastagens(piquetesParaAlertas);
+
+  const totalPiquetes = piquetesParaAlertas.length;
+  const piquetesEmPastejo = piquetesParaAlertas.filter((p) => p.status === 'Em pastejo').length;
+  const piquetesEmReforma = piquetesParaAlertas.filter((p) => p.status === 'Em reforma').length;
+  const piquetesProntosEntrada = piquetesParaAlertas.filter((p) => {
+    if (p.status !== 'Descanso' || p.dias_descanso_ideal === null) return false;
+    const ocupacoes = (p.ocupacoes_piquete ?? []) as { data_saida_real: string | null }[];
+    const ultimaSaida = ocupacoes
+      .filter((o) => o.data_saida_real !== null)
+      .sort((a, b) => (b.data_saida_real! > a.data_saida_real! ? 1 : -1))[0]?.data_saida_real ?? null;
+    if (!ultimaSaida) return false;
+    const dias = Math.floor((new Date(hoje).getTime() - new Date(ultimaSaida).getTime()) / (1000 * 60 * 60 * 24));
+    return dias >= p.dias_descanso_ideal;
+  }).length;
 
   const alertas: AlertaCritico[] = [
     ...alertasEtapa1,
@@ -486,6 +499,10 @@ export default async function DashboardPage() {
     composicaoRebanho,
     lotesAtivos,
     proximasOperacoes,
+    totalPiquetes,
+    piquetesEmPastejo,
+    piquetesProntosEntrada,
+    piquetesEmReforma,
     silosAutonomiaDiasNum,
     silosTaxaPerdasNum,
     manutencoesPendentesCount,

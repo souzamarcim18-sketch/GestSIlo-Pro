@@ -10,12 +10,9 @@ import {
   AlertTriangle,
   AlertCircle,
   Info,
-  CheckCircle2,
-  Calendar,
-  Sprout,
+  Leaf,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { GaugeOcupacaoSilos } from '@/components/widgets/GaugeOcupacaoSilos';
 import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho';
@@ -24,7 +21,6 @@ import { PieCulturasAtivas } from '@/components/widgets/PieCulturasAtivas';
 import { KpiChartCard } from '@/components/widgets/KpiChartCard';
 import { SilagemMetricasCard } from '@/components/widgets/SilagemMetricasCard';
 import { SilosInfoCard } from '@/components/widgets/SilosInfoCard';
-import { LotesAtivosCard } from '@/components/widgets/LotesAtivosCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardData, AlertaSeveridade } from './dashboard-data';
 
@@ -112,14 +108,60 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
     }
   }, [data.proximasOperacoes]);
 
+  const alertasOrdenados = [...data.alertas].sort(
+    (a, b) => ORDEM_SEVERIDADE[a.severidade] - ORDEM_SEVERIDADE[b.severidade]
+  );
+  const alertasExibidos = alertasOrdenados.slice(0, 5);
+  const alertasOcultos = alertasOrdenados.length - alertasExibidos.length;
+
   return (
     <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
-      <div className="space-y-1 mb-8">
+      {/* Cabeçalho */}
+      <div className="space-y-1 mb-2">
         <h1 className="text-3xl md:text-4xl font-bold text-[#dceede]">
           {greeting}, {userName}!
         </h1>
         <p className="text-sm text-muted-foreground">Visão geral da sua propriedade</p>
       </div>
+
+      {/* Alertas Críticos — banner condicional no topo */}
+      {alertasExibidos.length > 0 && (
+        <Card className="bg-card rounded-2xl p-5 shadow-sm border border-status-danger/20">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="w-4 h-4 text-status-danger shrink-0" aria-hidden="true" />
+            <h2 className="text-sm font-bold uppercase tracking-[0.13em] text-status-danger">
+              Alertas Críticos
+            </h2>
+            {alertasOcultos > 0 && (
+              <span className="ml-auto text-xs text-muted-foreground">
+                +{alertasOcultos} alerta{alertasOcultos > 1 ? 's' : ''} adicional{alertasOcultos > 1 ? 'is' : ''}
+              </span>
+            )}
+          </div>
+          <div className="space-y-2">
+            {alertasExibidos.map((alerta) => {
+              const { Icon, iconClass, bgClass } = ALERTA_CONFIG[alerta.severidade];
+              return (
+                <button
+                  key={alerta.id}
+                  onClick={() => router.push(alerta.href)}
+                  className="w-full text-left p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors flex items-start gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                >
+                  <div className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center mt-0.5 ${bgClass}`}>
+                    <Icon className={`w-4 h-4 ${iconClass}`} aria-hidden="true" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground leading-tight">{alerta.mensagem}</p>
+                    {alerta.detalhe && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{alerta.detalhe}</p>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* Silagem */}
       <section aria-label="Silagem">
@@ -143,8 +185,8 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
           </div>
           <div className="row-span-2 flex">
             <SilosInfoCard
-              silosAbertos={parseInt(data.silosAbertos, 10)}
-              silosCadastrados={parseInt(data.silosTotalCadastrados, 10)}
+              silosAbertos={isNaN(parseInt(data.silosAbertos, 10)) ? 0 : parseInt(data.silosAbertos, 10)}
+              silosCadastrados={isNaN(parseInt(data.silosTotalCadastrados, 10)) ? 0 : parseInt(data.silosTotalCadastrados, 10)}
               silosAbertosNomes={data.silosAbertosNomes}
               culturas={data.culturasEnsiladas}
             />
@@ -152,176 +194,127 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </div>
       </section>
 
-      {/* Rebanho */}
-      <section aria-label="Rebanho">
-        <SectionLabel>Rebanho</SectionLabel>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <KpiChartCard
-            label="Total de Animais"
-            chart={<PieCategoriasRebanho data={data.categoriasRebanho} total={data.totalAnimais} />}
-            className="min-h-[240px]"
-            onClick={() => router.push('/dashboard/rebanho')}
-          />
-          <KpiChartCard
-            label="Composição do Rebanho"
-            chart={<PieComposicaoRebanho data={data.composicaoRebanho} />}
-            className="min-h-[240px]"
-            onClick={() => router.push('/dashboard/rebanho')}
-          />
-          <LotesAtivosCard lotes={data.lotesAtivos} />
+      {/* Campo — Rebanho + Lavouras + Pastagens */}
+      <section aria-label="Campo">
+        <SectionLabel>Campo</SectionLabel>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Coluna Rebanho */}
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rebanho</p>
+            <KpiChartCard
+              label="Total de Animais"
+              chart={<PieCategoriasRebanho data={data.categoriasRebanho} total={data.totalAnimais} />}
+              className="min-h-[220px]"
+              onClick={() => router.push('/dashboard/rebanho')}
+            />
+            <KpiChartCard
+              label="Composição do Rebanho"
+              chart={<PieComposicaoRebanho data={data.composicaoRebanho} />}
+              className="min-h-[220px]"
+              onClick={() => router.push('/dashboard/rebanho')}
+            />
+          </div>
+
+          {/* Coluna Lavouras */}
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Lavouras</p>
+            <KpiCard
+              title="ÁREA TOTAL"
+              value={data.talhaoAreaTotal}
+              detail="Área cadastrada"
+              icon={Map}
+              href="/dashboard/talhoes"
+            />
+            <KpiChartCard
+              label="Culturas Ativas"
+              chart={<PieCulturasAtivas data={data.culturasAtivas} total={data.culturasAtivas.length} />}
+              onClick={() => router.push('/dashboard/talhoes')}
+            />
+          </div>
+
+          {/* Coluna Pastagens */}
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pastagens</p>
+            <button
+              onClick={() => router.push('/dashboard/pastagens')}
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+            >
+              <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">Piquetes</p>
+                  <div
+                    className="shrink-0 p-2.5 rounded-xl"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    <Leaf className="h-4 w-4 text-[#00c45a]" />
+                  </div>
+                </div>
+                {data.totalPiquetes === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Nenhum piquete cadastrado</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      <span className="text-[#00c45a] underline">Cadastrar pastagem</span>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Em pastejo</span>
+                      <span className="font-semibold text-[#dceede]">{data.piquetesEmPastejo}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Prontos para entrada</span>
+                      <span className={`font-semibold ${data.piquetesProntosEntrada > 0 ? 'text-status-success' : 'text-[#dceede]'}`}>
+                        {data.piquetesProntosEntrada}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Em reforma</span>
+                      <span className="font-semibold text-[#dceede]">{data.piquetesEmReforma}</span>
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-[#00c45a] mt-4 group-hover:underline">Ver pastagens →</p>
+              </Card>
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Lavouras */}
-      <section aria-label="Lavouras">
-        <SectionLabel>Lavouras</SectionLabel>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="ÁREA TOTAL" value={data.talhaoAreaTotal} detail="Área cadastrada" icon={Map} href="/dashboard/talhoes" />
-          <KpiCard title="EM CULTIVO" value="—" detail="Área plantada" icon={Sprout} href="/dashboard/talhoes" />
-          <KpiChartCard
-            label="Culturas Ativas"
-            chart={<PieCulturasAtivas data={data.culturasAtivas} total={data.culturasAtivas.length} />}
-            onClick={() => router.push('/dashboard/talhoes')}
-          />
-          <KpiCard title="TALHÕES" value={data.talhaoTotalCadastrados} detail="Cadastrados" icon={Map} href="/dashboard/talhoes" />
-        </div>
-      </section>
-
-      {/* Operações */}
-      <section aria-label="Operações">
-        <SectionLabel>Operações</SectionLabel>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="FROTA" value={data.maquinasTotal} detail="Máquinas cadastradas" icon={Truck} href="/dashboard/frota" />
-          <KpiCard title="MANUTENÇÃO" value={data.maquinasDetalhe} detail="Próxima manutenção" icon={AlertTriangle} href="/dashboard/frota" />
+      {/* Financeiro */}
+      <section aria-label="Financeiro">
+        <SectionLabel>Financeiro</SectionLabel>
+        <div className="grid grid-cols-2 gap-4">
           <KpiCard title="RECEITA DO MÊS" value={data.receitaMes} detail="Mês corrente" icon={TrendingUp} href="/dashboard/financeiro" />
           <KpiCard title="DESPESA DO MÊS" value={data.despesaMes} detail="Mês corrente" icon={DollarSign} href="/dashboard/financeiro" />
         </div>
       </section>
 
-      {/* Próximas Operações + Atividades + Alertas */}
-      <div className="space-y-6 mt-8">
+      {/* Frota */}
+      <section aria-label="Frota">
+        <SectionLabel>Frota</SectionLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <KpiCard title="MANUTENÇÃO" value={data.maquinasDetalhe} detail="Status das manutenções" icon={Truck} href="/dashboard/frota" />
+          <KpiCard title="FROTA" value={data.maquinasTotal} detail="Máquinas cadastradas" icon={AlertTriangle} href="/dashboard/frota" />
+        </div>
+      </section>
+
+      {/* Atividades Recentes */}
+      <section aria-label="Atividades Recentes">
         <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-brand-primary" aria-hidden="true" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">Próximas Operações</h2>
-                <p className="text-xs text-muted-foreground">Próximos 5 dias</p>
-              </div>
-            </div>
+            <h2 className="text-lg font-semibold text-foreground">Atividades Recentes</h2>
+            <button className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors">
+              Ver tudo
+            </button>
           </div>
-
-          {data.proximasOperacoes.length > 0 ? (
-            <div className="space-y-2">
-              {data.proximasOperacoes.map((op) => (
-                <div
-                  key={op.id}
-                  className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors flex items-center justify-between text-sm"
-                >
-                  <div className="flex-1 flex items-center gap-3">
-                    <span className="font-medium text-foreground min-w-14">
-                      {formatarData(op.data_esperada)}
-                    </span>
-                    <span className="text-muted-foreground">{op.tipo_operacao}</span>
-                    <span className="text-muted-foreground">—</span>
-                    <span className="font-medium text-foreground">{op.talhao_nome}</span>
-                    <span className="text-muted-foreground">({op.cultura})</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {op.janelaColheita?.ativo && (
-                      <Badge className="bg-status-warning/15 text-status-warning border-status-warning/30 hover:bg-status-warning/20">
-                        Janela de colheita
-                      </Badge>
-                    )}
-                    <Badge className={getStatusBadgeColor(op.status)}>{op.status}</Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center text-muted-foreground">
-              <Calendar className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" aria-hidden="true" />
-              <p className="text-sm font-medium">Nenhuma operação nos próximos dias</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">Operações planejadas aparecem aqui.</p>
-            </div>
-          )}
+          <div className="p-10 text-center text-muted-foreground">
+            <TrendingUp className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" aria-hidden="true" />
+            <p className="text-sm font-medium text-muted-foreground">Nenhuma atividade registrada recentemente.</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Suas últimas movimentações aparecerão aqui.</p>
+          </div>
         </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="bg-card rounded-2xl p-6 shadow-sm lg:col-span-2 transition-shadow duration-200 hover:shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Atividades Recentes</h2>
-              <button className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors">
-                Ver tudo
-              </button>
-            </div>
-            <div className="p-10 text-center text-muted-foreground">
-              <TrendingUp className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" aria-hidden="true" />
-              <p className="text-sm font-medium text-muted-foreground">Nenhuma atividade registrada recentemente.</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">Suas últimas movimentações aparecerão aqui.</p>
-            </div>
-          </Card>
-
-          <div className="flex flex-col gap-6">
-            <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Alertas Críticos</h2>
-              {(() => {
-                const alertasOrdenados = [...data.alertas].sort(
-                  (a, b) => ORDEM_SEVERIDADE[a.severidade] - ORDEM_SEVERIDADE[b.severidade]
-                );
-                const alertasExibidos = alertasOrdenados.slice(0, 5);
-                const alertasOcultos = alertasOrdenados.length - alertasExibidos.length;
-
-                if (alertasExibidos.length === 0) {
-                  return (
-                    <div className="flex flex-col items-center text-center">
-                      <div className="w-14 h-14 bg-status-success/15 rounded-full flex items-center justify-center mb-4">
-                        <CheckCircle2 className="w-7 h-7 text-status-success" aria-hidden="true" />
-                      </div>
-                      <p className="font-bold text-foreground mb-1">Tudo em ordem!</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Não há alertas críticos ou manutenções pendentes para hoje.
-                      </p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="space-y-2">
-                    {alertasExibidos.map((alerta) => {
-                      const { Icon, iconClass, bgClass } = ALERTA_CONFIG[alerta.severidade];
-                      return (
-                        <button
-                          key={alerta.id}
-                          onClick={() => router.push(alerta.href)}
-                          className="w-full text-left p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors flex items-start gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                        >
-                          <div className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center mt-0.5 ${bgClass}`}>
-                            <Icon className={`w-4 h-4 ${iconClass}`} aria-hidden="true" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground leading-tight">{alerta.mensagem}</p>
-                            {alerta.detalhe && (
-                              <p className="text-xs text-muted-foreground mt-0.5">{alerta.detalhe}</p>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                    {alertasOcultos > 0 && (
-                      <p className="text-xs text-muted-foreground text-right pt-1">
-                        +{alertasOcultos} alerta{alertasOcultos > 1 ? 's' : ''} adicional{alertasOcultos > 1 ? 'is' : ''}
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
-            </Card>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
@@ -344,17 +337,4 @@ export function DashboardSkeleton() {
       </div>
     </div>
   );
-}
-
-function getStatusBadgeColor(status: string): string {
-  switch (status?.toLowerCase()) {
-    case 'planejado': return 'bg-status-info/15 text-status-info border-status-info/30 hover:bg-status-info/20';
-    case 'realizado': return 'bg-status-success/15 text-status-success border-status-success/30 hover:bg-status-success/20';
-    case 'atrasado': return 'bg-status-danger/15 text-status-danger border-status-danger/30 hover:bg-status-danger/20';
-    default: return 'bg-muted text-muted-foreground border-border hover:bg-muted/80';
-  }
-}
-
-function formatarData(data: string): string {
-  return new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }

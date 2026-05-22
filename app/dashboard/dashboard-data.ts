@@ -65,6 +65,11 @@ export interface DashboardData {
   lotesAtivos: { id: string; nome: string; quantidade_animais?: number | null }[];
   // Operações
   proximasOperacoes: ProximaOperacaoComBadge[];
+  // Pastagens
+  totalPiquetes: number;
+  piquetesEmPastejo: number;
+  piquetesProntosEntrada: number;
+  piquetesEmReforma: number;
   // Campos numéricos brutos para alertas
   silosAutonomiaDiasNum: number | null;
   silosTaxaPerdasNum: number | null;

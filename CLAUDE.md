@@ -117,7 +117,8 @@ sou_gerente_ou_admin() → boolean
 `produtos`, `movimentacoes_produto`, `categorias_produto`,
 `planejamentos_atividade`, `planejamento_insumos`,
 `pastagens`, `piquetes`, `ocupacoes_piquete`, `eventos_manejo_pastagem`,
-`colaboradores`, `atividades_mao_obra`, `atividades_mao_obra_colaboradores`
+`colaboradores`, `atividades_mao_obra`, `atividades_mao_obra_colaboradores`,
+`registros_colaborador`
 
 ### Índices Existentes (criados em 29/04/2026)
 - `idx_planos_manutencao_fazenda_id`
@@ -142,6 +143,11 @@ sou_gerente_ou_admin() → boolean
 - `idx_atividades_mao_obra_fazenda_data`
 - `idx_atv_mao_obra_colab_atividade_id`
 - `idx_atv_mao_obra_colab_colaborador_id`
+
+### Índices Existentes — Rastreabilidade de Colaboradores (criados em 22/05/2026)
+- `idx_registros_colaborador_fazenda`
+- `idx_registros_colaborador_ref`
+- `idx_registros_colaborador_colaborador`
 
 ---
 
@@ -486,6 +492,38 @@ Ao criar ou atualizar uma atividade em `criarAtividadeAction` / `editarAtividade
 - Rollback atômico: se INSERT em financeiro falhar, faz DELETE dos colaboradores vinculados e da atividade
 - Se UPDATE do `despesa_id` pós-INSERT falhar: dado já persistido, logar via `console.error` e retornar sucesso (rastreabilidade recuperável via `referencia_id` no financeiro)
 - **`custo_final` nunca incluir no payload** — é `GENERATED ALWAYS AS STORED`; usar `custo_manual ?? custo_calculado` calculado na Server Action
+
+### Rastreabilidade de Colaboradores (implementado 2026-05-22)
+
+Tabela `registros_colaborador` vincula um colaborador a qualquer operação agrícola, de forma opcional e sem bloquear a operação principal.
+
+**`referencia_tipo` válidos** (CHECK constraint):
+- `atividade_campo` → `atividades_campo.id`
+- `cadastro_silo` → `silos.id`
+- `evento_manejo_pastagem` → `eventos_manejo_pastagem.id`
+- `evento_sanitario` → `eventos_sanitarios.id`
+
+**Padrão de uso**:
+- Falha em `registros_colaborador` **nunca** bloqueia a operação pai
+- `fazenda_id` nunca enviar em INSERT — trigger `set_fazenda_id` preenche automaticamente
+- Cleanup: deletar `registro_colaborador` **antes** de deletar a operação pai
+- Soft delete de evento sanitário → hard delete do `registro_colaborador` associado
+- Colaborador inativo (`ativo=false`) não aparece no `ColaboradorSelect`, mas históricos persistem
+
+**Componente reutilizável**: `components/ColaboradorSelect.tsx`
+- Carrega colaboradores ativos via `listColaboradoresAtivosParaSelect()` na montagem
+- Usa sentinel `'__none__'` internamente; expõe `string | undefined` para fora
+- Integrado em: `AtividadeDialog` (talhões), `SiloForm` (mode=create apenas), `EventoManejoForm` (pastagens), `FormEventoSanitario` (rebanho/sanidade)
+
+**Funções utilitárias** (`lib/supabase/registros-colaborador.ts`):
+- `upsertRegistroColaborador(tipo, referenciaId, colaboradorId)` — DELETE anterior + INSERT novo
+- `deleteRegistroColaborador(tipo, referenciaId)` — remove vínculo (chamado no delete da operação pai)
+- `getColaboradorDaOperacao(tipo, referenciaId)` — retorna `colaborador_id | null` para pré-popular edição
+- `listColaboradoresAtivosParaSelect()` — lista para popular selects
+
+**Server Actions auxiliares** (fire-and-forget nos Client Components):
+- `app/dashboard/talhoes/actions.ts` → `vincularColaboradorAtividadeAction`
+- `app/dashboard/silos/actions.ts` → `vincularColaboradorSiloAction`
 
 ---
 
