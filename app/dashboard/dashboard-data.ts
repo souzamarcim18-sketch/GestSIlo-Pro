@@ -70,6 +70,8 @@ export interface DashboardData {
   piquetesEmPastejo: number;
   piquetesProntosEntrada: number;
   piquetesEmReforma: number;
+  pastagensAreaTotalHa: number;
+  pastagensCount: number;
   // Campos numéricos brutos para alertas
   silosAutonomiaDiasNum: number | null;
   silosTaxaPerdasNum: number | null;

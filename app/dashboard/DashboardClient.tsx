@@ -277,6 +277,36 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                 <p className="text-xs text-[#00c45a] mt-4 group-hover:underline">Ver pastagens →</p>
               </Card>
             </button>
+            <button
+              onClick={() => router.push('/dashboard/pastagens')}
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+            >
+              <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">Área de Pastagem</p>
+                    {data.pastagensCount === 0 ? (
+                      <p className="text-sm text-muted-foreground">Nenhuma pastagem cadastrada</p>
+                    ) : (
+                      <>
+                        <p className="text-2xl font-black tracking-tight text-[#dceede]">
+                          {data.pastagensAreaTotalHa.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ha
+                        </p>
+                        <p className="text-sm text-[#688070]">
+                          {data.pastagensCount} sistema{data.pastagensCount > 1 ? 's' : ''} cadastrado{data.pastagensCount > 1 ? 's' : ''}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <div
+                    className="shrink-0 p-2.5 rounded-xl"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    <Leaf className="h-4 w-4 text-[#00c45a]" />
+                  </div>
+                </div>
+              </Card>
+            </button>
           </div>
         </div>
       </section>

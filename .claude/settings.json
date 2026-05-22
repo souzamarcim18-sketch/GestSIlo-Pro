@@ -57,7 +57,9 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\talhoes\" -Recurse | Where-Object { $_.Extension -eq \".ts\" -or $_.Extension -eq \".tsx\" })",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\silos\" -Recurse | Where-Object { $_.Extension -eq \".ts\" -or $_.Extension -eq \".tsx\" })",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\lib\" -Recurse | Where-Object { $_.Extension -eq \".ts\" } | Select-Object -First 30)",
-      "PowerShell(ls -Recurse \"C:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\lib\\\\supabase\" | Where-Object { $_.Extension -eq \".ts\" } | Select-Object -ExpandProperty Name)"
+      "PowerShell(ls -Recurse \"C:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\lib\\\\supabase\" | Where-Object { $_.Extension -eq \".ts\" } | Select-Object -ExpandProperty Name)",
+      "Bash(tasklist)",
+      "Bash(findstr \"node\")"
     ],
     "additionalDirectories": [
       "\\tmp"

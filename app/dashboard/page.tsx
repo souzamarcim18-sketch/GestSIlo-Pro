@@ -178,7 +178,7 @@ export default async function DashboardPage() {
       .from('piquetes')
       .select(`
         id, nome, status, ua_suportada, dias_descanso_ideal, updated_at,
-        pastagens!inner(id, nome, ativo),
+        pastagens!inner(id, nome, ativo, area_total_ha),
         ocupacoes_piquete(ua_real, data_entrada, data_saida_real)
       `)
       .eq('pastagens.ativo', true)
@@ -438,6 +438,18 @@ export default async function DashboardPage() {
     href: '/dashboard/produtos',
   }));
 
+  // --- Pastagens: área e count derivados do join ---
+  type PiqueteComPastagem = {
+    pastagens: { id: string; area_total_ha: number } | null;
+  };
+  const rawPiquetes = (piquetesAlertaRes.data ?? []) as unknown as PiqueteComPastagem[];
+  const pastagensMap = new Map<string, number>();
+  for (const p of rawPiquetes) {
+    if (p.pastagens) pastagensMap.set(p.pastagens.id, p.pastagens.area_total_ha);
+  }
+  const pastagensCount = pastagensMap.size;
+  const pastagensAreaTotalHa = Array.from(pastagensMap.values()).reduce((acc, v) => acc + v, 0);
+
   // Etapa 2 — alertas de pastagens + KPIs de pastagens
   const piquetesParaAlertas = (piquetesAlertaRes.data ?? []) as unknown as Parameters<typeof derivarAlertasPastagens>[0];
   const alertasPastagens = derivarAlertasPastagens(piquetesParaAlertas);
@@ -503,6 +515,8 @@ export default async function DashboardPage() {
     piquetesEmPastejo,
     piquetesProntosEntrada,
     piquetesEmReforma,
+    pastagensAreaTotalHa,
+    pastagensCount,
     silosAutonomiaDiasNum,
     silosTaxaPerdasNum,
     manutencoesPendentesCount,
