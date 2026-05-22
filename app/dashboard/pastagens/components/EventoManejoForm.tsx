@@ -31,11 +31,11 @@ import type { TipoEventoManejo } from '@/lib/types/pastagens';
 const TIPO_CONFIG: Record<TipoEventoManejo, { label: string; alteraStatus?: string }> = {
   adubacao_manutencao: { label: 'Adubação de manutenção' },
   calagem:             { label: 'Calagem' },
-  reforma:             { label: 'Reforma', alteraStatus: 'Em reforma' },
+  rocagem:             { label: 'Roçagem' },
   ressemeadura:        { label: 'Ressemeadura' },
   irrigacao:           { label: 'Irrigação' },
+  reforma:             { label: 'Reforma de pastagem', alteraStatus: 'Em reforma' },
   interdicao:          { label: 'Interdição', alteraStatus: 'Interditado' },
-  rocagem:             { label: 'Roçagem' },
   outro:               { label: 'Outro' },
 };
 
@@ -315,6 +315,8 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
             </FormItem>
           )}
         />
+
+        <p className="text-xs text-muted-foreground">* campos obrigatórios</p>
 
         <div className="flex justify-end pt-2">
           <Button

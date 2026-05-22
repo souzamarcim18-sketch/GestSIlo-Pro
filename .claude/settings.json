@@ -48,7 +48,8 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Force)",
       "Bash(Select-Object Name)",
       "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Recurse -Filter \"*financeiro*\" -Directory)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(Select-String \"pastagens\")"
     ],
     "additionalDirectories": [
       "\\tmp"

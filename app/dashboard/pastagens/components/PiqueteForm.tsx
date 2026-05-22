@@ -214,6 +214,8 @@ export function PiqueteForm({ pastagemId, piquete, onSuccess }: PiqueteFormProps
           )}
         />
 
+        <p className="text-xs text-muted-foreground">* campos obrigatórios</p>
+
         <div className="flex justify-end pt-2">
           <Button
             type="submit"

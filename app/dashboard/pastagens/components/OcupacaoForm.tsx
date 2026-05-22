@@ -42,6 +42,7 @@ interface OcupacaoFormProps {
 
 export function OcupacaoForm({ piqueteId, areaHa, onSuccess }: OcupacaoFormProps) {
   const [lotes, setLotes] = useState<Lote[]>([]);
+  const [loadingLotes, setLoadingLotes] = useState(true);
   const [calculoUA, setCalculoUA] = useState<ResultadoCalculoUA | null>(null);
   const [calculando, setCalculando] = useState(false);
 
@@ -65,7 +66,10 @@ export function OcupacaoForm({ piqueteId, areaHa, onSuccess }: OcupacaoFormProps
       .from('lotes')
       .select('id, nome')
       .order('nome')
-      .then(({ data }) => setLotes((data ?? []) as Lote[]));
+      .then(({ data }) => {
+        setLotes((data ?? []) as Lote[]);
+        setLoadingLotes(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -164,18 +168,26 @@ export function OcupacaoForm({ piqueteId, areaHa, onSuccess }: OcupacaoFormProps
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-sm text-muted-foreground">Lote *</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || undefined}
+                disabled={loadingLotes}
+              >
                 <FormControl>
                   <SelectTrigger className="bg-[#222] border-white/10 text-sm">
-                    <SelectValue placeholder="Selecionar lote..." />
+                    <SelectValue placeholder={loadingLotes ? 'Carregando lotes...' : 'Selecionar lote...'} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-[#222] border-white/10">
-                  {lotes.map((l) => (
-                    <SelectItem key={l.id} value={l.id} className="text-sm">
-                      {l.nome}
-                    </SelectItem>
-                  ))}
+                  {lotes.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum lote encontrado</div>
+                  ) : (
+                    lotes.map((l) => (
+                      <SelectItem key={l.id} value={l.id} className="text-sm">
+                        {l.nome}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -309,6 +321,8 @@ export function OcupacaoForm({ piqueteId, areaHa, onSuccess }: OcupacaoFormProps
             </FormItem>
           )}
         />
+
+        <p className="text-xs text-muted-foreground">* campos obrigatórios</p>
 
         <div className="flex justify-end pt-2">
           <Button

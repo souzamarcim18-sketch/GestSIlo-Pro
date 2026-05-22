@@ -46,7 +46,7 @@ export async function criarPastagemAction(formData: unknown): Promise<ActionResu
   try {
     const parsed = pastagemFormSchema.parse(formData);
 
-    await createPastagem({
+    const pastagem = await createPastagem({
       nome: parsed.nome,
       especie_forrageira: parsed.especie_forrageira ?? null,
       area_total_ha: parsed.area_total_ha,
@@ -54,6 +54,21 @@ export async function criarPastagemAction(formData: unknown): Promise<ActionResu
       observacoes: parsed.observacoes ?? null,
       ativo: true,
     });
+
+    // Sistema contínuo → cria piquete único cobrindo toda a área da pastagem
+    if (parsed.sistema_pastejo === 'continuo') {
+      await createPiquete({
+        pastagem_id: pastagem.id,
+        nome: parsed.nome,
+        area_ha: parsed.area_total_ha,
+        status: 'Descanso',
+        ua_suportada: null,
+        dias_descanso_ideal: null,
+        altura_entrada_cm: null,
+        altura_saida_cm: null,
+        observacoes: 'Piquete único — sistema de pastejo contínuo',
+      });
+    }
 
     revalidate();
     return { success: true };

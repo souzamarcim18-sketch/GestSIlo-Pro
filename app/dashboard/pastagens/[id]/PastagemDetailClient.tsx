@@ -132,14 +132,23 @@ export function PastagemDetailClient({
         </div>
       ) : (
         <Tabs defaultValue="piquetes">
-          <TabsList className="bg-[#222] border border-white/8">
-            <TabsTrigger value="piquetes" className="text-sm data-[state=active]:text-[#00c45a]">
+          <TabsList className="w-full bg-[#222] border border-white/8 h-auto p-1">
+            <TabsTrigger
+              value="piquetes"
+              className="flex-1 text-sm py-1.5 data-[state=active]:text-[#00c45a] data-[state=active]:bg-[#00c45a]/10"
+            >
               Piquetes ({pastagem.total_piquetes})
             </TabsTrigger>
-            <TabsTrigger value="historico" className="text-sm data-[state=active]:text-[#00c45a]">
+            <TabsTrigger
+              value="historico"
+              className="flex-1 text-sm py-1.5 data-[state=active]:text-[#00c45a] data-[state=active]:bg-[#00c45a]/10"
+            >
               Histórico
             </TabsTrigger>
-            <TabsTrigger value="eventos" className="text-sm data-[state=active]:text-[#00c45a]">
+            <TabsTrigger
+              value="eventos"
+              className="flex-1 text-sm py-1.5 data-[state=active]:text-[#00c45a] data-[state=active]:bg-[#00c45a]/10"
+            >
               Eventos de manejo
             </TabsTrigger>
           </TabsList>

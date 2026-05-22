@@ -102,26 +102,26 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
         </div>
 
         {/* Ações */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/8">
           <div className="flex items-center gap-2">
             {isAdmin && (
               <>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => setEditOpen(true)}
-                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  className="h-7 px-2.5 text-xs border-white/15 text-muted-foreground hover:text-foreground hover:bg-white/8 hover:border-white/25 gap-1"
                 >
-                  <Edit className="h-3 w-3 mr-1" />
+                  <Edit className="h-3 w-3" />
                   Editar
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => setDeleteOpen(true)}
-                  className="h-7 px-2 text-xs text-muted-foreground hover:text-red-400 hover:bg-red-400/5"
+                  className="h-7 px-2.5 text-xs border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/35 gap-1"
                 >
-                  <Trash2 className="h-3 w-3 mr-1" />
+                  <Trash2 className="h-3 w-3" />
                   Excluir
                 </Button>
               </>
@@ -131,7 +131,7 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-3 text-xs border-white/10 hover:bg-white/5 hover:border-white/20 gap-1"
+              className="h-7 px-3 text-xs border-white/15 text-foreground hover:bg-white/8 hover:border-white/25 gap-1"
             >
               Ver detalhes
               <ChevronRight className="h-3 w-3" />

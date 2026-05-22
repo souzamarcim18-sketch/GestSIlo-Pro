@@ -141,6 +141,8 @@ export function FecharOcupacaoDialog({
               )}
             />
 
+            <p className="text-xs text-muted-foreground">* campos obrigatórios</p>
+
             <DialogFooter className="gap-2">
               <Button
                 type="button"

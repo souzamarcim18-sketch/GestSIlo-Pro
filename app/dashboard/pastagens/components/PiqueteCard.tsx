@@ -196,56 +196,62 @@ export function PiqueteCard({ piquete, pastagemId, isAdmin, onMutate }: PiqueteC
 
         {/* Ações Admin */}
         {isAdmin && (
-          <div className="flex flex-wrap items-center gap-1 pt-1 border-t border-white/8">
-            {piquete.status === 'Descanso' && (
+          <div className="pt-2 border-t border-white/8 space-y-1.5">
+            {/* Ação principal contextual + Evento */}
+            <div className="flex gap-1.5">
+              {piquete.status === 'Descanso' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOcupacaoOpen(true)}
+                  className="flex-1 h-7 text-xs border-[#00c45a]/30 text-[#00c45a] hover:bg-[#00c45a]/10 hover:border-[#00c45a]/50 gap-1"
+                >
+                  <LogIn className="h-3 w-3" />
+                  Entrada
+                </Button>
+              )}
+              {piquete.status === 'Em pastejo' && ocupacao && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFecharOcupacaoOpen(true)}
+                  className="flex-1 h-7 text-xs border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/50 gap-1"
+                >
+                  <LogOut className="h-3 w-3" />
+                  Fechar
+                </Button>
+              )}
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => setOcupacaoOpen(true)}
-                className="h-6 px-2 text-xs text-[#00c45a] hover:text-[#00c45a] hover:bg-[#00c45a]/10"
+                onClick={() => setEventoOpen(true)}
+                className="flex-1 h-7 text-xs border-white/15 text-muted-foreground hover:text-foreground hover:bg-white/8 hover:border-white/25 gap-1"
               >
-                <LogIn className="h-3 w-3 mr-1" />
-                Entrada
+                <Wrench className="h-3 w-3" />
+                Evento
               </Button>
-            )}
-            {piquete.status === 'Em pastejo' && ocupacao && (
+            </div>
+            {/* Editar / Excluir */}
+            <div className="flex gap-1.5">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => setFecharOcupacaoOpen(true)}
-                className="h-6 px-2 text-xs text-blue-400 hover:text-blue-400 hover:bg-blue-400/10"
+                onClick={() => setEditOpen(true)}
+                className="flex-1 h-7 text-xs border-white/15 text-muted-foreground hover:text-foreground hover:bg-white/8 hover:border-white/25 gap-1"
               >
-                <LogOut className="h-3 w-3 mr-1" />
-                Fechar
+                <Edit className="h-3 w-3" />
+                Editar
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setEventoOpen(true)}
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-white/5"
-            >
-              <Wrench className="h-3 w-3 mr-1" />
-              Evento
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setEditOpen(true)}
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-white/5"
-            >
-              <Edit className="h-3 w-3 mr-1" />
-              Editar
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setDeleteOpen(true)}
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-red-400 hover:bg-red-400/5"
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Excluir
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteOpen(true)}
+                className="flex-1 h-7 text-xs border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/35 gap-1"
+              >
+                <Trash2 className="h-3 w-3" />
+                Excluir
+              </Button>
+            </div>
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -49,6 +50,7 @@ export function PastagemForm({ pastagem, onSuccess }: PastagemFormProps) {
   });
 
   const isSubmitting = form.formState.isSubmitting;
+  const sistemaPastejo = form.watch('sistema_pastejo');
 
   async function onSubmit(data: PastagemFormData) {
     const result = pastagem
@@ -154,6 +156,19 @@ export function PastagemForm({ pastagem, onSuccess }: PastagemFormProps) {
           />
         </div>
 
+        {/* Aviso sistema contínuo */}
+        {sistemaPastejo === 'continuo' && !pastagem && (
+          <div
+            className="rounded-lg p-3 flex items-start gap-2"
+            style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)' }}
+          >
+            <Info className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-300">
+              No sistema contínuo, um piquete único será criado automaticamente cobrindo toda a área da pastagem. Não é necessário dividir em piquetes.
+            </p>
+          </div>
+        )}
+
         <FormField
           control={form.control}
           name="observacoes"
@@ -173,6 +188,8 @@ export function PastagemForm({ pastagem, onSuccess }: PastagemFormProps) {
             </FormItem>
           )}
         />
+
+        <p className="text-xs text-muted-foreground">* campos obrigatórios</p>
 
         <div className="flex justify-end gap-2 pt-2">
           <Button
