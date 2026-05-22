@@ -86,14 +86,14 @@ export type Database = {
       }
       agendamentos_usuario: {
         Row: {
-          consultor_id: string
+          consultor_id: string | null
           created_at: string | null
           created_by: string | null
           data_agendada: string
           deleted_at: string | null
           duracao_minutos: number | null
           fazenda_id: string
-          horario_disponivel_id: string
+          horario_disponivel_id: string | null
           id: string
           link_reuniao: string | null
           motivo_recusa: string | null
@@ -105,14 +105,14 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          consultor_id: string
+          consultor_id?: string | null
           created_at?: string | null
           created_by?: string | null
           data_agendada: string
           deleted_at?: string | null
           duracao_minutos?: number | null
           fazenda_id: string
-          horario_disponivel_id: string
+          horario_disponivel_id?: string | null
           id?: string
           link_reuniao?: string | null
           motivo_recusa?: string | null
@@ -124,14 +124,14 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          consultor_id?: string
+          consultor_id?: string | null
           created_at?: string | null
           created_by?: string | null
           data_agendada?: string
           deleted_at?: string | null
           duracao_minutos?: number | null
           fazenda_id?: string
-          horario_disponivel_id?: string
+          horario_disponivel_id?: string | null
           id?: string
           link_reuniao?: string | null
           motivo_recusa?: string | null
@@ -1011,6 +1011,86 @@ export type Database = {
           },
         ]
       }
+      eventos_manejo_pastagem: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          custo_estimado: number | null
+          data: string
+          dose_por_ha: number | null
+          fazenda_id: string
+          id: string
+          insumo_id: string | null
+          maquina_id: string | null
+          observacoes: string | null
+          piquete_id: string
+          quantidade_insumo: number | null
+          tipo: string
+          unidade_insumo: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          custo_estimado?: number | null
+          data?: string
+          dose_por_ha?: number | null
+          fazenda_id: string
+          id?: string
+          insumo_id?: string | null
+          maquina_id?: string | null
+          observacoes?: string | null
+          piquete_id: string
+          quantidade_insumo?: number | null
+          tipo: string
+          unidade_insumo?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          custo_estimado?: number | null
+          data?: string
+          dose_por_ha?: number | null
+          fazenda_id?: string
+          id?: string
+          insumo_id?: string | null
+          maquina_id?: string | null
+          observacoes?: string | null
+          piquete_id?: string
+          quantidade_insumo?: number | null
+          tipo?: string
+          unidade_insumo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_manejo_pastagem_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_manejo_pastagem_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_manejo_pastagem_maquina_id_fkey"
+            columns: ["maquina_id"]
+            isOneToOne: false
+            referencedRelation: "maquinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_manejo_pastagem_piquete_id_fkey"
+            columns: ["piquete_id"]
+            isOneToOne: false
+            referencedRelation: "piquetes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos_parto_crias: {
         Row: {
           animal_criado_id: string | null
@@ -1334,6 +1414,7 @@ export type Database = {
           fazenda_id: string | null
           forma_pagamento: string | null
           id: string
+          natureza: string | null
           referencia_id: string | null
           referencia_tipo: string | null
           tipo: string
@@ -1347,6 +1428,7 @@ export type Database = {
           fazenda_id?: string | null
           forma_pagamento?: string | null
           id?: string
+          natureza?: string | null
           referencia_id?: string | null
           referencia_tipo?: string | null
           tipo: string
@@ -1360,6 +1442,7 @@ export type Database = {
           fazenda_id?: string | null
           forma_pagamento?: string | null
           id?: string
+          natureza?: string | null
           referencia_id?: string | null
           referencia_tipo?: string | null
           tipo?: string
@@ -2064,6 +2147,88 @@ export type Database = {
           },
         ]
       }
+      ocupacoes_piquete: {
+        Row: {
+          altura_dossel_entrada_cm: number | null
+          altura_dossel_saida_cm: number | null
+          created_at: string | null
+          created_by: string | null
+          data_entrada: string
+          data_saida_prevista: string | null
+          data_saida_real: string | null
+          fazenda_id: string
+          id: string
+          lote_id: string
+          metodo_calculo_ua: string | null
+          observacoes: string | null
+          peso_medio_kg: number | null
+          piquete_id: string
+          quantidade_animais: number | null
+          ua_real: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          altura_dossel_entrada_cm?: number | null
+          altura_dossel_saida_cm?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          data_entrada?: string
+          data_saida_prevista?: string | null
+          data_saida_real?: string | null
+          fazenda_id: string
+          id?: string
+          lote_id: string
+          metodo_calculo_ua?: string | null
+          observacoes?: string | null
+          peso_medio_kg?: number | null
+          piquete_id: string
+          quantidade_animais?: number | null
+          ua_real?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          altura_dossel_entrada_cm?: number | null
+          altura_dossel_saida_cm?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          data_entrada?: string
+          data_saida_prevista?: string | null
+          data_saida_real?: string | null
+          fazenda_id?: string
+          id?: string
+          lote_id?: string
+          metodo_calculo_ua?: string | null
+          observacoes?: string | null
+          peso_medio_kg?: number | null
+          piquete_id?: string
+          quantidade_animais?: number | null
+          ua_real?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocupacoes_piquete_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocupacoes_piquete_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocupacoes_piquete_piquete_id_fkey"
+            columns: ["piquete_id"]
+            isOneToOne: false
+            referencedRelation: "piquetes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parametros_reprodutivos_fazenda: {
         Row: {
           coberturas_para_repetidora: number | null
@@ -2112,6 +2277,53 @@ export type Database = {
             foreignKeyName: "parametros_reprodutivos_fazenda_fazenda_id_fkey"
             columns: ["fazenda_id"]
             isOneToOne: true
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pastagens: {
+        Row: {
+          area_total_ha: number
+          ativo: boolean
+          created_at: string | null
+          especie_forrageira: string | null
+          fazenda_id: string
+          id: string
+          nome: string
+          observacoes: string | null
+          sistema_pastejo: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_total_ha: number
+          ativo?: boolean
+          created_at?: string | null
+          especie_forrageira?: string | null
+          fazenda_id: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          sistema_pastejo?: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_total_ha?: number
+          ativo?: boolean
+          created_at?: string | null
+          especie_forrageira?: string | null
+          fazenda_id?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          sistema_pastejo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pastagens_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
             referencedRelation: "fazendas"
             referencedColumns: ["id"]
           },
@@ -2199,6 +2411,69 @@ export type Database = {
             columns: ["fazenda_id"]
             isOneToOne: false
             referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      piquetes: {
+        Row: {
+          altura_entrada_cm: number | null
+          altura_saida_cm: number | null
+          area_ha: number
+          created_at: string | null
+          dias_descanso_ideal: number | null
+          fazenda_id: string
+          id: string
+          nome: string
+          observacoes: string | null
+          pastagem_id: string
+          status: string
+          ua_suportada: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          altura_entrada_cm?: number | null
+          altura_saida_cm?: number | null
+          area_ha: number
+          created_at?: string | null
+          dias_descanso_ideal?: number | null
+          fazenda_id: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          pastagem_id: string
+          status?: string
+          ua_suportada?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          altura_entrada_cm?: number | null
+          altura_saida_cm?: number | null
+          area_ha?: number
+          created_at?: string | null
+          dias_descanso_ideal?: number | null
+          fazenda_id?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          pastagem_id?: string
+          status?: string
+          ua_suportada?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "piquetes_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "piquetes_pastagem_id_fkey"
+            columns: ["pastagem_id"]
+            isOneToOne: false
+            referencedRelation: "pastagens"
             referencedColumns: ["id"]
           },
         ]

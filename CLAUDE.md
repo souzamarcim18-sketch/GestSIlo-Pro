@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 741 testes passando (inclui suite de auditoria RLS em `tests/security/`)
+- **Testes**: Vitest — 742 testes passando (inclui suite de auditoria RLS em `tests/security/`)
 
 ---
 
@@ -115,13 +115,24 @@ sou_gerente_ou_admin() → boolean
 `eventos_parto_crias`, `parametros_reprodutivos_fazenda`,
 `categorias_rebanho`,
 `produtos`, `movimentacoes_produto`, `categorias_produto`,
-`planejamentos_atividade`, `planejamento_insumos`
+`planejamentos_atividade`, `planejamento_insumos`,
+`pastagens`, `piquetes`, `ocupacoes_piquete`, `eventos_manejo_pastagem`
 
 ### Índices Existentes (criados em 29/04/2026)
 - `idx_planos_manutencao_fazenda_id`
 - `idx_manutencoes_fazenda_id`
 - `idx_abastecimentos_fazenda_id`
 - `idx_uso_maquinas_fazenda_id`
+
+### Índices Existentes — Pastagens (criados em 21/05/2026)
+- `idx_pastagens_fazenda_id`
+- `idx_piquetes_pastagem_id`
+- `idx_piquetes_fazenda_id`
+- `idx_piquetes_status`
+- `idx_ocupacoes_piquete_id`
+- `idx_ocupacoes_data_saida_real`
+- `idx_ocupacoes_fazenda_id`
+- `idx_eventos_manejo_piquete_id`
 
 ---
 
@@ -138,8 +149,8 @@ app/
 │   └── geocoding/route.ts
 ├── dashboard/                       # Rotas autenticadas
 │   ├── dashboard-data.ts            # Tipos DashboardData, AlertaCritico, AlertaTipo, AlertaSeveridade
-│   ├── alertas-helpers.ts           # Funções puras: derivarAlertasEtapa1, daysBetween, formatarDataBR
-│   ├── page.tsx                     # RSC: 17 queries paralelas + construção de alertas
+│   ├── alertas-helpers.ts           # Funções puras: derivarAlertasEtapa1, derivarAlertasPastagens, daysBetween, formatarDataBR
+│   ├── page.tsx                     # RSC: 18+ queries paralelas + construção de alertas
 │   ├── DashboardClient.tsx          # Card Alertas Críticos dinâmico (ordenado por severidade)
 │   ├── silos/
 │   ├── talhoes/
@@ -173,6 +184,26 @@ app/
 │   │   ├── page.tsx                     # 2 abas: Atividades Planejadas + Lista de Compras
 │   │   ├── actions.ts                   # 8 Server Actions
 │   │   └── [id]/page.tsx                # Detalhe da atividade com insumos vinculados
+│   ├── pastagens/                       # Módulo completo (2026-05-21)
+│   │   ├── layout.tsx                   # Guard: redireciona Operador → /dashboard (client-side via useAuth)
+│   │   ├── page.tsx                     # RSC hub: KPIs + grid de pastagens
+│   │   ├── PastagensClient.tsx          # Client hub: KPIs, alertas, grid PastagemCard, modal nova pastagem
+│   │   ├── actions.ts                   # 11 Server Actions (pastagem, piquete, ocupação, evento manejo)
+│   │   ├── components/
+│   │   │   ├── PastagemCard.tsx         # Card pastagem: nome, espécie, sistema, counters por status, ações
+│   │   │   ├── PastagemForm.tsx         # Modal criar/editar pastagem (React Hook Form + Zod)
+│   │   │   ├── DeletePastagemDialog.tsx # Confirm dialog exclusão pastagem (cascade warning)
+│   │   │   ├── PiqueteCard.tsx          # Card piquete: status badge, UA/ha progress bar, lote, alertas
+│   │   │   ├── PiqueteForm.tsx          # Modal criar/editar piquete
+│   │   │   ├── DeletePiqueteDialog.tsx  # Confirm dialog exclusão piquete
+│   │   │   ├── OcupacaoForm.tsx         # Modal entrada de lote: cálculo UA em tempo real, badge Peso real/Estimativa
+│   │   │   ├── FecharOcupacaoDialog.tsx # Modal fechamento de ocupação (data saída, dossel, obs)
+│   │   │   ├── HistoricoOcupacoes.tsx   # Tabela histórico de ocupações por piquete (até 50 registros)
+│   │   │   ├── EventoManejoForm.tsx     # Modal evento de manejo: condicional por tipo (insumo, máquina, altera status)
+│   │   │   └── EventosManejoList.tsx    # Timeline de eventos de manejo com delete
+│   │   └── [id]/
+│   │       ├── page.tsx                 # RSC detalhe pastagem: generateMetadata + dados paralelos por piquete
+│   │       └── PastagemDetailClient.tsx # Client: breadcrumb, KPI grid, tabs (Piquetes/Histórico/Eventos)
 │   ├── suporte/
 │   ├── configuracoes/
 │   ├── onboarding/
@@ -236,7 +267,8 @@ lib/
 │   ├── rebanho-movimentacoes-actions.ts  # Helpers de movimentações
 │   ├── rebanho-indicadores.ts       # Queries de alertas: partos, pesagens, vacas secas
 │   ├── produtos.ts                  # Queries produtos, movimentacoes_produto, categorias_produto
-│   └── planejamento-compras.ts      # Queries + função pura calcularLinhasRelatorio()
+│   ├── planejamento-compras.ts      # Queries + função pura calcularLinhasRelatorio()
+│   └── pastagens.ts                 # Queries pastagens, piquetes, ocupações, eventos manejo, listPastagensParaAlertas()
 ├── sentry/
 │   └── allowlist.ts                 # Padrões de dados sensíveis filtrados do Sentry
 ├── auth/
@@ -244,6 +276,8 @@ lib/
 │   └── rate-limit.ts                # Helpers Upstash ratelimit
 ├── hooks/
 ├── types/
+│   ├── pastagens.ts                 # SistemaPastejo, StatusPiquete, TipoEventoManejo, Pastagem, Piquete, OcupacaoPiquete, PastagemComResumo, FATORES_UA_POR_CATEGORIA
+│   └── ...outros tipos por módulo
 ├── services/
 ├── db/
 │   ├── localDb.ts                   # IndexedDB PWA
@@ -501,12 +535,12 @@ O card "Alertas Críticos" no dashboard é **totalmente dinâmico**: agrega aler
 
 **Arquivos envolvidos**:
 - `app/dashboard/dashboard-data.ts` — tipos `AlertaTipo`, `AlertaSeveridade`, `AlertaCritico`; campos `silosAutonomiaDiasNum`, `silosTaxaPerdasNum`, `manutencoesPendentesCount`, `alertas` em `DashboardData`
-- `app/dashboard/alertas-helpers.ts` — funções puras `derivarAlertasEtapa1`, `daysBetween`, `formatarDataBR` (testáveis sem RSC)
-- `app/dashboard/page.tsx` — 4 queries adicionadas ao `Promise.all`; constrói o array `alertas`
+- `app/dashboard/alertas-helpers.ts` — funções puras `derivarAlertasEtapa1`, `derivarAlertasPastagens`, `daysBetween`, `formatarDataBR` (testáveis sem RSC)
+- `app/dashboard/page.tsx` — queries paralelas no `Promise.all`; constrói o array `alertas`
 - `app/dashboard/DashboardClient.tsx` — renderiza lista ordenada por severidade; estado vazio mantido
 - `__tests__/dashboard/alertas-helpers.test.ts` — 13 testes unitários das funções puras
 
-**Fontes de alertas (5 origens, todas paralelas no `Promise.all`)**:
+**Fontes de alertas (8 origens, todas paralelas no `Promise.all`)**:
 
 | Origem | Condição | Severidade |
 |---|---|---|
@@ -517,6 +551,7 @@ O card "Alertas Críticos" no dashboard é **totalmente dinâmico**: agrega aler
 | Insumos (`get_insumos_abaixo_minimo`) | `estoque_atual < estoque_minimo` | `critico` (esgotado) / `urgente` |
 | Vacinações (`eventos_sanitarios`) | próximos 15 dias, `tipo = 'vacinacao'` | `critico` (vencida) / `urgente` |
 | Produtos (`produtos`) | `estoque_atual < estoque_minimo`, filtrado em JS | `urgente` |
+| Piquetes (`piquetes` + `ocupacoes_piquete`) | superlotação, pronto para entrada, reforma longa | `urgente` / `aviso` |
 
 **Regras importantes**:
 - Operador vê alertas do dashboard; queries de insumos/produtos retornam vazio via RLS (`sou_admin_ou_visualizador()`) — sem lógica condicional de perfil
@@ -537,6 +572,66 @@ O card "Alertas Críticos" no dashboard é **totalmente dinâmico**: agrega aler
 - Ciclo agrícola completo: planejamento → plantio → colheita
 - Eventos DAP, janelas de colheita, histórico de culturas
 - Coluna real: `produtividade_ton_ha` (não `produtividade`)
+
+### 🌿 Pastagens (100% implementado — 2026-05-21)
+
+**Tabelas do banco**:
+`pastagens`, `piquetes`, `ocupacoes_piquete`, `eventos_manejo_pastagem`
+
+**Conceito**: gestão de pastejo rotacionado com controle de piquetes, ocupações de lotes de animais e cálculo automático de Unidade Animal (UA) por hectare.
+
+**Enums e valores válidos**:
+- `sistema_pastejo`: `rotacionado`, `continuo`, `semicontinuo`, `voisin`
+- `status_piquete`: `Em pastejo`, `Descanso`, `Em reforma`, `Interditado`
+- `tipo_evento_manejo`: `adubacao`, `calagem`, `aplicacao_defensivo`, `ressemeadura`, `rocagem`, `irrigacao`, `amostragem_solo`, `reforma_pastagem`, `interdicao`, `liberacao`, `outro`
+- `metodo_calculo_ua`: `peso_real` (pesagem ≤ 90 dias) | `estimativa` (fator fixo por `categorias_rebanho`)
+
+**Cálculo de UA**:
+- Fórmula: `peso_kg / 450` para animais com pesagem recente
+- Fallback: `FATORES_UA_POR_CATEGORIA` (mapa em `lib/types/pastagens.ts`) quando sem pesagem — `UA_FATOR_PADRAO = 0.8` para categorias não mapeadas
+- `ua_real` = soma das UAs de todos os animais do lote / `area_ha` do piquete
+- Badge "Peso real" (verde) vs "Estimativa" (amarelo) indica qual método foi usado
+- Cálculo é espelhado client-side em `OcupacaoForm.tsx` para preview antes de salvar
+
+**Status de piquete atualizado por eventos**:
+- `reforma_pastagem` → status muda para `Em reforma`
+- `interdicao` → status muda para `Interditado`
+- `liberacao` → status muda para `Descanso`
+- Os demais tipos não alteram status
+- Deletar evento de manejo **não reverte** o status automaticamente — aviso na UI
+
+**Permissões por perfil**:
+- **Admin**: CRUD completo de pastagens, piquetes, ocupações e eventos
+- **Operador**: sem acesso ao módulo (guard no `layout.tsx` redireciona para `/dashboard`)
+- **Visualizador**: consultar apenas (SELECT via `sou_admin_ou_visualizador()`)
+
+**Alertas proativos** (integrados em `alertas-helpers.ts` via `derivarAlertasPastagens`):
+
+| Tipo | Condição | Severidade |
+|---|---|---|
+| `piquete_superlotacao` | ocupação aberta com `ua_real > ua_suportada` | `urgente` |
+| `piquete_pronto_entrada` | status `Descanso`, `diasDescanso >= dias_descanso_ideal` | `aviso` |
+| `piquete_reforma_longa` | status `Em reforma` há > 90 dias (baseado em `updated_at`) | `aviso` |
+
+**Navegação**:
+- **Sidebar**: item "Pastagens" com ícone `Leaf` (Lucide), posicionado após "Lavouras" em `gerencialRoutes`
+- **Hub** (`/dashboard/pastagens`): KPI grid (total piquetes, em pastejo, descanso, alertas) + grid de `PastagemCard`
+- **Detalhe** (`/dashboard/pastagens/[id]`): tabs Piquetes / Histórico de Ocupações / Eventos de Manejo
+
+**Arquivos principais**:
+- `lib/types/pastagens.ts` — tipos: `SistemaPastejo`, `StatusPiquete`, `TipoEventoManejo`, `MetodoCalculoUA`, `Pastagem`, `Piquete`, `OcupacaoPiquete`, `PiqueteComOcupacaoAtual`, `PastagemComResumo`, `FATORES_UA_POR_CATEGORIA`, `UA_FATOR_PADRAO`
+- `lib/validations/pastagens.ts` — 6 schemas Zod: `pastagemFormSchema`, `piqueteFormSchema`, `ocupacaoFormSchema`, `fecharOcupacaoSchema`, `eventoManejoFormSchema`, `atualizarStatusSchema`
+- `lib/supabase/pastagens.ts` — todas as queries, incluindo `listPastagensParaAlertas()` (usada no dashboard)
+- `app/dashboard/pastagens/actions.ts` — 11 Server Actions: `criarPastagemAction`, `atualizarPastagemAction`, `deletarPastagemAction`, `criarPiqueteAction`, `atualizarPiqueteAction`, `deletarPiqueteAction`, `atualizarStatusPiqueteAction`, `registrarEntradaLoteAction`, `fecharOcupacaoAction`, `registrarEventoManejoAction`, `deletarEventoManejoAction`
+- `app/dashboard/pastagens/layout.tsx` — guard de perfil (client-side via `useAuth`, redireciona Operador)
+- `app/dashboard/pastagens/page.tsx` — RSC hub com KPIs e grid de pastagens
+- `app/dashboard/pastagens/PastagensClient.tsx` — client hub com estado e modais
+- `app/dashboard/pastagens/components/` — 11 componentes UI (ver árvore em Estrutura Principal)
+- `app/dashboard/pastagens/[id]/page.tsx` — RSC detalhe com dados paralelos
+- `app/dashboard/pastagens/[id]/PastagemDetailClient.tsx` — client detalhe com tabs
+
+**Nota sobre `components/ui/form.tsx`**:
+O componente `FormField` foi corrigido de `React.forwardRef` sem genéricos para uma função genérica `<TFieldValues, TName>` que aceita `ControllerProps<TFieldValues, TName>`. Isso é o padrão oficial shadcn/ui e era necessário para que `control={form.control}` tipasse corretamente com schemas Zod específicos no TypeScript strict mode.
 
 ### 🚜 Frota & Maquinário
 - Plano de manutenção preventiva/corretiva

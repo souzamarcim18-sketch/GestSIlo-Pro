@@ -15,7 +15,10 @@ export type AlertaTipo =
   | 'insumo_urgente'
   | 'produto_urgente'
   | 'vacinacao_vencida'
-  | 'vacinacao_urgente';
+  | 'vacinacao_urgente'
+  | 'piquete_superlotacao'
+  | 'piquete_pronto_entrada'
+  | 'piquete_reforma_longa';
 
 export type AlertaSeveridade = 'critico' | 'urgente' | 'aviso';
 

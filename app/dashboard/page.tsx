@@ -5,7 +5,7 @@ import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 import type { CicloAgricola } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
 import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
-import { daysBetween, formatarDataBR, derivarAlertasEtapa1 } from './alertas-helpers';
+import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastagens } from './alertas-helpers';
 
 type InsumoAlertaRow = {
   id: string;
@@ -86,6 +86,7 @@ export default async function DashboardPage() {
     manutencoesAlertaRes,
     vacinacoesAlertaRes,
     produtosAlertaRes,
+    piquetesAlertaRes,
   ] = await Promise.all([
     supabase
       .from('silos')
@@ -173,6 +174,15 @@ export default async function DashboardPage() {
       .eq('fazenda_id', fazendaId)
       .eq('ativo', true)
       .gt('estoque_minimo', 0),
+    supabase
+      .from('piquetes')
+      .select(`
+        id, nome, status, ua_suportada, dias_descanso_ideal, updated_at,
+        pastagens!inner(id, nome, ativo),
+        ocupacoes_piquete(ua_real, data_entrada, data_saida_real)
+      `)
+      .eq('pastagens.ativo', true)
+      .eq('fazenda_id', fazendaId),
   ]);
 
   // --- Silagem ---
@@ -428,12 +438,18 @@ export default async function DashboardPage() {
     href: '/dashboard/produtos',
   }));
 
+  // Etapa 2 — alertas de pastagens
+  const alertasPastagens = derivarAlertasPastagens(
+    ((piquetesAlertaRes.data ?? []) as unknown as Parameters<typeof derivarAlertasPastagens>[0])
+  );
+
   const alertas: AlertaCritico[] = [
     ...alertasEtapa1,
     ...alertasInsumos,
     ...alertasManutencao,
     ...alertasVacinacao,
     ...alertasProdutos,
+    ...alertasPastagens,
   ];
 
   const rawUserName =
