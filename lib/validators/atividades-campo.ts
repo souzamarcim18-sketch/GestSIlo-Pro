@@ -95,6 +95,8 @@ export const AtividadeCampoSchema = z.object({
   lamina_mm: z.number().optional().nullable(),
   horas_irrigacao: z.number().optional().nullable(),
   custo_por_hora_r: z.number().optional().nullable(),
+
+  colaborador_id: z.string().uuid().optional(),
 });
 
 export type AtividadeCampoInput = z.infer<typeof AtividadeCampoSchema>;

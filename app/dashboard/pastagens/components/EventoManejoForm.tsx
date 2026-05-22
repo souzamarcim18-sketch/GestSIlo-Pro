@@ -27,6 +27,7 @@ import { eventoManejoFormSchema, type EventoManejoFormData } from '@/lib/validat
 import { registrarEventoManejoAction } from '../actions';
 import { supabase } from '@/lib/supabase';
 import type { TipoEventoManejo } from '@/lib/types/pastagens';
+import { ColaboradorSelect } from '@/components/ColaboradorSelect';
 
 const TIPO_CONFIG: Record<TipoEventoManejo, { label: string; alteraStatus?: string }> = {
   adubacao_manutencao: { label: 'Adubação de manutenção' },
@@ -68,6 +69,7 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
       maquina_id: undefined,
       custo_estimado: undefined,
       observacoes: '',
+      colaborador_id: undefined,
     },
   });
 
@@ -331,6 +333,23 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
                   {...field}
                   value={field.value ?? ''}
                   className="bg-[#222] border-white/10 text-sm resize-none"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="colaborador_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm text-muted-foreground">Responsável</FormLabel>
+              <FormControl>
+                <ColaboradorSelect
+                  value={field.value ?? undefined}
+                  onChange={field.onChange}
                 />
               </FormControl>
               <FormMessage />

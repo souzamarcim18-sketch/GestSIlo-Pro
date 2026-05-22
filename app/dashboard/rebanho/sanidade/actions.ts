@@ -10,6 +10,7 @@ import {
 } from '@/lib/supabase/rebanho-sanitario';
 import { criarEventoSanitarioSchema } from '@/lib/validations/rebanho';
 import type { EventoSanitarioRow, EventoSanitarioInput } from '@/lib/types/rebanho-sanitario';
+import { upsertRegistroColaborador, deleteRegistroColaborador } from '@/lib/supabase/registros-colaborador';
 
 export async function criarEventoSanitarioAction(
   formData: unknown,
@@ -25,10 +26,12 @@ export async function criarEventoSanitarioAction(
       return { success: false, error: 'Apenas administradores podem registrar eventos sanitários.' };
     }
 
-    const parsed = criarEventoSanitarioSchema.parse(formData) as EventoSanitarioInput;
+    const parsed = criarEventoSanitarioSchema.parse(formData);
+    const { colaborador_id: colaboradorId, ...parsedSemColaborador } = parsed as typeof parsed & { colaborador_id?: string };
+    const parsedInput = parsedSemColaborador as EventoSanitarioInput;
 
     // Suportar seleção de múltiplos animais enviados pelo formulário
-    const rawAnimalId: string | string[] = parsed.animal_id;
+    const rawAnimalId: string | string[] = parsedInput.animal_id;
     const animalIds: string[] = Array.isArray(rawAnimalId)
       ? rawAnimalId
       : [animalIdOverride || rawAnimalId];
@@ -40,11 +43,19 @@ export async function criarEventoSanitarioAction(
     const eventos = await Promise.all(
       animalIds.map((animalId: string) =>
         criarEventoSanitario({
-          ...parsed,
+          ...parsedInput,
           animal_id: animalId,
         })
       )
     );
+
+    if (colaboradorId) {
+      await Promise.all(
+        eventos.map((e) =>
+          upsertRegistroColaborador('evento_sanitario', e.id, colaboradorId)
+        )
+      );
+    }
 
     revalidatePath('/dashboard/rebanho/sanidade');
     revalidatePath('/dashboard/rebanho/[id]');
@@ -99,6 +110,7 @@ export async function deletarEventoSanitarioAction(
       return { success: false, error: 'Apenas administradores podem deletar eventos sanitários.' };
     }
 
+    await deleteRegistroColaborador('evento_sanitario', id);
     await deletarEventoSanitario(id);
 
     revalidatePath('/dashboard/rebanho/sanidade');

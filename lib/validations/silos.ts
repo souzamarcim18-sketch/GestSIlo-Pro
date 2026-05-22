@@ -81,6 +81,7 @@ export const siloSchema = z.object({
     .uuid('ID do inoculante inválido')
     .nullable()
     .optional(),
+  colaborador_id: z.string().uuid().optional(),
 });
 
 export type SiloInput = z.infer<typeof siloSchema>;

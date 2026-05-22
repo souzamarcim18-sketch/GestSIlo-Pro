@@ -21,6 +21,7 @@ import { criarEventoSanitarioSchema, type CriarEventoSanitarioInput } from '@/li
 import { criarEventoSanitarioAction } from '@/app/dashboard/rebanho/sanidade/actions';
 import type { Animal, Lote } from '@/lib/types/rebanho';
 import type { TipoEventoSanitario } from '@/lib/types/rebanho-sanitario';
+import { ColaboradorSelect } from '@/components/ColaboradorSelect';
 
 interface FormEventoSanitarioProps {
   animalPre?: Animal;
@@ -89,6 +90,7 @@ export function FormEventoSanitario({
     resultado: null,
     tipo_exame: null,
     numero_protocolo: null,
+    colaborador_id: undefined,
   };
 
   const {
@@ -486,7 +488,7 @@ export function FormEventoSanitario({
         </div>
       )}
 
-      {/* Responsável */}
+      {/* Responsável (texto livre) */}
       <div className="space-y-2">
         <Label htmlFor="responsavel" className="text-sm font-semibold">Responsável</Label>
         <Input
@@ -494,6 +496,22 @@ export function FormEventoSanitario({
           placeholder="Nome do responsável"
           {...register('responsavel')}
           disabled={isLoading}
+        />
+      </div>
+
+      {/* Executado por (colaborador cadastrado) */}
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold">Executado por</Label>
+        <Controller
+          control={control}
+          name="colaborador_id"
+          render={({ field }) => (
+            <ColaboradorSelect
+              value={field.value ?? undefined}
+              onChange={field.onChange}
+              disabled={isLoading}
+            />
+          )}
         />
       </div>
 

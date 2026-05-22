@@ -38,6 +38,8 @@ import {
   AnaliseSoloFields,
   IrrigacaoFields,
 } from './fields';
+import { ColaboradorSelect } from '@/components/ColaboradorSelect';
+import { vincularColaboradorAtividadeAction } from '@/app/dashboard/talhoes/actions';
 
 const TIPOS_OPERACAO = Object.values(TipoOperacao);
 
@@ -171,7 +173,13 @@ export function AtividadeDialog({
       };
 
       const atividade = await q.atividadesCampo.create(payload);
-      let criadaAtividadeId = atividade.id;
+      const criadaAtividadeId = atividade.id;
+
+      if (data.colaborador_id) {
+        vincularColaboradorAtividadeAction(atividade.id, data.colaborador_id).catch(
+          (e) => console.error('[AtividadeDialog] Falha ao vincular colaborador:', e)
+        );
+      }
 
       // Integração Talhões → Insumos: Se aplicou insumo, criar saída
       if (data.insumo_id && ['Calagem', 'Gessagem', 'Pulverização'].includes(data.tipo_operacao)) {
@@ -453,6 +461,15 @@ export function AtividadeDialog({
                 id="observacoes"
                 placeholder="Detalhes adicionais..."
                 {...register('observacoes')}
+              />
+            </div>
+
+            {/* Responsável */}
+            <div className="space-y-2">
+              <Label>Executado por</Label>
+              <ColaboradorSelect
+                value={watch('colaborador_id') ?? undefined}
+                onChange={(v) => setValue('colaborador_id', v)}
               />
             </div>
 

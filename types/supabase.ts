@@ -3046,6 +3046,48 @@ export type Database = {
           },
         ]
       }
+      registros_colaborador: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          fazenda_id: string
+          id: string
+          referencia_id: string
+          referencia_tipo: string
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          fazenda_id: string
+          id?: string
+          referencia_id: string
+          referencia_tipo: string
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          fazenda_id?: string
+          id?: string
+          referencia_id?: string
+          referencia_tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_colaborador_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_colaborador_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reprodutores: {
         Row: {
           created_at: string

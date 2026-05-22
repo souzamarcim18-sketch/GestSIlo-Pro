@@ -142,6 +142,18 @@ const silos = {
       throw new Error(validacao.mensagem);
     }
 
+    try {
+      const { createSupabaseServerClient } = await import('./server');
+      const supabaseServer = await createSupabaseServerClient();
+      await supabaseServer
+        .from('registros_colaborador')
+        .delete()
+        .eq('referencia_tipo', 'cadastro_silo')
+        .eq('referencia_id', id);
+    } catch (e) {
+      console.error('[silos.remove] Falha ao limpar registro_colaborador:', e);
+    }
+
     const { error } = await supabase
       .from('silos')
       .delete()
@@ -1435,6 +1447,19 @@ const atividadesCampo = {
 
   async remove(id: string): Promise<void> {
     const fazendaId = await getFazendaId();
+
+    try {
+      const { createSupabaseServerClient } = await import('./server');
+      const supabaseServer = await createSupabaseServerClient();
+      await supabaseServer
+        .from('registros_colaborador')
+        .delete()
+        .eq('referencia_tipo', 'atividade_campo')
+        .eq('referencia_id', id);
+    } catch (e) {
+      console.error('[atividadesCampo.remove] Falha ao limpar registro_colaborador:', e);
+    }
+
     const { error } = await supabase
       .from('atividades_campo')
       .delete()

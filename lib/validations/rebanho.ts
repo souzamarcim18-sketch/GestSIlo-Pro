@@ -318,6 +318,7 @@ export const criarEventoSanitarioSchema = z.discriminatedUnion('tipo', [
     data_proxima_dose: z.string().optional().nullable(),
     responsavel: z.string().max(255).optional().nullable(),
     observacoes: z.string().optional().nullable(),
+    colaborador_id: z.string().uuid().optional(),
   }),
   // Vermifugação
   z.object({
@@ -330,6 +331,7 @@ export const criarEventoSanitarioSchema = z.discriminatedUnion('tipo', [
     data_proxima_dose: z.string().optional().nullable(),
     responsavel: z.string().max(255).optional().nullable(),
     observacoes: z.string().optional().nullable(),
+    colaborador_id: z.string().uuid().optional(),
   }),
   // Tratamento veterinário
   z.object({
@@ -342,6 +344,7 @@ export const criarEventoSanitarioSchema = z.discriminatedUnion('tipo', [
     resultado: z.enum(['cura', 'melhora', 'sem_resposta', 'obito', 'em_tratamento']).optional().nullable(),
     responsavel: z.string().max(255).optional().nullable(),
     observacoes: z.string().optional().nullable(),
+    colaborador_id: z.string().uuid().optional(),
   }),
   // Exame laboratorial
   z.object({
@@ -353,6 +356,7 @@ export const criarEventoSanitarioSchema = z.discriminatedUnion('tipo', [
     numero_protocolo: z.string().max(100).optional().nullable(),
     responsavel: z.string().max(255).optional().nullable(),
     observacoes: z.string().optional().nullable(),
+    colaborador_id: z.string().uuid().optional(),
   }),
 ]);
 

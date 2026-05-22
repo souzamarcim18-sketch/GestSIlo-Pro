@@ -26,6 +26,8 @@ import { siloSchema, type SiloInput, TIPOS_SILO } from '@/lib/validations/silos'
 import { type Silo, type Talhao, type Insumo } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
+import { ColaboradorSelect } from '@/components/ColaboradorSelect';
+import { vincularColaboradorSiloAction } from '@/app/dashboard/silos/actions';
 
 interface SiloFormProps {
   open: boolean;
@@ -255,6 +257,12 @@ export function SiloForm({
             );
             // Silo e entrada já estão confirmados — não reverter
           }
+        }
+
+        if (data.colaborador_id) {
+          vincularColaboradorSiloAction(novoSilo.id, data.colaborador_id).catch(
+            (e) => console.error('[SiloForm] Falha ao vincular colaborador:', e)
+          );
         }
 
         toast.success('Silo criado com sucesso!');
@@ -583,6 +591,23 @@ export function SiloForm({
               {...form.register('observacoes_gerais')}
             />
           </div>
+
+          {/* Responsável pelo fechamento — apenas no cadastro */}
+          {mode === 'create' && (
+            <div className="space-y-2">
+              <Label>Responsável pelo fechamento</Label>
+              <Controller
+                control={form.control}
+                name="colaborador_id"
+                render={({ field }) => (
+                  <ColaboradorSelect
+                    value={field.value ?? undefined}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </div>
+          )}
 
           <DialogFooter>
             <Button

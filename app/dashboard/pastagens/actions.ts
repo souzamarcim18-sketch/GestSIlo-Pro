@@ -32,6 +32,7 @@ import {
   type FecharOcupacaoData,
   type EventoManejoFormData,
 } from '@/lib/validations/pastagens';
+import { upsertRegistroColaborador, deleteRegistroColaborador } from '@/lib/supabase/registros-colaborador';
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -329,7 +330,7 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
       }
     }
 
-    await createEventoManejo({
+    const evento = await createEventoManejo({
       piquete_id: parsed.piquete_id,
       tipo: parsed.tipo,
       data: parsed.data,
@@ -353,6 +354,10 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
       if (statusError) throw statusError;
     }
 
+    if (parsed.colaborador_id) {
+      await upsertRegistroColaborador('evento_manejo_pastagem', evento.id, parsed.colaborador_id);
+    }
+
     revalidate();
     return { success: true };
   } catch (err) {
@@ -363,6 +368,7 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
 
 export async function deletarEventoManejoAction(id: string): Promise<ActionResult> {
   try {
+    await deleteRegistroColaborador('evento_manejo_pastagem', id);
     await deleteEventoManejo(id);
     revalidate();
     return { success: true };

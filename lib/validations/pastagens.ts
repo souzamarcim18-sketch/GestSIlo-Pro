@@ -57,6 +57,7 @@ export const eventoManejoFormSchema = z.object({
   maquina_id:        z.string().uuid().optional().nullable(),
   custo_estimado:    z.number().nonnegative().optional().nullable(),
   observacoes:       z.string().max(500).optional().nullable(),
+  colaborador_id:    z.string().uuid().optional(),
 });
 
 export type PastagemFormData     = z.infer<typeof pastagemFormSchema>;
