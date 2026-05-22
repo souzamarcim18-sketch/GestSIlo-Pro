@@ -597,6 +597,145 @@ export type Database = {
           },
         ]
       }
+      atividades_mao_obra: {
+        Row: {
+          created_at: string
+          custo_calculado: number
+          custo_final: number | null
+          custo_manual: number | null
+          data: string
+          despesa_id: string | null
+          duracao_tipo: string
+          duracao_valor: number
+          fazenda_id: string
+          id: string
+          maquina_id: string | null
+          observacoes: string | null
+          silo_id: string | null
+          talhao_id: string | null
+          tipo_atividade: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custo_calculado?: number
+          custo_final?: number | null
+          custo_manual?: number | null
+          data: string
+          despesa_id?: string | null
+          duracao_tipo: string
+          duracao_valor: number
+          fazenda_id: string
+          id?: string
+          maquina_id?: string | null
+          observacoes?: string | null
+          silo_id?: string | null
+          talhao_id?: string | null
+          tipo_atividade: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custo_calculado?: number
+          custo_final?: number | null
+          custo_manual?: number | null
+          data?: string
+          despesa_id?: string | null
+          duracao_tipo?: string
+          duracao_valor?: number
+          fazenda_id?: string
+          id?: string
+          maquina_id?: string | null
+          observacoes?: string | null
+          silo_id?: string | null
+          talhao_id?: string | null
+          tipo_atividade?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_mao_obra_despesa_id_fkey"
+            columns: ["despesa_id"]
+            isOneToOne: false
+            referencedRelation: "financeiro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_mao_obra_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_mao_obra_maquina_id_fkey"
+            columns: ["maquina_id"]
+            isOneToOne: false
+            referencedRelation: "maquinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_mao_obra_silo_id_fkey"
+            columns: ["silo_id"]
+            isOneToOne: false
+            referencedRelation: "silos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_mao_obra_talhao_id_fkey"
+            columns: ["talhao_id"]
+            isOneToOne: false
+            referencedRelation: "talhoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atividades_mao_obra_colaboradores: {
+        Row: {
+          atividade_id: string
+          colaborador_id: string
+          custo_colaborador: number
+          fazenda_id: string
+          id: string
+        }
+        Insert: {
+          atividade_id: string
+          colaborador_id: string
+          custo_colaborador?: number
+          fazenda_id: string
+          id?: string
+        }
+        Update: {
+          atividade_id?: string
+          colaborador_id?: string
+          custo_colaborador?: number
+          fazenda_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_mao_obra_colaboradores_atividade_id_fkey"
+            columns: ["atividade_id"]
+            isOneToOne: false
+            referencedRelation: "atividades_mao_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_mao_obra_colaboradores_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_mao_obra_colaboradores_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           acao: string
@@ -927,6 +1066,56 @@ export type Database = {
             columns: ["talhao_id"]
             isOneToOne: false
             referencedRelation: "talhoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      colaboradores: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          fazenda_id: string
+          funcao: string
+          id: string
+          nome: string
+          observacoes: string | null
+          tipo_valor: string
+          updated_at: string
+          valor_ref: number
+          vinculo: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          fazenda_id: string
+          funcao: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          tipo_valor: string
+          updated_at?: string
+          valor_ref: number
+          vinculo: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          fazenda_id?: string
+          funcao?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          tipo_valor?: string
+          updated_at?: string
+          valor_ref?: number
+          vinculo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "colaboradores_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
             referencedColumns: ["id"]
           },
         ]

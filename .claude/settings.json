@@ -49,7 +49,10 @@
       "Bash(Select-Object Name)",
       "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Recurse -Filter \"*financeiro*\" -Directory)",
       "Bash(Select-Object FullName)",
-      "Bash(Select-String \"pastagens\")"
+      "Bash(Select-String \"pastagens\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Recurse -Filter \"database-snapshot.md\")",
+      "Bash(Select-Object -First 1)",
+      "Bash(Get-Content \"C:\\\\Users\\\\marci\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projetos-GestSilo-GestSIlo-Pro\\\\882a0ccc-4dc4-4f5e-8bf9-c9645974f0a4\\\\tasks\\\\b5t0d71w8.output\" -Tail 30)"
     ],
     "additionalDirectories": [
       "\\tmp"

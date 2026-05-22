@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 742 testes passando (inclui suite de auditoria RLS em `tests/security/`)
+- **Testes**: Vitest — 743 testes passando (inclui suite de auditoria RLS em `tests/security/`)
 
 ---
 
@@ -116,7 +116,8 @@ sou_gerente_ou_admin() → boolean
 `categorias_rebanho`,
 `produtos`, `movimentacoes_produto`, `categorias_produto`,
 `planejamentos_atividade`, `planejamento_insumos`,
-`pastagens`, `piquetes`, `ocupacoes_piquete`, `eventos_manejo_pastagem`
+`pastagens`, `piquetes`, `ocupacoes_piquete`, `eventos_manejo_pastagem`,
+`colaboradores`, `atividades_mao_obra`, `atividades_mao_obra_colaboradores`
 
 ### Índices Existentes (criados em 29/04/2026)
 - `idx_planos_manutencao_fazenda_id`
@@ -133,6 +134,14 @@ sou_gerente_ou_admin() → boolean
 - `idx_ocupacoes_data_saida_real`
 - `idx_ocupacoes_fazenda_id`
 - `idx_eventos_manejo_piquete_id`
+
+### Índices Existentes — Mão de Obra (criados em 22/05/2026)
+- `idx_colaboradores_fazenda_id`
+- `idx_colaboradores_fazenda_ativo`
+- `idx_atividades_mao_obra_fazenda_id`
+- `idx_atividades_mao_obra_fazenda_data`
+- `idx_atv_mao_obra_colab_atividade_id`
+- `idx_atv_mao_obra_colab_colaborador_id`
 
 ---
 
@@ -204,6 +213,19 @@ app/
 │   │   └── [id]/
 │   │       ├── page.tsx                 # RSC detalhe pastagem: generateMetadata + dados paralelos por piquete
 │   │       └── PastagemDetailClient.tsx # Client: breadcrumb, KPI grid, tabs (Piquetes/Histórico/Eventos)
+│   ├── mao-de-obra/                     # Módulo completo (2026-05-22)
+│   │   ├── layout.tsx                   # Guard: redireciona Operador → /dashboard (client-side via useAuth)
+│   │   ├── page.tsx                     # RSC hub: auth + Promise.all 7 queries (colaboradores, atividades, KPIs, talhões, silos, máquinas)
+│   │   ├── MaoDeObraClient.tsx          # Client hub: 2 abas (Atividades | Colaboradores), KPIs, modais
+│   │   ├── actions.ts                   # 6 Server Actions + 2 auxiliares
+│   │   └── components/
+│   │       ├── KpisSection.tsx          # 4 cards: custo do mês, qtd atividades, colaborador destaque, top 3 tipos
+│   │       ├── ColaboradoresList.tsx    # Tabela: nome, função, vínculo, valor ref, status ativo/inativo, ações
+│   │       ├── ColaboradorForm.tsx      # Modal criar/editar colaborador (RHF + Zod)
+│   │       ├── DeleteColaboradorDialog.tsx  # Confirm dialog: soft-delete se tem histórico, hard-delete se não tem
+│   │       ├── AtividadesList.tsx       # Tabela com 4 filtros (colaborador, tipo, data início/fim) + rodapé custo total
+│   │       ├── AtividadeForm.tsx        # Modal criar/editar: multi-select colaboradores, preview custo em tempo real, vínculo RadioGroup
+│   │       └── DeleteAtividadeDialog.tsx    # Confirm dialog com aviso de remoção da despesa em Financeiro
 │   ├── suporte/
 │   ├── configuracoes/
 │   ├── onboarding/
@@ -268,7 +290,8 @@ lib/
 │   ├── rebanho-indicadores.ts       # Queries de alertas: partos, pesagens, vacas secas
 │   ├── produtos.ts                  # Queries produtos, movimentacoes_produto, categorias_produto
 │   ├── planejamento-compras.ts      # Queries + função pura calcularLinhasRelatorio()
-│   └── pastagens.ts                 # Queries pastagens, piquetes, ocupações, eventos manejo, listPastagensParaAlertas()
+│   ├── pastagens.ts                 # Queries pastagens, piquetes, ocupações, eventos manejo, listPastagensParaAlertas()
+│   └── mao-de-obra.ts               # listColaboradores, getColaboradorComHistorico, listAtividades, getKpisMensais, hasAtividades, hasAtividadesFuturas, getAtividadeById, listColaboradoresDaAtividade
 ├── sentry/
 │   └── allowlist.ts                 # Padrões de dados sensíveis filtrados do Sentry
 ├── auth/
@@ -277,15 +300,18 @@ lib/
 ├── hooks/
 ├── types/
 │   ├── pastagens.ts                 # SistemaPastejo, StatusPiquete, TipoEventoManejo, Pastagem, Piquete, OcupacaoPiquete, PastagemComResumo, FATORES_UA_POR_CATEGORIA
+│   ├── mao-de-obra.ts               # FuncaoColaborador, VinculoColaborador, TipoValorColaborador, TipoAtividade, DuracaoTipo, Colaborador, AtividadeMaoObra, AtividadeComColaboradores, KpisMaoObra, HORAS_POR_DIA, FUNCOES_COLABORADOR, VINCULOS_COLABORADOR, TIPOS_ATIVIDADE
 │   └── ...outros tipos por módulo
 ├── services/
 ├── db/
 │   ├── localDb.ts                   # IndexedDB PWA
 │   └── syncQueue.ts
+├── validations/
+│   └── mao-de-obra.ts               # colaboradorFormSchema, atividadeFormSchema (refine: max 1 vínculo)
 ├── calculadoras/
 ├── pdf/
 ├── constants/
-├── utils.ts
+├── utils.ts                         # formatBRL, formatDate, calcularCustoColaborador (hora↔dia, importável em Server Actions e Client Components)
 └── supabase.ts
 
 types/
@@ -451,6 +477,15 @@ Quando um insumo planejado é marcado como comprado em `marcarComoCompradoAction
 - `movimentacoes_insumo.planejamento_insumo_id` é preenchido para rastreabilidade bidirecional
 - Valor `'planejamento'` foi adicionado ao CHECK `chk_origem` via migration suplementar em 2026-05-19
 - Não cria lançamento financeiro automático (compra real é registrada via módulo Insumos pelo Admin)
+
+### Mão de Obra → Financeiro
+Ao criar ou atualizar uma atividade em `criarAtividadeAction` / `editarAtividadeAction`:
+- Cria/atualiza lançamento em `financeiro` (categoria `'Mão de Obra'`, tipo `'Despesa'`, `referencia_tipo = 'Mão de Obra'`)
+- `atividades_mao_obra.despesa_id` é preenchido para rastreabilidade bidirecional
+- Ao deletar atividade com `despesa_id`: deleta a despesa em `financeiro` antes de deletar a atividade
+- Rollback atômico: se INSERT em financeiro falhar, faz DELETE dos colaboradores vinculados e da atividade
+- Se UPDATE do `despesa_id` pós-INSERT falhar: dado já persistido, logar via `console.error` e retornar sucesso (rastreabilidade recuperável via `referencia_id` no financeiro)
+- **`custo_final` nunca incluir no payload** — é `GENERATED ALWAYS AS STORED`; usar `custo_manual ?? custo_calculado` calculado na Server Action
 
 ---
 
@@ -632,6 +667,80 @@ O card "Alertas Críticos" no dashboard é **totalmente dinâmico**: agrega aler
 
 **Nota sobre `components/ui/form.tsx`**:
 O componente `FormField` foi corrigido de `React.forwardRef` sem genéricos para uma função genérica `<TFieldValues, TName>` que aceita `ControllerProps<TFieldValues, TName>`. Isso é o padrão oficial shadcn/ui e era necessário para que `control={form.control}` tipasse corretamente com schemas Zod específicos no TypeScript strict mode.
+
+### 👷 Mão de Obra (100% implementado — 2026-05-22)
+
+**Tabelas do banco**:
+`colaboradores`, `atividades_mao_obra`, `atividades_mao_obra_colaboradores`
+
+**Conceito**: registro de atividades rurais com custo calculado automaticamente por colaborador, integração bidirecional com o módulo Financeiro (categoria "Mão de Obra") e vínculo opcional com talhão, silo ou máquina.
+
+**Enums e valores válidos**:
+- `funcao`: `Vaqueiro`, `Tratorista`, `Auxiliar`, `Gerente`, `Outros`
+- `vinculo`: `CLT`, `Diarista`, `Empreiteiro`, `Familiar`
+- `tipo_valor`: `diaria` (valor por dia/8h) | `hora` (valor por hora)
+- `duracao_tipo`: `horas` | `dias`
+- `tipo_atividade`: 13 opções (Trato/alimentação do rebanho, Ordenha, Aplicação de defensivo, Adubação, Silagem, Manutenção de cerca, Manutenção de equipamento, Limpeza de instalações, Manejo sanitário, Irrigação, Roçagem, Transporte interno, Outros)
+
+**Cálculo de custo (`calcularCustoColaborador` em `lib/utils.ts`)**:
+| duracao_tipo | tipo_valor | fórmula |
+|---|---|---|
+| `horas` | `hora` | `duracaoValor × valorRef` |
+| `dias` | `diaria` | `duracaoValor × valorRef` |
+| `horas` | `diaria` | `(duracaoValor / 8) × valorRef` |
+| `dias` | `hora` | `(duracaoValor × 8) × valorRef` |
+
+- `custo_calculado` = soma dos custos individuais de todos os colaboradores da atividade
+- `custo_final` = `COALESCE(custo_manual, custo_calculado)` — coluna `GENERATED ALWAYS AS STORED` no banco
+- **`custo_final` nunca incluir em INSERT ou UPDATE** — o PostgreSQL rejeita e causa erro
+
+**Invariantes críticas**:
+- `fazenda_id` nunca enviar no payload de INSERT — trigger `set_fazenda_id` preenche automaticamente
+- `custo_final` é coluna gerada — usar `Omit<AtividadeMaoObra, 'custo_final'>` em payloads
+- Máximo 1 vínculo por atividade: `talhao_id`, `silo_id`, `maquina_id` — validado pelo Zod (`refine`)
+- Soft-delete de colaborador quando tem histórico em `atividades_mao_obra_colaboradores`; hard-delete quando não tem
+- Bloquear desativação de colaborador com atividades futuras (data > hoje)
+- `ON DELETE RESTRICT` em `colaboradores`: não deletar colaborador com registros na tabela join
+
+**Rollback atômico** (padrão do projeto — sem transações nativas):
+`INSERT atividades_mao_obra` → `INSERT colaboradores` → `INSERT financeiro`; se financeiro falhar: DELETE colaboradores + DELETE atividade
+
+**Integração com Financeiro**:
+- Categoria: `'Mão de Obra'`, tipo: `'Despesa'`, `referencia_tipo: 'Mão de Obra'`
+- `atividades_mao_obra.despesa_id → financeiro.id` (rastreabilidade bidirecional)
+- Ao deletar atividade: deleta despesa em financeiro antes de deletar atividade
+- Ao atualizar atividade: sincroniza valor, descrição e data na despesa existente
+
+**Permissões por perfil**:
+- **Admin**: CRUD completo de colaboradores e atividades
+- **Operador**: sem acesso ao módulo (guard no `layout.tsx` redireciona para `/dashboard`; item oculto no Sidebar via `visibleGerencialRoutes`)
+- **Visualizador**: consultar apenas (SELECT via `sou_admin_ou_visualizador()`)
+
+**KPIs mensais** (`getKpisMensais`):
+- Custo total do mês (`SUM custo_final` em `atividades_mao_obra`)
+- Quantidade de atividades no mês
+- Colaborador destaque (maior quantidade de atividades no mês)
+- Top 3 tipos de atividade por custo total no mês
+
+**Sidebar**: item "Mão de Obra" com ícone `Users` (Lucide), em `gerencialRoutes` após "Produtos", oculto para Operador via filtro em `visibleGerencialRoutes`.
+
+**Arquivos principais**:
+- `lib/types/mao-de-obra.ts` — todos os tipos, constantes (`HORAS_POR_DIA = 8`, `FUNCOES_COLABORADOR`, `VINCULOS_COLABORADOR`, `TIPOS_ATIVIDADE`)
+- `lib/validations/mao-de-obra.ts` — `colaboradorFormSchema`, `atividadeFormSchema` (com refine de max 1 vínculo)
+- `lib/supabase/mao-de-obra.ts` — 8 funções: `listColaboradores`, `getColaboradorComHistorico`, `listAtividades`, `getKpisMensais`, `hasAtividades`, `hasAtividadesFuturas`, `getAtividadeById`, `listColaboradoresDaAtividade`
+- `lib/utils.ts` — `calcularCustoColaborador` (4 cenários hora↔dia, importável em Server Actions e Client Components)
+- `app/dashboard/mao-de-obra/actions.ts` — 6 Server Actions (`criarColaboradorAction`, `atualizarColaboradorAction`, `deletarColaboradorAction`, `criarAtividadeAction`, `editarAtividadeAction`, `deletarAtividadeAction`) + 2 auxiliares para formulários
+- `app/dashboard/mao-de-obra/layout.tsx` — guard client-side (Operador → `/dashboard`)
+- `app/dashboard/mao-de-obra/page.tsx` — RSC com Promise.all de 7 queries paralelas
+- `app/dashboard/mao-de-obra/MaoDeObraClient.tsx` — hub com abas Atividades/Colaboradores
+- `app/dashboard/mao-de-obra/components/` — 7 componentes UI (ver árvore em Estrutura Principal)
+
+**Integração futura com Pastagens**:
+Quando necessário, adicionar via migration:
+```sql
+ALTER TABLE atividades_mao_obra ADD COLUMN piquete_id uuid REFERENCES piquetes(id) ON DELETE SET NULL;
+```
+E atualizar `AtividadeForm.tsx` (4ª opção no RadioGroup de vínculo) e o `refine` do `atividadeFormSchema`.
 
 ### 🚜 Frota & Maquinário
 - Plano de manutenção preventiva/corretiva

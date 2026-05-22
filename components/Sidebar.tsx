@@ -11,6 +11,7 @@ import {
   Package,
   PackageOpen,
   Truck,
+  Users,
   DollarSign,
   BarChart3,
   Settings,
@@ -53,6 +54,7 @@ const gerencialRoutes: RouteItem[] = [
   { label: 'Rebanho',     icon: CowIcon,       href: '/dashboard/rebanho',                        badge: null },
   { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
   { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: null },
+  { label: 'Mão de Obra', icon: Users,         href: '/dashboard/mao-de-obra',                    badge: null },
   { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },
   { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro',                     badge: null },
   { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario',                     badge: null },
@@ -208,7 +210,9 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const router = useRouter();
   const { profile } = useAuth();
 
-  const visibleGerencialRoutes = gerencialRoutes;
+  const visibleGerencialRoutes = profile?.perfil === 'Operador'
+    ? gerencialRoutes.filter((r) => r.href !== '/dashboard/mao-de-obra')
+    : gerencialRoutes;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
