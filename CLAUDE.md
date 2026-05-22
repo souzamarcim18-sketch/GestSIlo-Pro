@@ -633,12 +633,51 @@ O card "Alertas Críticos" no dashboard é **totalmente dinâmico**: agrega aler
 - Exibição: máx. 5 alertas ordenados por severidade (`critico → urgente → aviso`); excedente mostrado como "+N alertas adicionais"
 - Funções puras em `alertas-helpers.ts` — **não** em `page.tsx` — para permitir testes sem dependências RSC
 
+### 🏁 Onboarding (implementado)
+
+Fluxo simples de primeiro acesso — não é um wizard multi-etapa.
+
+- `app/dashboard/onboarding/page.tsx` — formulário único: nome da fazenda, cidade (autocomplete), área em ha. Redireciona para `/dashboard` após criação.
+- `AuthProvider.tsx` — controla flag `needsOnboarding = !!user && !!profile && !fazendaId`; redireciona para `/dashboard/onboarding` enquanto não houver fazenda vinculada.
+- `app/dashboard/layout.tsx` — detecta rota de onboarding e exibe layout limpo (sem sidebar).
+
+**Lacuna conhecida**: dashboard vazio após onboarding (sem empty states por módulo). Não há wizard multi-etapa — o wizard de 4 etapas é exclusivo do Planejamento de Silagem.
+
 ### 🌾 Silos & Estoque (Core)
 - Cadastro e monitoramento de silos de silagem por fazenda
 - Controle de capacidade e estoque com percentuais visuais
 - Movimentações entrada/saída com rastreamento
 - Avaliação de qualidade: bromatológica e PSPS
 - Faixas de qualidade personalizáveis
+
+### ⚖️ Balanço Forrageiro (100% implementado — 2026-05-22)
+
+Rota: `/dashboard/balanco-forrageiro`
+
+**Conceito**: cruza o consumo histórico real dos silos com a demanda projetada pelo rebanho ativo, exibindo autonomia em dias pelos dois critérios lado a lado.
+
+**Queries** (`lib/supabase/balanco-forrageiro.ts`):
+- `getEstoqueSilos()` — todas as movimentações de todos os silos sem filtro de data (para estoque total correto)
+- `getConsumoPorPeriodo(dataCorte)` — saídas com `.gte('data', hoje−90d)` filtrado no banco
+- `getAnimaisAtivos()` — animais com status Ativo + categoria derivada por `calcularCategoriaEmData()`
+
+**Constantes** (`lib/constants/balanco-forrageiro.ts`):
+- `Map<string, number>` com 14 categorias → kg MS/cab/dia
+- Categorias não mapeadas: `7.0 kg/dia` com flag `estimado: true` (exibido com `~` na UI)
+
+**Funções puras** (`lib/utils/balanco-forrageiro.ts`):
+- `calcularConsumoHistorico()` — filtra saídas por período local (subtipo != Descarte), retorna consumo total e médio diário
+- `calcularDemandaProjetada()` — cruza animais ativos com Map de categorias, retorna demanda por categoria e total
+- `calcularComparativo()` — déficit/superávit diário e autonomia pelos dois critérios
+- `classesAutonomia()` — retorna classes CSS: vermelho < 10d, amarelo 10–29d, verde ≥ 30d
+
+**Seletor de período**: 7 / 30 / 60 / 90 dias — re-cálculo local sobre `saidasUltimos90Dias`, sem re-fetch ao banco.
+
+**Permissões**:
+- Admin e Visualizador: acesso completo (leitura)
+- Operador: bloqueado via `layout.tsx` → `/dashboard`
+
+**Testes**: 19 casos em `__tests__/balanco-forrageiro/utils.test.ts`
 
 ### 🗺️ Talhões
 - Gestão de áreas com mapa
@@ -1047,5 +1086,50 @@ NEXT_PUBLIC_APP_URL=https://gestsilo.com (ou http://localhost:3000)
 NEXT_PUBLIC_CONSULTOR_EMAIL=gestsilo.app@gmail.com
 RESEND_API_KEY=<chave-resend>
 ```
+
+### ⚙️ Configurações (bem implementado — 2026-05-22)
+
+Arquivo: `app/dashboard/configuracoes/` (page.tsx + ConfiguracoesClient.tsx)
+
+**3 abas**:
+- **Meu Perfil** — editar nome, email, senha. ✅ Completo.
+- **Dados da Fazenda** — editar nome, cidade (geocoding), área e coordenadas. ✅ Completo.
+- **Usuários e Acessos** — tabela de usuários com nome/email/perfil/status. ✅ Completo para visualização.
+
+**Convite de usuário**: ✅ Implementado via `components/InviteUserModal.tsx` + `app/api/auth/invite/route.ts`. Admin escolhe email e perfil (Operador ou Visualizador); sistema envia email com senha temporária via Resend.
+
+**Lacunas conhecidas**:
+- Remoção de usuário: exibe toast "em breve" — não implementado.
+- Troca de perfil (role) de usuário existente: não implementado.
+
+### 🔔 Notificações / Push (não implementado)
+
+- PWA tem service worker (via next-pwa) apenas para caching offline — sem handlers de push.
+- Sem FCM, Web Push API ou qualquer biblioteca de notificações proativas.
+- Sem cron jobs ou agendadores de background (sem node-cron, Bull, etc.).
+- Alertas existem apenas client-side no dashboard (`alertas-helpers.ts`) — sem entrega proativa.
+- Email via Resend existe apenas para: convite de usuário, reset de senha, agendamento de assessoria.
+
+**Pendente**: email proativo de alertas críticos (ex: autonomia de silagem < 10 dias). Resend já está configurado — custo de implementação baixo.
+
+### 📈 Balanço Forrageiro — estado atual
+
+- `app/dashboard/page.tsx` — calcula `autonomiaDias = (totalEstoqueAtual * 1000) / consumoDiario` via movimentações dos últimos 30 dias.
+- `app/dashboard/silos/helpers.ts` — funções `calcularEstoque()`, `calcularConsumoDiario()`, `calcularEstoqueParaDias()` por silo.
+- `app/dashboard/alertas-helpers.ts` — alertas de autonomia < 30 dias (crítico < 10d, urgente 10–29d).
+- `components/widgets/SilagemMetricasCard.tsx` — exibe autonomia estimada, consumo médio/dia, taxa de perdas.
+- `lib/services/planejamento-silagem.ts` — calcula demanda do rebanho por categoria (`silagem_ms_dia_kg`), de forma isolada.
+
+⚠️ **Não existe tela de balanço forrageiro consolidado.** As duas lógicas (consumo real dos silos e demanda projetada pelo rebanho) existem separadas e não são cruzadas em nenhuma view. Este é um item pendente de implementação.
+
+### 📊 Relatórios Exportáveis (bem implementado)
+
+| Módulo | Formato | Biblioteca | Conteúdo |
+|---|---|---|---|
+| `calculadoras/` | PDF | jsPDF | Laudos de calagem e adubação NPK |
+| `rebanho/indicadores/` | PDF + CSV | jsPDF + autoTable / nativo | Indicadores zootécnicos, composição do rebanho |
+| `relatorios/` | XLSX | xlsx.js | 6 relatórios: Talhões, Silos, Insumos, Frota, Financeiro, Estoque |
+
+O módulo `relatorios/` é o mais completo — gera Excel com múltiplas abas. O rebanho tem exportação dual (PDF + CSV). Calculadoras geram laudos técnicos em PDF.
 
 ---

@@ -48,8 +48,9 @@ type RouteItem = {
 };
 
 const gerencialRoutes: RouteItem[] = [
-  { label: 'Silos',       icon: Database,      href: '/dashboard/silos',                          badge: null },
-  { label: 'Lavouras',    icon: Sprout,        href: '/dashboard/talhoes',                        badge: null },
+  { label: 'Silos',              icon: Database,   href: '/dashboard/silos',                badge: null },
+  { label: 'Balanço Forrageiro', icon: Scale,       href: '/dashboard/balanco-forrageiro',   badge: null },
+  { label: 'Lavouras',           icon: Sprout,      href: '/dashboard/talhoes',              badge: null },
   { label: 'Pastagens',   icon: Leaf,          href: '/dashboard/pastagens',                      badge: null },
   { label: 'Rebanho',     icon: CowIcon,       href: '/dashboard/rebanho',                        badge: null },
   { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
@@ -211,7 +212,11 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const { profile } = useAuth();
 
   const visibleGerencialRoutes = profile?.perfil === 'Operador'
-    ? gerencialRoutes.filter((r) => r.href !== '/dashboard/mao-de-obra')
+    ? gerencialRoutes.filter(
+        (r) =>
+          r.href !== '/dashboard/mao-de-obra' &&
+          r.href !== '/dashboard/balanco-forrageiro'
+      )
     : gerencialRoutes;
 
   const handleLogout = async () => {
