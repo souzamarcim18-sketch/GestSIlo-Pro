@@ -53,6 +53,7 @@ interface EventoManejoFormProps {
 export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps) {
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [maquinas, setMaquinas] = useState<Maquina[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(true);
 
   const form = useForm<EventoManejoFormData>({
     resolver: zodResolver(eventoManejoFormSchema),
@@ -83,6 +84,7 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
     ]).then(([insRes, maqRes]) => {
       setInsumos((insRes.data ?? []) as Insumo[]);
       setMaquinas((maqRes.data ?? []) as Maquina[]);
+      setLoadingOptions(false);
     });
   }, []);
 
@@ -115,7 +117,9 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="bg-[#222] border-white/10 text-sm">
-                      <SelectValue />
+                      <SelectValue>
+                        {TIPO_CONFIG[field.value as TipoEventoManejo]?.label ?? field.value}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-[#222] border-white/10">
@@ -167,18 +171,27 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm text-muted-foreground">Insumo</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                  <Select
+                    key={loadingOptions ? 'ins-loading' : 'ins-ready'}
+                    onValueChange={field.onChange}
+                    value={field.value || undefined}
+                    disabled={loadingOptions}
+                  >
                     <FormControl>
                       <SelectTrigger className="bg-[#222] border-white/10 text-sm">
-                        <SelectValue placeholder="Selecionar insumo..." />
+                        <SelectValue placeholder={loadingOptions ? 'Carregando...' : 'Selecionar insumo...'} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-[#222] border-white/10">
-                      {insumos.map((i) => (
-                        <SelectItem key={i.id} value={i.id} className="text-sm">
-                          {i.nome} ({i.unidade})
-                        </SelectItem>
-                      ))}
+                      {insumos.length === 0 ? (
+                        <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum insumo encontrado</div>
+                      ) : (
+                        insumos.map((i) => (
+                          <SelectItem key={i.id} value={i.id} className="text-sm">
+                            {i.nome} ({i.unidade})
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -254,18 +267,27 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm text-muted-foreground">Máquina</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                <Select
+                  key={loadingOptions ? 'maq-loading' : 'maq-ready'}
+                  onValueChange={field.onChange}
+                  value={field.value || undefined}
+                  disabled={loadingOptions}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-[#222] border-white/10 text-sm">
-                      <SelectValue placeholder="Selecionar máquina..." />
+                      <SelectValue placeholder={loadingOptions ? 'Carregando...' : 'Selecionar máquina...'} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-[#222] border-white/10">
-                    {maquinas.map((m) => (
-                      <SelectItem key={m.id} value={m.id} className="text-sm">
-                        {m.nome}
-                      </SelectItem>
-                    ))}
+                    {maquinas.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">Nenhuma máquina encontrada</div>
+                    ) : (
+                      maquinas.map((m) => (
+                        <SelectItem key={m.id} value={m.id} className="text-sm">
+                          {m.nome}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />

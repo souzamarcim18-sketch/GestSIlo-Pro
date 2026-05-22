@@ -136,10 +136,12 @@ export function PastagemForm({ pastagem, onSuccess }: PastagemFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm text-muted-foreground">Sistema de pastejo *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="bg-[#222] border-white/10 text-sm">
-                      <SelectValue />
+                      <SelectValue>
+                        {SISTEMAS.find((s) => s.value === field.value)?.label ?? field.value}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-[#222] border-white/10">

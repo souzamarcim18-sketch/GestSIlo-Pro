@@ -169,13 +169,18 @@ export function OcupacaoForm({ piqueteId, areaHa, onSuccess }: OcupacaoFormProps
             <FormItem>
               <FormLabel className="text-sm text-muted-foreground">Lote *</FormLabel>
               <Select
+                key={loadingLotes ? 'lote-loading' : 'lote-ready'}
                 onValueChange={field.onChange}
                 value={field.value || undefined}
                 disabled={loadingLotes}
               >
                 <FormControl>
                   <SelectTrigger className="bg-[#222] border-white/10 text-sm">
-                    <SelectValue placeholder={loadingLotes ? 'Carregando lotes...' : 'Selecionar lote...'} />
+                    <SelectValue placeholder={loadingLotes ? 'Carregando lotes...' : 'Selecionar lote...'}>
+                      {field.value
+                        ? (lotes.find((l) => l.id === field.value)?.nome ?? field.value)
+                        : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-[#222] border-white/10">
