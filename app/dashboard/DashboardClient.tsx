@@ -197,26 +197,26 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       {/* Campo — Rebanho + Lavouras + Pastagens */}
       <section aria-label="Campo">
         <SectionLabel>Campo</SectionLabel>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Coluna Rebanho */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rebanho</p>
             <KpiChartCard
               label="Total de Animais"
               chart={<PieCategoriasRebanho data={data.categoriasRebanho} total={data.totalAnimais} />}
-              className="min-h-[220px]"
+              className="min-h-[200px]"
               onClick={() => router.push('/dashboard/rebanho')}
             />
             <KpiChartCard
               label="Composição do Rebanho"
               chart={<PieComposicaoRebanho data={data.composicaoRebanho} />}
-              className="min-h-[220px]"
+              className="min-h-[200px]"
               onClick={() => router.push('/dashboard/rebanho')}
             />
           </div>
 
           {/* Coluna Lavouras */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Lavouras</p>
             <KpiCard
               title="ÁREA TOTAL"
@@ -228,18 +228,19 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             <KpiChartCard
               label="Culturas Ativas"
               chart={<PieCulturasAtivas data={data.culturasAtivas} total={data.culturasAtivas.length} />}
+              className="min-h-[200px]"
               onClick={() => router.push('/dashboard/talhoes')}
             />
           </div>
 
           {/* Coluna Pastagens */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pastagens</p>
             <button
               onClick={() => router.push('/dashboard/pastagens')}
               className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
             >
-              <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+              <Card className="rounded-[13px] p-5 min-h-[200px] transition-all duration-300 group-hover:-translate-y-1">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">Piquetes</p>
                   <div
