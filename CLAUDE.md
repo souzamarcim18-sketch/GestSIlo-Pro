@@ -1102,15 +1102,30 @@ Arquivo: `app/dashboard/configuracoes/` (page.tsx + ConfiguracoesClient.tsx)
 - Remoção de usuário: exibe toast "em breve" — não implementado.
 - Troca de perfil (role) de usuário existente: não implementado.
 
-### 🔔 Notificações / Push (não implementado)
+### 🔔 Alertas por Email — Cron Job (100% implementado — 2026-05-24)
 
-- PWA tem service worker (via next-pwa) apenas para caching offline — sem handlers de push.
-- Sem FCM, Web Push API ou qualquer biblioteca de notificações proativas.
-- Sem cron jobs ou agendadores de background (sem node-cron, Bull, etc.).
-- Alertas existem apenas client-side no dashboard (`alertas-helpers.ts`) — sem entrega proativa.
-- Email via Resend existe apenas para: convite de usuário, reset de senha, agendamento de assessoria.
+**Arquitetura**: Vercel Cron Job (`vercel.json`, schedule `0 6 * * *` = 3h Brasília) → `POST /api/cron/alertas` → `lib/services/alertas-email.ts`
 
-**Pendente**: email proativo de alertas críticos (ex: autonomia de silagem < 10 dias). Resend já está configurado — custo de implementação baixo.
+**Alertas cobertos** (1 email consolidado por fazenda, apenas se houver alertas):
+- Autonomia de silagem < 30 dias
+- Perdas de silagem > 20%
+- Piquetes com ocupação vencida (`data_saida_real IS NULL` e `data_saida_prevista < hoje`)
+- Piquetes em Descanso há mais de 3 dias sem uso (`updated_at < hoje - 3 dias`)
+
+**Segurança**: header `Authorization: Bearer CRON_SECRET` validado na route. Service role key bypassa RLS para iterar sobre todas as fazendas.
+
+**Padrão de falha**: `Promise.allSettled` — erro em uma fazenda não para as demais. Rejections logadas via `console.error` (capturadas pelo Sentry).
+
+**Template**: `lib/email/templates/alertas-fazenda.ts` — função pura `gerarEmailAlertasFazenda(fazendaNome, alertas, appUrl)`. Dark mode, paleta do projeto.
+
+**⚠️ Ação necessária antes do deploy**: adicionar `SUPABASE_SERVICE_ROLE_KEY` e `CRON_SECRET` nas variáveis de ambiente do projeto na Vercel. Sem essas duas variáveis o cron falha silenciosamente.
+
+**Testes**: 27 casos em `__tests__/alertas-email/verificacoes.test.ts`
+
+### 🔔 Notificações / Push
+
+Email proativo implementado via cron job (ver seção Alertas por Email acima).
+Web Push / FCM: não implementado.
 
 ### 📈 Balanço Forrageiro — estado atual
 
