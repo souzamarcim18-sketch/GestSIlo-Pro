@@ -215,7 +215,8 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
     ? gerencialRoutes.filter(
         (r) =>
           r.href !== '/dashboard/mao-de-obra' &&
-          r.href !== '/dashboard/balanco-forrageiro'
+          r.href !== '/dashboard/balanco-forrageiro' &&
+          r.href !== '/dashboard/relatorios'
       )
     : gerencialRoutes;
 
