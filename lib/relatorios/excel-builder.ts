@@ -31,7 +31,7 @@ export interface ExcelReportConfig {
   metadata: ExcelMetadata;
 }
 
-function formatarValor(value: unknown, tipo: ColunaTipo = 'text'): string {
+export function formatarValorExcel(value: unknown, tipo: ColunaTipo = 'text'): string {
   if (value === null || value === undefined) return '';
   switch (tipo) {
     case 'BRL':
@@ -59,29 +59,29 @@ function buildMetadataLine2(meta: ExcelMetadata): string {
   return `Fazenda: ${meta.fazendaNome} | Gerado em: ${gerado}`;
 }
 
-export function gerarExcel(config: ExcelReportConfig): void {
+/**
+ * Constrói o WorkBook XLSX sem disparar download.
+ * Separado de gerarExcel() para permitir testes unitários.
+ */
+export function buildWorkbook(config: ExcelReportConfig): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
 
   for (const sheet of config.sheets) {
     const aoa: unknown[][] = [];
 
-    // Linhas 1-3: cabeçalho
     aoa.push([`GestSilo — ${config.metadata.nomeRelatorio}`]);
     aoa.push([buildMetadataLine2(config.metadata)]);
     aoa.push([]);
-
-    // Linha 4: headers das colunas
     aoa.push(sheet.colunas.map((c) => c.label));
 
     if (sheet.linhas.length === 0) {
-      // Empty state: célula mesclada em itálico na linha 5
       const emptyText = config.metadata.periodo
         ? 'Nenhum registro encontrado no período selecionado'
         : 'Nenhum registro cadastrado';
       aoa.push([emptyText]);
     } else {
       for (const linha of sheet.linhas) {
-        const row = sheet.colunas.map((c) => formatarValor(linha[c.key], c.tipo));
+        const row = sheet.colunas.map((c) => formatarValorExcel(linha[c.key], c.tipo));
         aoa.push(row);
       }
     }
@@ -89,15 +89,14 @@ export function gerarExcel(config: ExcelReportConfig): void {
     const ws = XLSX.utils.aoa_to_sheet(aoa);
 
     // Cabeçalho em negrito (linha 4 = índice 3)
-    const headerRowIdx = 3;
     for (let col = 0; col < sheet.colunas.length; col++) {
-      const cellAddr = XLSX.utils.encode_cell({ r: headerRowIdx, c: col });
+      const cellAddr = XLSX.utils.encode_cell({ r: 3, c: col });
       if (ws[cellAddr]) {
         ws[cellAddr].s = { font: { bold: true } };
       }
     }
 
-    // Empty state em itálico
+    // Empty state em itálico + mescla
     if (sheet.linhas.length === 0) {
       const emptyCell = XLSX.utils.encode_cell({ r: 4, c: 0 });
       if (ws[emptyCell]) {
@@ -106,12 +105,17 @@ export function gerarExcel(config: ExcelReportConfig): void {
       }
     }
 
-    // Larguras de colunas
     ws['!cols'] = sheet.colunas.map((c) => ({ wch: c.largura ?? 20 }));
 
     XLSX.utils.book_append_sheet(wb, ws, sheet.nome);
   }
 
+  return wb;
+}
+
+/** Gera o Excel e dispara o download no browser. */
+export function gerarExcel(config: ExcelReportConfig): void {
+  const wb = buildWorkbook(config);
   const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([buf], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
