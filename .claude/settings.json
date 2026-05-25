@@ -69,7 +69,8 @@
       "Read(//c/Projetos/GestSilo/**)",
       "Bash(Select-String -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\SPEC-relatorios-v1.md\" -Pattern \"Server Action|toUtcRangeFromLocal|validIds|invalidIds|vw_animais_completos|empty state|Matriz consolidada|R6|R7\")",
       "Bash(Select-Object LineNumber, Line)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(curl -s http://localhost:3000/dashboard/insumos -H \"Cookie: \")"
     ],
     "additionalDirectories": [
       "\\tmp"
