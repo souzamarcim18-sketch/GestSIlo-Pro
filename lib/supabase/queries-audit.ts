@@ -482,7 +482,12 @@ const insumos = {
     const fazendaId = await getFazendaId();
     let query = supabase
       .from('insumos')
-      .select('*')
+      .select(
+        'id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, ' +
+        'categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, ' +
+        'data_cadastro, observacoes, ativo, criado_por, atualizado_em, ' +
+        'atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent'
+      )
       .eq('fazenda_id', fazendaId)
       .eq('ativo', true)
       .order('nome', { ascending: true });
