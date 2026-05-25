@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 
 export interface FrotaMaquinaRow {
@@ -82,7 +82,6 @@ export async function getRelatorioFrota(
   from: Date,
   to: Date
 ): Promise<RelatorioFrotaResult> {
-  const supabase = createClient();
   const { gte, lte } = toUtcRangeFromLocal(from, to);
 
   const [maquinasRes, manutencoesRes, abastecimentosRes, usosRes] = await Promise.all([

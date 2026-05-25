@@ -1,4 +1,4 @@
-﻿import { redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import { RelatoriosClient } from './RelatoriosClient';
@@ -15,5 +15,16 @@ export default async function RelatoriosPage() {
 
   const fazendaId = await getCurrentFazendaId();
 
-  return <RelatoriosClient fazendaId={fazendaId} />;
+  const { data: fazenda } = await supabase
+    .from('fazendas')
+    .select('nome')
+    .eq('id', fazendaId)
+    .single();
+
+  return (
+    <RelatoriosClient
+      fazendaId={fazendaId}
+      fazendaNome={fazenda?.nome ?? 'Minha Fazenda'}
+    />
+  );
 }

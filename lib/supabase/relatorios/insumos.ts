@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 
 export interface MovimentacaoInsumoRow {
@@ -34,7 +34,6 @@ export async function listMovimentacoesInsumoPorPeriodo(
   from: Date,
   to: Date
 ): Promise<MovimentacaoInsumoRow[]> {
-  const supabase = createClient();
   const { gte, lte } = toUtcRangeFromLocal(from, to);
 
   const { data, error } = await supabase

@@ -511,7 +511,7 @@ const insumos = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data as Insumo[];
+    return data as unknown as Insumo[];
   },
 
   async listAbaixoMinimo(): Promise<Insumo[]> {
