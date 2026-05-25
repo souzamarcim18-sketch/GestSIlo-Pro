@@ -13,6 +13,7 @@ import {
   Leaf,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { GaugeOcupacaoSilos } from '@/components/widgets/GaugeOcupacaoSilos';
 import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho';
@@ -38,18 +39,20 @@ function KpiCard({
   detail,
   icon: Icon,
   href,
+  className,
 }: {
   title: string;
   value: string;
   detail: string;
   icon?: React.ElementType;
   href: string;
+  className?: string;
 }) {
   const router = useRouter();
   return (
     <button
       onClick={() => router.push(href)}
-      className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+      className={cn('text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]', className)}
     >
       <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
         <div className="flex items-start justify-between gap-3">
@@ -197,20 +200,20 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       {/* Campo — Rebanho + Lavouras + Pastagens */}
       <section aria-label="Campo">
         <SectionLabel>Campo</SectionLabel>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           {/* Coluna Rebanho */}
           <div className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rebanho</p>
             <KpiChartCard
               label="Total de Animais"
               chart={<PieCategoriasRebanho data={data.categoriasRebanho} total={data.totalAnimais} />}
-              className="min-h-[200px]"
+              className="flex-1"
               onClick={() => router.push('/dashboard/rebanho')}
             />
             <KpiChartCard
               label="Composição do Rebanho"
               chart={<PieComposicaoRebanho data={data.composicaoRebanho} />}
-              className="min-h-[200px]"
+              className="flex-1"
               onClick={() => router.push('/dashboard/rebanho')}
             />
           </div>
@@ -228,7 +231,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             <KpiChartCard
               label="Culturas Ativas"
               chart={<PieCulturasAtivas data={data.culturasAtivas} total={data.culturasAtivas.length} />}
-              className="min-h-[200px]"
+              className="flex-1"
               onClick={() => router.push('/dashboard/talhoes')}
             />
           </div>
@@ -238,9 +241,9 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pastagens</p>
             <button
               onClick={() => router.push('/dashboard/pastagens')}
-              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
             >
-              <Card className="rounded-[13px] p-5 min-h-[200px] transition-all duration-300 group-hover:-translate-y-1">
+              <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">Piquetes</p>
                   <div
@@ -280,7 +283,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             </button>
             <button
               onClick={() => router.push('/dashboard/pastagens')}
-              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
             >
               <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
                 <div className="flex items-start justify-between gap-3">
