@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   Map,
   Truck,
@@ -24,6 +25,7 @@ import { SilagemMetricasCard } from '@/components/widgets/SilagemMetricasCard';
 import { SilosInfoCard } from '@/components/widgets/SilosInfoCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardData, AlertaSeveridade } from './dashboard-data';
+import { AtividadesRecentesList } from '@/components/dashboard/AtividadesRecentesList';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -338,15 +340,14 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">Atividades Recentes</h2>
-            <button className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors">
+            <Link
+              href="/dashboard/calendario"
+              className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors"
+            >
               Ver tudo
-            </button>
+            </Link>
           </div>
-          <div className="p-10 text-center text-muted-foreground">
-            <TrendingUp className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" aria-hidden="true" />
-            <p className="text-sm font-medium text-muted-foreground">Nenhuma atividade registrada recentemente.</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">Suas últimas movimentações aparecerão aqui.</p>
-          </div>
+          <AtividadesRecentesList eventos={data.atividadesRecentes} />
         </Card>
       </section>
     </div>

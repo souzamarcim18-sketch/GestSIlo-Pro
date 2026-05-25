@@ -6,6 +6,7 @@ import type { CicloAgricola } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
 import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
 import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastagens } from './alertas-helpers';
+import { getAtividadesRecentes } from '@/lib/supabase/calendario';
 
 type InsumoAlertaRow = {
   id: string;
@@ -87,6 +88,7 @@ export default async function DashboardPage() {
     vacinacoesAlertaRes,
     produtosAlertaRes,
     piquetesAlertaRes,
+    atividadesRecentesRes,
   ] = await Promise.all([
     supabase
       .from('silos')
@@ -183,6 +185,7 @@ export default async function DashboardPage() {
       `)
       .eq('pastagens.ativo', true)
       .eq('fazenda_id', fazendaId),
+    getAtividadesRecentes(supabase),
   ]);
 
   // --- Silagem ---
@@ -521,6 +524,7 @@ export default async function DashboardPage() {
     silosTaxaPerdasNum,
     manutencoesPendentesCount,
     alertas,
+    atividadesRecentes: atividadesRecentesRes,
   };
 
   return <DashboardClient data={data} userName={userName} />;

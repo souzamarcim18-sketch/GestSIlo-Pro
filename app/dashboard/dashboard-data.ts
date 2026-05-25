@@ -1,4 +1,5 @@
 import type { ProximaOperacao } from '@/lib/types/talhoes';
+import type { EventoCalendario } from '@/lib/types/calendario';
 
 export interface ProximaOperacaoComBadge extends ProximaOperacao {
   janelaColheita?: { ativo: boolean; diasRestantes: number };
@@ -78,4 +79,6 @@ export interface DashboardData {
   manutencoesPendentesCount: number;
   // Alertas derivados
   alertas: AlertaCritico[];
+  // Atividades Recentes (últimas 48h, max 8)
+  atividadesRecentes: EventoCalendario[];
 }

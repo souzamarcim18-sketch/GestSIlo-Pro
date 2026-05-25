@@ -149,6 +149,16 @@ sou_gerente_ou_admin() → boolean
 - `idx_registros_colaborador_ref`
 - `idx_registros_colaborador_colaborador`
 
+### Índices Existentes — Calendário (criados em 24/05/2026)
+- `idx_atividades_campo_data_inicio`
+- `idx_atividades_campo_data_fim`
+- `idx_manutencoes_data_prevista`
+- `idx_eventos_sanitarios_data_evento`
+- `idx_producoes_leiteiras_data`
+- `idx_eventos_rebanho_data`
+- `idx_abastecimentos_data`
+- `idx_uso_maquinas_data_uso`
+
 ---
 
 ## Estrutura Principal
@@ -1126,6 +1136,38 @@ Arquivo: `app/dashboard/configuracoes/` (page.tsx + ConfiguracoesClient.tsx)
 
 Email proativo implementado via cron job (ver seção Alertas por Email acima).
 Web Push / FCM: não implementado.
+
+### 📅 Calendário Unificado (100% implementado — 2026-05-24)
+
+**Conceito**: visão consolidada de todos os eventos da fazenda em um calendário mensal, agregando 11 tabelas distintas sem nenhuma tabela nova.
+
+**Fontes de dados** (11 tabelas consultadas em `lib/supabase/calendario.ts`):
+`atividades_campo`, `manutencoes`, `planos_manutencao`, `abastecimentos`,
+`uso_maquinas`, `eventos_sanitarios`, `producoes_leiteiras`, `eventos_rebanho`,
+`ocupacoes_piquete`, `eventos_manejo_pastagem`, `atividades_mao_obra`
+
+**Padrão de busca**:
+- RSC (`page.tsx`) recebe `searchParams.mes` (formato `YYYY-MM`) e busca apenas o mês requisitado no banco
+- Navegação entre meses via `router.push` com novo `searchParams.mes` — re-executa o RSC, zero fetch client-side
+- Filtro de módulos (Silos, Talhões, Frota, etc.) é local (client-side), sem re-fetch ao banco
+
+**Card "Atividades Recentes"**:
+- Janela D-2 até hoje, máx. 8 itens
+- Obtido via `getAtividadesRecentes()` em `lib/supabase/calendario.ts`
+- Renderizado em `components/dashboard/AtividadesRecentesList.tsx`
+
+**Guard de perfil**: `app/dashboard/calendario/layout.tsx` redireciona Operador → `/operador`
+
+**Arquivos principais**:
+- `lib/types/calendario.ts` — tipos `EventoCalendario`, `ModuloCalendario`, `FiltroCalendario`
+- `lib/utils/calendario.ts` — funções puras: agrupar eventos por dia, calcular range do mês, formatação
+- `lib/supabase/calendario.ts` — queries paralelas das 11 tabelas + `getAtividadesRecentes()`
+- `app/dashboard/calendario/page.tsx` — RSC: lê `searchParams.mes`, Promise.all das queries, passa dados ao Client
+- `app/dashboard/calendario/CalendarioClient.tsx` — grid mensal, filtros locais, navegação entre meses
+- `app/dashboard/calendario/layout.tsx` — guard de perfil (Operador → `/operador`)
+- `components/dashboard/AtividadesRecentesList.tsx` — card de atividades recentes (D-2 até hoje)
+
+**Testes**: 30+ cenários em `__tests__/calendario/`
 
 ### 📈 Balanço Forrageiro — estado atual
 
