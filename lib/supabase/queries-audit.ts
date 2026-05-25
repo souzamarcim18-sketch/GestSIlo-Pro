@@ -549,7 +549,7 @@ const insumos = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
     return data as Insumo;
@@ -845,7 +845,7 @@ const insumosServer = {
     const { data, error } = await supabaseServer
       .from('insumos')
       .insert(payload)
-      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
     return data as Insumo;
@@ -874,7 +874,7 @@ const insumosServer = {
       .update(payload)
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
-      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_em, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;
     return data as Insumo;

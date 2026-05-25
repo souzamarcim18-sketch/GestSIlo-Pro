@@ -66,7 +66,10 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Recurse -Depth 2)",
       "Bash(Select-Object -First 50)",
       "Bash(ls \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\\" | head -30)",
-      "Read(//c/Projetos/GestSilo/**)"
+      "Read(//c/Projetos/GestSilo/**)",
+      "Bash(Select-String -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\SPEC-relatorios-v1.md\" -Pattern \"Server Action|toUtcRangeFromLocal|validIds|invalidIds|vw_animais_completos|empty state|Matriz consolidada|R6|R7\")",
+      "Bash(Select-Object LineNumber, Line)",
+      "Bash(Format-Table -AutoSize)"
     ],
     "additionalDirectories": [
       "\\tmp"

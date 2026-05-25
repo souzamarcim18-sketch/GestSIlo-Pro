@@ -37,7 +37,6 @@ export interface Insumo {
   data_cadastro?: string; // YYYY-MM-DD
   observacoes?: string;
   ativo: boolean;
-  criado_em?: string;
   criado_por?: string;
   atualizado_em?: string;
   atualizado_por?: string;
