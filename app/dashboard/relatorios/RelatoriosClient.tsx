@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react';
 import {
   Database, Map, Truck, DollarSign, Package, PackageOpen,
-  PawPrint, Users, Leaf,
+  PawPrint, Users, Leaf, Scale, Stethoscope, ShoppingCart,
+  BoxesIcon, FileBarChart,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { subDays } from 'date-fns';
@@ -11,13 +12,34 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { q } from '@/lib/supabase/queries-audit';
 import { gerarExcel } from '@/lib/relatorios/excel-builder';
+import { gerarPdf } from '@/lib/relatorios/pdf-builder';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 import { listMovimentacoesInsumoPorPeriodo } from '@/lib/supabase/relatorios/insumos';
 import { getRelatorioFrota } from '@/lib/supabase/relatorios/frota';
 import { RelatorioCard } from '@/components/relatorios/RelatorioCard';
 import { PeriodoFilter } from '@/components/ui/PeriodoFilter';
-import { gerarPdf } from '@/lib/relatorios/pdf-builder';
-import { getRelatorioMaoObraAction, getRelatorioPastagensAction } from './actions';
+import {
+  getRelatorioMaoObraAction,
+  getRelatorioPastagensAction,
+  getRelatorioProdutosAction,
+  getRelatorioPlanejamentoComprasAction,
+  getRelatorioBalancoForrageiroAction,
+  getRelatorioSanidadeAction,
+  getRelatorioIndicadoresRebanhoAction,
+  listPlanejamentosSilagemAction,
+  getPlanejamentoSilagemParaPdfAction,
+} from './actions';
+import { gerarPdfIndicadoresRebanho } from '@/lib/pdf/gerarPdfIndicadoresRebanho';
+import { gerarPdfPlanejamento } from '@/lib/pdf/gerarPdfPlanejamento';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { formatBRL } from '@/lib/utils';
 
 const hoje = new Date();
 
@@ -30,6 +52,14 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
   const [periodoFinanceiro, setPeriodoFinanceiro] = useState({ from: subDays(hoje, 365), to: hoje });
   const [periodoMaoObra, setPeriodoMaoObra] = useState({ from: subDays(hoje, 30), to: hoje });
   const [periodoPastagens, setPeriodoPastagens] = useState({ from: subDays(hoje, 30), to: hoje });
+  const [periodoProdutos, setPeriodoProdutos] = useState({ from: subDays(hoje, 30), to: hoje });
+  const [periodoSanidade, setPeriodoSanidade] = useState({ from: subDays(hoje, 90), to: hoje });
+  const [periodoBalanco, setPeriodoBalanco] = useState<7 | 30 | 60 | 90>(30);
+
+  // Estado do Planejamento de Silagem
+  const [planejamentosDisponiveis, setPlanejamentosDisponiveis] = useState<Array<{ id: string; nome: string | null; created_at: string }>>([]);
+  const [planejamentoSelecionado, setPlanejamentoSelecionado] = useState<string>('');
+  const [showPlanejamentoSelect, setShowPlanejamentoSelect] = useState(false);
 
   const metaBase = useMemo(() => ({
     fazendaNome,
@@ -424,6 +454,232 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
     toast.success('Relatório de Pastagens exportado com sucesso!');
   });
 
+  // ─── Produtos ────────────────────────────────────────────────────────────────
+  const exportProdutos = () => handleExport('produtos', async () => {
+    const result = await getRelatorioProdutosAction({
+      from: periodoProdutos.from.toISOString(),
+      to: periodoProdutos.to.toISOString(),
+    });
+    gerarExcel({
+      fileName: `produtos_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
+      metadata: { ...metaBase, nomeRelatorio: 'Produtos', periodo: periodoProdutos, fazendaNome: result.fazendaNome },
+      sheets: [
+        {
+          nome: 'Produtos',
+          colunas: [
+            { key: 'nome', label: 'Nome', tipo: 'text', largura: 25 },
+            { key: 'categoria_nome', label: 'Categoria', tipo: 'text', largura: 20 },
+            { key: 'unidade_medida', label: 'Unidade', tipo: 'text' },
+            { key: 'estoque_atual', label: 'Estoque Atual', tipo: 'number' },
+            { key: 'estoque_minimo', label: 'Estoque Mínimo', tipo: 'number' },
+            { key: 'valor_unitario', label: 'Valor Unit.', tipo: 'BRL' },
+            { key: 'ativo', label: 'Ativo', tipo: 'text' },
+          ],
+          linhas: result.produtos.map((p) => ({ ...p, ativo: p.ativo ? 'Sim' : 'Não' })) as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Movimentações',
+          colunas: [
+            { key: 'data_movimentacao', label: 'Data', tipo: 'date' },
+            { key: 'produto_nome', label: 'Produto', tipo: 'text', largura: 25 },
+            { key: 'tipo', label: 'Tipo', tipo: 'text' },
+            { key: 'tipo_saida', label: 'Tipo Saída', tipo: 'text' },
+            { key: 'quantidade', label: 'Qtd.', tipo: 'number' },
+            { key: 'valor_unitario', label: 'Valor Unit.', tipo: 'BRL' },
+            { key: 'valor_total', label: 'Total', tipo: 'BRL' },
+            { key: 'descricao', label: 'Descrição', tipo: 'text', largura: 30 },
+            { key: 'responsavel', label: 'Responsável', tipo: 'text', largura: 25 },
+          ],
+          linhas: result.movimentacoes as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Vendas',
+          colunas: [
+            { key: 'data_movimentacao', label: 'Data', tipo: 'date' },
+            { key: 'produto_nome', label: 'Produto', tipo: 'text', largura: 25 },
+            { key: 'quantidade', label: 'Qtd.', tipo: 'number' },
+            { key: 'valor_unitario', label: 'Valor Unit.', tipo: 'BRL' },
+            { key: 'valor_total', label: 'Total', tipo: 'BRL' },
+            { key: 'descricao', label: 'Descrição', tipo: 'text', largura: 30 },
+            { key: 'responsavel', label: 'Responsável', tipo: 'text', largura: 25 },
+          ],
+          linhas: result.vendas as unknown as Record<string, unknown>[],
+        },
+      ],
+    });
+    toast.success('Relatório de Produtos exportado com sucesso!');
+  });
+
+  // ─── Planejamento de Compras ──────────────────────────────────────────────────
+  const exportPlanejamentoCompras = () => handleExport('plan_compras', async () => {
+    const result = await getRelatorioPlanejamentoComprasAction();
+    gerarExcel({
+      fileName: `planejamento_compras_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
+      metadata: { ...metaBase, nomeRelatorio: 'Planejamento de Compras', fazendaNome: result.fazendaNome },
+      sheets: [
+        {
+          nome: 'Atividades Planejadas',
+          colunas: [
+            { key: 'nome', label: 'Atividade', tipo: 'text', largura: 35 },
+            { key: 'tipo_operacao', label: 'Tipo', tipo: 'text', largura: 20 },
+            { key: 'data_prevista', label: 'Data Prevista', tipo: 'date' },
+            { key: 'talhao_nome', label: 'Talhão', tipo: 'text', largura: 20 },
+            { key: 'status', label: 'Status', tipo: 'text' },
+            { key: 'qtd_insumos', label: 'Qtd. Insumos', tipo: 'number' },
+          ],
+          linhas: result.atividades as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Lista de Compras',
+          colunas: [
+            { key: 'insumo_nome', label: 'Insumo', tipo: 'text', largura: 25 },
+            { key: 'unidade_medida', label: 'Unidade', tipo: 'text' },
+            { key: 'quantidade_total', label: 'Qtd. Planejada', tipo: 'number' },
+            { key: 'estoque_atual', label: 'Estoque Atual', tipo: 'number' },
+            { key: 'quantidade_a_comprar', label: 'Qtd. a Comprar', tipo: 'number' },
+            { key: 'valor_estimado', label: 'Valor Estimado', tipo: 'BRL' },
+            { key: 'status_compra', label: 'Status', tipo: 'text' },
+          ],
+          linhas: result.listaCompras as unknown as Record<string, unknown>[],
+        },
+      ],
+    });
+    toast.success('Planejamento de Compras exportado com sucesso!');
+  });
+
+  // ─── Balanço Forrageiro ────────────────────────────────────────────────────────
+  const exportBalancoForrageiro = () => handleExport('balanco', async () => {
+    const result = await getRelatorioBalancoForrageiroAction(periodoBalanco);
+    gerarPdf({
+      fileName: `balanco_forrageiro_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.pdf`,
+      titulo: 'Balanço Forrageiro',
+      orientacao: 'portrait',
+      metadata: {
+        ...metaBase,
+        nomeRelatorio: 'Balanço Forrageiro',
+        periodo: result.periodoHistorico,
+        fazendaNome: result.fazendaNome,
+        geradoEm: result.geradoEm,
+      },
+      secoes: [
+        {
+          titulo: `KPIs — Período de ${periodoBalanco} dias`,
+          colunas: [
+            { key: 'indicador', label: 'Indicador', largura: 50 },
+            { key: 'valor', label: 'Valor', largura: 50 },
+          ],
+          linhas: [
+            { indicador: 'Estoque Atual (ton MS)', valor: result.estoqueAtualTonMS.toFixed(2) },
+            { indicador: 'Consumo Médio Diário (kg)', valor: result.consumoDiarioMedioKg != null ? result.consumoDiarioMedioKg.toFixed(1) : '—' },
+            { indicador: 'Demanda Diária Rebanho (kg)', valor: result.demandaDiariaKg.toFixed(1) },
+            { indicador: 'Autonomia Histórica (dias)', valor: result.autonomiaHistoricaDias != null ? String(result.autonomiaHistoricaDias) : '—' },
+            { indicador: 'Autonomia Projetada (dias)', valor: result.autonomiaProjetadaDias != null ? String(result.autonomiaProjetadaDias) : '—' },
+          ],
+        },
+        {
+          titulo: 'Demanda por Categoria Animal',
+          colunas: [
+            { key: 'categoria', label: 'Categoria', largura: 35 },
+            { key: 'qtdAnimais', label: 'Animais', tipo: 'number', largura: 15 },
+            { key: 'consumoKgDia', label: 'kg MS/dia', tipo: 'number', largura: 20 },
+            { key: 'estimado', label: 'Estimado', largura: 15 },
+          ],
+          linhas: result.detalhesPorCategoria.map((c) => ({
+            ...c,
+            estimado: c.estimado ? 'Sim' : 'Não',
+          })) as unknown as Record<string, unknown>[],
+        },
+      ],
+    });
+    toast.success('Balanço Forrageiro (PDF) exportado com sucesso!');
+  });
+
+  // ─── Indicadores Zootécnicos ──────────────────────────────────────────────────
+  const exportIndicadoresRebanho = () => handleExport('indicadores_rebanho', async () => {
+    const result = await getRelatorioIndicadoresRebanhoAction();
+    const hoje2 = new Date();
+    const dataInicio = subDays(hoje2, 90);
+    gerarPdfIndicadoresRebanho({
+      fazendaNome: result.fazendaNome,
+      tipoExploracao: result.tipoExploracao,
+      periodo: { dataInicio, dataFim: hoje2 },
+      indicadores: result.indicadores,
+    });
+    toast.success('Indicadores Zootécnicos (PDF) exportado com sucesso!');
+  });
+
+  // ─── Planejamento de Silagem ──────────────────────────────────────────────────
+  const iniciarExportPlanejamentoSilagem = async () => {
+    setLoadingKey('plan_silagem_list');
+    try {
+      const { planejamentos } = await listPlanejamentosSilagemAction();
+      if (planejamentos.length === 0) {
+        toast.error('Nenhum planejamento de silagem encontrado.');
+        return;
+      }
+      if (planejamentos.length === 1) {
+        await exportarPlanejamentoSilagem(planejamentos[0].id);
+      } else {
+        setPlanejamentosDisponiveis(planejamentos);
+        setPlanejamentoSelecionado(planejamentos[0].id);
+        setShowPlanejamentoSelect(true);
+      }
+    } catch {
+      toast.error('Erro ao listar planejamentos.');
+    } finally {
+      setLoadingKey(null);
+    }
+  };
+
+  const exportarPlanejamentoSilagem = async (id: string) => {
+    await handleExport('plan_silagem', async () => {
+      const data = await getPlanejamentoSilagemParaPdfAction(id);
+      gerarPdfPlanejamento(data as Parameters<typeof gerarPdfPlanejamento>[0], fazendaNome);
+      toast.success('Planejamento de Silagem (PDF) exportado com sucesso!');
+      setShowPlanejamentoSelect(false);
+    });
+  };
+
+  // ─── Histórico Sanitário ──────────────────────────────────────────────────────
+  const exportSanidade = () => handleExport('sanidade', async () => {
+    const result = await getRelatorioSanidadeAction({
+      from: periodoSanidade.from.toISOString(),
+      to: periodoSanidade.to.toISOString(),
+    });
+
+    const tipos = ['vacinacao', 'vermifugacao', 'tratamento_veterinario', 'exame_laboratorial'];
+    const labels: Record<string, string> = {
+      vacinacao: 'Vacinação',
+      vermifugacao: 'Vermifugação',
+      tratamento_veterinario: 'Tratamento Veterinário',
+      exame_laboratorial: 'Exame Laboratorial',
+    };
+
+    const sheets = tipos.map((tipo) => ({
+      nome: labels[tipo],
+      colunas: [
+        { key: 'data_evento', label: 'Data', tipo: 'date' as const },
+        { key: 'animal_brinco', label: 'Brinco', tipo: 'text' as const },
+        { key: 'animal_nome', label: 'Nome', tipo: 'text' as const, largura: 20 },
+        { key: 'lote_nome', label: 'Lote', tipo: 'text' as const, largura: 20 },
+        { key: 'produto_medicamento', label: 'Produto/Medicamento', tipo: 'text' as const, largura: 25 },
+        { key: 'dose', label: 'Dose', tipo: 'text' as const },
+        { key: 'via_aplicacao', label: 'Via', tipo: 'text' as const },
+        { key: 'veterinario', label: 'Veterinário', tipo: 'text' as const, largura: 25 },
+        { key: 'proxima_data', label: 'Próxima Data', tipo: 'date' as const },
+        { key: 'observacoes', label: 'Observações', tipo: 'text' as const, largura: 30 },
+      ],
+      linhas: result.eventos.filter((e) => e.tipo === tipo) as unknown as Record<string, unknown>[],
+    }));
+
+    gerarExcel({
+      fileName: `historico_sanitario_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
+      metadata: { ...metaBase, nomeRelatorio: 'Histórico Sanitário', periodo: periodoSanidade, fazendaNome: result.fazendaNome },
+      sheets,
+    });
+    toast.success('Histórico Sanitário exportado com sucesso!');
+  });
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -521,13 +777,6 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
             </RelatorioCard>
           </li>
 
-        </ul>
-      </section>
-
-      {/* ── Financeiro — Mão de Obra ──────────────────────── */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Mão de Obra</h3>
-        <ul role="list" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
           <li>
             <RelatorioCard
               titulo="Mão de Obra"
@@ -541,6 +790,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
               <PeriodoFilter value={periodoMaoObra} onChange={setPeriodoMaoObra} defaultPreset="ultimos_30" />
             </RelatorioCard>
           </li>
+
         </ul>
       </section>
 
@@ -548,6 +798,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rebanho</h3>
         <ul role="list" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
+
           <li>
             <RelatorioCard
               titulo="Construtor de Relatórios"
@@ -558,6 +809,33 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
               href="/dashboard/relatorios/rebanho"
             />
           </li>
+
+          <li>
+            <RelatorioCard
+              titulo="Indicadores Zootécnicos"
+              descricao="PDF com GMD, taxas de natalidade, mortalidade, desfrute e mais (últimos 90 dias)."
+              icone={FileBarChart}
+              formatos={['pdf']}
+              onExport={() => exportIndicadoresRebanho()}
+              isLoading={loadingKey === 'indicadores_rebanho'}
+              loadingFormato="pdf"
+            />
+          </li>
+
+          <li>
+            <RelatorioCard
+              titulo="Histórico Sanitário"
+              descricao="Vacinações, vermifugações, tratamentos e exames no período."
+              icone={Stethoscope}
+              formatos={['excel']}
+              onExport={() => exportSanidade()}
+              isLoading={loadingKey === 'sanidade'}
+              loadingFormato="excel"
+            >
+              <PeriodoFilter value={periodoSanidade} onChange={setPeriodoSanidade} defaultPreset="ultimos_90" />
+            </RelatorioCard>
+          </li>
+
         </ul>
       </section>
 
@@ -565,6 +843,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Produção &amp; Forragem</h3>
         <ul role="list" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
+
           <li>
             <RelatorioCard
               titulo="Pastagens"
@@ -578,6 +857,108 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
               <PeriodoFilter value={periodoPastagens} onChange={setPeriodoPastagens} defaultPreset="ultimos_30" />
             </RelatorioCard>
           </li>
+
+          <li>
+            <RelatorioCard
+              titulo="Balanço Forrageiro"
+              descricao="PDF executivo com estoque, consumo histórico e demanda projetada do rebanho."
+              icone={Scale}
+              formatos={['pdf']}
+              onExport={() => exportBalancoForrageiro()}
+              isLoading={loadingKey === 'balanco'}
+              loadingFormato="pdf"
+            >
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs text-muted-foreground">Período histórico:</span>
+                <Select
+                  value={String(periodoBalanco)}
+                  onValueChange={(v) => setPeriodoBalanco(Number(v) as 7 | 30 | 60 | 90)}
+                >
+                  <SelectTrigger className="h-7 text-xs w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">7 dias</SelectItem>
+                    <SelectItem value="30">30 dias</SelectItem>
+                    <SelectItem value="60">60 dias</SelectItem>
+                    <SelectItem value="90">90 dias</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </RelatorioCard>
+          </li>
+
+          <li>
+            <RelatorioCard
+              titulo="Planejamento de Silagem"
+              descricao="PDF do planejamento de silagem com dimensionamento de silo e rebanho."
+              icone={BoxesIcon}
+              formatos={['pdf']}
+              onExport={() => iniciarExportPlanejamentoSilagem()}
+              isLoading={loadingKey === 'plan_silagem_list' || loadingKey === 'plan_silagem'}
+              loadingFormato="pdf"
+            >
+              {showPlanejamentoSelect && planejamentosDisponiveis.length > 1 && (
+                <div className="mt-2 space-y-2">
+                  <Select value={planejamentoSelecionado} onValueChange={setPlanejamentoSelecionado}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecionar planejamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {planejamentosDisponiveis.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.nome ?? format(new Date(p.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs w-full"
+                    onClick={() => exportarPlanejamentoSilagem(planejamentoSelecionado)}
+                    disabled={!planejamentoSelecionado || loadingKey === 'plan_silagem'}
+                  >
+                    Gerar PDF do selecionado
+                  </Button>
+                </div>
+              )}
+            </RelatorioCard>
+          </li>
+
+        </ul>
+      </section>
+
+      {/* ── Planejamento ─────────────────────────────────── */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Planejamento</h3>
+        <ul role="list" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
+
+          <li>
+            <RelatorioCard
+              titulo="Planejamento de Compras"
+              descricao="Atividades planejadas e lista consolidada de insumos a comprar."
+              icone={ShoppingCart}
+              formatos={['excel']}
+              onExport={() => exportPlanejamentoCompras()}
+              isLoading={loadingKey === 'plan_compras'}
+              loadingFormato="excel"
+            />
+          </li>
+
+          <li>
+            <RelatorioCard
+              titulo="Produtos"
+              descricao="Catálogo de produtos, movimentações e vendas no período."
+              icone={BoxesIcon}
+              formatos={['excel']}
+              onExport={() => exportProdutos()}
+              isLoading={loadingKey === 'produtos'}
+              loadingFormato="excel"
+            >
+              <PeriodoFilter value={periodoProdutos} onChange={setPeriodoProdutos} defaultPreset="ultimos_30" />
+            </RelatorioCard>
+          </li>
+
         </ul>
       </section>
     </div>
