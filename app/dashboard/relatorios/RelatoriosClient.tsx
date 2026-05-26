@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import {
   Database, Map, Truck, DollarSign, Package, PackageOpen,
-  BarChart3,
+  PawPrint, Users, Leaf,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { subDays } from 'date-fns';
@@ -16,6 +16,8 @@ import { listMovimentacoesInsumoPorPeriodo } from '@/lib/supabase/relatorios/ins
 import { getRelatorioFrota } from '@/lib/supabase/relatorios/frota';
 import { RelatorioCard } from '@/components/relatorios/RelatorioCard';
 import { PeriodoFilter } from '@/components/ui/PeriodoFilter';
+import { gerarPdf } from '@/lib/relatorios/pdf-builder';
+import { getRelatorioMaoObraAction, getRelatorioPastagensAction } from './actions';
 
 const hoje = new Date();
 
@@ -26,6 +28,8 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
   const [periodoMovInsumos, setPeriodoMovInsumos] = useState({ from: subDays(hoje, 30), to: hoje });
   const [periodoFrota, setPeriodoFrota] = useState({ from: subDays(hoje, 30), to: hoje });
   const [periodoFinanceiro, setPeriodoFinanceiro] = useState({ from: subDays(hoje, 365), to: hoje });
+  const [periodoMaoObra, setPeriodoMaoObra] = useState({ from: subDays(hoje, 30), to: hoje });
+  const [periodoPastagens, setPeriodoPastagens] = useState({ from: subDays(hoje, 30), to: hoje });
 
   const metaBase = useMemo(() => ({
     fazendaNome,
@@ -269,6 +273,157 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
     toast.success('Financeiro exportado com sucesso!');
   });
 
+  // ─── Mão de Obra ─────────────────────────────────────────────────────────────
+  const exportMaoObraExcel = () => handleExport('mao_obra_excel', async () => {
+    const result = await getRelatorioMaoObraAction({
+      from: periodoMaoObra.from.toISOString(),
+      to: periodoMaoObra.to.toISOString(),
+    });
+    gerarExcel({
+      fileName: `mao_obra_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
+      metadata: { ...metaBase, nomeRelatorio: 'Mão de Obra', periodo: periodoMaoObra, fazendaNome: result.fazendaNome },
+      sheets: [
+        {
+          nome: 'Atividades',
+          colunas: [
+            { key: 'data_inicio', label: 'Data Início', tipo: 'date' },
+            { key: 'tipo_atividade', label: 'Tipo', tipo: 'text', largura: 25 },
+            { key: 'colaboradores', label: 'Colaboradores', tipo: 'text', largura: 30 },
+            { key: 'duracao_valor', label: 'Duração', tipo: 'number' },
+            { key: 'duracao_tipo', label: 'Unid.', tipo: 'text' },
+            { key: 'custo_final', label: 'Custo (R$)', tipo: 'BRL' },
+            { key: 'vinculo_tipo', label: 'Vínculo', tipo: 'text' },
+            { key: 'vinculo_nome', label: 'Local', tipo: 'text', largura: 25 },
+            { key: 'descricao', label: 'Descrição', tipo: 'text', largura: 30 },
+          ],
+          linhas: result.atividades as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Resumo por Colaborador',
+          colunas: [
+            { key: 'colaborador_nome', label: 'Colaborador', tipo: 'text', largura: 25 },
+            { key: 'funcao', label: 'Função', tipo: 'text' },
+            { key: 'vinculo', label: 'Vínculo', tipo: 'text' },
+            { key: 'qtd_atividades', label: 'Qtd. Atividades', tipo: 'number' },
+            { key: 'custo_total', label: 'Custo Total (R$)', tipo: 'BRL' },
+          ],
+          linhas: result.resumoColaboradores as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Resumo por Tipo',
+          colunas: [
+            { key: 'tipo_atividade', label: 'Tipo de Atividade', tipo: 'text', largura: 30 },
+            { key: 'qtd_atividades', label: 'Qtd.', tipo: 'number' },
+            { key: 'custo_total', label: 'Custo Total (R$)', tipo: 'BRL' },
+            { key: 'duracao_total_horas', label: 'Horas Totais', tipo: 'number' },
+          ],
+          linhas: result.resumoTipos as unknown as Record<string, unknown>[],
+        },
+      ],
+    });
+    toast.success('Relatório de Mão de Obra (Excel) exportado com sucesso!');
+  });
+
+  const exportMaoObraPdf = () => handleExport('mao_obra_pdf', async () => {
+    const result = await getRelatorioMaoObraAction({
+      from: periodoMaoObra.from.toISOString(),
+      to: periodoMaoObra.to.toISOString(),
+    });
+    gerarPdf({
+      fileName: `mao_obra_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.pdf`,
+      titulo: 'Relatório de Mão de Obra',
+      orientacao: 'portrait',
+      metadata: {
+        ...metaBase,
+        nomeRelatorio: 'Mão de Obra',
+        periodo: periodoMaoObra,
+        fazendaNome: result.fazendaNome,
+      },
+      secoes: [
+        {
+          titulo: 'Top 10 Colaboradores por Custo',
+          colunas: [
+            { key: 'colaborador_nome', label: 'Colaborador', largura: 30 },
+            { key: 'funcao', label: 'Função', largura: 20 },
+            { key: 'qtd_atividades', label: 'Atividades', tipo: 'number', largura: 15 },
+            { key: 'custo_total', label: 'Custo Total', tipo: 'BRL', largura: 25 },
+          ],
+          linhas: (result.resumoColaboradores.slice(0, 10)) as unknown as Record<string, unknown>[],
+        },
+      ],
+    });
+    toast.success('Relatório de Mão de Obra (PDF) exportado com sucesso!');
+  });
+
+  // ─── Pastagens ────────────────────────────────────────────────────────────────
+  const exportPastagens = () => handleExport('pastagens', async () => {
+    const result = await getRelatorioPastagensAction({
+      from: periodoPastagens.from.toISOString(),
+      to: periodoPastagens.to.toISOString(),
+    });
+    gerarExcel({
+      fileName: `pastagens_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
+      metadata: { ...metaBase, nomeRelatorio: 'Pastagens', periodo: periodoPastagens, fazendaNome: result.fazendaNome },
+      sheets: [
+        {
+          nome: 'Pastagens',
+          colunas: [
+            { key: 'nome', label: 'Nome', tipo: 'text', largura: 25 },
+            { key: 'especie', label: 'Espécie', tipo: 'text', largura: 25 },
+            { key: 'sistema_pastejo', label: 'Sistema', tipo: 'text' },
+            { key: 'area_total_ha', label: 'Área (ha)', tipo: 'number' },
+            { key: 'qtd_piquetes', label: 'Total Piquetes', tipo: 'number' },
+            { key: 'piquetes_em_pastejo', label: 'Em Pastejo', tipo: 'number' },
+            { key: 'piquetes_descanso', label: 'Em Descanso', tipo: 'number' },
+          ],
+          linhas: result.pastagens as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Piquetes',
+          colunas: [
+            { key: 'pastagem_nome', label: 'Pastagem', tipo: 'text', largura: 25 },
+            { key: 'nome', label: 'Piquete', tipo: 'text', largura: 20 },
+            { key: 'area_ha', label: 'Área (ha)', tipo: 'number' },
+            { key: 'status', label: 'Status', tipo: 'text' },
+            { key: 'ua_suportada', label: 'UA Suportada', tipo: 'number' },
+            { key: 'ua_atual', label: 'UA Atual', tipo: 'number' },
+            { key: 'lote_atual', label: 'Lote Atual', tipo: 'text', largura: 20 },
+          ],
+          linhas: result.piquetes as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Ocupações',
+          colunas: [
+            { key: 'pastagem_nome', label: 'Pastagem', tipo: 'text', largura: 20 },
+            { key: 'piquete_nome', label: 'Piquete', tipo: 'text', largura: 20 },
+            { key: 'lote_nome', label: 'Lote', tipo: 'text', largura: 20 },
+            { key: 'data_entrada', label: 'Entrada', tipo: 'date' },
+            { key: 'data_saida_real', label: 'Saída Real', tipo: 'date' },
+            { key: 'dias_ocupacao', label: 'Dias', tipo: 'number' },
+            { key: 'ua_real', label: 'UA Real', tipo: 'number' },
+            { key: 'metodo_calculo_ua', label: 'Método UA', tipo: 'text' },
+          ],
+          linhas: result.ocupacoes as unknown as Record<string, unknown>[],
+        },
+        {
+          nome: 'Eventos de Manejo',
+          colunas: [
+            { key: 'pastagem_nome', label: 'Pastagem', tipo: 'text', largura: 20 },
+            { key: 'piquete_nome', label: 'Piquete', tipo: 'text', largura: 20 },
+            { key: 'data_evento', label: 'Data', tipo: 'date' },
+            { key: 'tipo', label: 'Tipo', tipo: 'text', largura: 25 },
+            { key: 'custo', label: 'Custo (R$)', tipo: 'BRL' },
+            { key: 'insumo_nome', label: 'Insumo', tipo: 'text', largura: 20 },
+            { key: 'maquina_nome', label: 'Máquina', tipo: 'text', largura: 20 },
+            { key: 'descricao', label: 'Descrição', tipo: 'text', largura: 30 },
+          ],
+          linhas: result.eventos as unknown as Record<string, unknown>[],
+        },
+      ],
+    });
+    toast.success('Relatório de Pastagens exportado com sucesso!');
+  });
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -369,14 +524,61 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
         </ul>
       </section>
 
-      {/* ── Outros (placeholder visual para fases futuras) ─── */}
+      {/* ── Financeiro — Mão de Obra ──────────────────────── */}
       <section className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Rebanho &amp; Produção — em breve (Fases 2 e 3)
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Construtor de Rebanho, Pastagens, Mão de Obra, Histórico Sanitário e Balanço Forrageiro serão adicionados nas próximas fases.
-        </p>
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Mão de Obra</h3>
+        <ul role="list" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
+          <li>
+            <RelatorioCard
+              titulo="Mão de Obra"
+              descricao="Atividades, custo por colaborador e resumo por tipo no período."
+              icone={Users}
+              formatos={['excel', 'pdf']}
+              onExport={(fmt) => fmt === 'excel' ? exportMaoObraExcel() : exportMaoObraPdf()}
+              isLoading={loadingKey === 'mao_obra_excel' || loadingKey === 'mao_obra_pdf'}
+              loadingFormato={loadingKey === 'mao_obra_excel' ? 'excel' : loadingKey === 'mao_obra_pdf' ? 'pdf' : undefined}
+            >
+              <PeriodoFilter value={periodoMaoObra} onChange={setPeriodoMaoObra} defaultPreset="ultimos_30" />
+            </RelatorioCard>
+          </li>
+        </ul>
+      </section>
+
+      {/* ── Rebanho ───────────────────────────────────────── */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rebanho</h3>
+        <ul role="list" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
+          <li>
+            <RelatorioCard
+              titulo="Construtor de Relatórios"
+              descricao="Selecione campos personalizados e exporte dados do rebanho em Excel ou PDF."
+              icone={PawPrint}
+              formatos={['excel', 'pdf']}
+              onExport={() => Promise.resolve()}
+              href="/dashboard/relatorios/rebanho"
+            />
+          </li>
+        </ul>
+      </section>
+
+      {/* ── Produção & Forragem ───────────────────────────── */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Produção &amp; Forragem</h3>
+        <ul role="list" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
+          <li>
+            <RelatorioCard
+              titulo="Pastagens"
+              descricao="Pastagens, piquetes, ocupações e eventos de manejo no período."
+              icone={Leaf}
+              formatos={['excel']}
+              onExport={() => exportPastagens()}
+              isLoading={loadingKey === 'pastagens'}
+              loadingFormato="excel"
+            >
+              <PeriodoFilter value={periodoPastagens} onChange={setPeriodoPastagens} defaultPreset="ultimos_30" />
+            </RelatorioCard>
+          </li>
+        </ul>
       </section>
     </div>
   );
