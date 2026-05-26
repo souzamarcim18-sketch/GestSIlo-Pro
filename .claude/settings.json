@@ -70,7 +70,8 @@
       "Bash(Select-String -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\SPEC-relatorios-v1.md\" -Pattern \"Server Action|toUtcRangeFromLocal|validIds|invalidIds|vw_animais_completos|empty state|Matriz consolidada|R6|R7\")",
       "Bash(Select-Object LineNumber, Line)",
       "Bash(Format-Table -AutoSize)",
-      "Bash(curl -s http://localhost:3000/dashboard/insumos -H \"Cookie: \")"
+      "Bash(curl -s http://localhost:3000/dashboard/insumos -H \"Cookie: \")",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\relatorios\\\\rebanho\")"
     ],
     "additionalDirectories": [
       "\\tmp"
