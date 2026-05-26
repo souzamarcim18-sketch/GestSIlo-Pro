@@ -128,7 +128,7 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
   SELECT
     ROUND(AVG(pl.volume_litros)::numeric, 2)                              AS producao_media_30d,
-    (CURRENT_DATE - lac_ativa.data_inicio_parto::date)                    AS dias_lactacao,
+    (CURRENT_DATE - MAX(lac_ativa.data_inicio_parto)::date)               AS dias_lactacao,
     SUM(pl.volume_litros)                                                 AS total_lactacao
   FROM producoes_leiteiras pl
   LEFT JOIN LATERAL (
