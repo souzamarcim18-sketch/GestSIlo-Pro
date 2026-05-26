@@ -1179,14 +1179,44 @@ Web Push / FCM: não implementado.
 
 ⚠️ **Não existe tela de balanço forrageiro consolidado.** As duas lógicas (consumo real dos silos e demanda projetada pelo rebanho) existem separadas e não são cruzadas em nenhuma view. Este é um item pendente de implementação.
 
-### 📊 Relatórios Exportáveis (bem implementado)
+### 📊 Relatórios Exportáveis (100% implementado — 2026-05-26)
 
 | Módulo | Formato | Biblioteca | Conteúdo |
 |---|---|---|---|
 | `calculadoras/` | PDF | jsPDF | Laudos de calagem e adubação NPK |
 | `rebanho/indicadores/` | PDF + CSV | jsPDF + autoTable / nativo | Indicadores zootécnicos, composição do rebanho |
-| `relatorios/` | XLSX | xlsx.js | 6 relatórios: Talhões, Silos, Insumos, Frota, Financeiro, Estoque |
+| `relatorios/` | XLSX + PDF | xlsx.js + jsPDF + autoTable | 15 relatórios cobrindo 14 módulos |
 
-O módulo `relatorios/` é o mais completo — gera Excel com múltiplas abas. O rebanho tem exportação dual (PDF + CSV). Calculadoras geram laudos técnicos em PDF.
+**Módulo `relatorios/` — arquitetura atual**:
+
+O módulo foi reestruturado em 5 seções principais na página:
+
+1. **Relatórios Gerenciais** — Financeiro (XLSX), Balanço Forrageiro (PDF)
+2. **Operacional** — Talhões (XLSX), Silos/Movimentações (XLSX), Frota (XLSX), Pastagens (XLSX), Mão de Obra (XLSX)
+3. **Estoque e Insumos** — Insumos (XLSX), Produtos (XLSX), Planejamento de Compras (XLSX)
+4. **Rebanho** — Rebanho completo com construtor dinâmico (XLSX/PDF), Indicadores Zootécnicos (PDF)
+5. **Assessoria e Calendário** — Anotações de Assessoria (XLSX), Calendário de Atividades (XLSX)
+
+**Construtor dinâmico de Relatório de Rebanho**:
+- 25 campos selecionáveis organizados em 7 categorias: Identificação, Produção Leiteira, Reprodução, Saúde e Sanitário, Pesagens e GMD, Genética e Raça, Dados da Fazenda
+- Usa a view Postgres `vw_animais_completos` (criada com `security_invoker`)
+- Exporta para XLSX ou PDF conforme escolha do usuário
+
+**Helpers e componentes reutilizáveis**:
+- `lib/pdf/relatorio-helpers.ts` — `gerarExcel(colunas, dados, nomeArquivo)` e `gerarPdf(titulo, colunas, dados, nomeArquivo)` genéricos
+- `lib/utils/date-range.ts` — `toUtcRangeFromLocal(dataInicio, dataFim)` para converter range local → UTC sem shift
+- `components/relatorios/PeriodoFilter.tsx` — seletor de período reutilizável (data início/fim)
+- `components/relatorios/RelatorioCard.tsx` — card padrão para cada relatório
+- `components/relatorios/ExportButtons.tsx` — botões de exportação (XLSX / PDF)
+
+**Correções incluídas nessa versão**:
+- Bloqueio de Operador em rotas e Sidebar do módulo de Relatórios
+- `select('*')` em `q.insumos.list()` substituído por colunas explícitas
+- Aba de Movimentações de Silos exibe nome do silo (não UUID)
+- Card duplicado "Inventário de Estoque" removido
+- Botão obsoleto "Configurar Dashboards" removido
+
+**View Postgres**:
+- `vw_animais_completos` — view com `security_invoker` que une `animais`, `lotes`, `pesos_animal`, `producoes_leiteiras`, `eventos_sanitarios`, `eventos_rebanho` e `reprodutores` para alimentar o construtor dinâmico de relatório de rebanho
 
 ---

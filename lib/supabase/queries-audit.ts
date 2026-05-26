@@ -695,7 +695,7 @@ const movimentacoesInsumo = {
     const { data, error } = await supabase
       .from('movimentacoes_insumo')
       .insert(payload)
-      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
+      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, created_at, criado_por, responsavel')
       .single();
     if (error) throw error;
     return data as MovimentacaoInsumo;
@@ -765,7 +765,7 @@ const movimentacoesInsumo = {
         origem: 'manual',
         data: new Date().toISOString().split('T')[0],
       })
-      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
+      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, created_at, criado_por, responsavel')
       .single();
     if (error) throw error;
     return data as MovimentacaoInsumo;
@@ -918,7 +918,7 @@ const movimentacoesInsumoServer = {
     const { data, error } = await supabaseServer
       .from('movimentacoes_insumo')
       .insert(payload)
-      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
+      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, created_at, criado_por, responsavel')
       .single();
     if (error) throw error;
     return data as MovimentacaoInsumo;
@@ -987,7 +987,7 @@ const movimentacoesInsumoServer = {
           origem: 'manual',
           data: new Date().toISOString().split('T')[0],
         })
-        .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, criado_em, criado_por, responsavel')
+        .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, created_at, criado_por, responsavel')
         .single();
 
       if (error) {
