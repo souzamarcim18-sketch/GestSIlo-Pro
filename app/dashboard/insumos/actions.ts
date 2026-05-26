@@ -10,9 +10,8 @@ import { revalidatePath } from 'next/cache';
  * Valida que tipo_id pertence à categoria_id selecionada.
  */
 export async function criarInsumoAction(formData: unknown) {
-  const parsed = insumoFormSchema.parse(formData);
-
   try {
+    const parsed = insumoFormSchema.parse(formData);
     console.log('[criarInsumoAction] Iniciando com dados:', { nome: parsed.nome, categoria_id: parsed.categoria_id });
 
     // Se tipo_id fornecido, validar que pertence à categoria_id
@@ -31,7 +30,7 @@ export async function criarInsumoAction(formData: unknown) {
       categoria_id: parsed.categoria_id,
       tipo_id: parsed.tipo_id ?? undefined,
       unidade: parsed.unidade,
-      fornecedor: parsed.fornecedor,
+      fornecedor: parsed.fornecedor || undefined,
       local_armazen: parsed.local_armazen,
       estoque_minimo: parsed.estoque_minimo,
       estoque_atual: parsed.quantidade_entrada,
@@ -96,9 +95,8 @@ export async function criarInsumoAction(formData: unknown) {
  * Atualiza um insumo existente.
  */
 export async function atualizarInsumoAction(id: string, formData: unknown) {
-  const parsed = insumoFormSchema.parse(formData);
-
   try {
+    const parsed = insumoFormSchema.parse(formData);
     // Se tipo_id fornecido, validar que pertence à categoria_id
     if (parsed.tipo_id) {
       const tipo = await qServer.tipos.getById(parsed.tipo_id);
@@ -112,7 +110,7 @@ export async function atualizarInsumoAction(id: string, formData: unknown) {
       categoria_id: parsed.categoria_id,
       tipo_id: parsed.tipo_id ?? undefined,
       unidade: parsed.unidade,
-      fornecedor: parsed.fornecedor,
+      fornecedor: parsed.fornecedor || undefined,
       local_armazen: parsed.local_armazen,
       estoque_minimo: parsed.estoque_minimo,
       observacoes: parsed.observacoes,
