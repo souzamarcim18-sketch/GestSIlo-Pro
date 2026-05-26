@@ -122,17 +122,26 @@ LEFT JOIN LATERAL (
   WHERE animal_id = a.id
 ) repr ON true
 
--- Leiteira: produção média 30d, dias em lactação, total da lactação atual
+-- Leiteira: produção média 30d, dias em lactação (via lactacao ativa), total últimos 30d
+-- producoes_leiteiras vincula ao animal diretamente via animal_id + data + volume_litros
+-- lactacoes usa data_inicio_parto e data_fim_secagem (sem lactacao_id em producoes_leiteiras)
 LEFT JOIN LATERAL (
   SELECT
-    ROUND(AVG(pl.quantidade_litros)::numeric, 2)  AS producao_media_30d,
-    (CURRENT_DATE - MAX(lac.data_inicio)::date)   AS dias_lactacao,
-    SUM(pl.quantidade_litros)                     AS total_lactacao
+    ROUND(AVG(pl.volume_litros)::numeric, 2)                              AS producao_media_30d,
+    (CURRENT_DATE - lac_ativa.data_inicio_parto::date)                    AS dias_lactacao,
+    SUM(pl.volume_litros)                                                 AS total_lactacao
   FROM producoes_leiteiras pl
-  JOIN lactacoes lac ON pl.lactacao_id = lac.id
-  WHERE lac.animal_id = a.id
-    AND pl.data_producao >= (CURRENT_DATE - INTERVAL '30 days')
-    AND lac.data_fim IS NULL
+  LEFT JOIN LATERAL (
+    SELECT data_inicio_parto
+    FROM lactacoes
+    WHERE animal_id = a.id
+      AND data_fim_secagem IS NULL
+      AND deleted_at IS NULL
+    ORDER BY data_inicio_parto DESC
+    LIMIT 1
+  ) lac_ativa ON true
+  WHERE pl.animal_id = a.id
+    AND pl.data >= (CURRENT_DATE - INTERVAL '30 days')
 ) leit ON true
 
 -- Sanidade
