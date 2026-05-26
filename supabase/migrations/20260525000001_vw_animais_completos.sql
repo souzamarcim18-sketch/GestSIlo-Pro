@@ -148,7 +148,7 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
   SELECT
     MAX(CASE WHEN tipo = 'vacinacao'     THEN data_evento END)::date AS ultima_vacinacao,
-    MAX(CASE WHEN tipo = 'vacinacao'     THEN proxima_data END)::date AS proxima_vacinacao,
+    MAX(CASE WHEN tipo = 'vacinacao'     THEN data_proxima_dose END)::date AS proxima_vacinacao,
     MAX(CASE WHEN tipo = 'vermifugacao'  THEN data_evento END)::date AS ultima_vermifugacao
   FROM eventos_sanitarios
   WHERE animal_id = a.id
