@@ -1,4 +1,6 @@
-import { createClient } from '@/lib/supabase/client';
+'use server';
+
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 
 export interface ProdutoRow {
@@ -72,7 +74,7 @@ export async function getRelatorioProdutos(
   from: Date,
   to: Date
 ): Promise<RelatorioProdutosResult> {
-  const supabase = createClient();
+  const supabase = await createSupabaseServerClient();
   const { gte, lte } = toUtcRangeFromLocal(from, to);
 
   const [produtosRes, movsRes] = await Promise.all([

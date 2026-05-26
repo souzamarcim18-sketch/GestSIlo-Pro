@@ -900,7 +900,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
             >
               {showPlanejamentoSelect && planejamentosDisponiveis.length > 1 && (
                 <div className="mt-2 space-y-2">
-                  <Select value={planejamentoSelecionado} onValueChange={setPlanejamentoSelecionado}>
+                  <Select value={planejamentoSelecionado} onValueChange={(v) => v && setPlanejamentoSelecionado(v)}>
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Selecionar planejamento" />
                     </SelectTrigger>
