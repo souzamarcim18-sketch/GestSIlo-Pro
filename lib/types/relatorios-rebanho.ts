@@ -30,8 +30,6 @@ export interface AnimalCompleto {
   categoria: string | null;
   status: string;
   data_nascimento: string | null;
-  data_entrada: string | null;
-  data_desmame: string | null;
   fazenda_id: string;
   lote_nome: string | null;
   ultimo_peso_kg: number | null;
@@ -233,20 +231,6 @@ export const CAMPOS_REBANHO: CampoRebanho[] = [
     categoria: 'datas',
     tipo: 'date',
     fonte: { tipo: 'coluna', tabela: 'vw_animais_completos', coluna: 'data_nascimento' },
-  },
-  {
-    id: 'data_entrada',
-    label: 'Entrada no Rebanho',
-    categoria: 'datas',
-    tipo: 'date',
-    fonte: { tipo: 'coluna', tabela: 'vw_animais_completos', coluna: 'data_entrada' },
-  },
-  {
-    id: 'data_desmame',
-    label: 'Desmame',
-    categoria: 'datas',
-    tipo: 'date',
-    fonte: { tipo: 'coluna', tabela: 'vw_animais_completos', coluna: 'data_desmame' },
   },
 ];
 

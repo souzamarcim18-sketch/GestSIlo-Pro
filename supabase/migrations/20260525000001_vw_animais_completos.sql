@@ -15,8 +15,6 @@ SELECT
   a.categoria,
   a.status,
   a.data_nascimento,
-  a.data_entrada,
-  a.data_desmame,
   a.fazenda_id,
   l.nome AS lote_nome,
 
