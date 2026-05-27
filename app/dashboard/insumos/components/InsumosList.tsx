@@ -9,7 +9,7 @@ import {
   PaginationLink, PaginationNext, PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUpRight, ArrowDownRight, Trash2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Trash2, History } from 'lucide-react';
 import type { Insumo, CategoriaInsumo } from '@/types/insumos';
 
 interface InsumosListProps {
@@ -24,6 +24,7 @@ interface InsumosListProps {
   onSaidaClick: (insumo: Insumo) => void;
   onAjusteClick: (insumo: Insumo) => void;
   onDeleteClick?: (insumo: Insumo) => void;
+  onHistoricoClick: (insumo: Insumo) => void;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -36,6 +37,7 @@ export default function InsumosList({
   onSaidaClick,
   onAjusteClick,
   onDeleteClick,
+  onHistoricoClick,
 }: InsumosListProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -112,8 +114,18 @@ export default function InsumosList({
                   {paginatedInsumos.map((insumo) => {
                     const critico = insumo.estoque_atual < insumo.estoque_minimo;
                     return (
-                      <TableRow key={insumo.id}>
-                        <TableCell className="font-medium text-sm">{insumo.nome}</TableCell>
+                      <TableRow
+                        key={insumo.id}
+                        className="cursor-pointer hover:bg-muted/60"
+                        onClick={() => onHistoricoClick(insumo)}
+                        title="Clique para ver o histórico de movimentações"
+                      >
+                        <TableCell className="font-medium text-sm">
+                          <span className="flex items-center gap-1.5">
+                            {insumo.nome}
+                            <History className="h-3 w-3 text-muted-foreground opacity-50" />
+                          </span>
+                        </TableCell>
                         <TableCell className="text-sm">
                           {getCategoriaName(insumo.categoria)}
                         </TableCell>
@@ -136,7 +148,7 @@ export default function InsumosList({
                             <Badge variant="outline" className="text-xs">OK</Badge>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-1">
                             <Button
                               size="sm"

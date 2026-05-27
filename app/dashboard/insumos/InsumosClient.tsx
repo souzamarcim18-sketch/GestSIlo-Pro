@@ -16,13 +16,17 @@ import InsumoForm from './components/InsumoForm';
 import SaidaForm from './components/SaidaForm';
 import AjusteInventario from './components/AjusteInventario';
 import DeleteInsumoDialog from './components/DeleteInsumoDialog';
+import HistoricoInsumoDialog from './components/HistoricoInsumoDialog';
+import type { Insumo } from '@/types/insumos';
 
 export function InsumosClient() {
   const [showNovoInsumo, setShowNovoInsumo] = useState(false);
   const [showSaida, setShowSaida] = useState(false);
   const [showAjuste, setShowAjuste] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showHistorico, setShowHistorico] = useState(false);
   const [selectedInsumoPara, setSelectedInsumoPara] = useState<{ tipo: 'saida' | 'ajuste' | 'delete'; id?: string }>({ tipo: 'saida' });
+  const [insumoHistorico, setInsumoHistorico] = useState<Insumo | null>(null);
 
   const [filters, setFilters] = useState({ busca: '', categoria_id: '', tipo_id: '' });
   const queryClient = useQueryClient();
@@ -52,6 +56,11 @@ export function InsumosClient() {
   const handleDeleteClick = (insumo: typeof insumos[0]) => {
     setSelectedInsumoPara({ tipo: 'delete', id: insumo.id });
     setShowDelete(true);
+  };
+
+  const handleHistoricoClick = (insumo: Insumo) => {
+    setInsumoHistorico(insumo);
+    setShowHistorico(true);
   };
 
   return (
@@ -97,6 +106,7 @@ export function InsumosClient() {
         onSaidaClick={(insumo) => handleSaidaClick(insumo.id)}
         onAjusteClick={(insumo) => handleAjusteClick(insumo.id)}
         onDeleteClick={handleDeleteClick}
+        onHistoricoClick={handleHistoricoClick}
       />
 
       <InsumoForm
@@ -127,6 +137,12 @@ export function InsumosClient() {
         onOpenChange={setShowDelete}
         insumoId={selectedInsumoPara.tipo === 'delete' ? selectedInsumoPara.id : undefined}
         onSuccess={invalidateInsumos}
+      />
+
+      <HistoricoInsumoDialog
+        insumo={insumoHistorico}
+        open={showHistorico}
+        onOpenChange={setShowHistorico}
       />
     </div>
   );
