@@ -62,6 +62,28 @@ const STATUS_CONFIG: Record<SiloStatus, { label: string; badgeClass: string; gau
   },
 };
 
+const CULTURA_COLORS: Record<string, string> = {
+  milho: '#f5a623',
+  sorgo: '#9b59b6',
+  capim: '#27ae60',
+  braquiaria: '#27ae60',
+  napier: '#27ae60',
+  cana: '#2ecc71',
+  girassol: '#f1c40f',
+  aveia: '#e8c98a',
+  azevem: '#6db86d',
+  trigo: '#d4a843',
+};
+
+function getCulturaColor(cultura: string | null | undefined): string {
+  if (!cultura) return '#6b7280';
+  const key = cultura.toLowerCase().trim();
+  for (const [k, v] of Object.entries(CULTURA_COLORS)) {
+    if (key.includes(k)) return v;
+  }
+  return '#6b7280';
+}
+
 function getCapacidade(silo: Silo): number {
   if (silo.volume_ensilado_ton_mv) return silo.volume_ensilado_ton_mv;
   if (silo.comprimento_m && silo.largura_m && silo.altura_m) {
@@ -159,6 +181,8 @@ export function SiloCard({
           ? '#f5d000'
           : '#e05454';
 
+  const culturaColor = getCulturaColor(silo.cultura_ensilada ?? silo.tipo);
+
   const diasFechado =
     dataFechamento && !dataAberturaReal
       ? differenceInDays(new Date(), new Date(dataFechamento))
@@ -173,6 +197,7 @@ export function SiloCard({
   return (
     <Card
       className="relative flex flex-col gap-0 rounded-xl bg-card border border-border/50 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-border transition-all duration-150"
+      style={{ borderLeft: `4px solid ${culturaColor}` }}
       role="article"
       aria-label={`Silo ${silo.nome}, ${cfg.label}`}
       onClick={onClick}

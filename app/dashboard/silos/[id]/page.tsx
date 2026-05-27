@@ -60,6 +60,8 @@ export default function SiloDetailPage() {
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [deleteDependencies, setDeleteDependencies] = useState<{ movimentacoesCount: number; avaliacoesCount: number } | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [insumoLonaNome, setInsumoLonaNome] = useState<string | null>(null);
+  const [insumoInoculanteNome, setInsumoInoculanteNome] = useState<string | null>(null);
 
   // Fetch dados
   const fetchData = useCallback(async () => {
@@ -89,6 +91,14 @@ export default function SiloDetailPage() {
         talData = await q.talhoes.getById(siloData.talhao_id);
       }
       setTalhao(talData);
+
+      // Buscar nomes dos insumos
+      const [lonaData, inocData] = await Promise.all([
+        siloData.insumo_lona_id ? q.insumos.getById(siloData.insumo_lona_id).catch(() => null) : Promise.resolve(null),
+        siloData.insumo_inoculante_id ? q.insumos.getById(siloData.insumo_inoculante_id).catch(() => null) : Promise.resolve(null),
+      ]);
+      setInsumoLonaNome(lonaData?.nome ?? null);
+      setInsumoInoculanteNome(inocData?.nome ?? null);
     } catch (err) {
       toast.error('Erro ao carregar dados do silo');
       router.push('/dashboard/silos');
@@ -222,8 +232,8 @@ export default function SiloDetailPage() {
             talhao={talhao}
             custo={custo}
             densidade={null}
-            insumoLona={null}
-            insumoInoculante={null}
+            insumoLona={insumoLonaNome}
+            insumoInoculante={insumoInoculanteNome}
           />
         )}
         {activeTab === 'estoque' && (

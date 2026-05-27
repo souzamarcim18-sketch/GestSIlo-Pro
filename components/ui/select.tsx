@@ -6,7 +6,20 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+// Contexto interno para mapear value → label e exibir corretamente no trigger
+const SelectItemsMapContext = React.createContext<React.MutableRefObject<Map<string, React.ReactNode>> | null>(null)
+
+function Select<Value = string, Multiple extends boolean | undefined = false>({
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const mapRef = React.useRef<Map<string, React.ReactNode>>(new Map())
+  return (
+    <SelectItemsMapContext.Provider value={mapRef}>
+      <SelectPrimitive.Root {...props}>{children}</SelectPrimitive.Root>
+    </SelectItemsMapContext.Provider>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -18,13 +31,21 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+function SelectValue({ className, children, placeholder, ...props }: SelectPrimitive.Value.Props) {
+  const mapRef = React.useContext(SelectItemsMapContext)
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
       className={cn("flex flex-1 text-left", className)}
+      placeholder={placeholder}
       {...props}
-    />
+    >
+      {children ?? ((value: unknown) => {
+        if (value == null || value === '') return null
+        const label = mapRef?.current.get(String(value))
+        return label ?? String(value)
+      })}
+    </SelectPrimitive.Value>
   )
 }
 
@@ -116,11 +137,24 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  value,
   ...props
 }: SelectPrimitive.Item.Props) {
+  const mapRef = React.useContext(SelectItemsMapContext)
+  React.useEffect(() => {
+    if (mapRef && value != null) {
+      // Extrai texto simples de children para o mapa (strings e números)
+      const label = typeof children === 'string' || typeof children === 'number'
+        ? children
+        : children
+      mapRef.current.set(String(value), label as React.ReactNode)
+    }
+  }, [mapRef, value, children])
+
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
+      value={value}
       className={cn(
         "relative flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm outline-none transition-colors data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-[rgba(0,196,90,0.10)] data-highlighted:text-[#00c45a] data-selected:text-[#00c45a] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className

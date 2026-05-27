@@ -76,11 +76,13 @@ export const siloSchema = z.object({
     .union([z.number().positive('Altura deve ser maior que 0'), z.null()])
     .optional(),
   insumo_lona_id: z.string().uuid('ID da lona inválido').nullable().optional(),
+  quantidade_lona: z.number().positive('Quantidade deve ser maior que 0').nullable().optional(),
   insumo_inoculante_id: z
     .string()
     .uuid('ID do inoculante inválido')
     .nullable()
     .optional(),
+  quantidade_inoculante: z.number().positive('Quantidade deve ser maior que 0').nullable().optional(),
   colaborador_id: z.string().uuid().optional(),
 });
 

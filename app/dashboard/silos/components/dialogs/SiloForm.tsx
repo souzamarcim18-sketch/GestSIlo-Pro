@@ -90,7 +90,9 @@ export function SiloForm({
           observacoes_gerais: silo.observacoes_gerais ?? '',
           custo_aquisicao_rs_ton: silo.custo_aquisicao_rs_ton ?? null,
           insumo_lona_id: silo.insumo_lona_id ?? null,
+          quantidade_lona: null,
           insumo_inoculante_id: silo.insumo_inoculante_id ?? null,
+          quantidade_inoculante: null,
         }
       : {
           nome: '',
@@ -108,7 +110,9 @@ export function SiloForm({
           observacoes_gerais: '',
           custo_aquisicao_rs_ton: null,
           insumo_lona_id: null,
+          quantidade_lona: null,
           insumo_inoculante_id: null,
+          quantidade_inoculante: null,
         },
   });
 
@@ -131,7 +135,9 @@ export function SiloForm({
         observacoes_gerais: '',
         custo_aquisicao_rs_ton: null,
         insumo_lona_id: null,
+        quantidade_lona: null,
         insumo_inoculante_id: null,
+        quantidade_inoculante: null,
       });
     }
   }, [open, mode, form]);
@@ -218,10 +224,11 @@ export function SiloForm({
           try {
             if (data.insumo_lona_id) {
               const insumoLona = await q.insumos.getById(data.insumo_lona_id);
+              const quantidadeLona = data.quantidade_lona ?? 1;
               await q.movimentacoesInsumo.create({
                 insumo_id: data.insumo_lona_id,
                 tipo: 'Saída',
-                quantidade: 1,
+                quantidade: quantidadeLona,
                 valor_unitario: insumoLona.custo_medio,
                 tipo_saida: 'USO_INTERNO',
                 destino_tipo: 'silo',
@@ -234,9 +241,8 @@ export function SiloForm({
 
             if (data.insumo_inoculante_id) {
               const insumoInoc = await q.insumos.getById(data.insumo_inoculante_id);
-              const quantidade = data.volume_ensilado_ton_mv
-                ? data.volume_ensilado_ton_mv / 1000
-                : 1;
+              const quantidade = data.quantidade_inoculante
+                ?? (data.volume_ensilado_ton_mv ? data.volume_ensilado_ton_mv / 1000 : 1);
               if (insumoInoc.estoque_atual < quantidade) {
                 throw new Error(
                   `Estoque insuficiente de ${insumoInoc.nome}. Disponível: ${insumoInoc.estoque_atual} ${insumoInoc.unidade}`
@@ -540,7 +546,10 @@ export function SiloForm({
                 name="insumo_lona_id"
                 render={({ field }) => (
                   <Select
-                    onValueChange={(val) => field.onChange(val === '' ? null : val)}
+                    onValueChange={(val) => {
+                      field.onChange(val === '' ? null : val);
+                      if (val === '') form.setValue('quantidade_lona', null);
+                    }}
                     value={field.value ?? ''}
                   >
                     <SelectTrigger id="silo-lona">
@@ -561,6 +570,24 @@ export function SiloForm({
                   </Select>
                 )}
               />
+              {form.watch('insumo_lona_id') && (
+                <div className="space-y-1">
+                  <Label htmlFor="silo-qtd-lona" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                  <Input
+                    id="silo-qtd-lona"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="Ex: 1"
+                    {...form.register('quantidade_lona', {
+                      setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                    })}
+                  />
+                  {form.formState.errors.quantidade_lona && (
+                    <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona.message}</p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="silo-inoc">Inoculante</Label>
@@ -569,7 +596,10 @@ export function SiloForm({
                 name="insumo_inoculante_id"
                 render={({ field }) => (
                   <Select
-                    onValueChange={(val) => field.onChange(val === '' ? null : val)}
+                    onValueChange={(val) => {
+                      field.onChange(val === '' ? null : val);
+                      if (val === '') form.setValue('quantidade_inoculante', null);
+                    }}
                     value={field.value ?? ''}
                   >
                     <SelectTrigger id="silo-inoc">
@@ -590,6 +620,24 @@ export function SiloForm({
                   </Select>
                 )}
               />
+              {form.watch('insumo_inoculante_id') && (
+                <div className="space-y-1">
+                  <Label htmlFor="silo-qtd-inoc" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                  <Input
+                    id="silo-qtd-inoc"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder={`Ex: ${form.watch('volume_ensilado_ton_mv') ? ((form.watch('volume_ensilado_ton_mv') ?? 0) / 1000).toFixed(3) : '0.001'}`}
+                    {...form.register('quantidade_inoculante', {
+                      setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                    })}
+                  />
+                  {form.formState.errors.quantidade_inoculante && (
+                    <p className="text-sm text-destructive">{form.formState.errors.quantidade_inoculante.message}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
