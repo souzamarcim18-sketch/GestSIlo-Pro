@@ -1,6 +1,5 @@
 ﻿import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import type { Profile, Fazenda } from '@/lib/supabase';
 import { ConfiguracoesClient } from './ConfiguracoesClient';
 
@@ -14,14 +13,18 @@ export default async function ConfiguracoesPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect('/login');
 
-  const fazendaId = await getCurrentFazendaId();
+  const profileRes = await supabase
+    .from('profiles')
+    .select('id, nome, email, perfil, fazenda_id, created_at, updated_at')
+    .eq('id', user.id)
+    .single();
 
-  const [profileRes, fazendaRes, usersRes] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, nome, email, perfil, fazenda_id, created_at, updated_at')
-      .eq('id', user.id)
-      .single(),
+  if (!profileRes.data) redirect('/login');
+
+  const fazendaId = profileRes.data.fazenda_id;
+  if (!fazendaId) redirect('/dashboard/onboarding');
+
+  const [fazendaRes, usersRes] = await Promise.all([
     supabase
       .from('fazendas')
       .select('id, nome, localizacao, area_total, latitude, longitude, created_at, updated_at')
@@ -35,7 +38,7 @@ export default async function ConfiguracoesPage() {
       .order('nome'),
   ]);
 
-  if (!profileRes.data || !fazendaRes.data) redirect('/login');
+  if (!fazendaRes.data) redirect('/login');
 
   const profile  = profileRes.data  as Profile;
   const fazenda  = fazendaRes.data  as Fazenda;
