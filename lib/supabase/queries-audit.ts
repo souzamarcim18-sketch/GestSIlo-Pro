@@ -846,10 +846,10 @@ const insumosServer = {
   async create(payload: Omit<Insumo, 'id' | 'fazenda_id'>): Promise<Insumo> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
-    await getFazendaIdServer();
+    const fazendaId = await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('insumos')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .single();
     if (error) throw error;

@@ -12,17 +12,9 @@ import { revalidatePath } from 'next/cache';
 export async function criarInsumoAction(formData: unknown) {
   try {
     const parsed = insumoFormSchema.parse(formData);
-    console.log('[criarInsumoAction] Iniciando com dados:', { nome: parsed.nome, categoria_id: parsed.categoria_id });
-
-    // DEBUG TEMPORÁRIO: verificar autenticação e fazenda_id
-    const supabaseDebug = await createSupabaseServerClient();
-    const { data: { user: debugUser } } = await supabaseDebug.auth.getUser();
-    const { data: debugProfile } = await supabaseDebug.from('profiles').select('fazenda_id, perfil').eq('id', debugUser?.id ?? '').single();
-    console.log('[criarInsumoAction] DEBUG auth:', { userId: debugUser?.id, metadata: debugUser?.user_metadata, profile: debugProfile });
 
     // Se tipo_id fornecido, validar que pertence à categoria_id
     if (parsed.tipo_id) {
-      console.log('[criarInsumoAction] Validando tipo_id:', parsed.tipo_id);
       const tipo = await qServer.tipos.getById(parsed.tipo_id);
       if (tipo.categoria_id !== parsed.categoria_id) {
         throw new Error('Tipo selecionado não pertence à categoria escolhida');
@@ -93,10 +85,6 @@ export async function criarInsumoAction(formData: unknown) {
     return { success: true, insumo, despesa_id };
   } catch (error) {
     console.error('Erro ao criar insumo:', error);
-    // DEBUG TEMPORÁRIO: retornar erro detalhado
-    if (error instanceof Error) {
-      throw new Error(`[DEBUG] ${error.message} | ${error.stack?.split('\n')[1] ?? ''}`);
-    }
     throw error;
   }
 }
