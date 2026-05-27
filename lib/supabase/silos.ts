@@ -296,61 +296,142 @@ export async function obterEstoqueParaDias(
   return Math.floor(estoque / consumoDiario);
 }
 
-/**
- * Soma os custos de insumos (lona, inoculante, etc.) aplicados ao silo
- * via movimentacoes_insumo com destino_tipo='silo'.
- * Usa valor_unitario da movimentação; fallback para custo_medio do insumo.
- */
-async function getCustoInsumosSilo(siloId: string): Promise<number> {
-  const { data } = await supabase
-    .from('movimentacoes_insumo')
-    .select('quantidade, valor_unitario, insumo_id, insumos(custo_medio)')
-    .eq('destino_tipo', 'silo')
-    .eq('destino_id', siloId)
-    .eq('tipo', 'Saída');
-
-  if (!data?.length) return 0;
-
-  return data.reduce((acc, mov) => {
-    const insumoRef = Array.isArray(mov.insumos) ? mov.insumos[0] : mov.insumos;
-    const unitario =
-      mov.valor_unitario ??
-      (insumoRef as { custo_medio: number } | null)?.custo_medio ??
-      0;
-    return acc + mov.quantidade * unitario;
-  }, 0);
+export interface FatiaCusto {
+  label: string;
+  valor: number;
 }
 
+// Grupos de tipo_operacao para agrupamento no gráfico
+const GRUPO_PREPARO_SOLO = new Set([
+  'Aração', 'Gradagem', 'Subsolagem', 'Escarificação',
+  'Nivelamento', 'Roçagem', 'Destorroamento',
+]);
+const GRUPO_CORRETIVOS = new Set(['Calagem', 'Gessagem']);
+
 /**
- * Calcula o custo total e por tonelada de um silo.
- * Prioriza custo de produção (via talhão), com fallback para custo de aquisição.
- * Em ambos os casos soma os custos de insumos aplicados ao silo (lona, inoculante, etc.).
- * Retorna null se não houver nenhuma base de custo disponível.
+ * Retorna o breakdown de custos do silo para exibição no gráfico donut.
+ * Retorna null se não houver nenhuma base de custo.
  */
-export async function getCustoSilo(silo: Silo): Promise<{ custoPorTonelada: number; custoTotal: number } | null> {
+export async function getCustoSiloDetalhado(
+  silo: Silo
+): Promise<{ fatias: FatiaCusto[]; custoPorTonelada: number; custoTotal: number } | null> {
   const volumeTon = silo.volume_ensilado_ton_mv || 0;
+  const fatias: FatiaCusto[] = [];
 
-  // Base de custo: produção via talhão ou aquisição
-  let custoBase: number | null = null;
-
+  // ── 1. Base: talhão (produção) ou aquisição ──────────────────────────────
   if (silo.talhao_id) {
-    const custoProducao = await getCustoProducaoSilagem(silo.id, silo.talhao_id);
-    if (custoProducao) {
-      custoBase = custoProducao.custoTotal;
-    } else if (silo.custo_aquisicao_rs_ton) {
-      custoBase = volumeTon * silo.custo_aquisicao_rs_ton;
+    // Buscar ciclo e custos detalhados do talhão
+    let talhaoId = silo.talhao_id;
+
+    // Ciclo agrícola mais recente do talhão
+    const { data: ciclo } = await supabase
+      .from('ciclos_agricolas')
+      .select('id')
+      .eq('talhao_id', talhaoId)
+      .order('data_plantio', { ascending: false })
+      .limit(1)
+      .single();
+
+    // Atividades de campo agrupadas por tipo_operacao
+    if (ciclo?.id) {
+      const { data: atividades } = await supabase
+        .from('atividades_campo')
+        .select('tipo_operacao, custo_total')
+        .eq('ciclo_id', ciclo.id);
+
+      if (atividades?.length) {
+        const grupos: Record<string, number> = {};
+        for (const atv of atividades as AtividadeCampo[]) {
+          const custo = atv.custo_total || 0;
+          if (custo === 0) continue;
+          let grupo: string;
+          if (GRUPO_PREPARO_SOLO.has(atv.tipo_operacao)) grupo = 'Preparo de Solo';
+          else if (GRUPO_CORRETIVOS.has(atv.tipo_operacao)) grupo = 'Corretivos';
+          else if (atv.tipo_operacao === 'Plantio') grupo = 'Plantio/Sementes';
+          else if (atv.tipo_operacao === 'Pulverização') grupo = 'Pulverização';
+          else if (atv.tipo_operacao === 'Colheita') grupo = 'Colheita';
+          else grupo = 'Outras Operações';
+          grupos[grupo] = (grupos[grupo] || 0) + custo;
+        }
+        for (const [label, valor] of Object.entries(grupos)) {
+          fatias.push({ label, valor });
+        }
+      }
+    }
+
+    // Despesas financeiras vinculadas ao talhão
+    const { data: custosFinanceiro } = await supabase
+      .from('financeiro')
+      .select('valor')
+      .eq('referencia_id', talhaoId)
+      .eq('referencia_tipo', 'Talhão')
+      .eq('tipo', 'Despesa');
+
+    const totalFinanceiro =
+      (custosFinanceiro as Financeiro[])?.reduce((acc, c) => acc + c.valor, 0) || 0;
+    if (totalFinanceiro > 0) fatias.push({ label: 'Despesas do Talhão', valor: totalFinanceiro });
+
+    // Se não há nada do talhão, tenta custo de aquisição como fallback
+    if (fatias.length === 0) {
+      if (!silo.custo_aquisicao_rs_ton) return null;
+      fatias.push({ label: 'Custo de Aquisição', valor: volumeTon * silo.custo_aquisicao_rs_ton });
     }
   } else if (silo.custo_aquisicao_rs_ton) {
-    custoBase = volumeTon * silo.custo_aquisicao_rs_ton;
+    fatias.push({ label: 'Custo de Aquisição', valor: volumeTon * silo.custo_aquisicao_rs_ton });
+  } else {
+    return null;
   }
 
-  if (custoBase === null) return null;
+  // ── 2. Insumos aplicados ao silo (lona, inoculante, outros) ──────────────
+  const { data: movsInsumo } = await supabase
+    .from('movimentacoes_insumo')
+    .select('quantidade, valor_unitario, insumo_id, insumos(nome, custo_medio)')
+    .eq('destino_tipo', 'silo')
+    .eq('destino_id', silo.id)
+    .eq('tipo', 'Saída');
 
-  const custoInsumos = await getCustoInsumosSilo(silo.id);
-  const custoTotal = custoBase + custoInsumos;
+  if (movsInsumo?.length) {
+    const porInsumo: Record<string, { nome: string; valor: number }> = {};
+    for (const mov of movsInsumo) {
+      const insumoRef = Array.isArray(mov.insumos) ? mov.insumos[0] : mov.insumos;
+      const ref = insumoRef as { nome: string; custo_medio: number } | null;
+      const unitario = mov.valor_unitario ?? ref?.custo_medio ?? 0;
+      const valor = mov.quantidade * unitario;
+      if (valor === 0) continue;
+      const key = mov.insumo_id;
+      if (!porInsumo[key]) porInsumo[key] = { nome: ref?.nome ?? 'Insumo', valor: 0 };
+      porInsumo[key].valor += valor;
+    }
+
+    // Identificar lona e inoculante pelo id cadastrado no silo
+    for (const [insumoId, { nome, valor }] of Object.entries(porInsumo)) {
+      let label: string;
+      if (insumoId === silo.insumo_lona_id) label = 'Lona';
+      else if (insumoId === silo.insumo_inoculante_id) label = 'Inoculante';
+      else label = nome;
+      // Mesclar com fatia existente de mesmo label, se houver
+      const existing = fatias.find((f) => f.label === label);
+      if (existing) existing.valor += valor;
+      else fatias.push({ label, valor });
+    }
+  }
+
+  const custoTotal = fatias.reduce((acc, f) => acc + f.valor, 0);
+  if (custoTotal === 0) return null;
 
   return {
+    fatias,
     custoTotal,
     custoPorTonelada: volumeTon > 0 ? custoTotal / volumeTon : 0,
   };
+}
+
+/**
+ * Calcula o custo total e por tonelada de um silo (versão resumida).
+ * Delega para getCustoSiloDetalhado e descarta o breakdown.
+ */
+export async function getCustoSilo(silo: Silo): Promise<{ custoPorTonelada: number; custoTotal: number } | null> {
+  const detalhado = await getCustoSiloDetalhado(silo);
+  if (!detalhado) return null;
+  return { custoPorTonelada: detalhado.custoPorTonelada, custoTotal: detalhado.custoTotal };
 }

@@ -9,25 +9,68 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { type Silo, type Talhao, type Insumo } from '@/lib/supabase';
+import { type FatiaCusto } from '@/lib/supabase/silos';
 import { calcularDensidade } from '@/lib/supabase/silos';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface VisaoGeralTabProps {
   silo: Silo;
   talhao: Talhao | null;
-  custo: { custoPorTonelada: number; custoTotal: number } | null;
+  custo: { fatias: FatiaCusto[]; custoPorTonelada: number; custoTotal: number } | null;
   densidade: number | null;
   insumoLona: Insumo | null;
   insumoInoculante: Insumo | null;
+}
+
+const CORES_DONUT = [
+  '#00A651', '#3B82F6', '#F59E0B', '#EF4444',
+  '#8B5CF6', '#EC4899', '#14B8A6', '#F97316',
+  '#6366F1', '#84CC16',
+];
+
+function formatBRL(v: number) {
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+interface TooltipPayloadItem {
+  name: string;
+  value: number;
+  payload: FatiaCusto & { pct: number };
+}
+
+function DonutTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadItem[] }) {
+  if (!active || !payload?.length) return null;
+  const { name, value, payload: data } = payload[0];
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-md text-sm">
+      <p className="font-medium">{name}</p>
+      <p className="text-muted-foreground">R$ {formatBRL(value)}</p>
+      <p className="text-muted-foreground">{data.pct.toFixed(1)}%</p>
+    </div>
+  );
 }
 
 export function VisaoGeralTab({
   silo,
   talhao,
   custo,
-  densidade,
   insumoLona,
   insumoInoculante,
 }: VisaoGeralTabProps) {
+  const temGrafico = custo !== null && custo.fatias.length >= 2;
+
+  // Adicionar percentual a cada fatia para o tooltip
+  const fatiasComPct = custo?.fatias.map((f) => ({
+    ...f,
+    pct: custo.custoTotal > 0 ? (f.valor / custo.custoTotal) * 100 : 0,
+  })) ?? [];
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -93,47 +136,104 @@ export function VisaoGeralTab({
       </Card>
 
       {/* 2. Rastreabilidade & Custo */}
-      <Card className="rounded-2xl bg-card shadow-sm">
+      <Card className={`rounded-2xl bg-card shadow-sm ${temGrafico ? 'lg:col-span-2' : ''}`}>
         <CardHeader>
           <CardTitle>Rastreabilidade & Custo</CardTitle>
           <CardDescription>Informações de produção e economia</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {silo.talhao_id && talhao && (
+        <CardContent>
+          {/* Linha superior: talhão + números */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {silo.talhao_id && talhao && (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Talhão de Origem</p>
+                <p className="font-medium">{talhao.nome}</p>
+              </div>
+            )}
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Talhão de Origem</p>
-              <p className="font-medium">{talhao.nome}</p>
+              <p className="text-sm text-muted-foreground">
+                {silo.talhao_id ? 'Custo de Produção' : 'Custo de Aquisição'}
+              </p>
+              {custo !== null ? (
+                <p className="font-semibold text-lg text-green-700">
+                  R$ {formatBRL(custo.custoPorTonelada)}/ton
+                </p>
+              ) : (
+                <p className="font-medium">-</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Custo Total Estimado</p>
+              {custo !== null ? (
+                <p className="font-semibold text-lg">
+                  R$ {formatBRL(custo.custoTotal)}
+                </p>
+              ) : (
+                <p className="font-medium">-</p>
+              )}
+            </div>
+          </div>
+
+          {/* Gráfico donut + legenda */}
+          {temGrafico && (
+            <div className="flex flex-col md:flex-row items-center gap-8 pt-2 border-t border-border">
+              {/* Donut */}
+              <div className="relative shrink-0" style={{ width: 200, height: 200 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={fatiasComPct}
+                      dataKey="valor"
+                      nameKey="label"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      strokeWidth={2}
+                      stroke="hsl(var(--card))"
+                    >
+                      {fatiasComPct.map((_, i) => (
+                        <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<DonutTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Label central */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-sm font-semibold leading-tight">
+                    R$ {formatBRL(custo!.custoTotal)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Legenda */}
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 w-full">
+                {fatiasComPct.map((fatia, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span
+                      className="mt-1 shrink-0 rounded-sm"
+                      style={{
+                        width: 12,
+                        height: 12,
+                        backgroundColor: CORES_DONUT[i % CORES_DONUT.length],
+                      }}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{fatia.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        R$ {formatBRL(fatia.valor)}
+                        <span className="ml-1 text-muted-foreground/70">
+                          ({fatia.pct.toFixed(1)}%)
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">
-              {silo.talhao_id ? 'Custo de Produção' : 'Custo de Aquisição'}
-            </p>
-            {custo !== null ? (
-              <p className="font-semibold text-lg text-green-700">
-                R$ {custo.custoPorTonelada.toLocaleString('pt-BR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-                /ton
-              </p>
-            ) : (
-              <p className="font-medium">-</p>
-            )}
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Custo Total Estimado</p>
-            {custo !== null ? (
-              <p className="font-semibold text-lg">
-                R$ {custo.custoTotal.toLocaleString('pt-BR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            ) : (
-              <p className="font-medium">-</p>
-            )}
-          </div>
         </CardContent>
       </Card>
 
@@ -196,7 +296,7 @@ export function VisaoGeralTab({
                 <p className="font-medium">{insumoLona.nome}</p>
                 {insumoLona.custo_medio > 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Custo médio: R$ {insumoLona.custo_medio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/{insumoLona.unidade}
+                    Custo médio: R$ {formatBRL(insumoLona.custo_medio)}/{insumoLona.unidade}
                   </p>
                 )}
               </>
@@ -211,7 +311,7 @@ export function VisaoGeralTab({
                 <p className="font-medium">{insumoInoculante.nome}</p>
                 {insumoInoculante.custo_medio > 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Custo médio: R$ {insumoInoculante.custo_medio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/{insumoInoculante.unidade}
+                    Custo médio: R$ {formatBRL(insumoInoculante.custo_medio)}/{insumoInoculante.unidade}
                   </p>
                 )}
               </>

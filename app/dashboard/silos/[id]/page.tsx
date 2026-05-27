@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
-import { getCustoSilo } from '@/lib/supabase/silos';
+import { getCustoSiloDetalhado, type FatiaCusto } from '@/lib/supabase/silos';
 import { deleteSiloSafely } from '@/lib/supabase/safe-delete';
 import { supabase } from '@/lib/supabase';
 import {
@@ -50,7 +50,7 @@ export default function SiloDetailPage() {
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
   const [avaliacoesBromatologicas, setAvaliacoesBromatologicas] = useState<AvaliacaoBromatologica[]>([]);
   const [avaliacoesPsps, setAvaliacoesPsps] = useState<AvaliacaoPSPS[]>([]);
-  const [custo, setCusto] = useState<{ custoPorTonelada: number; custoTotal: number } | null>(null);
+  const [custo, setCusto] = useState<{ fatias: FatiaCusto[]; custoPorTonelada: number; custoTotal: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMovOpen, setIsMovOpen] = useState(false);
@@ -82,8 +82,8 @@ export default function SiloDetailPage() {
       setAvaliacoesBromatologicas(bromData);
       setAvaliacoesPsps(pspsData);
 
-      // Calcular custo do silo
-      const custoData = await getCustoSilo(siloData);
+      // Calcular custo detalhado do silo
+      const custoData = await getCustoSiloDetalhado(siloData);
       setCusto(custoData);
 
       // Buscar talhão se houver (guard para null)
