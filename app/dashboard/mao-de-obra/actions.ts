@@ -23,8 +23,8 @@ export async function criarColaboradorAction(formData: unknown): Promise<ActionR
   try {
     const parsed = colaboradorFormSchema.parse(formData);
     const supabase = await createSupabaseServerClient();
+    const fazenda_id = await getFazendaId(supabase);
 
-    // fazenda_id preenchido pelo trigger set_fazenda_id
     const { error } = await supabase.from('colaboradores').insert({
       nome: parsed.nome,
       funcao: parsed.funcao,
@@ -32,7 +32,7 @@ export async function criarColaboradorAction(formData: unknown): Promise<ActionR
       tipo_valor: parsed.tipo_valor,
       valor_ref: parsed.valor_ref,
       observacoes: parsed.observacoes ?? null,
-      fazenda_id: '', // preenchido pelo trigger; valor ignorado pelo banco
+      fazenda_id,
     });
 
     if (error) throw error;
