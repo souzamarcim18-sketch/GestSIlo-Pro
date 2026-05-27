@@ -544,7 +544,11 @@ export function SiloForm({
                     value={field.value ?? ''}
                   >
                     <SelectTrigger id="silo-lona">
-                      <SelectValue placeholder="Selecione" />
+                      <SelectValue placeholder="Selecione">
+                        {field.value
+                          ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                          : 'Nenhuma'}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Nenhuma</SelectItem>
@@ -569,7 +573,11 @@ export function SiloForm({
                     value={field.value ?? ''}
                   >
                     <SelectTrigger id="silo-inoc">
-                      <SelectValue placeholder="Selecione" />
+                      <SelectValue placeholder="Selecione">
+                        {field.value
+                          ? (insumosInoculante.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                          : 'Nenhum'}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Nenhum</SelectItem>
