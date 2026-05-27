@@ -14,6 +14,7 @@ import {
   type Talhao,
   type AvaliacaoBromatologica,
   type AvaliacaoPSPS,
+  type Insumo,
 } from '@/lib/supabase';
 import { SiloDetailHeader } from '../components/SiloDetailHeader';
 import { Card } from '@/components/ui/card';
@@ -60,8 +61,8 @@ export default function SiloDetailPage() {
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [deleteDependencies, setDeleteDependencies] = useState<{ movimentacoesCount: number; avaliacoesCount: number } | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [insumoLonaNome, setInsumoLonaNome] = useState<string | null>(null);
-  const [insumoInoculanteNome, setInsumoInoculanteNome] = useState<string | null>(null);
+  const [insumoLona, setInsumoLona] = useState<Insumo | null>(null);
+  const [insumoInoculante, setInsumoInoculante] = useState<Insumo | null>(null);
 
   // Fetch dados
   const fetchData = useCallback(async () => {
@@ -92,13 +93,13 @@ export default function SiloDetailPage() {
       }
       setTalhao(talData);
 
-      // Buscar nomes dos insumos
+      // Buscar dados dos insumos (lona e inoculante)
       const [lonaData, inocData] = await Promise.all([
         siloData.insumo_lona_id ? q.insumos.getById(siloData.insumo_lona_id).catch(() => null) : Promise.resolve(null),
         siloData.insumo_inoculante_id ? q.insumos.getById(siloData.insumo_inoculante_id).catch(() => null) : Promise.resolve(null),
       ]);
-      setInsumoLonaNome(lonaData?.nome ?? null);
-      setInsumoInoculanteNome(inocData?.nome ?? null);
+      setInsumoLona(lonaData);
+      setInsumoInoculante(inocData);
     } catch (err) {
       toast.error('Erro ao carregar dados do silo');
       router.push('/dashboard/silos');
@@ -232,8 +233,8 @@ export default function SiloDetailPage() {
             talhao={talhao}
             custo={custo}
             densidade={null}
-            insumoLona={insumoLonaNome}
-            insumoInoculante={insumoInoculanteNome}
+            insumoLona={insumoLona}
+            insumoInoculante={insumoInoculante}
           />
         )}
         {activeTab === 'estoque' && (

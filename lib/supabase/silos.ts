@@ -28,28 +28,36 @@ export async function deleteSilo(id: string) {
   if (error) throw error;
 }
 
-export async function getCustoProducaoSilagem(siloId: string) {
-  // 1. Buscar a primeira entrada para identificar o talhão de origem
-  const { data: primeiraEntrada } = await supabase
-    .from('movimentacoes_silo')
-    .select('talhao_id, data')
-    .eq('silo_id', siloId)
-    .eq('tipo', 'Entrada')
-    .order('data', { ascending: true })
-    .limit(1)
-    .single();
+export async function getCustoProducaoSilagem(siloId: string, talhaoIdDireto?: string) {
+  // 1. Usar talhao_id direto do silo; se não fornecido, busca na primeira entrada
+  let talhaoId: string | null = talhaoIdDireto ?? null;
+  let dataEntrada: string | null = null;
 
-  if (!primeiraEntrada?.talhao_id) return null;
+  if (!talhaoId) {
+    const { data: primeiraEntrada } = await supabase
+      .from('movimentacoes_silo')
+      .select('talhao_id, data')
+      .eq('silo_id', siloId)
+      .eq('tipo', 'Entrada')
+      .order('data', { ascending: true })
+      .limit(1)
+      .single();
 
-  const talhaoId = primeiraEntrada.talhao_id;
+    talhaoId = primeiraEntrada?.talhao_id ?? null;
+    dataEntrada = primeiraEntrada?.data ?? null;
+  }
 
-  // 2. Buscar o ciclo agrícola ativo ou mais recente desse talhão na data da entrada
+  if (!talhaoId) return null;
+
+  // 2. Buscar o ciclo agrícola ativo ou mais recente desse talhão
+  // Se não temos data da entrada, usar hoje como referência
+  const dataRef = dataEntrada ?? new Date().toISOString().slice(0, 10);
   const { data: ciclo } = await supabase
     .from('ciclos_agricolas')
     .select('id')
     .eq('talhao_id', talhaoId)
-    .lte('data_plantio', primeiraEntrada.data)
-    .or(`data_colheita_real.is.null,data_colheita_real.gte.${primeiraEntrada.data}`)
+    .lte('data_plantio', dataRef)
+    .or(`data_colheita_real.is.null,data_colheita_real.gte.${dataRef}`)
     .order('data_plantio', { ascending: false })
     .limit(1)
     .single();
@@ -296,7 +304,7 @@ export async function obterEstoqueParaDias(
 export async function getCustoSilo(silo: Silo): Promise<{ custoPorTonelada: number; custoTotal: number } | null> {
   // Se talhao_id não-nulo, tentar custo de produção com fallback
   if (silo.talhao_id) {
-    const custoProducao = await getCustoProducaoSilagem(silo.id);
+    const custoProducao = await getCustoProducaoSilagem(silo.id, silo.talhao_id);
     if (custoProducao) {
       return custoProducao;
     }

@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { type Silo, type Talhao } from '@/lib/supabase';
+import { type Silo, type Talhao, type Insumo } from '@/lib/supabase';
 import { calcularDensidade } from '@/lib/supabase/silos';
 
 interface VisaoGeralTabProps {
@@ -16,8 +16,8 @@ interface VisaoGeralTabProps {
   talhao: Talhao | null;
   custo: { custoPorTonelada: number; custoTotal: number } | null;
   densidade: number | null;
-  insumoLona: string | null;
-  insumoInoculante: string | null;
+  insumoLona: Insumo | null;
+  insumoInoculante: Insumo | null;
 }
 
 export function VisaoGeralTab({
@@ -191,11 +191,33 @@ export function VisaoGeralTab({
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Lona</p>
-            <p className="font-medium">{insumoLona || '-'}</p>
+            {insumoLona ? (
+              <>
+                <p className="font-medium">{insumoLona.nome}</p>
+                {insumoLona.custo_medio > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Custo médio: R$ {insumoLona.custo_medio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/{insumoLona.unidade}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="font-medium">-</p>
+            )}
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Inoculante</p>
-            <p className="font-medium">{insumoInoculante || '-'}</p>
+            {insumoInoculante ? (
+              <>
+                <p className="font-medium">{insumoInoculante.nome}</p>
+                {insumoInoculante.custo_medio > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Custo médio: R$ {insumoInoculante.custo_medio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/{insumoInoculante.unidade}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="font-medium">-</p>
+            )}
           </div>
         </CardContent>
       </Card>
