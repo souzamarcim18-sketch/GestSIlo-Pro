@@ -36,18 +36,18 @@ export interface FiltrosCalendario {
   cultura?: string;
 }
 
-export const MODULO_CONFIG: Record<ModuloCalendario, { label: string; colorClass: string; bgClass: string }> = {
-  lavoura_dap:        { label: 'DAP Lavoura',       colorClass: 'text-green-600',       bgClass: 'bg-green-100' },
-  lavoura_atividade:  { label: 'Atividade Campo',    colorClass: 'text-green-800',       bgClass: 'bg-green-200' },
-  frota:              { label: 'Frota',              colorClass: 'text-blue-600',        bgClass: 'bg-blue-100' },
-  rebanho:            { label: 'Rebanho',            colorClass: 'text-amber-600',       bgClass: 'bg-amber-100' },
-  sanidade:           { label: 'Sanidade',           colorClass: 'text-red-500',         bgClass: 'bg-red-100' },
-  mao_obra:           { label: 'Mão de Obra',        colorClass: 'text-purple-600',      bgClass: 'bg-purple-100' },
-  pastagem_manejo:    { label: 'Manejo Pastagem',    colorClass: 'text-lime-600',        bgClass: 'bg-lime-100' },
-  pastagem_ocupacao:  { label: 'Ocupação Piquete',   colorClass: 'text-lime-500',        bgClass: 'bg-lime-50' },
-  silo:               { label: 'Silo',               colorClass: 'text-orange-600',      bgClass: 'bg-orange-100' },
-  insumo:             { label: 'Insumo',             colorClass: 'text-cyan-600',        bgClass: 'bg-cyan-100' },
-  produto:            { label: 'Produto',            colorClass: 'text-indigo-600',      bgClass: 'bg-indigo-100' },
+export const MODULO_CONFIG: Record<ModuloCalendario, { label: string; colorClass: string; bgClass: string; dotClass: string }> = {
+  lavoura_dap:        { label: 'DAP Lavoura',       colorClass: 'text-green-300',       bgClass: 'bg-green-900/60',   dotClass: 'bg-green-400' },
+  lavoura_atividade:  { label: 'Atividade Campo',    colorClass: 'text-emerald-300',     bgClass: 'bg-emerald-900/60', dotClass: 'bg-emerald-400' },
+  frota:              { label: 'Frota',              colorClass: 'text-blue-300',        bgClass: 'bg-blue-900/60',    dotClass: 'bg-blue-400' },
+  rebanho:            { label: 'Rebanho',            colorClass: 'text-amber-300',       bgClass: 'bg-amber-900/60',   dotClass: 'bg-amber-400' },
+  sanidade:           { label: 'Sanidade',           colorClass: 'text-red-300',         bgClass: 'bg-red-900/60',     dotClass: 'bg-red-400' },
+  mao_obra:           { label: 'Mão de Obra',        colorClass: 'text-purple-300',      bgClass: 'bg-purple-900/60',  dotClass: 'bg-purple-400' },
+  pastagem_manejo:    { label: 'Manejo Pastagem',    colorClass: 'text-lime-300',        bgClass: 'bg-lime-900/60',    dotClass: 'bg-lime-400' },
+  pastagem_ocupacao:  { label: 'Ocupação Piquete',   colorClass: 'text-lime-200',        bgClass: 'bg-lime-800/60',    dotClass: 'bg-lime-300' },
+  silo:               { label: 'Silo',               colorClass: 'text-orange-300',      bgClass: 'bg-orange-900/60',  dotClass: 'bg-orange-400' },
+  insumo:             { label: 'Insumo',             colorClass: 'text-cyan-300',        bgClass: 'bg-cyan-900/60',    dotClass: 'bg-cyan-400' },
+  produto:            { label: 'Produto',            colorClass: 'text-indigo-300',      bgClass: 'bg-indigo-900/60',  dotClass: 'bg-indigo-400' },
 };
 
 export const MODULO_ICONE: Record<ModuloCalendario, React.ComponentType<{ className?: string }>> = {

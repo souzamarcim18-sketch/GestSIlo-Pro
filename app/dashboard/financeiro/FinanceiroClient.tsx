@@ -658,11 +658,11 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
                 <AreaChart data={fluxoMensal} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#68f241" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#68f241" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#4ade80" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#4ade80" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gradDespesa" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.15} />
+                      <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.18} />
                       <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -671,8 +671,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
                   <YAxis tick={{ fontSize: 13 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={56} />
                   <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
                   <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13 }} />
-                  <Area type="monotone" dataKey="receita" name="Receita" stroke="hsl(var(--primary))" fill="url(#gradReceita)" strokeWidth={2} dot={false} />
                   <Area type="monotone" dataKey="despesa" name="Despesa" stroke="#ef4444" fill="url(#gradDespesa)" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="receita" name="Receita" stroke="#4ade80" fill="url(#gradReceita)" strokeWidth={2.5} dot={{ r: 3, fill: '#4ade80', strokeWidth: 0 }} activeDot={{ r: 5 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

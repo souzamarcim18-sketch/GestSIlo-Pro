@@ -17,7 +17,6 @@ import {
   type EventoCalendario,
   type ModuloCalendario,
   MODULO_CONFIG,
-  MODULO_ICONE,
 } from '@/lib/types/calendario';
 import { formatarDataBR } from '@/app/dashboard/alertas-helpers';
 
@@ -55,8 +54,8 @@ function StatusBadge({ status }: { status: EventoCalendario['status'] }) {
 }
 
 function EventoPonto({ modulo }: { modulo: ModuloCalendario }) {
-  const { bgClass } = MODULO_CONFIG[modulo];
-  return <span className={`w-2 h-2 rounded-full shrink-0 ${bgClass}`} />;
+  const { dotClass } = MODULO_CONFIG[modulo];
+  return <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />;
 }
 
 const TODOS_OS_MODULOS: ModuloCalendario[] = [
@@ -348,13 +347,10 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
         <CardContent className="pt-4 pb-4">
           <div className="flex flex-wrap gap-4">
             {TODOS_OS_MODULOS.map((modulo) => {
-              const { label, bgClass, colorClass } = MODULO_CONFIG[modulo];
-              const Icone = MODULO_ICONE[modulo];
+              const { label, dotClass } = MODULO_CONFIG[modulo];
               return (
                 <div key={modulo} className="flex items-center gap-1.5">
-                  <span className={`p-1 rounded-full ${bgClass}`}>
-                    <Icone className={`w-3 h-3 ${colorClass}`} />
-                  </span>
+                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dotClass}`} />
                   <span className="text-xs text-muted-foreground">{label}</span>
                 </div>
               );
