@@ -658,8 +658,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
                 <AreaChart data={fluxoMensal} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#68f241" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#68f241" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gradDespesa" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.15} />

@@ -6,7 +6,6 @@ import { AlertTriangle, Plus, ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import {
   listProdutos,
-  listCategoriasProduto,
   listMovimentacoesProduto,
 } from '@/lib/supabase/produtos';
 
@@ -22,12 +21,14 @@ import DeleteProdutoDialog from './components/DeleteProdutoDialog';
 import type { Database } from '@/types/supabase';
 
 type ProdutoRow = Database['public']['Tables']['produtos']['Row'];
+type CategoriaProdutoRow = Database['public']['Tables']['categorias_produto']['Row'];
 
 interface Props {
   isAdmin: boolean;
+  initialCategorias: CategoriaProdutoRow[];
 }
 
-export function ProdutosClient({ isAdmin }: Props) {
+export function ProdutosClient({ isAdmin, initialCategorias }: Props) {
   const queryClient = useQueryClient();
 
   const [showNovoProduto, setShowNovoProduto] = useState(false);
@@ -45,11 +46,7 @@ export function ProdutosClient({ isAdmin }: Props) {
     staleTime: 1000 * 60,
   });
 
-  const { data: categorias = [] } = useQuery({
-    queryKey: ['categorias_produto'],
-    queryFn: listCategoriasProduto,
-    staleTime: 1000 * 60 * 10,
-  });
+  const categorias = initialCategorias;
 
   const { data: todasMovs = [] } = useQuery({
     queryKey: ['movimentacoes_produto', 'recentes', produtos.map((p) => p.id).join(',')],
