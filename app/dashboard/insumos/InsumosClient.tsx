@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Plus, ArrowDownRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useInsumosComRelacoes, useInsumosAbaixoMinimo } from '@/lib/hooks/useInsumos';
@@ -24,6 +25,11 @@ export function InsumosClient() {
   const [selectedInsumoPara, setSelectedInsumoPara] = useState<{ tipo: 'saida' | 'ajuste' | 'delete'; id?: string }>({ tipo: 'saida' });
 
   const [filters, setFilters] = useState({ busca: '', categoria_id: '', tipo_id: '' });
+  const queryClient = useQueryClient();
+  const invalidateInsumos = () => {
+    queryClient.invalidateQueries({ queryKey: ['insumos'] });
+    queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+  };
 
   const { data: insumos = [], isLoading: loadingInsumos } = useInsumosComRelacoes();
   const { data: criticos = [] } = useInsumosAbaixoMinimo();
@@ -97,7 +103,7 @@ export function InsumosClient() {
         open={showNovoInsumo}
         onOpenChange={setShowNovoInsumo}
         categorias={categorias}
-        onSuccess={() => {}}
+        onSuccess={invalidateInsumos}
       />
 
       <SaidaForm
@@ -105,7 +111,7 @@ export function InsumosClient() {
         onOpenChange={setShowSaida}
         insumos={insumos}
         insumoPredefined={selectedInsumoPara.tipo === 'saida' ? selectedInsumoPara.id : undefined}
-        onSuccess={() => {}}
+        onSuccess={invalidateInsumos}
       />
 
       <AjusteInventario
@@ -113,14 +119,14 @@ export function InsumosClient() {
         onOpenChange={setShowAjuste}
         insumos={insumos}
         insumoPredefined={selectedInsumoPara.tipo === 'ajuste' ? selectedInsumoPara.id : undefined}
-        onSuccess={() => {}}
+        onSuccess={invalidateInsumos}
       />
 
       <DeleteInsumoDialog
         open={showDelete}
         onOpenChange={setShowDelete}
         insumoId={selectedInsumoPara.tipo === 'delete' ? selectedInsumoPara.id : undefined}
-        onSuccess={() => {}}
+        onSuccess={invalidateInsumos}
       />
     </div>
   );
