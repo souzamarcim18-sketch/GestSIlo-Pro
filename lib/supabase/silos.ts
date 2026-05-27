@@ -297,34 +297,60 @@ export async function obterEstoqueParaDias(
 }
 
 /**
- * Calcula o custo total e por tonelada de um silo
- * Prioriza custo de produção (via talhão), com fallback para custo de aquisição
- * Retorna null se ambos não estiverem disponíveis
+ * Soma os custos de insumos (lona, inoculante, etc.) aplicados ao silo
+ * via movimentacoes_insumo com destino_tipo='silo'.
+ * Usa valor_unitario da movimentação; fallback para custo_medio do insumo.
+ */
+async function getCustoInsumosSilo(siloId: string): Promise<number> {
+  const { data } = await supabase
+    .from('movimentacoes_insumo')
+    .select('quantidade, valor_unitario, insumo_id, insumos(custo_medio)')
+    .eq('destino_tipo', 'silo')
+    .eq('destino_id', siloId)
+    .eq('tipo', 'Saída');
+
+  if (!data?.length) return 0;
+
+  return data.reduce((acc, mov) => {
+    const insumoRef = Array.isArray(mov.insumos) ? mov.insumos[0] : mov.insumos;
+    const unitario =
+      mov.valor_unitario ??
+      (insumoRef as { custo_medio: number } | null)?.custo_medio ??
+      0;
+    return acc + mov.quantidade * unitario;
+  }, 0);
+}
+
+/**
+ * Calcula o custo total e por tonelada de um silo.
+ * Prioriza custo de produção (via talhão), com fallback para custo de aquisição.
+ * Em ambos os casos soma os custos de insumos aplicados ao silo (lona, inoculante, etc.).
+ * Retorna null se não houver nenhuma base de custo disponível.
  */
 export async function getCustoSilo(silo: Silo): Promise<{ custoPorTonelada: number; custoTotal: number } | null> {
-  // Se talhao_id não-nulo, tentar custo de produção com fallback
+  const volumeTon = silo.volume_ensilado_ton_mv || 0;
+
+  // Base de custo: produção via talhão ou aquisição
+  let custoBase: number | null = null;
+
   if (silo.talhao_id) {
     const custoProducao = await getCustoProducaoSilagem(silo.id, silo.talhao_id);
     if (custoProducao) {
-      return custoProducao;
+      custoBase = custoProducao.custoTotal;
+    } else if (silo.custo_aquisicao_rs_ton) {
+      custoBase = volumeTon * silo.custo_aquisicao_rs_ton;
     }
-    // Fallback para custo de aquisição se produção retornou null
-    if (silo.custo_aquisicao_rs_ton) {
-      return {
-        custoPorTonelada: silo.custo_aquisicao_rs_ton,
-        custoTotal: (silo.volume_ensilado_ton_mv || 0) * silo.custo_aquisicao_rs_ton,
-      };
-    }
-    return null;
+  } else if (silo.custo_aquisicao_rs_ton) {
+    custoBase = volumeTon * silo.custo_aquisicao_rs_ton;
   }
 
-  // Se sem talhão, usar custo de aquisição se preenchido
-  if (silo.custo_aquisicao_rs_ton) {
-    return {
-      custoPorTonelada: silo.custo_aquisicao_rs_ton,
-      custoTotal: (silo.volume_ensilado_ton_mv || 0) * silo.custo_aquisicao_rs_ton,
-    };
-  }
+  if (custoBase === null) return null;
 
-  return null;
+  const custoInsumos = await getCustoInsumosSilo(silo.id);
+  const custoTotal = custoBase + custoInsumos;
+
+  return {
+    custoTotal,
+    custoPorTonelada: volumeTon > 0 ? custoTotal / volumeTon : 0,
+  };
 }
