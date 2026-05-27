@@ -31,7 +31,7 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
     <div className="grid gap-4 md:grid-cols-2">
       {/* Entradas */}
       <Card>
-        <CardHeader className="pb-2 pt-3 px-4">
+        <CardHeader className="pb-1 pt-2 px-4">
           <div className="flex items-center gap-2">
             <ArrowDownRight className="h-4 w-4 text-green-600" />
             <div>
@@ -65,7 +65,7 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
 
       {/* Saídas */}
       <Card>
-        <CardHeader className="pb-2 pt-3 px-4">
+        <CardHeader className="pb-1 pt-2 px-4">
           <div className="flex items-center gap-2">
             <ArrowUpRight className="h-4 w-4 text-red-600" />
             <div>

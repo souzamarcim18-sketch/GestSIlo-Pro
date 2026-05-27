@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { formatBRL } from '@/lib/utils';
+import { CowIcon } from '@/components/icons/CowIcon';
 
 const hoje = new Date();
 
@@ -805,7 +806,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
             <RelatorioCard
               titulo="Construtor de Relatórios"
               descricao="Selecione campos personalizados e exporte dados do rebanho em Excel ou PDF."
-              icone={PawPrint}
+              icone={CowIcon}
               formatos={['excel', 'pdf']}
               onExport={() => Promise.resolve()}
               href="/dashboard/relatorios/rebanho"
