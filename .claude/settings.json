@@ -71,7 +71,8 @@
       "Bash(Select-Object LineNumber, Line)",
       "Bash(Format-Table -AutoSize)",
       "Bash(curl -s http://localhost:3000/dashboard/insumos -H \"Cookie: \")",
-      "Bash(New-Item -ItemType Directory -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\relatorios\\\\rebanho\")"
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\relatorios\\\\rebanho\")",
+      "Bash(npx vercel *)"
     ],
     "additionalDirectories": [
       "\\tmp"
