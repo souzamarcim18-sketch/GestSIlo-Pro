@@ -150,6 +150,7 @@ export async function criarAtividadeAction(formData: unknown): Promise<ActionRes
     });
 
     const custo_calculado = custosColaboradores.reduce((acc, c) => acc + c.custo, 0);
+    const fazenda_id = await getFazendaId(supabase);
 
     // 1. INSERT em atividades_mao_obra — custo_final NÃO incluído (GENERATED ALWAYS AS)
     const { data: atividade, error: atividadeError } = await supabase
@@ -165,7 +166,7 @@ export async function criarAtividadeAction(formData: unknown): Promise<ActionRes
         silo_id: parsed.silo_id ?? null,
         maquina_id: parsed.maquina_id ?? null,
         observacoes: parsed.observacoes ?? null,
-        fazenda_id: '', // preenchido pelo trigger set_fazenda_id
+        fazenda_id,
         // custo_final NÃO incluído — GENERATED ALWAYS AS
       })
       .select('id, custo_calculado, custo_manual')
@@ -176,9 +177,6 @@ export async function criarAtividadeAction(formData: unknown): Promise<ActionRes
     }
 
     // 2. INSERT em atividades_mao_obra_colaboradores
-    // O tipo gerado exige fazenda_id — buscamos do profile do usuário autenticado
-    const fazenda_id = await getFazendaId(supabase);
-
     const { error: vinculosError } = await supabase
       .from('atividades_mao_obra_colaboradores')
       .insert(
