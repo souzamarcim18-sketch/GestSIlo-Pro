@@ -1012,10 +1012,10 @@ const financeiroServer = {
   async create(payload: Omit<Financeiro, 'id' | 'fazenda_id'>): Promise<Financeiro> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
-    await getFazendaIdServer();
+    const fazendaId = await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('financeiro')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, tipo, descricao, categoria, valor, data, forma_pagamento, referencia_id, referencia_tipo, natureza, fazenda_id')
       .single();
     if (error) throw error;
@@ -1770,10 +1770,10 @@ const planejamentosSilagemServer = {
   ): Promise<PlanejamentoSilagem> {
     const { createSupabaseServerClient } = await import('./server');
     const supabaseServer = await createSupabaseServerClient();
-    await getFazendaIdServer();
+    const fazendaId = await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('planejamentos_silagem')
-      .insert(payload)
+      .insert({ ...payload, fazenda_id: fazendaId })
       .select('id, fazenda_id, nome, sistema, rebanho, parametros, resultados, created_at')
       .single();
     if (error) throw error;
