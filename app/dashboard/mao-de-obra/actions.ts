@@ -212,6 +212,7 @@ export async function criarAtividadeAction(formData: unknown): Promise<ActionRes
           referencia_id: atividade.id,
           referencia_tipo: 'Mão de Obra',
           natureza: 'variavel',
+          fazenda_id,
         })
         .select('id')
         .single();
