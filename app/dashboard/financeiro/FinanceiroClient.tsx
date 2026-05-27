@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
+  PieChart, Pie, Cell,
 } from 'recharts';
 import type { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import {
@@ -70,6 +71,87 @@ interface Props {
   initialCategorias: string[];
   isAdmin: boolean;
   fazendaId: string;
+}
+
+function CustosPieCard({
+  custoFixo, custoVariavel, totalDespesas, brl,
+}: { custoFixo: number; custoVariavel: number; totalDespesas: number; brl: (v: number) => string }) {
+  const totalCustos = custoFixo + custoVariavel;
+  const semDados = totalCustos === 0;
+
+  const pieData = [
+    { name: 'Custo Fixo',     value: custoFixo,     pct: totalCustos > 0 ? Math.round((custoFixo    / totalCustos) * 100) : 0, color: '#f59e0b' },
+    { name: 'Custo Variável', value: custoVariavel, pct: totalCustos > 0 ? Math.round((custoVariavel / totalCustos) * 100) : 0, color: '#ef4444' },
+  ].filter((d) => d.value > 0);
+
+  const naoClassificado = totalDespesas - totalCustos;
+
+  return (
+    <Card className="rounded-2xl bg-card shadow-sm flex flex-col">
+      <CardHeader>
+        <CardTitle id="pie-titulo">Composição dos Custos</CardTitle>
+        <CardDescription>Proporção fixos vs variáveis nas despesas.</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col items-center justify-center gap-4">
+        {semDados ? (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Nenhum custo classificado como fixo ou variável ainda.
+          </p>
+        ) : (
+          <>
+            <div className="relative w-full h-[180px]" role="img" aria-labelledby="pie-titulo">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={54}
+                    outerRadius={80}
+                    paddingAngle={3}
+                    dataKey="value"
+                    strokeWidth={0}
+                  >
+                    {pieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={tooltipFormatter}
+                    contentStyle={{ fontSize: 12 }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <ul className="w-full space-y-2 text-sm">
+              {pieData.map((d) => (
+                <li key={d.name} className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    <span className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                    {d.name}
+                  </span>
+                  <span className="font-medium tabular-nums">
+                    {d.pct}%
+                    <span className="ml-1 text-xs text-muted-foreground">({brl(d.value)})</span>
+                  </span>
+                </li>
+              ))}
+              {naoClassificado > 0 && (
+                <li className="flex items-center justify-between gap-2 text-xs text-muted-foreground border-t border-border pt-2 mt-1">
+                  <span className="flex items-center gap-2">
+                    <span className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0 bg-muted-foreground/40" />
+                    Não classificado
+                  </span>
+                  <span className="tabular-nums">{brl(naoClassificado)}</span>
+                </li>
+              )}
+            </ul>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmin, fazendaId }: Props) {
@@ -533,8 +615,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
           </Card>
         </div>
 
-        {(custoFixo > 0 || custoVariavel > 0) && (
-          <div className="grid gap-4 md:grid-cols-2">
+          {(custoFixo > 0 || custoVariavel > 0) && (
+          <div className="grid gap-4 md:grid-cols-2 mt-4">
             <Card className="rounded-2xl bg-card shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground" id="card-fixo">Custos Fixos</CardTitle>
@@ -563,38 +645,42 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
         )}
       </section>
 
-      {/* Gráfico */}
-      <Card className="rounded-2xl bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle id="grafico-titulo">Fluxo de Caixa Mensal</CardTitle>
-          <CardDescription>Comparativo de receitas e despesas nos últimos 6 meses.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[280px]" role="img" aria-labelledby="grafico-titulo">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={fluxoMensal} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gradDespesa" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.4} />
-                <XAxis dataKey="mes" tick={{ fontSize: 13 }} />
-                <YAxis tick={{ fontSize: 13 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={56} />
-                <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13 }} />
-                <Area type="monotone" dataKey="receita" name="Receita" stroke="hsl(var(--primary))" fill="url(#gradReceita)" strokeWidth={2} dot={false} />
-                <Area type="monotone" dataKey="despesa" name="Despesa" stroke="#ef4444" fill="url(#gradDespesa)" strokeWidth={2} dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Gráficos: Fluxo + Donut */}
+      <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-4">
+        <Card className="rounded-2xl bg-card shadow-sm">
+          <CardHeader>
+            <CardTitle id="grafico-titulo">Fluxo de Caixa Mensal</CardTitle>
+            <CardDescription>Comparativo de receitas e despesas nos últimos 6 meses.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[280px]" role="img" aria-labelledby="grafico-titulo">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={fluxoMensal} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradDespesa" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.4} />
+                  <XAxis dataKey="mes" tick={{ fontSize: 13 }} />
+                  <YAxis tick={{ fontSize: 13 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={56} />
+                  <Tooltip formatter={tooltipFormatter} labelStyle={{ fontWeight: 600 }} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13 }} />
+                  <Area type="monotone" dataKey="receita" name="Receita" stroke="hsl(var(--primary))" fill="url(#gradReceita)" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="despesa" name="Despesa" stroke="#ef4444" fill="url(#gradDespesa)" strokeWidth={2} dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <CustosPieCard custoFixo={custoFixo} custoVariavel={custoVariavel} totalDespesas={resumo.totalDespesas} brl={brl} />
+      </div>
 
       {/* Tabela de lançamentos */}
       <Card className="rounded-2xl bg-card shadow-sm">

@@ -373,7 +373,11 @@ export function AtividadeForm({
                   value={field.value ?? ''}
                   onChange={(e) => {
                     const v = e.target.value;
-                    field.onChange(v === '' ? undefined : parseFloat(v));
+                    const parsed = parseFloat(v);
+                    field.onChange(v === '' || isNaN(parsed) ? undefined : parsed);
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === '') field.onChange(undefined);
                   }}
                 />
               </FormControl>
