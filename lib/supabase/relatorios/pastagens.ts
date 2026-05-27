@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 
 export interface PastagemRow {
@@ -95,6 +95,7 @@ export async function getRelatorioPastagens(
   from: Date,
   to: Date
 ): Promise<RelatorioPastagensResult> {
+  const supabase = await createSupabaseServerClient();
   const { gte, lte } = toUtcRangeFromLocal(from, to);
 
   const [pastagensRes, piquetesRes, ocupacoesRes, eventosRes] = await Promise.all([

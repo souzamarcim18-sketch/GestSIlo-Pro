@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 import { calcularCustoColaborador } from '@/lib/utils';
 
@@ -79,6 +79,7 @@ export async function getRelatorioMaoObra(
 ): Promise<RelatorioMaoObraResult> {
   const { gte, lte } = toUtcRangeFromLocal(from, to);
 
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('atividades_mao_obra')
     .select(

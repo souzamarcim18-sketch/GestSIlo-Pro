@@ -14,8 +14,6 @@ import { q } from '@/lib/supabase/queries-audit';
 import { gerarExcel } from '@/lib/relatorios/excel-builder';
 import { gerarPdf } from '@/lib/relatorios/pdf-builder';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
-import { listMovimentacoesInsumoPorPeriodo } from '@/lib/supabase/relatorios/insumos';
-import { getRelatorioFrota } from '@/lib/supabase/relatorios/frota';
 import { RelatorioCard } from '@/components/relatorios/RelatorioCard';
 import { PeriodoFilter } from '@/components/ui/PeriodoFilter';
 import {
@@ -28,6 +26,8 @@ import {
   getRelatorioIndicadoresRebanhoAction,
   listPlanejamentosSilagemAction,
   getPlanejamentoSilagemParaPdfAction,
+  getRelatorioFrotaAction,
+  getMovimentacoesInsumoAction,
 } from './actions';
 import { gerarPdfIndicadoresRebanho } from '@/lib/pdf/gerarPdfIndicadoresRebanho';
 import { gerarPdfPlanejamento } from '@/lib/pdf/gerarPdfPlanejamento';
@@ -165,14 +165,10 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
           { key: 'unidade', label: 'Unidade', tipo: 'text' },
           { key: 'estoque_atual', label: 'Estoque Atual', tipo: 'number' },
           { key: 'estoque_minimo', label: 'Estoque Mínimo', tipo: 'number' },
-          { key: 'n', label: 'N (%)', tipo: 'number' },
-          { key: 'p', label: 'P (%)', tipo: 'number' },
-          { key: 'k', label: 'K (%)', tipo: 'number' },
         ],
         linhas: insumos.map((i) => ({
           nome: i.nome, unidade: i.unidade,
           estoque_atual: i.estoque_atual, estoque_minimo: i.estoque_minimo,
-          n: i.teor_n_percent ?? null, p: i.teor_p_percent ?? null, k: i.teor_k_percent ?? null,
         })),
       }],
     });
@@ -181,14 +177,17 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
 
   // ─── Movimentação de Insumos ─────────────────────────────────────────────────
   const exportMovInsumos = () => handleExport('mov_insumos', async () => {
-    const rows = await listMovimentacoesInsumoPorPeriodo(fazendaId, periodoMovInsumos.from, periodoMovInsumos.to);
+    const { rows } = await getMovimentacoesInsumoAction({
+      from: periodoMovInsumos.from.toISOString(),
+      to: periodoMovInsumos.to.toISOString(),
+    });
     gerarExcel({
       fileName: `insumos_movimentacoes_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Movimentação de Insumos', periodo: periodoMovInsumos },
       sheets: [{
         nome: 'Movimentações',
         colunas: [
-          { key: 'data_movimentacao', label: 'Data', tipo: 'date' },
+          { key: 'data', label: 'Data', tipo: 'date' },
           { key: 'insumo_nome', label: 'Insumo', tipo: 'text', largura: 25 },
           { key: 'tipo', label: 'Tipo', tipo: 'text' },
           { key: 'quantidade', label: 'Quantidade', tipo: 'number' },
@@ -207,7 +206,10 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
 
   // ─── Custo Operacional da Frota ───────────────────────────────────────────────
   const exportFrota = () => handleExport('frota', async () => {
-    const result = await getRelatorioFrota(fazendaId, periodoFrota.from, periodoFrota.to);
+    const result = await getRelatorioFrotaAction({
+      from: periodoFrota.from.toISOString(),
+      to: periodoFrota.to.toISOString(),
+    });
     gerarExcel({
       fileName: `frota_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Custo Operacional da Frota', periodo: periodoFrota },
@@ -247,10 +249,10 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
             { key: 'maquina_nome', label: 'Máquina', tipo: 'text', largura: 25 },
             { key: 'data', label: 'Data', tipo: 'date' },
             { key: 'litros', label: 'Litros', tipo: 'number' },
-            { key: 'valor_por_litro', label: 'Valor/L', tipo: 'BRL' },
-            { key: 'valor_total', label: 'Total', tipo: 'BRL' },
-            { key: 'tipo_combustivel', label: 'Combustível', tipo: 'text' },
-            { key: 'operador', label: 'Operador', tipo: 'text', largura: 25 },
+            { key: 'preco_litro', label: 'Preço/L', tipo: 'BRL' },
+            { key: 'valor', label: 'Total', tipo: 'BRL' },
+            { key: 'combustivel', label: 'Combustível', tipo: 'text' },
+            { key: 'fornecedor', label: 'Fornecedor', tipo: 'text', largura: 25 },
           ],
           linhas: result.abastecimentos as unknown as Record<string, unknown>[],
         },
@@ -480,7 +482,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
         {
           nome: 'Movimentações',
           colunas: [
-            { key: 'data_movimentacao', label: 'Data', tipo: 'date' },
+            { key: 'data', label: 'Data', tipo: 'date' },
             { key: 'produto_nome', label: 'Produto', tipo: 'text', largura: 25 },
             { key: 'tipo', label: 'Tipo', tipo: 'text' },
             { key: 'tipo_saida', label: 'Tipo Saída', tipo: 'text' },
@@ -495,7 +497,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
         {
           nome: 'Vendas',
           colunas: [
-            { key: 'data_movimentacao', label: 'Data', tipo: 'date' },
+            { key: 'data', label: 'Data', tipo: 'date' },
             { key: 'produto_nome', label: 'Produto', tipo: 'text', largura: 25 },
             { key: 'quantidade', label: 'Qtd.', tipo: 'number' },
             { key: 'valor_unitario', label: 'Valor Unit.', tipo: 'BRL' },

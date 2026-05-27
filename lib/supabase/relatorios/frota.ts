@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 
 export interface FrotaMaquinaRow {
@@ -32,11 +32,11 @@ export interface FrotaAbastecimentoRow {
   maquina_id: string;
   maquina_nome: string;
   data: string;
-  litros: number;
-  valor_por_litro: number | null;
-  valor_total: number | null;
-  tipo_combustivel: string | null;
-  operador: string | null;
+  litros: number | null;
+  preco_litro: number | null;
+  valor: number | null;
+  combustivel: string | null;
+  fornecedor: string | null;
 }
 
 export interface FrotaUsoRow {
@@ -65,9 +65,9 @@ type RawManutencao = {
 };
 
 type RawAbastecimento = {
-  id: string; maquina_id: string; data: string; litros: number;
-  valor_por_litro: number | null; valor_total: number | null;
-  tipo_combustivel: string | null; operador: string | null;
+  id: string; maquina_id: string; data: string; litros: number | null;
+  preco_litro: number | null; valor: number | null;
+  combustivel: string | null; fornecedor: string | null;
   maquinas: { nome: string } | null;
 };
 
@@ -82,6 +82,7 @@ export async function getRelatorioFrota(
   from: Date,
   to: Date
 ): Promise<RelatorioFrotaResult> {
+  const supabase = await createSupabaseServerClient();
   const { gte, lte } = toUtcRangeFromLocal(from, to);
 
   const [maquinasRes, manutencoesRes, abastecimentosRes, usosRes] = await Promise.all([
@@ -102,7 +103,7 @@ export async function getRelatorioFrota(
 
     supabase
       .from('abastecimentos')
-      .select('id, maquina_id, data, litros, valor_por_litro, valor_total, tipo_combustivel, operador, maquinas(nome)')
+      .select('id, maquina_id, data, litros, preco_litro, valor, combustivel, fornecedor, maquinas(nome)')
       .eq('fazenda_id', fazendaId)
       .gte('data', gte)
       .lte('data', lte)
@@ -145,8 +146,8 @@ export async function getRelatorioFrota(
 
   const abastecimentos: FrotaAbastecimentoRow[] = ((abastecimentosRes.data ?? []) as unknown as RawAbastecimento[]).map((a) => ({
     id: a.id, maquina_id: a.maquina_id, maquina_nome: a.maquinas?.nome ?? '',
-    data: a.data, litros: a.litros, valor_por_litro: a.valor_por_litro,
-    valor_total: a.valor_total, tipo_combustivel: a.tipo_combustivel, operador: a.operador,
+    data: a.data, litros: a.litros, preco_litro: a.preco_litro,
+    valor: a.valor, combustivel: a.combustivel, fornecedor: a.fornecedor,
   }));
 
   const usos: FrotaUsoRow[] = ((usosRes.data ?? []) as unknown as RawUso[]).map((u) => ({

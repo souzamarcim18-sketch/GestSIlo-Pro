@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 
 export interface MovimentacaoInsumoRow {
@@ -10,7 +10,7 @@ export interface MovimentacaoInsumoRow {
   unidade_medida: string;
   valor_unitario: number | null;
   valor_total: number | null;
-  data_movimentacao: string;
+  data: string;
   origem: string | null;
   responsavel: string | null;
   observacoes: string | null;
@@ -22,7 +22,7 @@ type RawRow = {
   tipo: string;
   quantidade: number;
   valor_unitario: number | null;
-  data_movimentacao: string;
+  data: string;
   origem: string | null;
   responsavel: string | null;
   observacoes: string | null;
@@ -36,16 +36,17 @@ export async function listMovimentacoesInsumoPorPeriodo(
 ): Promise<MovimentacaoInsumoRow[]> {
   const { gte, lte } = toUtcRangeFromLocal(from, to);
 
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('movimentacoes_insumo')
     .select(
-      'id, insumo_id, tipo, quantidade, valor_unitario, data_movimentacao, ' +
+      'id, insumo_id, tipo, quantidade, valor_unitario, data, ' +
       'origem, responsavel, observacoes, insumos(nome, unidade)'
     )
     .eq('fazenda_id', fazendaId)
-    .gte('data_movimentacao', gte)
-    .lte('data_movimentacao', lte)
-    .order('data_movimentacao', { ascending: false })
+    .gte('data', gte)
+    .lte('data', lte)
+    .order('data', { ascending: false })
     .limit(10000);
 
   if (error) throw error;
@@ -60,7 +61,7 @@ export async function listMovimentacoesInsumoPorPeriodo(
     valor_unitario: m.valor_unitario,
     valor_total:
       m.valor_unitario != null ? m.quantidade * m.valor_unitario : null,
-    data_movimentacao: m.data_movimentacao,
+    data: m.data,
     origem: m.origem,
     responsavel: m.responsavel,
     observacoes: m.observacoes,

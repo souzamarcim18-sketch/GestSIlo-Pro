@@ -6,6 +6,8 @@ import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import { getRelatorioMaoObra, type RelatorioMaoObraResult } from '@/lib/supabase/relatorios/mao-de-obra';
 import { getRelatorioPastagens, type RelatorioPastagensResult } from '@/lib/supabase/relatorios/pastagens';
 import { getRelatorioProdutos, type RelatorioProdutosResult } from '@/lib/supabase/relatorios/produtos';
+import { getRelatorioFrota, type RelatorioFrotaResult } from '@/lib/supabase/relatorios/frota';
+import { listMovimentacoesInsumoPorPeriodo, type MovimentacaoInsumoRow } from '@/lib/supabase/relatorios/insumos';
 import { getRelatorioPlanejamentoCompras, type RelatorioPlanejamentoResult } from '@/lib/supabase/relatorios/planejamento-compras';
 import { getDadosBalancoForrageiro, type RelatorioBalancoForrageiro, type PeriodoBalancoRelatorio } from '@/lib/supabase/relatorios/balanco-forrageiro';
 import { getHistoricoSanitario, type EventoSanitarioRelatorio } from '@/lib/supabase/relatorios/sanidade';
@@ -136,6 +138,36 @@ export async function getRelatorioIndicadoresRebanhoAction() {
     tipoExploracao: (fazendaRes.data?.tipo_exploracao ?? 'MISTO') as 'LEITE' | 'CORTE' | 'MISTO',
     indicadores: indicadoresRes,
   };
+}
+
+// ── Frota ─────────────────────────────────────────────────────────────────────
+
+export interface GetRelatorioFrotaParams {
+  from: string;
+  to: string;
+}
+
+export async function getRelatorioFrotaAction(
+  params: GetRelatorioFrotaParams
+): Promise<RelatorioFrotaResult & { fazendaNome: string }> {
+  const { fazendaId, fazendaNome } = await assertAdminOuVisualizador();
+  const result = await getRelatorioFrota(fazendaId, new Date(params.from), new Date(params.to));
+  return { ...result, fazendaNome };
+}
+
+// ── Movimentações de Insumos ──────────────────────────────────────────────────
+
+export interface GetMovimentacoesInsumoParams {
+  from: string;
+  to: string;
+}
+
+export async function getMovimentacoesInsumoAction(
+  params: GetMovimentacoesInsumoParams
+): Promise<{ rows: MovimentacaoInsumoRow[]; fazendaNome: string }> {
+  const { fazendaId, fazendaNome } = await assertAdminOuVisualizador();
+  const rows = await listMovimentacoesInsumoPorPeriodo(fazendaId, new Date(params.from), new Date(params.to));
+  return { rows, fazendaNome };
 }
 
 // ── Planejamentos de Silagem disponíveis ──────────────────────────────────────

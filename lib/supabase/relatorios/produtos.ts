@@ -22,7 +22,7 @@ export interface MovimentacaoProdutoRow {
   quantidade: number;
   valor_unitario: number | null;
   valor_total: number | null;
-  data_movimentacao: string;
+  data: string;
   descricao: string | null;
   responsavel: string | null;
 }
@@ -51,7 +51,7 @@ type RawMovimentacao = {
   quantidade: number;
   valor_unitario: number | null;
   valor_total: number | null;
-  data_movimentacao: string;
+  data: string;
   descricao: string | null;
   responsavel: string | null;
   produtos: { nome: string } | { nome: string }[] | null;
@@ -85,11 +85,11 @@ export async function getRelatorioProdutos(
       .order('nome'),
     supabase
       .from('movimentacoes_produto')
-      .select('id, tipo, tipo_saida, quantidade, valor_unitario, valor_total, data_movimentacao, descricao, responsavel, produtos(nome)')
+      .select('id, tipo, tipo_saida, quantidade, valor_unitario, valor_total, data, descricao, responsavel, produtos(nome)')
       .eq('fazenda_id', fazendaId)
-      .gte('data_movimentacao', gte)
-      .lte('data_movimentacao', lte)
-      .order('data_movimentacao', { ascending: false })
+      .gte('data', gte)
+      .lte('data', lte)
+      .order('data', { ascending: false })
       .limit(10000),
   ]);
 
@@ -112,7 +112,7 @@ export async function getRelatorioProdutos(
     quantidade: m.quantidade,
     valor_unitario: m.valor_unitario,
     valor_total: m.valor_total,
-    data_movimentacao: m.data_movimentacao,
+    data: m.data,
     descricao: m.descricao,
     responsavel: m.responsavel,
   }));
