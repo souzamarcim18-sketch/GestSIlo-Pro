@@ -61,6 +61,14 @@ export default function SaidaForm({
   const { data: destinos, isLoading: loadingDestinos } = useDestinos(destinoTipo);
 
   async function onSubmit(data: SaidaFormData) {
+    // Validação client-side de estoque disponível
+    if (insumoSelecionado && data.quantidade > insumoSelecionado.estoque_atual) {
+      toast.error(
+        `Estoque insuficiente. Disponível: ${insumoSelecionado.estoque_atual} ${insumoSelecionado.unidade}, solicitado: ${data.quantidade}`
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       await criarSaidaAction(data);
@@ -156,12 +164,20 @@ export default function SaidaForm({
           {/* Quantidade */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="quantidade">Quantidade *</Label>
+              <Label htmlFor="quantidade">
+                Quantidade *
+                {insumoSelecionado && (
+                  <span className="ml-2 text-xs text-muted-foreground font-normal">
+                    (disponível: {insumoSelecionado.estoque_atual} {insumoSelecionado.unidade})
+                  </span>
+                )}
+              </Label>
               <Input
                 id="quantidade"
                 type="number"
                 step="0.01"
                 placeholder="0"
+                max={insumoSelecionado?.estoque_atual ?? undefined}
                 {...form.register('quantidade', { valueAsNumber: true })}
               />
               {form.formState.errors.quantidade && (

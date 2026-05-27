@@ -80,8 +80,17 @@ export default function SaidaForm({
   }, [open, produtoPredefined, form]);
 
   const tipoSaida = form.watch('tipo_saida');
+  const produtoSelecionado = produtos.find(p => p.id === form.watch('produto_id'));
 
   async function onSubmit(data: SaidaFormData) {
+    // Validação client-side de estoque disponível
+    if (produtoSelecionado && data.quantidade > produtoSelecionado.estoque_atual) {
+      toast.error(
+        `Estoque insuficiente. Disponível: ${produtoSelecionado.estoque_atual} ${produtoSelecionado.unidade}, solicitado: ${data.quantidade}`
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       await criarSaidaProdutoAction(data);
@@ -142,12 +151,20 @@ export default function SaidaForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="qtd-saida">Quantidade *</Label>
+              <Label htmlFor="qtd-saida">
+                Quantidade *
+                {produtoSelecionado && (
+                  <span className="ml-2 text-xs text-muted-foreground font-normal">
+                    (disponível: {produtoSelecionado.estoque_atual} {produtoSelecionado.unidade})
+                  </span>
+                )}
+              </Label>
               <Input
                 id="qtd-saida"
                 type="number"
                 step="0.01"
                 placeholder="0"
+                max={produtoSelecionado?.estoque_atual ?? undefined}
                 {...form.register('quantidade', { valueAsNumber: true })}
               />
               {form.formState.errors.quantidade && (
