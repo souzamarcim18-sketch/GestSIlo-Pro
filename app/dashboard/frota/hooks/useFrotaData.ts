@@ -163,7 +163,7 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
         const tasks: Promise<void>[] = [];
 
         const needsUsos =
-          (activeTab === 'visao-geral' || activeTab === 'uso' || activeTab === 'custos' || activeTab === 'relatorios') &&
+          (activeTab === 'visao-geral' || activeTab === 'cadastro' || activeTab === 'uso' || activeTab === 'custos' || activeTab === 'relatorios') &&
           !fetchedRef.current.has('usos');
 
         const needsManutencoes =

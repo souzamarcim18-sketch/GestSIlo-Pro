@@ -31,7 +31,7 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
     <div className="grid gap-4 md:grid-cols-2">
       {/* Entradas */}
       <Card>
-        <CardHeader className="pb-1 pt-2 px-4">
+        <CardHeader className="py-2 px-3">
           <div className="flex items-center gap-2">
             <ArrowDownRight className="h-4 w-4 text-green-600" />
             <div>
@@ -40,11 +40,11 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-4 pb-3">
+        <CardContent className="px-3 pb-2 pt-0">
           {ultimasEntradas.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma entrada registrada</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {ultimasEntradas.map((mov) => (
                 <div key={mov.id} className="flex justify-between items-center px-2 py-1 rounded border border-green-200/50 bg-green-50/30 dark:bg-green-950/20 dark:border-green-900/30">
                   <div className="flex-1 min-w-0">
@@ -65,7 +65,7 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
 
       {/* Saídas */}
       <Card>
-        <CardHeader className="pb-1 pt-2 px-4">
+        <CardHeader className="py-2 px-3">
           <div className="flex items-center gap-2">
             <ArrowUpRight className="h-4 w-4 text-red-600" />
             <div>
@@ -74,11 +74,11 @@ export default function UltimasMovimentacoes({ entradas = [], saidas = [] }: Ult
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-4 pb-3">
+        <CardContent className="px-3 pb-2 pt-0">
           {ultimasSaidas.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma saída registrada</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {ultimasSaidas.map((mov) => (
                 <div key={mov.id} className="flex justify-between items-center px-2 py-1 rounded border border-red-200/50 bg-red-50/30 dark:bg-red-950/20 dark:border-red-900/30">
                   <div className="flex-1 min-w-0">
