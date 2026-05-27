@@ -107,7 +107,7 @@ export default function EntradaForm({
             <p className="text-xs text-destructive">{form.formState.errors.produto_id.message}</p>
           )}
 
-          <div>
+          <div className="space-y-1.5">
             <Label>Tipo de Entrada *</Label>
             <Controller
               name="tipo_entrada"
@@ -128,7 +128,7 @@ export default function EntradaForm({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="qtd-entrada-form">Quantidade *</Label>
               <Input
                 id="qtd-entrada-form"
@@ -141,7 +141,7 @@ export default function EntradaForm({
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.quantidade.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="valor-unit-entrada">Valor Unit. (R$)</Label>
               <Input
                 id="valor-unit-entrada"
@@ -154,20 +154,20 @@ export default function EntradaForm({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="data-entrada">Data *</Label>
               <Input id="data-entrada" type="date" {...form.register('data')} />
               {form.formState.errors.data && (
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.data.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="responsavel-entrada">Responsável</Label>
               <Input id="responsavel-entrada" placeholder="Nome" {...form.register('responsavel')} />
             </div>
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="obs-entrada">Observações</Label>
             <Textarea id="obs-entrada" placeholder="Notas..." className="min-h-16" {...form.register('observacoes')} />
           </div>

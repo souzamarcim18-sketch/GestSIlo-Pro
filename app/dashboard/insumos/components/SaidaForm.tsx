@@ -116,7 +116,7 @@ export default function SaidaForm({
           )}
 
           {/* Tipo Saída */}
-          <div>
+          <div className="space-y-1.5">
             <Label>Tipo de Saída *</Label>
             <Controller
               name="tipo_saida"
@@ -155,7 +155,7 @@ export default function SaidaForm({
 
           {/* Quantidade */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="quantidade">Quantidade *</Label>
               <Input
                 id="quantidade"
@@ -168,7 +168,7 @@ export default function SaidaForm({
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.quantidade.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="valor_unitario">Valor Unit. (R$)</Label>
               <Input
                 id="valor_unitario"
@@ -183,7 +183,7 @@ export default function SaidaForm({
           {/* Campos dinâmicos por tipo_saida */}
           {tipoSaida === 'USO_INTERNO' && (
             <>
-              <div>
+              <div className="space-y-1.5">
                 <Label>Destino Tipo *</Label>
                 <Controller
                   name="destino_tipo"
@@ -205,7 +205,7 @@ export default function SaidaForm({
                   <p className="text-xs text-destructive mt-1">{form.formState.errors.destino_tipo.message}</p>
                 )}
               </div>
-              <div>
+              <div className="space-y-1.5">
                 <Label>Destino {destinoTipo && `(${destinoTipo})`} *</Label>
                 <Controller
                   name="destino_id"
@@ -242,7 +242,7 @@ export default function SaidaForm({
           )}
 
           {tipoSaida === 'DEVOLUCAO' && (
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="fornecedor">Fornecedor *</Label>
               <Input
                 id="fornecedor"
@@ -256,7 +256,7 @@ export default function SaidaForm({
           )}
 
           {tipoSaida === 'VENDA' && (
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="cliente">Cliente *</Label>
               <Input
                 id="cliente"
@@ -270,7 +270,7 @@ export default function SaidaForm({
           )}
 
           {tipoSaida === 'DESCARTE' && (
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="motivo">Motivo *</Label>
               <Input
                 id="motivo"
@@ -284,7 +284,7 @@ export default function SaidaForm({
           )}
 
           {tipoSaida === 'TRANSFERENCIA' && (
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="fazenda_destino">Fazenda Destino *</Label>
               <Input
                 id="fazenda_destino"
@@ -298,7 +298,7 @@ export default function SaidaForm({
           )}
 
           {tipoSaida === 'TROCA' && (
-            <div>
+            <div className="space-y-1.5">
               <Label>Outro Insumo *</Label>
               <Controller
                 name="destino_id"
@@ -332,7 +332,7 @@ export default function SaidaForm({
 
           {/* Responsável e Data */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="responsavel">Responsável *</Label>
               <Input
                 id="responsavel"
@@ -343,7 +343,7 @@ export default function SaidaForm({
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.responsavel.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="data">Data *</Label>
               <Input
                 id="data"
@@ -357,7 +357,7 @@ export default function SaidaForm({
           </div>
 
           {/* Observações */}
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="observacoes">Observações</Label>
             <Input
               id="observacoes"

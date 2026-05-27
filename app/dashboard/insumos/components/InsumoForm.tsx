@@ -80,7 +80,7 @@ export default function InsumoForm({
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {/* Nome */}
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="nome">Nome do Insumo *</Label>
             <Input
               id="nome"
@@ -94,7 +94,7 @@ export default function InsumoForm({
 
           {/* Categoria e Tipo */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label>Categoria *</Label>
               <Controller
                 name="categoria_id"
@@ -125,7 +125,7 @@ export default function InsumoForm({
             </div>
 
             {tipos && tipos.length > 0 && (
-              <div>
+              <div className="space-y-1.5">
                 <Label>Tipo</Label>
                 <Controller
                   name="tipo_id"
@@ -156,7 +156,7 @@ export default function InsumoForm({
 
           {/* Unidade e Fornecedor */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="unidade">Unidade *</Label>
               <Input
                 id="unidade"
@@ -167,7 +167,7 @@ export default function InsumoForm({
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.unidade.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="fornecedor">Fornecedor *</Label>
               <Input
                 id="fornecedor"
@@ -181,7 +181,7 @@ export default function InsumoForm({
           </div>
 
           {/* Local de Armazenamento */}
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="local_armazen">Local de Armazenamento *</Label>
             <Input
               id="local_armazen"
@@ -195,7 +195,7 @@ export default function InsumoForm({
 
           {/* Quantidade e Valor */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="quantidade_entrada">Qtde Entrada *</Label>
               <Input
                 id="quantidade_entrada"
@@ -208,7 +208,7 @@ export default function InsumoForm({
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.quantidade_entrada.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="valor_unitario">Valor Unit. (R$) *</Label>
               <Input
                 id="valor_unitario"
@@ -224,7 +224,7 @@ export default function InsumoForm({
           </div>
 
           {/* Estoque Mínimo */}
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="estoque_minimo">Estoque Mínimo *</Label>
             <Input
               id="estoque_minimo"
@@ -257,7 +257,7 @@ export default function InsumoForm({
           </div>
 
           {/* Observações */}
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="observacoes">Observações</Label>
             <Textarea
               id="observacoes"

@@ -114,7 +114,7 @@ export default function ProdutoForm({
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="nome-produto">Nome do Produto *</Label>
             <Input id="nome-produto" placeholder="Ex: Milho Grão" {...form.register('nome')} />
             {form.formState.errors.nome && (
@@ -123,7 +123,7 @@ export default function ProdutoForm({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label>Categoria *</Label>
               <Controller
                 name="categoria_id"
@@ -152,7 +152,7 @@ export default function ProdutoForm({
               )}
             </div>
 
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="unidade-produto">
                 Unidade *{catObj && <span className="text-muted-foreground font-normal"> (padrão: {catObj.unidade_padrao})</span>}
               </Label>
@@ -165,7 +165,7 @@ export default function ProdutoForm({
 
           {!isEdit && (
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="qtd-entrada">Qtde Entrada Inicial</Label>
                 <Input
                   id="qtd-entrada"
@@ -178,7 +178,7 @@ export default function ProdutoForm({
                   <p className="text-xs text-destructive mt-1">{form.formState.errors.quantidade_entrada.message}</p>
                 )}
               </div>
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="valor-unit-prod">Valor Unit. (R$)</Label>
                 <Input
                   id="valor-unit-prod"
@@ -192,7 +192,7 @@ export default function ProdutoForm({
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="estoque-min-prod">Estoque Mínimo</Label>
               <Input
                 id="estoque-min-prod"
@@ -202,7 +202,7 @@ export default function ProdutoForm({
                 {...form.register('estoque_minimo', { valueAsNumber: true })}
               />
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="custo-ref">Custo Referência (R$)</Label>
               <Input
                 id="custo-ref"
@@ -214,12 +214,12 @@ export default function ProdutoForm({
             </div>
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="local-armazen">Local de Armazenamento</Label>
             <Input id="local-armazen" placeholder="Ex: Galpão A" {...form.register('local_armazen')} />
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="obs-produto">Observações</Label>
             <Textarea
               id="obs-produto"

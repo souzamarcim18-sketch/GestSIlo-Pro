@@ -120,7 +120,7 @@ export default function SaidaForm({
             <p className="text-xs text-destructive">{form.formState.errors.produto_id.message}</p>
           )}
 
-          <div>
+          <div className="space-y-1.5">
             <Label>Tipo de Saída *</Label>
             <Controller
               name="tipo_saida"
@@ -141,7 +141,7 @@ export default function SaidaForm({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="qtd-saida">Quantidade *</Label>
               <Input
                 id="qtd-saida"
@@ -154,7 +154,7 @@ export default function SaidaForm({
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.quantidade.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="valor-unit-saida">
                 Valor Unit. (R$){tipoSaida === 'VENDA' && ' *'}
               </Label>
@@ -173,7 +173,7 @@ export default function SaidaForm({
 
           {/* Campo condicional: TRANSFERENCIA_INSUMO */}
           {tipoSaida === 'TRANSFERENCIA_INSUMO' && (
-            <div>
+            <div className="space-y-1.5">
               <Label>Insumo de Destino *</Label>
               <Controller
                 name="insumo_id_destino"
@@ -225,20 +225,20 @@ export default function SaidaForm({
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="data-saida">Data *</Label>
               <Input id="data-saida" type="date" {...form.register('data')} />
               {form.formState.errors.data && (
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.data.message}</p>
               )}
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="responsavel-saida">Responsável</Label>
               <Input id="responsavel-saida" placeholder="Nome" {...form.register('responsavel')} />
             </div>
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="obs-saida">Observações</Label>
             <Textarea id="obs-saida" placeholder="Notas..." className="min-h-16" {...form.register('observacoes')} />
           </div>
