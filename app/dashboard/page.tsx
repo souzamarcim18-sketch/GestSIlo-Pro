@@ -256,16 +256,17 @@ export default async function DashboardPage() {
   const totalSaidas = movsRecentes.filter((m) => m.tipo === 'Saída').reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
   const silosTaxaPerdas = totalSaidas > 0 ? ((totalDescarte / totalSaidas) * 100).toFixed(1) + '%' : '—';
 
-  const contagemCulturas: Record<string, number> = {};
+  const volumePorCultura: Record<string, number> = {};
   for (const silo of silosData) {
     const cultura = silo.cultura_ensilada ?? 'Desconhecida';
-    contagemCulturas[cultura] = (contagemCulturas[cultura] ?? 0) + 1;
+    const estoque = Math.max(estoquePorSilo[silo.id] ?? 0, 0);
+    volumePorCultura[cultura] = (volumePorCultura[cultura] ?? 0) + estoque;
   }
-  const totalSilosComCultura = Object.values(contagemCulturas).reduce((a, b) => a + b, 0);
-  const culturasEnsiladas = Object.entries(contagemCulturas).map(([name, value]) => ({
+  const totalVolumeComCultura = Object.values(volumePorCultura).reduce((a, b) => a + b, 0);
+  const culturasEnsiladas = Object.entries(volumePorCultura).map(([name, value]) => ({
     name,
     value,
-    pct: totalSilosComCultura > 0 ? Math.round((value / totalSilosComCultura) * 100) : 0,
+    pct: totalVolumeComCultura > 0 ? Math.round((value / totalVolumeComCultura) * 100) : 0,
   }));
 
   // --- Lavouras ---

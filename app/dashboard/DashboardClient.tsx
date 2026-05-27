@@ -56,12 +56,12 @@ function KpiCard({
       onClick={() => router.push(href)}
       className={cn('text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]', className)}
     >
-      <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+      <Card className="rounded-[13px] p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5 flex-1 min-w-0">
-            <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">{title}</p>
-            <p className="text-2xl font-black tracking-tight text-[#dceede] truncate">{value}</p>
-            <p className="text-sm text-[#688070] truncate">{detail}</p>
+            <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-[#688070]">{title}</p>
+            <p className="text-xl md:text-2xl font-black tracking-tight text-[#dceede] truncate">{value}</p>
+            <p className="text-xs md:text-sm text-[#688070] truncate">{detail}</p>
           </div>
           {Icon && (
             <div
@@ -120,10 +120,10 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
   const alertasOcultos = alertasOrdenados.length - alertasExibidos.length;
 
   return (
-    <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
       {/* Cabeçalho */}
       <div className="space-y-1 mb-2">
-        <h1 className="text-3xl md:text-4xl font-bold text-[#dceede]">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#dceede]">
           {greeting}, {userName}!
         </h1>
         <p className="text-sm text-muted-foreground">Visão geral da sua propriedade</p>
@@ -131,7 +131,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
 
       {/* Alertas Críticos — banner condicional no topo */}
       {alertasExibidos.length > 0 && (
-        <Card className="bg-card rounded-2xl p-5 shadow-sm border border-status-danger/20">
+        <Card className="bg-card rounded-2xl p-4 md:p-5 shadow-sm border border-status-danger/20">
           <div className="flex items-center gap-2 mb-3">
             <AlertCircle className="w-4 h-4 text-status-danger shrink-0" aria-hidden="true" />
             <h2 className="text-sm font-bold uppercase tracking-[0.13em] text-status-danger">
@@ -171,7 +171,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       {/* Silagem */}
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div className="row-span-2 flex">
             <KpiChartCard
               label="Ocupação dos Silos"
@@ -202,7 +202,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       {/* Campo — Rebanho + Lavouras + Pastagens */}
       <section aria-label="Campo">
         <SectionLabel>Campo</SectionLabel>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-stretch">
           {/* Coluna Rebanho */}
           <div className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rebanho</p>
@@ -245,9 +245,9 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               onClick={() => router.push('/dashboard/pastagens')}
               className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
             >
-              <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+              <Card className="rounded-[13px] p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
                 <div className="flex items-start justify-between gap-3 mb-4">
-                  <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">Piquetes</p>
+                  <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-[#688070]">Piquetes</p>
                   <div
                     className="shrink-0 p-2.5 rounded-xl"
                     style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -287,15 +287,15 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               onClick={() => router.push('/dashboard/pastagens')}
               className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
             >
-              <Card className="rounded-[13px] p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+              <Card className="rounded-[13px] p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1.5 flex-1 min-w-0">
-                    <p className="uppercase tracking-[0.13em] font-bold text-sm text-[#688070]">Área de Pastagem</p>
+                    <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-[#688070]">Área de Pastagem</p>
                     {data.pastagensCount === 0 ? (
                       <p className="text-sm text-muted-foreground">Nenhuma pastagem cadastrada</p>
                     ) : (
                       <>
-                        <p className="text-2xl font-black tracking-tight text-[#dceede]">
+                        <p className="text-xl md:text-2xl font-black tracking-tight text-[#dceede]">
                           {data.pastagensAreaTotalHa.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ha
                         </p>
                         <p className="text-sm text-[#688070]">
@@ -337,9 +337,9 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
 
       {/* Atividades Recentes */}
       <section aria-label="Atividades Recentes">
-        <Card className="bg-card rounded-2xl p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+        <Card className="bg-card rounded-2xl p-4 md:p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Atividades Recentes</h2>
+            <h2 className="text-base md:text-lg font-semibold text-foreground">Atividades Recentes</h2>
             <Link
               href="/dashboard/calendario"
               className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors"
@@ -356,19 +356,19 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
 
 export function DashboardSkeleton() {
   return (
-    <div className="p-6 md:p-8 space-y-8 min-h-screen bg-muted/30">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
       <div className="space-y-2 mb-8">
-        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-8 md:h-10 w-56 md:w-64" />
         <Skeleton className="h-4 w-48" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-52 md:h-64 rounded-2xl" />)}
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 rounded-2xl" />)}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-40 md:h-48 rounded-2xl" />)}
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 md:h-28 rounded-2xl" />)}
       </div>
     </div>
   );
