@@ -1,6 +1,6 @@
 ﻿import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { type Silo, type MovimentacaoSilo, type Talhao, type Insumo } from '@/lib/supabase';
+import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
 import { calcularDadosSilos } from './helpers';
 import { SilosClient } from './SilosClient';
 
@@ -25,14 +25,27 @@ export default async function SilosPage() {
       .order('nome', { ascending: true }),
     supabase
       .from('insumos')
-      .select('id, nome, unidade, estoque_atual, estoque_minimo, custo_medio, teor_n_percent, teor_p_percent, teor_k_percent, ativo, fazenda_id')
+      .select('id, nome, categoria:categorias_insumo(nome)')
       .eq('ativo', true)
       .order('nome', { ascending: true }),
   ]);
 
   const silos = (silosRes.data ?? []) as Silo[];
   const talhoes = (talhoesRes.data ?? []) as Talhao[];
-  const insumos = (insumosRes.data ?? []) as Insumo[];
+
+  type InsumoComCategoria = { id: string; nome: string; categoria: { nome: string } | { nome: string }[] | null };
+  const todosInsumos = (insumosRes.data ?? []) as unknown as InsumoComCategoria[];
+  const getCategoriaNome = (cat: InsumoComCategoria['categoria']): string => {
+    if (!cat) return '';
+    if (Array.isArray(cat)) return cat[0]?.nome ?? '';
+    return cat.nome ?? '';
+  };
+  const insumosLona = todosInsumos
+    .filter((i) => getCategoriaNome(i.categoria).toLowerCase().includes('lona'))
+    .map(({ id, nome }) => ({ id, nome }));
+  const insumosInoculante = todosInsumos
+    .filter((i) => getCategoriaNome(i.categoria).toLowerCase().includes('inoculante'))
+    .map(({ id, nome }) => ({ id, nome }));
 
   let movimentacoes: MovimentacaoSilo[] = [];
   if (silos.length > 0) {
@@ -50,7 +63,8 @@ export default async function SilosPage() {
     <SilosClient
       initialSiloCardData={siloCardData}
       initialTalhoes={talhoes}
-      initialInsumos={insumos}
+      initialInsumosLona={insumosLona}
+      initialInsumosInoculante={insumosInoculante}
     />
   );
 }

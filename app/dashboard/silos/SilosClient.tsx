@@ -6,23 +6,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Plus, Database } from 'lucide-react';
 import { toast } from 'sonner';
-import { type Silo, type MovimentacaoSilo, type Talhao, type Insumo } from '@/lib/supabase';
+import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
 import { SiloCard, SiloKpiStrip } from './components';
 import { SiloForm } from './components/dialogs/SiloForm';
 import { calcularDadosSilos, type SiloCardData } from './helpers';
 
+type InsumoSelect = { id: string; nome: string };
+
 interface Props {
   initialSiloCardData: SiloCardData[];
   initialTalhoes: Talhao[];
-  initialInsumos: Insumo[];
+  initialInsumosLona: InsumoSelect[];
+  initialInsumosInoculante: InsumoSelect[];
 }
 
-export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumos }: Props) {
+export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumosLona, initialInsumosInoculante }: Props) {
   const router = useRouter();
   const [siloCardData, setSiloCardData] = useState<SiloCardData[]>(initialSiloCardData);
   const [talhoes] = useState<Talhao[]>(initialTalhoes);
-  const [insumos] = useState<Insumo[]>(initialInsumos);
+  const [insumosLona] = useState<InsumoSelect[]>(initialInsumosLona);
+  const [insumosInoculante] = useState<InsumoSelect[]>(initialInsumosInoculante);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -75,7 +79,8 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
         onOpenChange={setIsAddSiloOpen}
         mode="create"
         talhoes={talhoes}
-        insumos={insumos}
+        insumosLona={insumosLona}
+        insumosInoculante={insumosInoculante}
         onSuccess={fetchData}
       />
     </div>

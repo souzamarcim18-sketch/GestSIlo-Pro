@@ -23,11 +23,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { siloSchema, type SiloInput, TIPOS_SILO } from '@/lib/validations/silos';
-import { type Silo, type Talhao, type Insumo } from '@/lib/supabase';
+import { type Silo, type Talhao } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
 import { ColaboradorSelect } from '@/components/ColaboradorSelect';
 import { vincularColaboradorSiloAction } from '@/app/dashboard/silos/actions';
+
+type InsumoSelect = { id: string; nome: string };
 
 interface SiloFormProps {
   open: boolean;
@@ -35,7 +37,8 @@ interface SiloFormProps {
   mode: 'create' | 'edit';
   silo?: Silo;
   talhoes: Talhao[];
-  insumos: Insumo[];
+  insumosLona: InsumoSelect[];
+  insumosInoculante: InsumoSelect[];
   onSuccess: () => void;
 }
 
@@ -64,7 +67,8 @@ export function SiloForm({
   mode,
   silo,
   talhoes,
-  insumos,
+  insumosLona,
+  insumosInoculante,
   onSuccess,
 }: SiloFormProps) {
   const form = useForm<SiloInput>({
@@ -544,7 +548,7 @@ export function SiloForm({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Nenhuma</SelectItem>
-                      {insumos.map((i) => (
+                      {insumosLona.map((i) => (
                         <SelectItem key={i.id} value={i.id}>
                           {i.nome}
                         </SelectItem>
@@ -569,7 +573,7 @@ export function SiloForm({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Nenhum</SelectItem>
-                      {insumos.map((i) => (
+                      {insumosInoculante.map((i) => (
                         <SelectItem key={i.id} value={i.id}>
                           {i.nome}
                         </SelectItem>

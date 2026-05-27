@@ -339,7 +339,8 @@ export default function SiloDetailPage() {
           mode="edit"
           silo={silo}
           talhoes={talhoes}
-          insumos={[]}
+          insumosLona={[]}
+          insumosInoculante={[]}
           onSuccess={fetchData}
         />
         <MovimentacaoDialog
