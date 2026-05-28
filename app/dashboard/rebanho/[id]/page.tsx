@@ -367,7 +367,7 @@ export default function AnimalDetailPage() {
         </div>
 
         {/* Informações Básicas */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Status</CardTitle>
@@ -402,6 +402,41 @@ export default function AnimalDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{lote?.nome || '—'}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Data de Nascimento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {animal.data_nascimento
+                  ? new Date(animal.data_nascimento).toLocaleDateString('pt-BR')
+                  : '—'}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Idade</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {animal.data_nascimento
+                  ? (() => {
+                      const nascimento = new Date(animal.data_nascimento);
+                      const hoje = new Date();
+                      const meses =
+                        (hoje.getFullYear() - nascimento.getFullYear()) * 12 +
+                        (hoje.getMonth() - nascimento.getMonth());
+                      return meses >= 24
+                        ? `${Math.floor(meses / 12)} anos`
+                        : `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
+                    })()
+                  : '—'}
+              </div>
             </CardContent>
           </Card>
         </div>
