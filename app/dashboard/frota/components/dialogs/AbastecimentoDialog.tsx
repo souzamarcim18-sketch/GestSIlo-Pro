@@ -257,7 +257,7 @@ export function AbastecimentoDialog({
               <Select
                 value={selectValue(insumoIdValue)}
                 onValueChange={(v) => {
-                  setValue('insumo_id', v);
+                  setValue('insumo_id', v ?? undefined);
                 }}
               >
                 <SelectTrigger id="abs-insumo">
