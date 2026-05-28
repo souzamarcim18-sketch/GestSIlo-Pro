@@ -241,14 +241,14 @@ export default async function DashboardPage() {
   const movsRecentes = movsRecentesRes.data ?? [];
   const saidasConsumo = movsRecentes.filter((m) => m.tipo === 'Saída' && m.subtipo !== 'Descarte');
   const totalConsumo30dias = saidasConsumo.reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
-  const consumoDiario = totalConsumo30dias / 30;
+  const consumoDiarioKg = (totalConsumo30dias * 1000) / 30;
   const silosConsumoDiario =
-    consumoDiario > 0
-      ? `${consumoDiario.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} kg/dia`
+    consumoDiarioKg > 0
+      ? `${consumoDiarioKg.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} kg/dia`
       : '—';
 
   const totalEstoqueAtual = silosData.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
-  const autonomiaDias = consumoDiario > 0 ? Math.round((totalEstoqueAtual * 1000) / consumoDiario) : null;
+  const autonomiaDias = consumoDiarioKg > 0 ? Math.round((totalEstoqueAtual * 1000) / consumoDiarioKg) : null;
   const silosAutonomiaDias = autonomiaDias !== null ? `${autonomiaDias} dias` : '—';
 
   const saidasDescarte = movsRecentes.filter((m) => m.tipo === 'Saída' && m.subtipo === 'Descarte');
