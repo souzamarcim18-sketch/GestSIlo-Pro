@@ -15,7 +15,7 @@ export default async function ConfiguracoesPage() {
 
   const profileRes = await supabase
     .from('profiles')
-    .select('id, nome, email, perfil, fazenda_id, created_at, updated_at')
+    .select('id, nome, email, perfil, fazenda_id, created_at')
     .eq('id', user.id)
     .single();
 
@@ -27,12 +27,12 @@ export default async function ConfiguracoesPage() {
   const [fazendaRes, usersRes] = await Promise.all([
     supabase
       .from('fazendas')
-      .select('id, nome, localizacao, area_total, latitude, longitude, created_at, updated_at')
+      .select('id, nome, localizacao, area_total, latitude, longitude, created_at')
       .eq('id', fazendaId)
       .single(),
     supabase
       .from('profiles')
-      .select('id, nome, email, perfil, fazenda_id, created_at, updated_at')
+      .select('id, nome, email, perfil, fazenda_id, created_at')
       .eq('fazenda_id', fazendaId)
       .neq('id', user.id)
       .order('nome'),
