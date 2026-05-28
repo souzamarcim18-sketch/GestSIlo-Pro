@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useId, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
 import { InviteUserModal } from '@/components/InviteUserModal';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
@@ -46,6 +47,7 @@ export function ConfiguracoesClient({
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   const profileNomeRef = useRef<HTMLInputElement>(null);
+  const profileSenhaRef = useRef<HTMLInputElement>(null);
   const fazendaNomeRef = useRef<HTMLInputElement>(null);
   const fazendaAreaRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +64,18 @@ export function ConfiguracoesClient({
     setSavingProfile(true);
     try {
       const nome = profileNomeRef.current?.value ?? profile.nome ?? '';
+      const novaSenha = profileSenhaRef.current?.value ?? '';
+
+      if (novaSenha) {
+        if (novaSenha.length < 6) {
+          toast.error('A nova senha deve ter pelo menos 6 caracteres.');
+          return;
+        }
+        const { error: senhaError } = await supabase.auth.updateUser({ password: novaSenha });
+        if (senhaError) throw new Error(senhaError.message);
+        if (profileSenhaRef.current) profileSenhaRef.current.value = '';
+      }
+
       const updated = await updateProfile(userId, { nome });
       setProfile(updated);
       toast.success('Perfil atualizado com sucesso!');
@@ -94,6 +108,7 @@ export function ConfiguracoesClient({
       setSavingFazenda(false);
     }
   };
+
 
   return (
     <div className="space-y-6">
@@ -153,7 +168,7 @@ export function ConfiguracoesClient({
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="prof-senha" className="text-sm">Nova Senha</Label>
-                      <Input id="prof-senha" type="password" placeholder="••••••••" autoComplete="new-password" aria-describedby={ids.senhaHint} />
+                      <Input id="prof-senha" ref={profileSenhaRef} type="password" placeholder="••••••••" autoComplete="new-password" aria-describedby={ids.senhaHint} />
                       <p id={ids.senhaHint} className="text-sm text-muted-foreground">Deixe em branco para manter a senha atual.</p>
                     </div>
                   </div>
@@ -185,30 +200,20 @@ export function ConfiguracoesClient({
                     <Label htmlFor="faz-nome" className="text-sm">Nome da Fazenda</Label>
                     <Input id="faz-nome" ref={fazendaNomeRef} key={`nome-${fazenda.nome}`} defaultValue={fazenda.nome} />
                   </div>
-                  <CityAutocomplete
-                    label="Localização (Cidade)"
-                    placeholder="Digite a cidade para buscar coordenadas"
-                    value={selectedCity?.displayName || fazenda.localizacao || ''}
-                    onSelect={setSelectedCity}
-                  />
                   <div className="grid gap-4 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                      <CityAutocomplete
+                        label="Localização (Cidade)"
+                        placeholder="Digite o nome da cidade"
+                        value={selectedCity?.displayName || fazenda.localizacao || ''}
+                        onSelect={setSelectedCity}
+                      />
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="faz-area" className="text-sm">Área Total (ha)</Label>
                       <Input id="faz-area" ref={fazendaAreaRef} key={`area-${fazenda.area_total}`} type="number" min="0" step="0.01" defaultValue={fazenda.area_total || 0} />
                     </div>
                   </div>
-                  {(selectedCity || fazenda.latitude) && (
-                    <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
-                      <div className="space-y-2">
-                        <Label htmlFor="faz-lat" className="text-sm">Latitude</Label>
-                        <Input id="faz-lat" type="text" disabled value={selectedCity?.latitude ?? fazenda.latitude ?? '—'} className="bg-muted text-muted-foreground" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="faz-lon" className="text-sm">Longitude</Label>
-                        <Input id="faz-lon" type="text" disabled value={selectedCity?.longitude ?? fazenda.longitude ?? '—'} className="bg-muted text-muted-foreground" />
-                      </div>
-                    </div>
-                  )}
                   <Button type="submit" disabled={savingFazenda}>
                     <Save className="mr-2 h-4 w-4" aria-hidden="true" />
                     {savingFazenda ? 'Salvando...' : 'Salvar Dados'}

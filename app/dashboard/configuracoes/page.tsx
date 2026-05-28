@@ -34,7 +34,6 @@ export default async function ConfiguracoesPage() {
       .from('profiles')
       .select('id, nome, email, perfil, fazenda_id, created_at')
       .eq('fazenda_id', fazendaId)
-      .neq('id', user.id)
       .order('nome'),
   ]);
 

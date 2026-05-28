@@ -41,7 +41,7 @@ const contactOptions = [
 const faqItems = [
   {
     q: 'Como cadastrar uma nova fazenda?',
-    a: 'Acesse Configurações → Dados da Fazenda e preencha as informações básicas. A localização (latitude e longitude) é necessária para a previsão do tempo.',
+    a: 'Acesse Configurações → Dados da Fazenda e preencha as informações básicas: nome, cidade e área total.',
   },
   {
     q: 'Como registrar uma movimentação de silagem?',
