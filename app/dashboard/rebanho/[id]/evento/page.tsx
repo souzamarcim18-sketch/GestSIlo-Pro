@@ -33,16 +33,17 @@ interface EventoFormValues {
   observacoes: string;
   // PESAGEM
   peso_kg: string;
-  condicao_corporal: string;
+  escore_condicao_corporal: string;
   // VENDA
   comprador: string;
   valor_venda: string;
   // TRANSFERÊNCIA
   lote_id_destino: string;
   // COBERTURA
+  tipo_cobertura: string;
   reprodutor_id: string;
   // DIAGNÓSTICO
-  resultado: string;
+  resultado_prenhez: string;
   // PARTO
   tipo_parto: string;
 }
@@ -77,7 +78,7 @@ function buildPayload(animalId: string, v: EventoFormValues): unknown {
       return {
         ...base,
         peso_kg: v.peso_kg ? Number(v.peso_kg) : undefined,
-        condicao_corporal: v.condicao_corporal ? Number(v.condicao_corporal) : null,
+        escore_condicao_corporal: v.escore_condicao_corporal ? Number(v.escore_condicao_corporal) : null,
       };
     case TipoEvento.VENDA:
       return {
@@ -88,9 +89,13 @@ function buildPayload(animalId: string, v: EventoFormValues): unknown {
     case TipoEvento.TRANSFERENCIA_LOTE:
       return { ...base, lote_id_destino: v.lote_id_destino };
     case TipoEvento.COBERTURA:
-      return { ...base, reprodutor_id: v.reprodutor_id || null };
+      return {
+        ...base,
+        tipo_cobertura: v.tipo_cobertura || null,
+        reprodutor_id: v.reprodutor_id || null,
+      };
     case TipoEvento.DIAGNOSTICO_PRENHEZ:
-      return { ...base, resultado: v.resultado };
+      return { ...base, resultado_prenhez: v.resultado_prenhez };
     case TipoEvento.PARTO:
       return { ...base, tipo_parto: v.tipo_parto || null };
     default:
@@ -114,12 +119,13 @@ export default function EventoPage() {
         data_evento: HOJE,
         observacoes: '',
         peso_kg: '',
-        condicao_corporal: '',
+        escore_condicao_corporal: '',
         comprador: '',
         valor_venda: '',
         lote_id_destino: '',
+        tipo_cobertura: '',
         reprodutor_id: '',
-        resultado: '',
+        resultado_prenhez: '',
         tipo_parto: '',
       },
     });
@@ -242,13 +248,13 @@ export default function EventoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="condicao_corporal">Condição Corporal (1–5)</Label>
+                  <Label htmlFor="escore_condicao_corporal">Escore de Condição Corporal (1–5)</Label>
                   <Controller
-                    name="condicao_corporal"
+                    name="escore_condicao_corporal"
                     control={control}
                     render={({ field }) => (
                       <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                        <SelectTrigger id="condicao_corporal">
+                        <SelectTrigger id="escore_condicao_corporal">
                           <SelectValue placeholder="Não avaliar" />
                         </SelectTrigger>
                         <SelectContent>
@@ -324,39 +330,66 @@ export default function EventoPage() {
 
             {/* COBERTURA */}
             {showCobertura && (
-              <div className="space-y-2">
-                <Label htmlFor="reprodutor_id">Reprodutor (opcional)</Label>
-                <Input
-                  id="reprodutor_id"
-                  placeholder="UUID do reprodutor"
-                  disabled={isLoading}
-                  {...register('reprodutor_id')}
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="tipo_cobertura">Método de Cobertura *</Label>
+                  <Controller
+                    name="tipo_cobertura"
+                    control={control}
+                    rules={{ required: 'Método de cobertura obrigatório' }}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                        <SelectTrigger id="tipo_cobertura">
+                          <SelectValue placeholder="Selecionar método" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monta_natural">Monta Natural</SelectItem>
+                          <SelectItem value="ia_convencional">Inseminação Artificial (IA)</SelectItem>
+                          <SelectItem value="iatf">IATF — Inseminação em Tempo Fixo</SelectItem>
+                          <SelectItem value="tetf">Transferência de Embrião (TE/TF)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.tipo_cobertura && (
+                    <p className="text-sm text-destructive">{errors.tipo_cobertura.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reprodutor_id">Reprodutor (opcional)</Label>
+                  <Input
+                    id="reprodutor_id"
+                    placeholder="UUID do reprodutor"
+                    disabled={isLoading}
+                    {...register('reprodutor_id')}
+                  />
+                </div>
+              </>
             )}
 
             {/* DIAGNÓSTICO DE PRENHEZ */}
             {showDiagnostico && (
               <div className="space-y-2">
-                <Label htmlFor="resultado">Resultado *</Label>
+                <Label htmlFor="resultado_prenhez">Resultado *</Label>
                 <Controller
-                  name="resultado"
+                  name="resultado_prenhez"
                   control={control}
                   rules={{ required: 'Resultado obrigatório' }}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                      <SelectTrigger id="resultado">
+                      <SelectTrigger id="resultado_prenhez">
                         <SelectValue placeholder="Selecionar resultado" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="positivo">Positivo (Prenha)</SelectItem>
                         <SelectItem value="negativo">Negativo (Vazia)</SelectItem>
+                        <SelectItem value="duvidoso">Duvidoso</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
-                {errors.resultado && (
-                  <p className="text-sm text-destructive">{errors.resultado.message}</p>
+                {errors.resultado_prenhez && (
+                  <p className="text-sm text-destructive">{errors.resultado_prenhez.message}</p>
                 )}
               </div>
             )}

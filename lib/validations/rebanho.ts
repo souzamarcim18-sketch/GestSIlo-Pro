@@ -94,7 +94,7 @@ export const criarEventoPesagemSchema = z.object({
     return !isNaN(d.getTime()) && d <= new Date();
   }, 'Data deve ser válida e não futura'),
   peso_kg: z.number().positive('Peso deve ser maior que 0').max(2000),
-  condicao_corporal: z.number().int().min(1).max(5).optional().nullable(),
+  escore_condicao_corporal: z.number().min(1).max(5).optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });
 
@@ -162,6 +162,7 @@ export const criarEventoCoberturaSchema = z.object({
       const date = new Date(val);
       return date <= new Date() && !isNaN(date.getTime());
     }, 'Data do evento deve ser válida e não futura'),
+  tipo_cobertura: z.enum(['monta_natural', 'ia_convencional', 'iatf', 'tetf'], { message: 'Método de cobertura obrigatório' }),
   reprodutor_id: z.string().uuid('Reprodutor inválido').optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });
@@ -179,7 +180,7 @@ export const criarEventoDiagnosticoPrenhezSchema = z.object({
       const date = new Date(val);
       return date <= new Date() && !isNaN(date.getTime());
     }, 'Data do evento deve ser válida e não futura'),
-  resultado: z.enum(['positivo', 'negativo'], { message: 'Resultado obrigatório' }),
+  resultado_prenhez: z.enum(['positivo', 'negativo', 'duvidoso'], { message: 'Resultado obrigatório' }),
   observacoes: z.string().optional().nullable(),
 });
 

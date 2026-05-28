@@ -41,7 +41,7 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
       tipo: TipoEvento.PESAGEM,
       data_evento: new Date().toISOString().split('T')[0],
       peso_kg: undefined,
-      condicao_corporal: null,
+      escore_condicao_corporal: null,
       observacoes: null,
     },
   });
@@ -95,13 +95,13 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="pesagem-cc" className="text-sm font-semibold">Condição Corporal (1-5)</Label>
+        <Label htmlFor="pesagem-cc" className="text-sm font-semibold">Escore de Condição Corporal (1-5)</Label>
         <Controller
-          name="condicao_corporal"
+          name="escore_condicao_corporal"
           control={control}
           render={({ field }) => (
             <Select
-              value={field.value ? String(field.value) : ''}
+              value={field.value != null ? String(field.value) : ''}
               onValueChange={(val) => field.onChange(val ? Number(val) : null)}
             >
               <SelectTrigger id="pesagem-cc" disabled={isLoading}>
@@ -118,8 +118,8 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
             </Select>
           )}
         />
-        {errors.condicao_corporal && (
-          <p className="text-sm text-red-600">{errors.condicao_corporal.message}</p>
+        {errors.escore_condicao_corporal && (
+          <p className="text-sm text-red-600">{errors.escore_condicao_corporal.message}</p>
         )}
       </div>
 
