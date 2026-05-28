@@ -41,6 +41,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  const perfil = user?.user_metadata?.perfil as string | undefined;
+  const isOperadorTentandoDashboard =
+    perfil === 'Operador' && request.nextUrl.pathname.startsWith('/dashboard');
+  if (isOperadorTentandoDashboard) {
+    return NextResponse.redirect(new URL('/operador', request.url));
+  }
+
   // Auth routes: NOT redirecting from /login or /register even if authenticated
   // Reason: Middleware runs on server before client AuthProvider initializes
   // Risk: Race condition where middleware redirects /login → /dashboard, but
