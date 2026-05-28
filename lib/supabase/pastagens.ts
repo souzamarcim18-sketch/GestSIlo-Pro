@@ -89,10 +89,21 @@ export async function listPastagens(): Promise<Pastagem[]> {
 export async function getPastagemComResumo(pastagemId: string): Promise<PastagemComResumo | null> {
   const supabase = await createSupabaseServerClient();
 
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Usuário não autenticado.');
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('fazenda_id')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.fazenda_id) return null;
+
   const { data: pastagem, error: pastagemError } = await supabase
     .from('pastagens')
     .select(PASTAGEM_COLS)
     .eq('id', pastagemId)
+    .eq('fazenda_id', profile.fazenda_id)
     .single();
 
   if (pastagemError) throw pastagemError;
@@ -225,10 +236,21 @@ export async function listPiquetesDaPastagem(pastagemId: string): Promise<Piquet
 export async function getPiqueteById(id: string): Promise<Piquete> {
   const supabase = await createSupabaseServerClient();
 
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Usuário não autenticado.');
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('fazenda_id')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.fazenda_id) throw new Error('Fazenda não encontrada.');
+
   const { data, error } = await supabase
     .from('piquetes')
     .select(PIQUETE_COLS)
     .eq('id', id)
+    .eq('fazenda_id', profile.fazenda_id)
     .single();
 
   if (error) throw error;

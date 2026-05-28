@@ -73,8 +73,8 @@ export default function IndicadoresClient({
   // Carga inicial com filtros da URL
   useEffect(() => {
     carregarIndicadores(initialFiltros);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // initialFiltros é prop do RSC — estável na montagem; carregarIndicadores é useCallback estável
+  }, [carregarIndicadores, initialFiltros]);
 
   // Aplicar filtros
   const handleAplicarFiltros = useCallback(async (novosFiltros: FiltrosIndicadores) => {

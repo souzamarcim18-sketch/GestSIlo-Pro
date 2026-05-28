@@ -33,6 +33,11 @@ export async function GET(request: NextRequest) {
       }
     );
 
+    const { data: { user }, error: authError } = await client.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+    }
+
     const { data, error } = await client
       .from('anotacoes_assessoria')
       .select('*')

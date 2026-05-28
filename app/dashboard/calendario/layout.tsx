@@ -3,17 +3,19 @@
 import { useAuth } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 export default function CalendarioLayout({ children }: { children: React.ReactNode }) {
-  const { profile } = useAuth();
+  const { profile, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (profile && profile.perfil === 'Operador') {
+    if (!loading && profile?.perfil === 'Operador') {
+      toast.error('Acesso não permitido.');
       router.replace('/operador');
     }
-  }, [profile, router]);
+  }, [loading, profile, router]);
 
-  if (profile?.perfil === 'Operador') return null;
+  if (loading || profile?.perfil === 'Operador') return null;
   return <>{children}</>;
 }

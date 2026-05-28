@@ -1,6 +1,6 @@
 'use server';
 
-import { q, qServer } from '@/lib/supabase/queries-audit';
+import { qServer } from '@/lib/supabase/queries-audit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { insumoFormSchema, saidaFormSchema, ajusteInventarioSchema } from '@/lib/validations/insumos';
 import { revalidatePath } from 'next/cache';
