@@ -72,7 +72,10 @@
       "Bash(Format-Table -AutoSize)",
       "Bash(curl -s http://localhost:3000/dashboard/insumos -H \"Cookie: \")",
       "Bash(New-Item -ItemType Directory -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\relatorios\\\\rebanho\")",
-      "Bash(npx vercel *)"
+      "Bash(npx vercel *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\" -Directory)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Recurse -Directory | Where-Object {$_.Name -match \"\\(components|ui|styles|lib\\)\" } | ForEach-Object { $_.FullName })",
+      "Bash(awk -F'\"' '{print length\\($2\\), $1}')"
     ],
     "additionalDirectories": [
       "\\tmp"

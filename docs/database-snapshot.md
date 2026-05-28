@@ -1,9 +1,12 @@
 Database Snapshot — GestSilo Pro
 
-> **Documento gerado em:** _27/04/2026  
+> **Documento gerado em:** 27/04/2026 — **Última atualização:** 28/05/2026 (Auditoria Completa + Correções v2.2)
 > **Banco:** Supabase PostgreSQL (schema `public`)  
-> **Versão do snapshot:** 1.0  
+> **Versão do snapshot:** 2.2  
 > **Documento complementar:** `ARCHITECTURE_REVIEW.md`
+
+> ⚠️ **A Seção 1 e a estrutura de tabelas originais (abril/2026) cobrem 23 tabelas.**  
+> **A Seção 10 (adicionada em 28/05/2026) documenta o estado atual com 51 tabelas, todas as policies, funções helper, triggers, índices faltando e dívidas técnicas — use-a como fonte de verdade atual.**
 
 ---
 
@@ -89,13 +92,15 @@ Sugestão: [correção concreta]
 | Item | Valor |
 |---|---|
 | Stack | Next.js 15 + React 19 + Supabase + TypeScript 5.9 |
-| Banco | PostgreSQL (Supabase Cloud — Tier Gratuito) |
-| Total de tabelas | 23 |
-| Total de policies RLS | 90 |
-| Idioma das policies | 🇧🇷 PT-BR (padronizado) |
-| Hardening RLS concluído em | Abril/2026 |
+| Banco | PostgreSQL (Supabase Cloud — West US Oregon) |
+| Total de tabelas | **51** (auditoria 28/05/2026) — snapshot original: 23 |
+| Total de policies RLS | **~175** (auditoria 28/05/2026) — snapshot original: 90 |
+| Tabelas com RLS mas sem nenhuma policy | **0** — todas protegidas |
+| Idioma das policies | 🇧🇷 Misto (maioria PT-BR + algumas em inglês) |
+| Hardening RLS concluído em | Abril/2026 (atualizado até Maio/2026) |
 | Multitenancy | Por `fazenda_id` (RLS) |
-| Helpers ativos | `get_minha_fazenda_id()`, `sou_gerente_ou_admin()` |
+| Helpers ativos | `get_minha_fazenda_id()`, `sou_admin()`, `sou_gerente_ou_admin()`, `sou_admin_ou_visualizador()` |
+| Helpers legados (remover) | `get_my_fazenda_id()`, `is_admin()`, `is_gerente_or_admin()`, `is_operador()` |
 | Tipos TypeScript | Gerados automaticamente via `npm run db:types` (v2, Abril/2026) |
 
 ---
@@ -157,11 +162,36 @@ escopo:   todos | admin_gerente | proprios | self | publico
 - `categorias_insumo` → leitura pública, escrita só via `service_role`
 - `tipos_insumo` → leitura pública, escrita só via `service_role`
 
-### Roles do sistema
-- `admin` — acesso total
-- `gerente` — acesso total exceto configurações críticas
-- `operador` — leitura ampla + insert/update; **sem DELETE** na maioria das tabelas
-- `visualizador` — apenas leitura
+### Roles do sistema (atualizado 28/05/2026)
+
+O banco define **exatamente 3 perfis ativos**:
+
+| Perfil | Acesso |
+|---|---|
+| `Administrador` | Acesso total: todo o `/dashboard/*`, todas as operações CRUD |
+| `Visualizador` | Apenas leitura: todo o `/dashboard/*`, nenhuma escrita |
+| `Operador` | Exclusivamente `/operador` — registra saídas/fornecimentos de silos |
+
+> ⚠️ O perfil `Gerente` **não existe** no banco. A função `sou_gerente_ou_admin()` verifica
+> `perfil IN ('Administrador', 'Gerente')` mas na prática equivale a `sou_admin()`.
+> Não usar `Gerente` como perfil até que seja criado formalmente.
+
+### Padrão de nomenclatura de policies
+```
+{tabela}_{operacao}_{escopo}
+
+operacao: select | insert | update | delete
+escopo:   todos | admin | admin_gerente | admin_visualizador | operador_recente | mesma_fazenda
+```
+
+> ⚠️ Várias policies em `atividades_mao_obra`, `colaboradores` e `agendamentos_usuario`
+> usam nomes descritivos em PT-BR longo (ex: `"colaboradores: exclusão somente admin"`).
+> Candidatas à padronização futura — ver Seção 10.
+
+### Tabelas globais (catálogo público)
+- `categorias_insumo` → SELECT para autenticados (`true`), escrita só via `service_role`
+- `categorias_produto` → SELECT para autenticados (`true`), escrita só via `service_role`
+- `tipos_insumo` → SELECT para autenticados (`true`), escrita só via `service_role`
 
 ---
 
@@ -1251,50 +1281,87 @@ auth.users (Supabase Auth)
 
 ## 🎯 SEÇÃO 11 — MATRIZ DE PERMISSÕES POR ROLE
 
-| Tabela | Admin | Gerente | Operador | Visualizador |
-|---|:-:|:-:|:-:|:-:|
-| `silos` | CRUD | CRUD | CRU | R |
-| `talhoes` | CRUD | CRUD | CRU | R |
-| `maquinas` | CRUD | CRUD | CRU | R |
-| `manutencoes` | CRUD | CRUD | CRU | R |
-| `abastecimentos` | CRUD | CRUD | CRU | R |
-| `uso_maquinas` | CRUD | CRUD | CRU | R |
-| `insumos` | CRUD | CRUD | CRU | R |
-| `movimentacoes_insumo` | CRUD | CRUD | CRU | R |
-| `movimentacoes_silo` | CRUD | CRUD | CRU | R |
-| `avaliacoes_bromatologicas` | CRUD | CRUD | CRU | R |
-| `avaliacoes_psps` | CRUD | CRUD | CRU | R |
-| `financeiro` | CRUD | CRUD | ❌ | ❌ |
-| `profiles` | RU (self) | RU (self) | RU (self) | R (self) |
-| `fazendas` | CRUD | RU | R | R |
-| `categorias_insumo` | R (público) | R (público) | R (público) | R (público) |
-| `tipos_insumo` | R (público) | R (público) | R (público) | R (público) |
+> **Atualizado em 28/05/2026** — Perfil `Gerente` não existe. Coluna removida.
 
-> **Legenda:** C=Create, R=Read, U=Update, D=Delete  
-> **Validar contra Seção 4 (Policies RLS) — fonte de verdade absoluta.**
+| Tabela | Administrador | Operador | Visualizador |
+|---|:-:|:-:|:-:|
+| `silos` | CRUD | R + U(obs) | R |
+| `talhoes` | CRUD | CRUD | R |
+| `maquinas` | CRUD | R | R |
+| `manutencoes` | CRUD | R + U(24h) | R |
+| `abastecimentos` | CRUD | R + C | R |
+| `uso_maquinas` | CRUD | R + C + U(24h) | R |
+| `insumos` | CRUD | R | R |
+| `movimentacoes_insumo` | CRUD | R | R |
+| `movimentacoes_silo` | CRUD | R + C + U(24h) | R |
+| `avaliacoes_bromatologicas` | CRUD | R + C | R |
+| `avaliacoes_psps` | CRUD | R + C + U(24h) | R |
+| `financeiro` | CRUD | ❌ | R |
+| `produtos` | CRUD | ❌ | R |
+| `movimentacoes_produto` | CRUD | ❌ | R |
+| `planejamentos_atividade` | CRUD | ❌ | R |
+| `planejamento_insumos` | CRUD | ❌ | R |
+| `colaboradores` | CRUD | ❌ | R |
+| `atividades_mao_obra` | CRUD | ❌ | R |
+| `animais` | CRUD | ❌ | R |
+| `eventos_rebanho` | C + R + D | C + R | R |
+| `eventos_sanitarios` | CRUD | C + R + U | R |
+| `pastagens` | CRUD | ❌ | R |
+| `piquetes` | CRUD | ❌ | R |
+| `profiles` | R + U(outros) + D(outros) | R + U(self) | R |
+| `fazendas` | R + U | R | R |
+| `categorias_insumo` | R (público) | R (público) | R (público) |
+| `categorias_produto` | R (público) | R (público) | R (público) |
+| `tipos_insumo` | R (público) | R (público) | R (público) |
+
+> **Legenda:** C=Create, R=Read, U=Update, D=Delete, obs=apenas `observacoes_gerais`, 24h=janela de 24h para editar próprio registro  
+> **Validar contra Seção 4 (Policies RLS) — fonte de verdade absoluta.**  
+> **Para detalhamento completo das policies, ver Seção 14.5 (adicionada em 28/05/2026).**
 
 ---
 
 ## 🚦 SEÇÃO 12 — DÍVIDAS TÉCNICAS CONHECIDAS
 
-### Do `ARCHITECTURE_REVIEW.md` (25/04/2026)
+> **Atualizado em 28/05/2026** — Ver Seção 14.10 para lista completa e priorizada de dívidas.
 
-- [ ] **TODO Bromatologia:** verificar se `AvaliacaoBromatologicaDialog.tsx` agora persiste no banco
-- [ ] **TODO PSPS:** verificar se `AvaliacaoPspsDialog.tsx` agora persiste no banco
-- [ ] **TODO Insumos:** integração `movimentacoes_insumo` → `financeiro` ao marcar `registrar_como_despesa`
-- [ ] **Índice em `planos_manutencao(fazenda_id)`:** confirmar via Seção 6
-- [ ] **Tipos manuais vs Zod:** unificar `lib/supabase.ts` com inferência de `validators/`
-- [ ] **`eslint-disable-line react-hooks/exhaustive-deps`** em `SiloForm.tsx` e `MovimentacaoDialog.tsx`
+### ✅ Resolvidos desde abril/2026
 
-### Rotas mockadas (sem persistência)
+- ✅ **Bromatologia:** `avaliacoes_bromatologicas` tem RLS (4 policies) e persiste no banco
+- ✅ **PSPS:** `avaliacoes_psps` tem RLS (5 policies) e persiste no banco
+- ✅ **Insumos → Financeiro:** integração implementada (`registrar_como_despesa`)
+- ✅ **Índice em `planos_manutencao(fazenda_id)`:** criado (`idx_planos_manutencao_fazenda_id`)
+- ✅ **`/dashboard/assessoria`:** implementado (tabelas, RLS, email, link mágico JWT)
+- ✅ **`/dashboard/produtos`:** implementado (tabelas, RLS, 7 Server Actions)
+- ✅ **`/dashboard/configuracoes`:** implementado incluindo convite de usuários
 
-| Rota | Status | Prazo Estimado | Notas |
-|------|--------|---|---|
-| `/dashboard/assessoria` | Mock/Placeholder | Q3 2026 | UI completa com Plano Max, aguardando integração com assessor |
-| `/dashboard/produtos` | Mock/Placeholder | Q3 2026 | Estrutura pronta, tabelas preparadas no banco |
-| `/dashboard/configuracoes` | Parcial | Q2 2026 | Perfil + Fazenda completos; Usuários e convites em breve |
+### 🔴 Dívidas abertas — críticas (28/05/2026)
 
-**Sinalização visual:** Todas as rotas "Em breve" têm badge `"Em breve"` no menu Sidebar e banner `ComingSoonBanner` no topo da página.
+Ver Seção 14.10 para detalhes completos. Resumo:
+
+| ID | Problema | Tabela/Objeto |
+|---|---|---|
+| DT-01 | `planos_manutencao` sem trigger `set_fazenda_id` | `planos_manutencao` |
+| DT-02 | FK duplicada em `fazenda_id` | `abastecimentos`, `uso_maquinas` |
+| DT-03 | `talhao_id` sem FK declarada | `movimentacoes_silo` |
+
+### 🟡 Dívidas abertas — médias (28/05/2026)
+
+| ID | Problema |
+|---|---|
+| DT-04 | `ON DELETE CASCADE` ausente em várias FKs de `fazenda_id` |
+| DT-05 | `silos.cultura_ensilada` sem CHECK constraint |
+| DT-06 | Policies com nomes fora do padrão `{tabela}_{operacao}_{escopo}` |
+| DT-07 | `sou_admin_ou_visualizador()` sem fallback para `profiles` |
+| DT-08 | `eventos_rebanho` UPDATE bloqueado (`USING false`) — intencional? |
+| DT-09 | `historico_atendimentos` e `parametros_reprodutivos_fazenda` sem policy DELETE |
+| DT-10 | Timestamps PT-BR em `insumos`/`movimentacoes_insumo` vs EN no resto |
+
+### 🟢 Dívidas abertas — limpeza
+
+| ID | Problema |
+|---|---|
+| DT-11 | Funções legadas a remover (`get_my_fazenda_id`, `is_admin`, etc.) |
+| DT-12 | FKs de baixa prioridade sem índice |
 
 ---
 
@@ -1335,22 +1402,351 @@ grep -rn "\.delete(" --include="*.ts" --include="*.tsx" app/ components/ hooks/
 
 | Data | Versão | Alteração |
 |---|---|---|
+| 28/05/2026 | 2.2 | Correções pós-auditoria executadas: DT-07, DT-08, DT-09 + 23 índices (Seção 14.5 + DT-12). DT-04/05/06/10 documentados como decisão intencional |
+| 28/05/2026 | 2.1 | Correções pós-auditoria executadas: DT-01, DT-02, DT-03, DT-11, DT-13 |
+| 28/05/2026 | 2.0 | Auditoria completa: 51 tabelas, todas as policies, triggers, funções helper, índices faltando, dívidas técnicas (Seção 14) |
 | 28/04/2026 | 1.1 | S6: Adicionado script automático de geração de tipos TypeScript (`npm run db:types`) |
-| _(preencher)_ | 1.0 | Snapshot inicial pós-hardening RLS PT-BR |
+| 27/04/2026 | 1.0 | Snapshot inicial pós-hardening RLS PT-BR |
 
 ---
 
 ## ✅ CHECKLIST DE GERAÇÃO DESTE DOCUMENTO
 
-- [ ] Query 1 executada e colada na Seção 3
-- [ ] Query 2 executada e colada na Seção 4
-- [ ] Query 3 executada e colada na Seção 5.1
-- [ ] Query 4 executada e colada na Seção 5.2
-- [ ] Query 5 executada e colada na Seção 6
-- [ ] Query 6 executada e colada na Seção 7
-- [ ] Query 7 executada e colada na Seção 8
-- [ ] Query 8 executada e colada na Seção 9
-- [ ] Lista de colunas auto-preenchidas (Seção 5.2) atualizada
-- [ ] Data e versão preenchidas no cabeçalho
-- [ ] Histórico de atualizações preenchido
-- [ ] Arquivo salvo em `docs/database-snapshot.md`
+- [x] Query 1 executada e colada na Seção 3
+- [x] Query 2 executada e colada na Seção 4
+- [x] Query 3 executada e colada na Seção 5.1
+- [x] Query 4 executada e colada na Seção 5.2
+- [x] Query 5 executada e colada na Seção 6
+- [x] Query 6 executada e colada na Seção 7
+- [x] Query 7 executada e colada na Seção 8
+- [x] Query 8 executada e colada na Seção 9
+- [x] Lista de colunas auto-preenchidas (Seção 5.2) atualizada
+- [x] Data e versão preenchidas no cabeçalho
+- [x] Histórico de atualizações preenchido
+- [x] Arquivo salvo em `docs/database-snapshot.md`
+- [x] **Auditoria 28/05/2026 adicionada na Seção 14**
+
+---
+
+## 🔍 SEÇÃO 14 — AUDITORIA COMPLETA 28/05/2026
+
+> **Fonte:** Auditoria completa do Supabase realizada em 28/05/2026.  
+> Esta seção é a **fonte de verdade mais recente** — prevalece sobre as seções anteriores quando há conflito.
+
+---
+
+### 14.1 — Tabelas Auditadas (51 total)
+
+Todas as 51 tabelas têm RLS habilitado. Nenhuma tem RLS habilitado sem nenhuma policy.
+
+| Tabela | Policies | Notas |
+|---|---|---|
+| `abastecimentos` | 4 | FK dupla em `fazenda_id` (ver DT-02) |
+| `agendamentos_usuario` | 5 | Roles `{public}`; nomes sem padrão |
+| `animais` | 4 | Soft-delete via `deleted_at` |
+| `anotacoes_assessoria` | 4 | Soft-delete via `deleted_at` |
+| `atividades_campo` | 5 | Policy de Operador (update 24h) |
+| `atividades_mao_obra` | 4 | `custo_final` é coluna `GENERATED ALWAYS AS` — nunca incluir em INSERT/UPDATE |
+| `atividades_mao_obra_colaboradores` | 4 | Tabela join N:N |
+| `audit_log` | 2 | Apenas Admin acessa |
+| `avaliacoes_bromatologicas` | 4 | |
+| `avaliacoes_psps` | 5 | Policy de Operador (update 24h) |
+| `categorias_insumo` | 1 | SELECT público para autenticados |
+| `categorias_produto` | 1 | SELECT público; 9 seed rows |
+| `categorias_rebanho` | 4 | |
+| `ciclos_agricolas` | 4 | |
+| `colaboradores` | 4 | Nomes de policies fora do padrão |
+| `eventos_dap` | 4 | |
+| `eventos_manejo_pastagem` | 4 | |
+| `eventos_parto_crias` | 4 | |
+| `eventos_rebanho` | 4 | **UPDATE bloqueado (`USING false`)** |
+| `eventos_sanitarios` | 4 | Soft-delete via `deleted_at` |
+| `fazendas` | 3 | Sem policy de DELETE |
+| `financeiro` | 4 | SELECT restrito Admin + Visualizador |
+| `historico_atendimentos` | 3 | **Sem policy de DELETE** |
+| `horarios_disponiveis_consultor` | 3 | SELECT público para `disponivel=true` |
+| `insumos` | 4 | Verifica `fazenda_id IS NOT NULL` explicitamente |
+| `lactacoes` | 4 | Soft-delete via `deleted_at` |
+| `lotes` | 4 | |
+| `manutencoes` | 5 | Policy de Operador (update 24h) |
+| `maquinas` | 4 | |
+| `movimentacoes_insumo` | 4 | Filtra por subquery em `insumos` |
+| `movimentacoes_produto` | 4 | SELECT restrito Admin + Visualizador |
+| `movimentacoes_silo` | 5 | Policy de Operador (update 24h) |
+| `ocupacoes_piquete` | 4 | |
+| `parametros_reprodutivos_fazenda` | 3 | **Sem policy de DELETE** |
+| `pastagens` | 4 | |
+| `periodos_confinamento` | 4 | |
+| `pesos_animal` | 4 | |
+| `piquetes` | 4 | |
+| `planejamento_insumos` | 4 | SELECT restrito Admin + Visualizador |
+| `planejamentos_atividade` | 4 | SELECT restrito Admin + Visualizador |
+| `planejamentos_silagem` | 4 | |
+| `planos_manutencao` | 4 | **Sem trigger `set_fazenda_id`** (ver DT-01) |
+| `producoes_leiteiras` | 4 | |
+| `produtos` | 4 | SELECT restrito Admin + Visualizador |
+| `profiles` | 4 | SELECT usa `get_my_fazenda_id_jwt()` para evitar loop |
+| `registros_colaborador` | 3 | **Sem policy de UPDATE** (imutável) |
+| `reprodutores` | 4 | Soft-delete via `deleted_at` |
+| `silos` | 4 | Trigger protege campos do Operador |
+| `talhoes` | 4 | |
+| `tipos_insumo` | 1 | SELECT público para autenticados |
+| `uso_maquinas` | 5 | Policy de Operador (update 24h) |
+
+---
+
+### 14.2 — Funções Helper de Autorização (SECURITY DEFINER)
+
+#### Funções ativas (usar em novas features)
+
+| Função | Retorno | Comportamento |
+|---|---|---|
+| `get_minha_fazenda_id()` | `uuid` | JWT primeiro, fallback para `profiles` |
+| `sou_admin()` | `boolean` | JWT primeiro, fallback para `profiles` |
+| `sou_gerente_ou_admin()` | `boolean` | JWT primeiro, fallback para `profiles`; Gerente não existe |
+| `sou_admin_ou_visualizador()` | `boolean` | JWT apenas, **sem fallback** |
+| `posso_criar_fazenda()` | `boolean` | `get_minha_fazenda_id() IS NULL` |
+| `get_my_fazenda_id_jwt()` | `uuid` | JWT apenas, sem fallback — usado na policy de `profiles` |
+
+#### Funções legadas (NÃO usar — candidatas a DROP)
+
+| Função | Problema |
+|---|---|
+| `get_my_fazenda_id()` | Wrapper de `get_minha_fazenda_id()`. Redundante. |
+| `get_meu_perfil()` | Query ao banco (lento). Substituir por `sou_admin()`. |
+| `get_my_perfil()` | Duplicata de `get_meu_perfil()`. |
+| `is_admin()` | Usa `get_my_perfil()` (query ao banco). |
+| `is_gerente_or_admin()` | Usa `get_my_perfil()` (query ao banco). |
+| `is_operador()` | Usa `get_my_perfil()` (query ao banco). Sem equivalente moderno. |
+
+---
+
+### 14.3 — Triggers e Funções SECURITY DEFINER
+
+#### Triggers de `set_fazenda_id`
+
+| Função trigger | Tabela | Fonte do `fazenda_id` |
+|---|---|---|
+| `set_animais_fazenda_id` | `animais` | JWT via `get_minha_fazenda_id()` |
+| `set_eventos_rebanho_fazenda_id` | `eventos_rebanho` | JWT |
+| `set_eventos_sanitarios_fazenda_id` | `eventos_sanitarios` | JWT |
+| `set_lotes_fazenda_id` | `lotes` | JWT |
+| `set_pesos_animal_fazenda_id` | `pesos_animal` | JWT |
+| `set_producoes_leiteiras_fazenda_id` | `producoes_leiteiras` | JWT |
+| `fn_pastagens_set_fazenda_id` | `pastagens` | JWT |
+| `fn_registros_colaborador_set_fazenda_id` | `registros_colaborador` | JWT |
+| `trg_fn_produtos_set_fazenda_id` | `produtos` | JWT (apenas se NULL) |
+| `set_fazenda_id_via_jwt` | múltiplas | JWT |
+| `fn_propagar_fazenda_id_via_pastagem` | `piquetes` | Busca `pastagens.fazenda_id` |
+| `fn_propagar_fazenda_id_via_piquete` | `ocupacoes_piquete`, `eventos_manejo_pastagem` | Busca `piquetes.fazenda_id` |
+| `preencher_fazenda_id_via_maquina` | `abastecimentos`, `uso_maquinas` | Busca `maquinas.fazenda_id` |
+| `preencher_fazenda_id_via_manutencao` | `manutencoes` | Busca `maquinas.fazenda_id` |
+| `preencher_fazenda_id_via_silo` | `movimentacoes_silo` | Busca `silos.fazenda_id` |
+| `preencher_fazenda_id_via_planejamento` | `planejamento_insumos` | Busca `planejamentos_atividade.fazenda_id` |
+
+> ⚠️ **`planos_manutencao` NÃO tem trigger de `set_fazenda_id`** (DT-01).
+
+#### Triggers de negócio — `eventos_rebanho` (AFTER INSERT)
+
+| Trigger | Condição | Efeito |
+|---|---|---|
+| `atualizar_peso_atual_pesagem` | `tipo='pesagem'` | Insere em `pesos_animal`, atualiza `animais.peso_atual` |
+| `atualizar_status_morte_venda` | `tipo='morte'/'venda'` | Muda `animais.status` |
+| `atualizar_lote_transferencia` | `tipo='transferencia_lote'` | Atualiza `animais.lote_id` |
+| `aborto_limpar_datas_previstas` | `tipo='aborto'` | Limpa `data_parto_previsto` e `data_proxima_secagem` |
+| `descarte_marcar_status` | `tipo='descarte'` | `status_reprodutivo='descartada'` |
+| `diagnostico_atualizar_datas_previstas` | `tipo='diagnostico_prenhez'` | Calcula datas ou marca vazia/inseminada |
+| `cobertura_verificar_repetidora` | `tipo='cobertura'` | Avalia `animais.flag_repetidora` |
+| `parto_atualizar_data_ultimo_parto` | `tipo='parto'` | Atualiza `animais.data_ultimo_parto` |
+| `parto_criar_bezerros` | `tipo='parto'` | Cria filhos em `animais` + insere em `lactacoes` |
+| `secagem_registrar_lactacao` | `tipo='secagem'` | Encerra lactação + `status_reprodutivo='seca'` |
+
+#### Outros triggers de negócio relevantes
+
+| Função | Tabela | Ação |
+|---|---|---|
+| `atualizar_custo_medio_e_estoque` | `movimentacoes_insumo` | Atualiza `insumos.custo_medio` e `estoque_atual` |
+| `trg_fn_mov_produto_atualiza_estoque` | `movimentacoes_produto` | Atualiza `produtos.estoque_atual` |
+| `silos_proteger_campos_operador` | `silos` (BEFORE UPDATE) | Operador só pode editar `observacoes_gerais` |
+| `validar_parto_com_prenhez` | `eventos_rebanho` (BEFORE INSERT) | Bloqueia parto sem prenhez confirmada |
+| `recalcular_categoria_animal` | `animais` (BEFORE INSERT/UPDATE) | Deriva `categoria` automaticamente |
+| `atualizar_status_talhao` | `ciclos_agricolas` | Muda status do talhão para Plantado/Colhido |
+
+---
+
+### 14.4 — Índices Existentes
+
+#### Criados em abril/2026
+`idx_planos_manutencao_fazenda_id`, `idx_manutencoes_fazenda_id`, `idx_abastecimentos_fazenda_id`, `idx_uso_maquinas_fazenda_id`
+
+#### Pastagens (21/05/2026)
+`idx_pastagens_fazenda_id`, `idx_piquetes_pastagem_id`, `idx_piquetes_fazenda_id`, `idx_piquetes_status`, `idx_ocupacoes_piquete_id`, `idx_ocupacoes_data_saida_real`, `idx_ocupacoes_fazenda_id`, `idx_eventos_manejo_piquete_id`
+
+#### Mão de Obra (22/05/2026)
+`idx_colaboradores_fazenda_id`, `idx_colaboradores_fazenda_ativo`, `idx_atividades_mao_obra_fazenda_id`, `idx_atividades_mao_obra_fazenda_data`, `idx_atv_mao_obra_colab_atividade_id`, `idx_atv_mao_obra_colab_colaborador_id`
+
+#### Rastreabilidade de Colaboradores (22/05/2026)
+`idx_registros_colaborador_fazenda`, `idx_registros_colaborador_ref`, `idx_registros_colaborador_colaborador`
+
+#### Calendário (24/05/2026)
+`idx_atividades_campo_data_inicio`, `idx_atividades_campo_data_fim`, `idx_manutencoes_data_prevista`, `idx_eventos_sanitarios_data_evento`, `idx_producoes_leiteiras_data`, `idx_eventos_rebanho_data`, `idx_abastecimentos_data`, `idx_uso_maquinas_data_uso`
+
+---
+
+### 14.5 — FKs Sem Índice (por prioridade)
+
+```sql
+-- 🔴 Alta prioridade
+CREATE INDEX IF NOT EXISTS idx_planos_manutencao_maquina_id ON planos_manutencao(maquina_id);
+
+-- 🟡 Média prioridade
+CREATE INDEX IF NOT EXISTS idx_atividades_mao_obra_talhao_id ON atividades_mao_obra(talhao_id);
+CREATE INDEX IF NOT EXISTS idx_atividades_mao_obra_silo_id ON atividades_mao_obra(silo_id);
+CREATE INDEX IF NOT EXISTS idx_atividades_mao_obra_maquina_id ON atividades_mao_obra(maquina_id);
+CREATE INDEX IF NOT EXISTS idx_atividades_mao_obra_despesa_id ON atividades_mao_obra(despesa_id);
+CREATE INDEX IF NOT EXISTS idx_atv_mao_obra_colab_fazenda_id ON atividades_mao_obra_colaboradores(fazenda_id);
+CREATE INDEX IF NOT EXISTS idx_silos_talhao_id ON silos(talhao_id);
+CREATE INDEX IF NOT EXISTS idx_eventos_manejo_maquina_id ON eventos_manejo_pastagem(maquina_id);
+CREATE INDEX IF NOT EXISTS idx_eventos_manejo_insumo_id ON eventos_manejo_pastagem(insumo_id);
+CREATE INDEX IF NOT EXISTS idx_movimentacoes_insumo_produto_id_origem ON movimentacoes_insumo(produto_id_origem);
+CREATE INDEX IF NOT EXISTS idx_movimentacoes_produto_insumo_id_destino ON movimentacoes_produto(insumo_id_destino);
+CREATE INDEX IF NOT EXISTS idx_planejamentos_atividade_ciclo_id ON planejamentos_atividade(ciclo_id);
+CREATE INDEX IF NOT EXISTS idx_planejamento_insumos_fazenda_id ON planejamento_insumos(fazenda_id);
+CREATE INDEX IF NOT EXISTS idx_uso_maquinas_talhao_id ON uso_maquinas(talhao_id);
+CREATE INDEX IF NOT EXISTS idx_uso_maquinas_implemento_id ON uso_maquinas(implemento_id);
+```
+
+---
+
+### 14.6 — View
+
+**`vw_animais_completos`** — criada com `security_invoker`
+- Une: `animais`, `lotes`, `pesos_animal`, `producoes_leiteiras`, `eventos_sanitarios`, `eventos_rebanho`, `reprodutores`
+- Usada no construtor dinâmico de relatório de rebanho
+- Colunas calculadas: `gmd_90d`, `iep_dias`, `dias_lactacao`, `producao_media_30d`, `arroba_estimada`, `projecao_abate`, `qtd_partos`, `total_lactacao`, `ultima_vacinacao`, `proxima_vacinacao`, `ultima_vermifugacao`, `ultima_cobertura`, `data_ultimo_peso`, `ultimo_peso_kg`
+
+---
+
+### 14.7 — Convenções de Timestamps
+
+**Padrão EN** (maioria das tabelas): `created_at` / `updated_at` — atualizado por `update_updated_at_column`
+
+**Exceção PT-BR** (`insumos`, `movimentacoes_insumo`): `criado_em` / `atualizado_em` — atualizado por `update_insumos_atualizado_em`
+
+> **Regra**: novas tabelas DEVEM usar `created_at` / `updated_at` (padrão EN).
+
+---
+
+### 14.8 — CHECK Constraints Adicionais (não documentadas na Seção 9)
+
+Constraints relevantes presentes no banco mas ausentes no snapshot original:
+
+| Tabela | Constraint | Regra |
+|---|---|---|
+| `profiles` | `profiles_perfil_check` | `perfil IN ('Administrador', 'Gerente', 'Operador')` — ⚠️ `Visualizador` **ausente** (ver DT-13) |
+| `movimentacoes_insumo` | `chk_origem` | `origem IN ('manual','talhao','frota','silo','financeiro','planejamento')` |
+| `movimentacoes_silo` | `movimentacoes_silo_subtipo_check` | subtipo: Ensilagem, Uso na alimentação, Descarte, Transferência, Venda |
+
+---
+
+### 14.9 — Inconsistência Crítica: `profiles_perfil_check`
+
+> ⚠️ **ATENÇÃO — Risco de integridade de dados**
+
+A CHECK constraint `profiles_perfil_check` na tabela `profiles` aceita:
+```sql
+perfil IN ('Administrador', 'Gerente', 'Operador')
+```
+
+**`Visualizador` não está na lista.** Isso significa:
+- Qualquer tentativa de INSERT/UPDATE com `perfil = 'Visualizador'` falha silenciosamente ou com erro
+- Se usuários do tipo Visualizador foram criados via `service_role` ou antes desta constraint, os dados existem mas novos não podem ser criados via regra SQL normal
+
+**Verificação necessária:**
+```sql
+SELECT COUNT(*) FROM profiles WHERE perfil = 'Visualizador';
+SELECT constraint_name, check_clause
+FROM information_schema.check_constraints
+WHERE constraint_name = 'profiles_perfil_check';
+```
+
+**Correção sugerida:**
+```sql
+ALTER TABLE profiles DROP CONSTRAINT profiles_perfil_check;
+ALTER TABLE profiles ADD CONSTRAINT profiles_perfil_check
+  CHECK (perfil IN ('Administrador', 'Gerente', 'Operador', 'Visualizador'));
+```
+
+---
+
+### 14.10 — Dívidas Técnicas (28/05/2026)
+
+#### ✅ DT-01: `planos_manutencao` sem trigger de `set_fazenda_id` — **RESOLVIDO 28/05/2026**
+A tabela tem `fazenda_id` mas nenhum trigger automático para preenchê-lo.  
+**Risco**: INSERT sem `fazenda_id` explícito resulta em NULL, quebrando RLS.  
+**Correção**:
+```sql
+CREATE TRIGGER trg_planos_manutencao_set_fazenda_id
+BEFORE INSERT ON planos_manutencao
+FOR EACH ROW EXECUTE FUNCTION preencher_fazenda_id_via_manutencao();
+```
+
+#### ✅ DT-02: FK duplicada em `abastecimentos.fazenda_id` e `uso_maquinas.fazenda_id` — **RESOLVIDO 28/05/2026**
+A auditoria mostra `fazenda_id → fazendas.id` listada duas vezes para essas tabelas.  
+**Verificação**:
+```sql
+SELECT constraint_name, column_name
+FROM information_schema.key_column_usage
+WHERE table_name = 'abastecimentos'
+  AND table_schema = 'public'
+  AND constraint_name IN (
+    SELECT constraint_name FROM information_schema.table_constraints
+    WHERE constraint_type = 'FOREIGN KEY'
+  );
+```
+
+#### ✅ DT-03: `movimentacoes_silo.talhao_id` possivelmente sem FK — **RESOLVIDO 28/05/2026**
+A coluna existe e é usada, mas não aparece na listagem de FKs da auditoria.  
+**Verificação**:
+```sql
+SELECT tc.constraint_name FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+WHERE tc.table_name = 'movimentacoes_silo'
+  AND kcu.column_name = 'talhao_id'
+  AND tc.constraint_type = 'FOREIGN KEY';
+```
+
+#### ✅ DT-13: `profiles_perfil_check` exclui `Visualizador` — **RESOLVIDO 28/05/2026**
+
+#### ⏭️ DT-04: `ON DELETE CASCADE` ausente em FKs de `fazenda_id` — **DECISÃO INTENCIONAL**
+Sem CASCADE por design: um DELETE acidental de fazenda seria irreversível. Offboarding deve ser feito via processo manual controlado.
+
+#### ⏭️ DT-05: `silos.cultura_ensilada` sem CHECK constraint — **DECISÃO INTENCIONAL**
+Campo livre por design: culturas são diversas e o usuário pode precisar registrar valores não previstos. Validação fica exclusivamente na UI.
+
+#### ⏭️ DT-06: Policies com nomes fora do padrão — **ADIADO**
+Renomear policies no PostgreSQL exige DROP + CREATE (não há ALTER POLICY RENAME). Risco de inconsistência se referenciado em código. Não renomear sem necessidade funcional.
+
+#### ✅ DT-07: `sou_admin_ou_visualizador()` sem fallback para `profiles` — **RESOLVIDO 28/05/2026**
+Função atualizada com `CREATE OR REPLACE`: tenta JWT primeiro, fallback para `profiles` se JWT desatualizado.
+
+#### ✅ DT-08: `eventos_rebanho` UPDATE bloqueado (`USING false`) — **RESOLVIDO 28/05/2026**
+Policy `eventos_rebanho_update` (USING false) substituída por `eventos_rebanho_update_admin` que permite Admin editar.  
+⚠️ **Triggers de negócio são AFTER INSERT — não disparam em UPDATE.** Editar o campo `tipo` de um evento não reverte efeitos colaterais já aplicados (peso inserido, status do animal alterado). A UI deve restringir edição a campos descritivos (`observacoes`, `data`).
+
+#### ✅ DT-09: `historico_atendimentos` e `parametros_reprodutivos_fazenda` sem policy de DELETE — **RESOLVIDO 28/05/2026**
+Criadas:
+- `historico_atendimentos_delete_admin` — Admin pode deletar histórico da própria fazenda
+- `parametros_reprodutivos_delete_admin` — Admin pode deletar parâmetros da própria fazenda
+
+#### ⏭️ DT-10: Timestamps divergentes — **DOCUMENTADO, SEM MIGRAÇÃO**
+`insumos`/`movimentacoes_insumo` usam `criado_em`/`atualizado_em` (PT-BR). Migrar colunas existentes tem risco de quebrar queries e triggers. **Regra**: novas tabelas DEVEM usar `created_at`/`updated_at` (EN).
+
+#### ✅ DT-11: Funções legadas removidas — **RESOLVIDO 28/05/2026**
+Dropped: `get_my_fazenda_id`, `get_meu_perfil`, `get_my_perfil`, `is_admin`, `is_gerente_or_admin`, `is_operador`.
+
+#### ✅ DT-12: FKs de baixa prioridade sem índice — **RESOLVIDO 28/05/2026**
+Criados 8 índices: `idx_animais_reprodutor_vinculado_id`, `idx_agendamentos_horario_disponivel_id`, `idx_eventos_rebanho_usuario_id`, `idx_eventos_rebanho_lote_id_destino`, `idx_eventos_parto_crias_animal_criado_id`, `idx_eventos_sanitarios_usuario_id`, `idx_historico_atendimentos_agendamento_id`, `idx_producoes_leiteiras_usuario_id`.
+
+#### ✅ Seção 14.5 — FKs sem índice (alta + média prioridade) — **RESOLVIDO 28/05/2026**
+Criados 15 índices: `idx_planos_manutencao_maquina_id`, `idx_atividades_mao_obra_talhao_id`, `idx_atividades_mao_obra_silo_id`, `idx_atividades_mao_obra_maquina_id`, `idx_atividades_mao_obra_despesa_id`, `idx_atv_mao_obra_colab_fazenda_id`, `idx_silos_talhao_id`, `idx_eventos_manejo_maquina_id`, `idx_eventos_manejo_insumo_id`, `idx_movimentacoes_insumo_produto_id_origem`, `idx_movimentacoes_produto_insumo_id_destino`, `idx_planejamentos_atividade_ciclo_id`, `idx_planejamento_insumos_fazenda_id`, `idx_uso_maquinas_talhao_id`, `idx_uso_maquinas_implemento_id`.
