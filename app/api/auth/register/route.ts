@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { registerRateLimit, checkRateLimit, getClientIP } from '@/lib/auth/rate-limit';
+import { registerSchema } from '@/lib/validations/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -18,21 +19,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, nome, perfil } = await request.json();
-
-    if (!email || !password || !nome) {
-      return NextResponse.json(
-        { error: 'E-mail, senha e nome são obrigatórios.' },
-        { status: 400 }
-      );
+    const body = await request.json();
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
     }
-
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: 'Senha deve ter no mínimo 8 caracteres.' },
-        { status: 400 }
-      );
-    }
+    const { email, password, nome } = parsed.data;
+    const { perfil } = body as { perfil?: string };
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

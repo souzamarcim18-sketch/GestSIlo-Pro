@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { forgotPasswordRateLimit, checkRateLimit, getClientIP } from '@/lib/auth/rate-limit';
 import { sendPasswordResetEmail } from '@/lib/email/resend';
+import { forgotPasswordSchema } from '@/lib/validations/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -19,14 +20,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email } = await request.json();
-
-    if (!email) {
-      return NextResponse.json(
-        { error: 'E-mail é obrigatório.' },
-        { status: 400 }
-      );
+    const body = await request.json();
+    const parsed = forgotPasswordSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
     }
+    const { email } = parsed.data;
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json(

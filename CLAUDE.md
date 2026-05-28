@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 743 testes passando (inclui suite de auditoria RLS em `tests/security/`)
+- **Testes**: Vitest — 852+ testes passando (inclui suite de auditoria RLS em `tests/security/`)
 
 ---
 
@@ -58,10 +58,37 @@ profile.role    // campo legado removido
 | **Visualizador** | Apenas leitura: todo o `/dashboard/*`, nenhuma escrita |
 | **Operador** | Exclusivamente `/operador` — registra saídas/fornecimentos/descartes de silos |
 
-- **Operador nunca acessa `/dashboard`** — o `app/dashboard/layout.tsx` redireciona para `/operador`
+- **Operador nunca acessa `/dashboard`** — bloqueado em duas camadas (ver abaixo)
 - **Visualizador nunca escreve** — bloqueado via RLS (`sou_admin_ou_visualizador()`) e ausência de botões de ação na UI
 - `sou_gerente_ou_admin()` existe no banco mas equivale a `sou_admin()` na prática (perfil Gerente não existe)
 - **Nunca usar `sou_operador_ou_admin()`** em novas Server Actions — função obsoleta, não reflete o modelo atual
+
+### Camadas de Proteção do Operador (implementadas em 2026-05-28)
+
+**Camada 1 — Middleware SSR** (`middleware.ts`): lê `user_metadata.perfil` do JWT e redireciona para `/operador` qualquer Operador que tente acessar qualquer rota `/dashboard/*`. Executado antes do React, sem custo de hidratação.
+
+**Camada 2 — Layout Guards** (`app/dashboard/*/layout.tsx`): guards client-side com `useAuth()` + `useEffect` em todos os módulos. Padrão de implementação:
+```tsx
+'use client';
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const { profile, isLoading } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!isLoading && profile?.perfil === 'Operador') {
+      toast.error('Acesso não permitido.');
+      router.replace('/dashboard');
+    }
+  }, [profile, isLoading, router]);
+  if (isLoading || profile?.perfil === 'Operador') return null;
+  return <>{children}</>;
+}
+```
+Módulos com guard de layout (criados em 2026-05-28): `silos`, `talhoes`, `frota`, `insumos`, `rebanho`, `financeiro`, `configuracoes`, `calculadoras` — somados aos 9 já existentes (`produtos`, `planejamento-compras`, `pastagens`, `mao-de-obra`, `balanco-forrageiro`, `calendario`, `assessoria`, `relatorios`, `planejamento-silagem`).
+
+**Camada 3 — Helper RSC** (`lib/auth/guards.ts`): funções assíncronas para uso em Server Components quando necessário:
+- `requirePerfil(perfisPermitidos[])` — base; redireciona via `redirect()` se perfil não consta na lista
+- `requireAdmin()` — atalho para `['Administrador']`
+- `requireAdminOuVisualizador()` — atalho para `['Administrador', 'Visualizador']`
 
 ### Proteção de Rotas UI
 Botões de DELETE e ações destrutivas devem verificar perfil antes de renderizar:
@@ -167,9 +194,15 @@ sou_gerente_ou_admin() → boolean
 app/
 ├── api/
 │   ├── auth/
-│   │   ├── login/route.ts          # Rate limiting + createServerClient
-│   │   ├── register/route.ts       # Rate limiting
-│   │   └── forgot-password/route.ts # Rate limiting
+│   │   ├── login/route.ts          # Rate limiting + Zod (loginSchema) — erro genérico "Credenciais inválidas"
+│   │   ├── register/route.ts       # Rate limiting + Zod (registerSchema)
+│   │   ├── forgot-password/route.ts # Rate limiting + Zod (forgotPasswordSchema)
+│   │   └── invite/route.ts         # Rate limiting + Zod (inviteSchema) — apenas Admin
+│   ├── assessoria/
+│   │   ├── solicitar-consulta/route.ts  # Zod inline (solicitarConsultaSchema); envia email ao consultor
+│   │   └── agendamentos/
+│   │       ├── route.ts            # GET (listar) apenas — PATCH removido desta rota estática
+│   │       └── [id]/route.ts       # PATCH /api/assessoria/agendamentos/{id} — rota dinâmica correta
 │   ├── weather/route.ts
 │   └── geocoding/route.ts
 ├── dashboard/                       # Rotas autenticadas
@@ -312,7 +345,8 @@ lib/
 │   └── allowlist.ts                 # Padrões de dados sensíveis filtrados do Sentry
 ├── auth/
 │   ├── logger.ts
-│   └── rate-limit.ts                # Helpers Upstash ratelimit
+│   ├── rate-limit.ts                # Helpers Upstash ratelimit
+│   └── guards.ts                    # requirePerfil(), requireAdmin(), requireAdminOuVisualizador() — para RSC
 ├── hooks/
 ├── types/
 │   ├── pastagens.ts                 # SistemaPastejo, StatusPiquete, TipoEventoManejo, Pastagem, Piquete, OcupacaoPiquete, PastagemComResumo, FATORES_UA_POR_CATEGORIA
@@ -323,6 +357,8 @@ lib/
 │   ├── localDb.ts                   # IndexedDB PWA
 │   └── syncQueue.ts
 ├── validations/
+│   ├── auth.ts                      # loginSchema, registerSchema, forgotPasswordSchema, inviteSchema
+│   ├── silos.ts                     # siloSchema, movimentacaoSiloSchema, avaliacaoBromatologicaSchema, avaliacaoPspsSchema
 │   └── mao-de-obra.ts               # colaboradorFormSchema, atividadeFormSchema (refine: max 1 vínculo)
 ├── calculadoras/
 ├── pdf/
@@ -336,7 +372,7 @@ types/
 providers/
 └── AuthProvider.tsx                 # Carrega perfil do JWT user_metadata
 
-middleware.ts                        # Valida sessão, setAll/remove cookies
+middleware.ts                        # Valida sessão, setAll/remove cookies; redireciona Operador de /dashboard/* → /operador
 sentry.client.config.ts
 sentry.server.config.ts
 instrumentation.ts
@@ -398,6 +434,11 @@ export default async function ExemploPage() {
 - Validação no cliente (UX) + validação no servidor (segurança)
 - CHECK constraints no PostgreSQL devem espelhar as regras do Zod
 - Mensagens de erro claras e em português
+- **Padrão B (Formulários React Hook Form + shadcn/ui)** — obrigatório em todos os forms:
+  - Estrutura: `Form > FormField > FormItem > FormLabel > FormControl > FormMessage`
+  - Erros exibidos **sempre** via `<FormMessage />` — **nunca** `<p className="text-destructive">`
+  - `<Controller>` substituído por `<FormField render={({ field }) => ...}>`
+- **API routes** usam `schema.safeParse(body)` — nunca validação manual com `if (!campo)`
 
 ### Formatação & Tipos
 - **Moeda BRL**: `formatBRL(value)` em `lib/utils.ts`
@@ -457,6 +498,10 @@ Não modifique sem instrução explícita:
 6. **Headers HTTP** já configurados em `next.config.ts` — não remover o bloco `headers()`
 7. **Sentry `beforeSend`** filtra dados sensíveis — não contornar
 8. **Dados sensíveis nunca em logs**: senhas, tokens JWT, dados pessoais de fazendeiros
+9. **Validação Zod obrigatória** em todas as API routes via `safeParse` — erros retornam mensagens genéricas:
+   - Login/credenciais: sempre `{ error: 'Credenciais inválidas' }` (nunca revelar se email existe)
+   - Demais rotas: `{ error: 'Dados inválidos' }` — nunca expor mensagens de schema Zod ao cliente
+10. **Playwright baseURL** aponta para `process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'` — nunca para produção
 
 ---
 
@@ -543,14 +588,21 @@ Tabela `registros_colaborador` vincula um colaborador a qualquer operação agr�
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=      # ⚠️ CRÍTICO: bypassa RLS — nunca expor client-side
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 NEXT_PUBLIC_SITE_URL=
+NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_CONSULTOR_EMAIL=
+JWT_SECRET=                     # HS256 256 bits — tokens de link mágico de assessoria
 OPENWEATHER_API_KEY=
 SENTRY_DSN=
 NEXT_PUBLIC_SENTRY_DSN=
 SUPABASE_PROJECT_ID=
+RESEND_API_KEY=
+CRON_SECRET=
 ```
+> Referência canônica: `.env.example` (commitado, sem valores reais). Variáveis `GEMINI_API_KEY` e `APP_URL` foram removidas em 2026-05-28 (resquícios de template AI Studio).
 
 ### Vercel (All Environments)
 Todas as variáveis acima configuradas em Settings → Environment Variables
@@ -605,7 +657,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 741+ testes passam e build não tem erros TypeScript
+4. Confirmar que 852+ testes passam e build não tem erros TypeScript
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -1082,7 +1134,7 @@ Fluxo obrigatório para novas features:
 1. Pesquisa → gera PRD-[feature].md
 2. Especificação → lê PRD, gera SPEC-[feature].md  
 3. Execução → lê SPEC, implementa em camadas (banco → backend → UI)
-4. Validação → npm run build + npm run test (mínimo 741 testes passando)
+4. Validação → npm run build + npm run test (mínimo 852 testes passando)
 
 Nunca escrever código na fase de pesquisa ou especificação.
 Nunca entrar em modo plan na fase de execução.

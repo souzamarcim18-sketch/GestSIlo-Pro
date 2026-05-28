@@ -75,7 +75,11 @@
       "Bash(npx vercel *)",
       "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\" -Directory)",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" -Recurse -Directory | Where-Object {$_.Name -match \"\\(components|ui|styles|lib\\)\" } | ForEach-Object { $_.FullName })",
-      "Bash(awk -F'\"' '{print length\\($2\\), $1}')"
+      "Bash(awk -F'\"' '{print length\\($2\\), $1}')",
+      "Bash(git -C \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" status)",
+      "Bash(git -C \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" diff)",
+      "Bash(git -C \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" log --oneline -5)",
+      "Bash(git -C 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro' commit -m ' *)"
     ],
     "additionalDirectories": [
       "\\tmp"

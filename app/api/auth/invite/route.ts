@@ -3,10 +3,9 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { inviteRateLimit, checkRateLimit, getClientIP } from '@/lib/auth/rate-limit';
 import { sendInviteEmail } from '@/lib/email/resend';
+import { inviteSchema } from '@/lib/validations/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
-const PERFIS_PERMITIDOS = ['Operador', 'Visualizador'] as const;
-type PerfilConvite = (typeof PERFIS_PERMITIDOS)[number];
 
 function gerarSenhaTemporaria(): string {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
@@ -87,24 +86,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, perfil } = body as { email?: string; perfil?: string };
-
-    if (!email || !perfil) {
-      return NextResponse.json({ error: 'E-mail e perfil são obrigatórios.' }, { status: 400 });
+    const parsed = inviteSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
     }
-
-    const emailNorm = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailNorm)) {
-      return NextResponse.json({ error: 'E-mail inválido.' }, { status: 400 });
-    }
-
-    if (!PERFIS_PERMITIDOS.includes(perfil as PerfilConvite)) {
-      return NextResponse.json(
-        { error: 'Perfil inválido. Use "Operador" ou "Visualizador".' },
-        { status: 400 }
-      );
-    }
+    const emailNorm = parsed.data.email.trim().toLowerCase();
+    const perfil = parsed.data.perfil;
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gestsilo.com.br';
     const senhaTemporaria = gerarSenhaTemporaria();

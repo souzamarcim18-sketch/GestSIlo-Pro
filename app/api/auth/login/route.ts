@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { loginRateLimit, checkRateLimit, getClientIP } from '@/lib/auth/rate-limit';
+import { loginSchema } from '@/lib/validations/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -21,14 +22,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'E-mail e senha são obrigatórios.' },
-        { status: 400 }
-      );
+    const body = await request.json();
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 400 });
     }
+    const { email, password } = parsed.data;
 
     const cookieStore = await cookies();
     const supabase = createServerClient(
@@ -55,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: error.message || 'E-mail ou senha inválidos.' },
+        { error: 'Credenciais inválidas' },
         { status: 401 }
       );
     }

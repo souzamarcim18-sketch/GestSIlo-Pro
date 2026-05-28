@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
@@ -13,7 +13,14 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
@@ -147,188 +154,230 @@ export function MovimentacaoDialog({
           <DialogDescription>Registre saída de silagem do silo.</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
-          {/* Silo (dropdown apenas quando não fixo) */}
-          {!siloId && (
-            <div className="space-y-2">
-              <Label htmlFor="mov-silo">Silo</Label>
-              <Controller
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+            {/* Silo (dropdown apenas quando não fixo) */}
+            {!siloId && (
+              <FormField
                 control={form.control}
                 name="silo_id"
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger id="mov-silo">
-                      <SelectValue placeholder="Selecione o silo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {silos.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormItem>
+                    <FormLabel>Silo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o silo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {silos.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-              {form.formState.errors.silo_id && (
-                <p className="text-sm text-destructive">{form.formState.errors.silo_id.message}</p>
-              )}
-            </div>
-          )}
+            )}
 
-          {/* Alerta: silo já tem entrada */}
-          {jaTemEntrada && !checandoEntrada && (
-            <Alert variant="destructive" className="py-2">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="text-sm">
-                Este silo já possui uma entrada registrada. Registre apenas saídas.
-              </AlertDescription>
-            </Alert>
-          )}
+            {/* Alerta: silo já tem entrada */}
+            {jaTemEntrada && !checandoEntrada && (
+              <Alert variant="destructive" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  Este silo já possui uma entrada registrada. Registre apenas saídas.
+                </AlertDescription>
+              </Alert>
+            )}
 
-          {/* Tipo */}
-          <div className="space-y-2">
-            <Label htmlFor="mov-tipo">Tipo</Label>
-            <Controller
+            {/* Tipo */}
+            <FormField
               control={form.control}
               name="tipo"
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger id="mov-tipo">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {!jaTemEntrada && (
-                      <SelectItem value="Entrada">Entrada</SelectItem>
-                    )}
-                    <SelectItem value="Saída">Saída</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormItem>
+                  <FormLabel>Tipo</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {!jaTemEntrada && (
+                        <SelectItem value="Entrada">Entrada</SelectItem>
+                      )}
+                      <SelectItem value="Saída">Saída</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-            {form.formState.errors.tipo && (
-              <p className="text-sm text-destructive">{form.formState.errors.tipo.message}</p>
-            )}
-          </div>
 
-          {/* Subtipo — apenas para Saída */}
-          {tipoAtual === 'Saída' && (
-            <div className="space-y-2">
-              <Label htmlFor="mov-subtipo">
-                Subtipo <span className="text-destructive">*</span>
-              </Label>
-              <Controller
+            {/* Subtipo — apenas para Saída */}
+            {tipoAtual === 'Saída' && (
+              <FormField
                 control={form.control}
                 name="subtipo"
                 render={({ field }) => (
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? ''}
-                  >
-                    <SelectTrigger id="mov-subtipo">
-                      <SelectValue placeholder="Selecione o destino da saída" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SUBTIPOS_MOVIMENTACAO.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormItem>
+                    <FormLabel>
+                      Subtipo <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ?? ''}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o destino da saída" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SUBTIPOS_MOVIMENTACAO.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-              {form.formState.errors.subtipo && (
-                <p className="text-sm text-destructive">{form.formState.errors.subtipo.message}</p>
+            )}
+
+            {/* Data */}
+            <FormField
+              control={form.control}
+              name="data"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-          )}
-
-          {/* Data */}
-          <div className="space-y-2">
-            <Label htmlFor="mov-data">Data</Label>
-            <Input
-              id="mov-data"
-              type="date"
-              aria-required="true"
-              {...form.register('data')}
             />
-            {form.formState.errors.data && (
-              <p className="text-sm text-destructive">{form.formState.errors.data.message}</p>
-            )}
-          </div>
 
-          {/* Quantidade */}
-          <div className="space-y-2">
-            <Label htmlFor="mov-qty">
-              Quantidade (toneladas) <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="mov-qty"
-              type="number"
-              step="0.1"
-              aria-required="true"
-              {...form.register('quantidade', { valueAsNumber: true })}
+            {/* Quantidade */}
+            <FormField
+              control={form.control}
+              name="quantidade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Quantidade (toneladas) <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.quantidade && (
-              <p className="text-sm text-destructive">{form.formState.errors.quantidade.message}</p>
+
+            {/* Campos condicionais para Venda */}
+            {subtipoAtual === 'Venda' && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="valor_unitario"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor unitário (R$)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === '' ? undefined : e.target.valueAsNumber
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="comprador"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comprador</FormLabel>
+                      <FormControl>
+                        <Input maxLength={150} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
-          </div>
 
-          {/* Campos condicionais para Venda */}
-          {subtipoAtual === 'Venda' && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="mov-valor">Valor unitário (R$)</Label>
-                <Input
-                  id="mov-valor"
-                  type="number"
-                  step="0.01"
-                  {...form.register('valor_unitario', { valueAsNumber: true })}
-                />
-                {form.formState.errors.valor_unitario && (
-                  <p className="text-sm text-destructive">{form.formState.errors.valor_unitario.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mov-comprador">Comprador</Label>
-                <Input
-                  id="mov-comprador"
-                  maxLength={150}
-                  {...form.register('comprador')}
-                />
-              </div>
-            </>
-          )}
+            {/* Responsável */}
+            <FormField
+              control={form.control}
+              name="responsavel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Responsável</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Responsável */}
-          <div className="space-y-2">
-            <Label htmlFor="mov-resp">Responsável</Label>
-            <Input id="mov-resp" {...form.register('responsavel')} />
-          </div>
+            {/* Observação */}
+            <FormField
+              control={form.control}
+              name="observacao"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observações</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Observação */}
-          <div className="space-y-2">
-            <Label htmlFor="mov-obs">Observações</Label>
-            <Input id="mov-obs" {...form.register('observacao')} />
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                form.reset();
-                onOpenChange(false);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting || checandoEntrada}>
-              {form.formState.isSubmitting ? 'Registrando...' : 'Registrar'}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset();
+                  onOpenChange(false);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting || checandoEntrada}>
+                {form.formState.isSubmitting ? 'Registrando...' : 'Registrar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

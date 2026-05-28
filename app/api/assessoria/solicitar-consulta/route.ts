@@ -2,6 +2,17 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Resend } from 'resend';
+import { z } from 'zod';
+
+const solicitarConsultaSchema = z.object({
+  nome: z.string().min(1),
+  fazenda: z.string().min(1),
+  localizacao: z.string().min(1),
+  telefone: z.string().min(1),
+  email: z.string().email(),
+  sugestao_dia: z.string().min(1),
+  sugestao_horario: z.string().min(1),
+});
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -36,26 +47,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    let { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario } = body;
+    const parsed = solicitarConsultaSchema.safeParse({
+      ...body,
+      telefone: String(body.telefone || '').trim(),
+    });
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
+    }
+    const { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario } = parsed.data;
 
     console.log('[solicitar-consulta] Dados recebidos:', { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario });
-
-    // Telefone não pode estar vazio - trim para remover espaços
-    telefone = String(telefone || '').trim();
-    if (!telefone) {
-      return NextResponse.json(
-        { message: 'Telefone é obrigatório' },
-        { status: 400 }
-      );
-    }
-
-    // Validar campos obrigatórios
-    if (!nome || !fazenda || !localizacao || !email || !sugestao_dia || !sugestao_horario) {
-      return NextResponse.json(
-        { message: 'Campos obrigatórios ausentes' },
-        { status: 400 }
-      );
-    }
 
     // Buscar fazenda_id do usuário
     const { data: minha_fazenda_id } = await client.rpc('get_minha_fazenda_id');
