@@ -41,7 +41,6 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
       tipo: TipoEvento.PESAGEM,
       data_evento: new Date().toISOString().split('T')[0],
       peso_kg: undefined,
-      metodo: 'balanca',
       condicao_corporal: null,
       observacoes: null,
     },
@@ -92,28 +91,6 @@ export function PesagemForm({ animal, onSuccess }: PesagemFormProps) {
         />
         {errors.peso_kg && (
           <p className="text-sm text-red-600">{errors.peso_kg.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="pesagem-metodo" className="text-sm font-semibold">Método de Pesagem *</Label>
-        <Controller
-          name="metodo"
-          control={control}
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger id="pesagem-metodo" disabled={isLoading}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="balanca">Balança</SelectItem>
-                <SelectItem value="estimativa_visual">Estimativa Visual</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {errors.metodo && (
-          <p className="text-sm text-red-600">{errors.metodo.message}</p>
         )}
       </div>
 

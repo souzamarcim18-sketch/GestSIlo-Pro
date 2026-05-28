@@ -94,7 +94,6 @@ export const criarEventoPesagemSchema = z.object({
     return !isNaN(d.getTime()) && d <= new Date();
   }, 'Data deve ser válida e não futura'),
   peso_kg: z.number().positive('Peso deve ser maior que 0').max(2000),
-  metodo: z.enum(['balanca', 'estimativa_visual']).optional(),
   condicao_corporal: z.number().int().min(1).max(5).optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });

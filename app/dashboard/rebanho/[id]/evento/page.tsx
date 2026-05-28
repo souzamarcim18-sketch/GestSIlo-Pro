@@ -34,7 +34,6 @@ interface EventoFormValues {
   // PESAGEM
   peso_kg: string;
   condicao_corporal: string;
-  metodo: string;
   // VENDA
   comprador: string;
   valor_venda: string;
@@ -79,7 +78,6 @@ function buildPayload(animalId: string, v: EventoFormValues): unknown {
         ...base,
         peso_kg: v.peso_kg ? Number(v.peso_kg) : undefined,
         condicao_corporal: v.condicao_corporal ? Number(v.condicao_corporal) : null,
-        metodo: v.metodo || 'balanca',
       };
     case TipoEvento.VENDA:
       return {
@@ -117,7 +115,6 @@ export default function EventoPage() {
         observacoes: '',
         peso_kg: '',
         condicao_corporal: '',
-        metodo: 'balanca',
         comprador: '',
         valor_venda: '',
         lote_id_destino: '',
@@ -267,24 +264,6 @@ export default function EventoPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="metodo">Método</Label>
-                  <Controller
-                    name="metodo"
-                    control={control}
-                    render={({ field }) => (
-                      <Select value={field.value || 'balanca'} onValueChange={field.onChange} disabled={isLoading}>
-                        <SelectTrigger id="metodo">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="balanca">Balança</SelectItem>
-                          <SelectItem value="estimativa_visual">Estimativa Visual</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
               </>
             )}
 
