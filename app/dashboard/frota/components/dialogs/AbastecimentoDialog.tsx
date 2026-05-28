@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import { type Maquina } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
+import type { Insumo } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
 // Schema
@@ -35,7 +36,7 @@ const abastecimentoSchema = z.object({
   combustivel: z.enum(['Diesel', 'Gasolina', 'Etanol', 'GNV']),
   litros: z.number().positive('Litros deve ser > 0'),
   valor: z.number().nonnegative('Valor não pode ser negativo'),
-  hodometro: z.number().nonnegative('Hodômetro não pode ser negativo').optional(),
+  hodometro: z.number().nonnegative().optional(),
   insumo_id: z.string().uuid().optional(),
   registrar_como_saida: z.boolean(),
 });
@@ -59,6 +60,8 @@ export function AbastecimentoDialog({
   onSuccess,
 }: AbastecimentoDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [loadingInsumos, setLoadingInsumos] = useState(false);
 
   const {
     register,
@@ -74,45 +77,71 @@ export function AbastecimentoDialog({
       data: new Date().toISOString().split('T')[0],
       registrar_como_saida: true,
       combustivel: 'Diesel',
+      valor: 0,
     },
   });
 
   const maquinaIdValue = watch('maquina_id');
   const registrarComoSaida = watch('registrar_como_saida');
+  const insumoIdValue = watch('insumo_id');
+  const litrosValue = watch('litros');
 
-  const selectValue = (val: string | null | undefined): string => (val as string) || '';
+  // Buscar apenas insumos da categoria "Combustíveis" ao abrir o dialog
+  useEffect(() => {
+    if (!open) return;
+    setLoadingInsumos(true);
+    q.categorias.list()
+      .then((cats) => {
+        const catCombustivel = cats.find((c) =>
+          c.nome.toLowerCase().includes('combust')
+        );
+        return q.insumos.list(catCombustivel ? { categoria_id: catCombustivel.id } : undefined);
+      })
+      .then((data) => setInsumos(data))
+      .catch(() => toast.error('Erro ao carregar insumos'))
+      .finally(() => setLoadingInsumos(false));
+  }, [open]);
+
+  // Calcular valor automaticamente quando insumo ou litros mudam
+  useEffect(() => {
+    if (!insumoIdValue || !litrosValue || litrosValue <= 0) return;
+    const insumo = insumos.find((i) => i.id === insumoIdValue);
+    if (insumo?.custo_medio && insumo.custo_medio > 0) {
+      setValue('valor', parseFloat((litrosValue * insumo.custo_medio).toFixed(2)));
+    }
+  }, [insumoIdValue, litrosValue, insumos, setValue]);
+
+  const insumoSelecionado = insumos.find((i) => i.id === insumoIdValue);
 
   const onSubmit = async (data: AbastecimentoFormData) => {
     setIsLoading(true);
     try {
-      // Criar abastecimento
       const abastecimento = await q.abastecimentos.create({
         maquina_id: data.maquina_id,
         data: data.data,
         combustivel: data.combustivel,
         litros: data.litros,
         valor: data.valor,
-        hodometro: data.hodometro || null,
+        hodometro: data.hodometro ?? null,
       } as any);
 
-      // Integração Frota → Insumos: Se marcado, criar saída de combustível
+      // Integração Frota → Insumos
       if (data.registrar_como_saida && data.insumo_id) {
         try {
-          const insumo = await q.insumos.getById(data.insumo_id);
+          const insumo = insumos.find((i) => i.id === data.insumo_id);
+          if (!insumo) throw new Error('Insumo não encontrado');
 
-          // Validar estoque
           if (insumo.estoque_atual < data.litros) {
             throw new Error(
-              `Estoque insuficiente. Disponível: ${insumo.estoque_atual} L, Solicitado: ${data.litros} L`
+              `Estoque insuficiente. Disponível: ${insumo.estoque_atual} ${insumo.unidade}, Solicitado: ${data.litros} ${insumo.unidade}`
             );
           }
 
-          // Criar saída de combustível
           await q.movimentacoesInsumo.create({
             insumo_id: data.insumo_id,
             tipo: 'Saída',
             quantidade: data.litros,
-            valor_unitario: data.valor / data.litros,
+            valor_unitario: data.litros > 0 ? data.valor / data.litros : 0,
             tipo_saida: 'USO_INTERNO',
             destino_tipo: 'maquina',
             destino_id: data.maquina_id,
@@ -123,8 +152,6 @@ export function AbastecimentoDialog({
 
           toast.success('Abastecimento registrado com saída de insumo');
         } catch (insumoError) {
-          console.error('Erro ao integrar combustível:', insumoError);
-          // Reverter abastecimento se falhar integração
           await q.abastecimentos.remove(abastecimento.id);
           throw insumoError;
         }
@@ -145,6 +172,8 @@ export function AbastecimentoDialog({
     if (!isOpen) reset();
     onOpenChange(isOpen);
   };
+
+  const selectValue = (val: string | null | undefined): string => (val as string) || '';
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -211,6 +240,50 @@ export function AbastecimentoDialog({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register('registrar_como_saida')}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">Registrar como saída de insumo</span>
+            </label>
+          </div>
+
+          {registrarComoSaida && (
+            <div className="space-y-2 bg-muted/40 p-3 rounded-lg border">
+              <Label htmlFor="abs-insumo">Insumo (Combustível)</Label>
+              <Select
+                value={selectValue(insumoIdValue)}
+                onValueChange={(v) => {
+                  setValue('insumo_id', v);
+                }}
+              >
+                <SelectTrigger id="abs-insumo">
+                  <SelectValue placeholder={loadingInsumos ? 'Carregando...' : 'Selecione o insumo'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {insumos.map((ins) => (
+                    <SelectItem key={ins.id} value={ins.id}>
+                      {ins.nome} — estoque: {ins.estoque_atual} {ins.unidade}
+                    </SelectItem>
+                  ))}
+                  {!loadingInsumos && insumos.length === 0 && (
+                    <SelectItem value="__empty__" disabled>
+                      Nenhum insumo cadastrado
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {insumoSelecionado?.custo_medio && (
+                <p className="text-xs text-muted-foreground">
+                  Custo médio: R$ {insumoSelecionado.custo_medio.toFixed(3)}/{insumoSelecionado.unidade} — valor calculado automaticamente
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="abs-litros">Litros</Label>
@@ -225,7 +298,12 @@ export function AbastecimentoDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="abs-valor">Valor (R$)</Label>
+              <Label htmlFor="abs-valor">
+                Valor (R$)
+                {registrarComoSaida && insumoSelecionado?.custo_medio ? (
+                  <span className="text-xs text-muted-foreground ml-1">(calculado)</span>
+                ) : null}
+              </Label>
               <Input
                 id="abs-valor"
                 type="number"
@@ -243,39 +321,11 @@ export function AbastecimentoDialog({
               id="abs-hodometro"
               type="number"
               placeholder="0"
-              {...register('hodometro', { valueAsNumber: true })}
+              {...register('hodometro', {
+                setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+              })}
             />
           </div>
-
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                {...register('registrar_como_saida')}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">Registrar como saída de insumo</span>
-            </label>
-          </div>
-
-          {registrarComoSaida && (
-            <div className="space-y-2 bg-blue-50 p-3 rounded">
-              <Label htmlFor="abs-insumo">Insumo (Combustível)</Label>
-              <Select
-                value={watch('insumo_id') || ''}
-                onValueChange={(v: string | null) => v && setValue('insumo_id', v)}
-              >
-                <SelectTrigger id="abs-insumo">
-                  <SelectValue placeholder="Selecione combustível" />
-                </SelectTrigger>
-                <SelectContent>
-                  {maquinas.length > 0 && (
-                    <SelectItem value="">Carregando...</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
