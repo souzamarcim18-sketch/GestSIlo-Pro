@@ -13,14 +13,14 @@
 - **Deploy**: Vercel (production + preview automático por branch)
 - **Linguagem**: TypeScript 5.9 strict
 - **UI**: shadcn/ui + Tailwind CSS 4.1 + Lucide React
-- **Recursos**: PWA offline-ready, temas escuro/claro, gráficos (Recharts), formulários (React Hook Form + Zod)
+- **Recursos**: PWA offline-ready, temas escuro/claro, gráficos (Recharts com `next/dynamic` + `ssr: false`), formulários (React Hook Form + Zod)
 
 ### Segurança & Infraestrutura
 - **Rate Limiting**: Upstash Redis (`@upstash/ratelimit`) — rotas de auth protegidas
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 851+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 3 falhos pré-existentes documentados)
+- **Testes**: Vitest — 852+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 2 falhos pré-existentes documentados)
 
 ---
 
@@ -424,6 +424,8 @@ export default async function ExemploPage() {
 - Custom hooks devem retornar `{ data, isLoading, error }` quando async
 - **Nunca usar** `payload: any` — tipagem correta com `Omit<Tipo, 'id' | 'fazenda_id'>`
 - **Nunca suprimir** `eslint-disable react-hooks/exhaustive-deps` — corrigir as dependências com `useCallback`/`useMemo`
+- **Recharts**: importar componentes de gráfico via `next/dynamic` com `ssr: false` nos Client Components que os consomem (não nos próprios arquivos de gráfico). Ver `DashboardClient.tsx` e `IndicadoresClient.tsx` como referência.
+- **`contentStyle` de tooltips Recharts**: sempre extrair para constante de módulo fora do componente (ex: `const TOOLTIP_STYLE = { ... } as const`) — nunca objeto inline no JSX. Usar CSS vars (`var(--background)`, `var(--border)`) em vez de hex hardcoded.
 
 ### Server Actions & Mutations
 - Server Actions em `app/dashboard/*/actions.ts`
@@ -671,7 +673,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 851+ testes passam e build não tem erros TypeScript (3 falhos pré-existentes: rls.test.ts timeout de rede; projetar-rebanho.test.ts classificação de categoria; 1 validação Zod)
+4. Confirmar que 852+ testes passam (2 falhos pré-existentes: rls.test.ts timeout de rede; projetar-rebanho.test.ts classificação de categoria). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -1148,7 +1150,7 @@ Fluxo obrigatório para novas features:
 1. Pesquisa → gera PRD-[feature].md
 2. Especificação → lê PRD, gera SPEC-[feature].md  
 3. Execução → lê SPEC, implementa em camadas (banco → backend → UI)
-4. Validação → npm run build + npm run test (mínimo 852 testes passando)
+4. Validação → npm run build + npm run test (mínimo 852 testes passando; warnings React Compiler sobre form.watch() são pré-existentes)
 
 Nunca escrever código na fase de pesquisa ou especificação.
 Nunca entrar em modo plan na fase de execução.
@@ -1251,7 +1253,7 @@ Web Push / FCM: não implementado.
 |---|---|---|---|
 | `calculadoras/` | PDF | jsPDF | Laudos de calagem e adubação NPK |
 | `rebanho/indicadores/` | PDF + CSV | jsPDF + autoTable / nativo | Indicadores zootécnicos, composição do rebanho |
-| `relatorios/` | XLSX + PDF | xlsx.js + jsPDF + autoTable | 15 relatórios cobrindo 14 módulos |
+| `relatorios/` | XLSX + PDF | ExcelJS + jsPDF + autoTable | 15 relatórios cobrindo 14 módulos |
 
 **Módulo `relatorios/` — arquitetura atual**:
 
@@ -1269,7 +1271,8 @@ O módulo foi reestruturado em 5 seções principais na página:
 - Exporta para XLSX ou PDF conforme escolha do usuário
 
 **Helpers e componentes reutilizáveis**:
-- `lib/pdf/relatorio-helpers.ts` — `gerarExcel(colunas, dados, nomeArquivo)` e `gerarPdf(titulo, colunas, dados, nomeArquivo)` genéricos
+- `lib/relatorios/excel-builder.ts` — `gerarExcel(config)` async (ExcelJS) e tipos `AbaConfig`, `ColunaConfig`, `ExcelReportConfig`; sempre usar `await gerarExcel(...)` nos consumers
+- `lib/pdf/relatorio-helpers.ts` — `gerarPdf(titulo, colunas, dados, nomeArquivo)` genérico (jsPDF)
 - `lib/utils/date-range.ts` — `toUtcRangeFromLocal(dataInicio, dataFim)` para converter range local → UTC sem shift
 - `components/relatorios/PeriodoFilter.tsx` — seletor de período reutilizável (data início/fim)
 - `components/relatorios/RelatorioCard.tsx` — card padrão para cada relatório

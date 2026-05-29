@@ -29,6 +29,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+
+const TOOLTIP_STYLE = {
+  backgroundColor: 'var(--background)',
+  border: 'none',
+  borderRadius: '8px',
+} as const;
 import {
   Table,
   TableBody,
@@ -303,7 +309,7 @@ export function DashboardCorte({
                 />
                 <YAxis label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', border: 'none', borderRadius: '8px' }}
+                  contentStyle={TOOLTIP_STYLE}
                   labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
                   formatter={(value) => (typeof value === 'number' ? `${value.toFixed(1)} kg` : value)}
                 />

@@ -59,6 +59,13 @@ type LancamentoFormData = z.infer<typeof lancamentoSchema>;
 const brl = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+const TOOLTIP_STYLE = {
+  fontSize: 12,
+  backgroundColor: 'var(--background)',
+  border: '1px solid var(--border)',
+  borderRadius: '8px',
+} as const;
+
 const tooltipFormatter = (
   value: ValueType | undefined,
   name: NameType | undefined,
@@ -117,7 +124,7 @@ function CustosPieCard({
                   </Pie>
                   <Tooltip
                     formatter={tooltipFormatter}
-                    contentStyle={{ fontSize: 12 }}
+                    contentStyle={TOOLTIP_STYLE}
                   />
                 </PieChart>
               </ResponsiveContainer>

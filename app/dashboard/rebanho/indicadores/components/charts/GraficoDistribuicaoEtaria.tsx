@@ -8,6 +8,15 @@ const CORES = [
   '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16',
 ];
 
+const TOOLTIP_STYLE = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '10px',
+  color: 'hsl(var(--foreground))',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+  padding: '10px 14px',
+} as const;
+
 import type { PieLabelRenderProps } from 'recharts';
 
 function CustomLabel(props: PieLabelRenderProps) {
@@ -70,14 +79,7 @@ export function GraficoDistribuicaoEtaria(props: GraficoDistribuicaoEtariaProps)
         </Pie>
         <Tooltip
           formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Percentual']}
-          contentStyle={{
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '10px',
-            color: 'hsl(var(--foreground))',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-            padding: '10px 14px',
-          }}
+          contentStyle={TOOLTIP_STYLE}
         />
         <Legend
           formatter={(value) => (

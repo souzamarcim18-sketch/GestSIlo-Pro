@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatBRL } from '@/lib/utils';
@@ -60,64 +60,54 @@ function buildMetadataLine2(meta: ExcelMetadata): string {
 }
 
 /**
- * Constrói o WorkBook XLSX sem disparar download.
+ * Constrói o Workbook ExcelJS sem disparar download.
  * Separado de gerarExcel() para permitir testes unitários.
  */
-export function buildWorkbook(config: ExcelReportConfig): XLSX.WorkBook {
-  const wb = XLSX.utils.book_new();
+export function buildWorkbook(config: ExcelReportConfig): ExcelJS.Workbook {
+  const wb = new ExcelJS.Workbook();
 
   for (const sheet of config.sheets) {
-    const aoa: unknown[][] = [];
+    const ws = wb.addWorksheet(sheet.nome);
 
-    aoa.push([`GestSilo — ${config.metadata.nomeRelatorio}`]);
-    aoa.push([buildMetadataLine2(config.metadata)]);
-    aoa.push([]);
-    aoa.push(sheet.colunas.map((c) => c.label));
+    // Linha 1: título do relatório
+    ws.addRow([`GestSilo — ${config.metadata.nomeRelatorio}`]);
+    // Linha 2: metadados (fazenda, período, data de geração)
+    ws.addRow([buildMetadataLine2(config.metadata)]);
+    // Linha 3: em branco
+    ws.addRow([]);
+    // Linha 4: cabeçalhos das colunas
+    const headerRow = ws.addRow(sheet.colunas.map((c) => c.label));
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+    });
 
     if (sheet.linhas.length === 0) {
       const emptyText = config.metadata.periodo
         ? 'Nenhum registro encontrado no período selecionado'
         : 'Nenhum registro cadastrado';
-      aoa.push([emptyText]);
+      const emptyRow = ws.addRow([emptyText]);
+      emptyRow.getCell(1).font = { italic: true };
+      if (sheet.colunas.length > 1) {
+        ws.mergeCells(5, 1, 5, sheet.colunas.length);
+      }
     } else {
       for (const linha of sheet.linhas) {
         const row = sheet.colunas.map((c) => formatarValorExcel(linha[c.key], c.tipo));
-        aoa.push(row);
+        ws.addRow(row);
       }
     }
 
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-    // Cabeçalho em negrito (linha 4 = índice 3)
-    for (let col = 0; col < sheet.colunas.length; col++) {
-      const cellAddr = XLSX.utils.encode_cell({ r: 3, c: col });
-      if (ws[cellAddr]) {
-        ws[cellAddr].s = { font: { bold: true } };
-      }
-    }
-
-    // Empty state em itálico + mescla
-    if (sheet.linhas.length === 0) {
-      const emptyCell = XLSX.utils.encode_cell({ r: 4, c: 0 });
-      if (ws[emptyCell]) {
-        ws[emptyCell].s = { font: { italic: true } };
-        ws['!merges'] = [{ s: { r: 4, c: 0 }, e: { r: 4, c: Math.max(0, sheet.colunas.length - 1) } }];
-      }
-    }
-
-    ws['!cols'] = sheet.colunas.map((c) => ({ wch: c.largura ?? 20 }));
-
-    XLSX.utils.book_append_sheet(wb, ws, sheet.nome);
+    ws.columns = sheet.colunas.map((c) => ({ width: c.largura ?? 20 }));
   }
 
   return wb;
 }
 
 /** Gera o Excel e dispara o download no browser. */
-export function gerarExcel(config: ExcelReportConfig): void {
+export async function gerarExcel(config: ExcelReportConfig): Promise<void> {
   const wb = buildWorkbook(config);
-  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([buf], {
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
   const url = URL.createObjectURL(blob);

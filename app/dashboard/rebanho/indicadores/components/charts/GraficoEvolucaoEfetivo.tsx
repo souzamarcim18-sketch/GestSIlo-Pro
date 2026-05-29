@@ -12,6 +12,11 @@ import {
 } from 'recharts';
 import type { GraficoEvolucaoEfetivoProps } from '@/types/rebanho-indicadores';
 
+const TOOLTIP_STYLE = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+} as const;
+
 export function GraficoEvolucaoEfetivo(props: GraficoEvolucaoEfetivoProps) {
   const { dados } = props;
 
@@ -45,7 +50,7 @@ export function GraficoEvolucaoEfetivo(props: GraficoEvolucaoEfetivoProps) {
           tick={{ fontSize: 14 }}
         />
         <Tooltip
-          contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
+          contentStyle={TOOLTIP_STYLE}
           formatter={(value) => [value, '']}
         />
         <Legend />

@@ -53,14 +53,18 @@ import {
 // Helper interno — nunca exportar diretamente
 // ---------------------------------------------------------------------------
 
+// Cache de fazenda_id por usuário — escopo de módulo (browser).
+// Entradas expiradas são removidas a cada acesso para evitar crescimento ilimitado.
 const fazendaIdCache = new Map<string, { value: string; expiresAt: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
-/**
- * Busca o fazenda_id do usuário logado a partir do seu profile.
- * Lança erro se não houver sessão ou se o profile não tiver fazenda associada.
- * Cacheia o resultado por 5 minutos para evitar queries desnecessárias.
- */
+function purgeFazendaIdCacheExpiradas(): void {
+  const agora = Date.now();
+  for (const [key, entry] of fazendaIdCache) {
+    if (entry.expiresAt <= agora) fazendaIdCache.delete(key);
+  }
+}
+
 async function getFazendaId(): Promise<string> {
   const {
     data: { user },
@@ -71,11 +75,10 @@ async function getFazendaId(): Promise<string> {
     throw new Error('Usuário não autenticado. Faça login novamente.');
   }
 
-  // Verificar cache
+  purgeFazendaIdCacheExpiradas();
+
   const cached = fazendaIdCache.get(user.id);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.value;
-  }
+  if (cached) return cached.value;
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')

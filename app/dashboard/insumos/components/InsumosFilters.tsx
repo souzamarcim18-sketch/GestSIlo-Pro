@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -30,21 +31,18 @@ export default function InsumosFilters({
 }: InsumosFiltersProps) {
   const hasActiveFilters = filters.busca || filters.categoria_id || filters.tipo_id;
 
-  // Extrair tipos únicos disponíveis (do relacionamento)
-  const tiposMap = new Map<string, { id: string; nome: string }>();
-  insumos.forEach(insumo => {
-    if (insumo.tipo && !tiposMap.has(insumo.tipo.id)) {
-      tiposMap.set(insumo.tipo.id, insumo.tipo);
+  const tiposDisponiveis = useMemo(() => {
+    const tiposMap = new Map<string, { id: string; nome: string }>();
+    const fonte = filters.categoria_id === ''
+      ? insumos
+      : insumos.filter(i => i.categoria_id === filters.categoria_id);
+    for (const insumo of fonte) {
+      if (insumo.tipo && !tiposMap.has(insumo.tipo.id)) {
+        tiposMap.set(insumo.tipo.id, insumo.tipo);
+      }
     }
-  });
-
-  // Filtrar tipos conforme categoria selecionada
-  const tiposDisponiveis = filters.categoria_id === ''
-    ? Array.from(tiposMap.values())
-    : insumos
-        .filter(i => i.categoria_id === filters.categoria_id && i.tipo)
-        .map(i => i.tipo!)
-        .filter((tipo, idx, self) => self.findIndex(t => t.id === tipo.id) === idx);
+    return Array.from(tiposMap.values());
+  }, [insumos, filters.categoria_id]);
 
   return (
     <div className="space-y-3 rounded-lg border p-4 bg-card">

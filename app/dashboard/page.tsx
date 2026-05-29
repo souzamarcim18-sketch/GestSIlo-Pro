@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 import type { CicloAgricola } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
@@ -47,7 +46,13 @@ export default async function DashboardPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect('/login');
 
-  const fazendaId = await getCurrentFazendaId();
+  const { data: profileFazenda } = await supabase
+    .from('profiles')
+    .select('fazenda_id')
+    .eq('id', user.id)
+    .single();
+  if (!profileFazenda?.fazenda_id) redirect('/dashboard/onboarding');
+  const fazendaId = profileFazenda!.fazenda_id!;
 
   const now = new Date();
   const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];

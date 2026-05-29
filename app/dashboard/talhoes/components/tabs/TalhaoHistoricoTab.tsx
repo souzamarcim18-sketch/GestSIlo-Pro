@@ -5,6 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { type CicloAgricola } from '@/lib/types/talhoes';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+const TOOLTIP_STYLE = {
+  backgroundColor: 'hsl(var(--background))',
+  border: '1px solid hsl(var(--border))',
+} as const;
+
 interface TalhaoHistoricoTabProps {
   ciclos: CicloAgricola[];
 }
@@ -103,10 +108,7 @@ export function TalhaoHistoricoTab({ ciclos }: TalhaoHistoricoTabProps) {
                 <YAxis label={{ value: 'ton/ha', angle: -90, position: 'insideLeft' }} />
                 <Tooltip
                   formatter={(value) => `${value} ton/ha`}
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    border: '1px solid hsl(var(--border))',
-                  }}
+                  contentStyle={TOOLTIP_STYLE}
                 />
                 <Legend />
                 <Bar dataKey="produtividade" name="Produtividade" fill="hsl(var(--primary))" />

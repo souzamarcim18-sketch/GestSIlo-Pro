@@ -16,14 +16,28 @@ import {
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { GaugeOcupacaoSilos } from '@/components/widgets/GaugeOcupacaoSilos';
-import { PieCategoriasRebanho } from '@/components/widgets/PieCategoriasRebanho';
-import { PieComposicaoRebanho } from '@/components/widgets/PieComposicaoRebanho';
-import { PieCulturasAtivas } from '@/components/widgets/PieCulturasAtivas';
+import dynamic from 'next/dynamic';
 import { KpiChartCard } from '@/components/widgets/KpiChartCard';
 import { SilagemMetricasCard } from '@/components/widgets/SilagemMetricasCard';
 import { SilosInfoCard } from '@/components/widgets/SilosInfoCard';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const GaugeOcupacaoSilos = dynamic(
+  () => import('@/components/widgets/GaugeOcupacaoSilos').then((m) => ({ default: m.GaugeOcupacaoSilos })),
+  { ssr: false, loading: () => <Skeleton className="h-36 w-36 rounded-full" /> },
+);
+const PieCategoriasRebanho = dynamic(
+  () => import('@/components/widgets/PieCategoriasRebanho').then((m) => ({ default: m.PieCategoriasRebanho })),
+  { ssr: false, loading: () => <Skeleton className="h-36 w-36 rounded-full" /> },
+);
+const PieComposicaoRebanho = dynamic(
+  () => import('@/components/widgets/PieComposicaoRebanho').then((m) => ({ default: m.PieComposicaoRebanho })),
+  { ssr: false, loading: () => <Skeleton className="h-36 w-full" /> },
+);
+const PieCulturasAtivas = dynamic(
+  () => import('@/components/widgets/PieCulturasAtivas').then((m) => ({ default: m.PieCulturasAtivas })),
+  { ssr: false, loading: () => <Skeleton className="h-36 w-36 rounded-full" /> },
+);
 import type { DashboardData, AlertaSeveridade } from './dashboard-data';
 import { AtividadesRecentesList } from '@/components/dashboard/AtividadesRecentesList';
 

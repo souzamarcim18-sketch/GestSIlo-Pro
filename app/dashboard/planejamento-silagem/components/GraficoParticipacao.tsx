@@ -8,6 +8,12 @@ interface GraficoParticipacaoProps {
   dados: Array<{ nome: string; participacao: number }>;
 }
 
+const TOOLTIP_STYLE = {
+  backgroundColor: 'hsl(var(--background))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '0.5rem',
+} as const;
+
 export function GraficoParticipacao({ dados }: GraficoParticipacaoProps) {
   if (dados.length === 0) {
     return (
@@ -38,11 +44,7 @@ export function GraficoParticipacao({ dados }: GraficoParticipacaoProps) {
               <YAxis dataKey="nome" type="category" width={240} />
               <Tooltip
                 formatter={(value) => formatPercent(Number(value))}
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '0.5rem',
-                }}
+                contentStyle={TOOLTIP_STYLE}
               />
               <Bar
                 dataKey="participacao"

@@ -108,7 +108,7 @@ export function RebanhoBuilderClient({ fazendaId, fazendaNome, lotes }: RebanhoB
         toast.warning('Relatório limitado a 5.000 animais. Aplique filtros para dados completos.');
       }
       const rows = buildRebanhoRows(result.data, camposObj);
-      gerarExcel({
+      await gerarExcel({
         fileName: `rebanho_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
         metadata: { fazendaNome, geradoEm: new Date(), nomeRelatorio: 'Construtor de Rebanho' },
         sheets: [{

@@ -91,7 +91,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
     const siloMap: Record<string, string> = {};
     silos.forEach((s) => { siloMap[s.id] = s.nome; });
 
-    gerarExcel({
+    await gerarExcel({
       fileName: `silos_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Movimentação de Silos' },
       sheets: [
@@ -134,7 +134,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
   // ─── Talhões ─────────────────────────────────────────────────────────────────
   const exportTalhoes = () => handleExport('talhoes', async () => {
     const talhoes = await q.talhoes.list();
-    gerarExcel({
+    await gerarExcel({
       fileName: `talhoes_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Produtividade por Talhão' },
       sheets: [{
@@ -156,7 +156,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
   // ─── Posição de Estoque (Insumos) ─────────────────────────────────────────────
   const exportInsumos = () => handleExport('insumos', async () => {
     const insumos = await q.insumos.list();
-    gerarExcel({
+    await gerarExcel({
       fileName: `insumos_estoque_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Posição de Estoque (Insumos)' },
       sheets: [{
@@ -182,7 +182,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       from: periodoMovInsumos.from.toISOString(),
       to: periodoMovInsumos.to.toISOString(),
     });
-    gerarExcel({
+    await gerarExcel({
       fileName: `insumos_movimentacoes_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Movimentação de Insumos', periodo: periodoMovInsumos },
       sheets: [{
@@ -211,7 +211,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       from: periodoFrota.from.toISOString(),
       to: periodoFrota.to.toISOString(),
     });
-    gerarExcel({
+    await gerarExcel({
       fileName: `frota_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Custo Operacional da Frota', periodo: periodoFrota },
       sheets: [
@@ -286,7 +286,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       toast.warning('Limite de 10.000 registros atingido. Refine o período para garantir dados completos.');
     }
 
-    gerarExcel({
+    await gerarExcel({
       fileName: `financeiro_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Financeiro Geral', periodo: periodoFinanceiro },
       sheets: [{
@@ -312,7 +312,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       from: periodoMaoObra.from.toISOString(),
       to: periodoMaoObra.to.toISOString(),
     });
-    gerarExcel({
+    await gerarExcel({
       fileName: `mao_obra_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Mão de Obra', periodo: periodoMaoObra, fazendaNome: result.fazendaNome },
       sheets: [
@@ -394,7 +394,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       from: periodoPastagens.from.toISOString(),
       to: periodoPastagens.to.toISOString(),
     });
-    gerarExcel({
+    await gerarExcel({
       fileName: `pastagens_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Pastagens', periodo: periodoPastagens, fazendaNome: result.fazendaNome },
       sheets: [
@@ -463,7 +463,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       from: periodoProdutos.from.toISOString(),
       to: periodoProdutos.to.toISOString(),
     });
-    gerarExcel({
+    await gerarExcel({
       fileName: `produtos_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Produtos', periodo: periodoProdutos, fazendaNome: result.fazendaNome },
       sheets: [
@@ -516,7 +516,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
   // ─── Planejamento de Compras ──────────────────────────────────────────────────
   const exportPlanejamentoCompras = () => handleExport('plan_compras', async () => {
     const result = await getRelatorioPlanejamentoComprasAction();
-    gerarExcel({
+    await gerarExcel({
       fileName: `planejamento_compras_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Planejamento de Compras', fazendaNome: result.fazendaNome },
       sheets: [
@@ -675,7 +675,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
       linhas: result.eventos.filter((e) => e.tipo === tipo) as unknown as Record<string, unknown>[],
     }));
 
-    gerarExcel({
+    await gerarExcel({
       fileName: `historico_sanitario_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.xlsx`,
       metadata: { ...metaBase, nomeRelatorio: 'Histórico Sanitário', periodo: periodoSanidade, fazendaNome: result.fazendaNome },
       sheets,

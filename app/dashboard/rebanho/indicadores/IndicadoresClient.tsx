@@ -15,16 +15,35 @@ import type {
   IndicadorRebanho,
 } from '@/types/rebanho-indicadores';
 import type { AlertasRebanho } from './page';
+import dynamic from 'next/dynamic';
 import { FiltrosIndicadores as FiltrosComponent } from './components/FiltrosIndicadores';
 import { CardIndicador } from './components/CardIndicador';
-import {
-  GraficoGMD,
-  GraficoComposicao,
-  GraficoDistribuicaoEtaria,
-  GraficoEvolucaoEfetivo,
-  GraficoNatalidadeMortalidade,
-  ComparativoLotes,
-} from './components/charts';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const GraficoGMD = dynamic(
+  () => import('./components/charts/GraficoGMD').then((m) => ({ default: m.GraficoGMD })),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
+);
+const GraficoComposicao = dynamic(
+  () => import('./components/charts/GraficoComposicao').then((m) => ({ default: m.GraficoComposicao })),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
+);
+const GraficoDistribuicaoEtaria = dynamic(
+  () => import('./components/charts/GraficoDistribuicaoEtaria').then((m) => ({ default: m.GraficoDistribuicaoEtaria })),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
+);
+const GraficoEvolucaoEfetivo = dynamic(
+  () => import('./components/charts/GraficoEvolucaoEfetivo').then((m) => ({ default: m.GraficoEvolucaoEfetivo })),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
+);
+const GraficoNatalidadeMortalidade = dynamic(
+  () => import('./components/charts/GraficoNatalidadeMortalidade').then((m) => ({ default: m.GraficoNatalidadeMortalidade })),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
+);
+const ComparativoLotes = dynamic(
+  () => import('./components/charts/ComparativoLotes').then((m) => ({ default: m.ComparativoLotes })),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
+);
 
 function getIndicadoresVazios(): IndicadorRebanho {
   return {

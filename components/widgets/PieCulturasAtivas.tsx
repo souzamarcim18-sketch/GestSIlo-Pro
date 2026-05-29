@@ -15,6 +15,15 @@ const CHART_COLORS = [
   'var(--chart-5)',
 ]
 
+const TOOLTIP_STYLE = {
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: '10px',
+  fontSize: '12px',
+  color: 'var(--card-foreground)',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+} as const;
+
 export function PieCulturasAtivas({ data, total }: Props) {
   if (!data || data.length === 0) {
     return (
@@ -48,14 +57,7 @@ export function PieCulturasAtivas({ data, total }: Props) {
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              borderRadius: '10px',
-              fontSize: '12px',
-              color: 'var(--card-foreground)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}
+            contentStyle={TOOLTIP_STYLE}
             formatter={(value, name) => [`${value} talhão/talhões`, name]}
           />
         </PieChart>

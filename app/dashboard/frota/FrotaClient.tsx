@@ -3,8 +3,14 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart2, BookOpen, Truck, Fuel, Settings, Wrench, LayoutDashboard } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useFrotaData, type FrotaTab } from './hooks/useFrotaData';
-import { FrotaOverview } from './components/FrotaOverview';
+
+const FrotaOverview = dynamic(
+  () => import('./components/FrotaOverview').then((m) => ({ default: m.FrotaOverview })),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
+);
 import { FrotaCadastro } from './components/FrotaCadastro';
 import { FrotaDiarioBordo } from './components/FrotaDiarioBordo';
 import { FrotaManutencoes } from './components/FrotaManutencoes';
