@@ -129,9 +129,17 @@ const serwist = new Serwist({
         plugins: [new ExpirationPlugin({ maxEntries: 16, maxAgeSeconds: 24 * 60 * 60 })],
       }),
     },
-    // Rotas internas do app (páginas Next.js)
+    // Rotas internas do app (páginas Next.js estáticas/públicas)
+    // Rotas autenticadas (/dashboard, /operador) e /login são excluídas:
+    // o middleware do Next.js emite redirects nessas rotas e o SW não deve
+    // interceptá-las, pois navigationPreload + redirect gera "no-response".
     {
-      matcher: ({ url }) => url.origin === self.location.origin && !url.pathname.startsWith('/api/'),
+      matcher: ({ url }) =>
+        url.origin === self.location.origin &&
+        !url.pathname.startsWith('/api/') &&
+        !url.pathname.startsWith('/dashboard') &&
+        !url.pathname.startsWith('/operador') &&
+        url.pathname !== '/login',
       handler: new NetworkFirst({
         cacheName: 'others',
         networkTimeoutSeconds: 10,

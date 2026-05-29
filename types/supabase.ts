@@ -1359,9 +1359,13 @@ export type Database = {
           created_at: string
           data_evento: string
           deleted_at: string | null
+          dose_produto: string | null
           escore_condicao_corporal: number | null
           fazenda_id: string
+          finalidade_protocolo: string | null
           gemelar: boolean | null
+          grau_embriao: number | null
+          grau_qualidade_opu: string | null
           id: string
           idade_gestacional_dias: number | null
           lote_id_destino: string | null
@@ -1369,9 +1373,14 @@ export type Database = {
           motivo_descarte: string | null
           natimorto: boolean | null
           observacoes: string | null
+          oocitos_coletados: number | null
+          oocitos_viaveis: number | null
           peso_kg: number | null
+          produto_hormonal: string | null
+          raca_embriao: string | null
           reprodutor_id: string | null
           resultado_prenhez: string | null
+          resultado_te: string | null
           sexo_crias: string | null
           tipo: Database["public"]["Enums"]["tipo_evento_rebanho"]
           tipo_cobertura: string | null
@@ -1379,6 +1388,7 @@ export type Database = {
           updated_at: string
           usuario_id: string
           valor_venda: number | null
+          via_aplicacao: string | null
         }
         Insert: {
           animal_id: string
@@ -1389,9 +1399,13 @@ export type Database = {
           created_at?: string
           data_evento: string
           deleted_at?: string | null
+          dose_produto?: string | null
           escore_condicao_corporal?: number | null
           fazenda_id: string
+          finalidade_protocolo?: string | null
           gemelar?: boolean | null
+          grau_embriao?: number | null
+          grau_qualidade_opu?: string | null
           id?: string
           idade_gestacional_dias?: number | null
           lote_id_destino?: string | null
@@ -1399,9 +1413,14 @@ export type Database = {
           motivo_descarte?: string | null
           natimorto?: boolean | null
           observacoes?: string | null
+          oocitos_coletados?: number | null
+          oocitos_viaveis?: number | null
           peso_kg?: number | null
+          produto_hormonal?: string | null
+          raca_embriao?: string | null
           reprodutor_id?: string | null
           resultado_prenhez?: string | null
+          resultado_te?: string | null
           sexo_crias?: string | null
           tipo: Database["public"]["Enums"]["tipo_evento_rebanho"]
           tipo_cobertura?: string | null
@@ -1409,6 +1428,7 @@ export type Database = {
           updated_at?: string
           usuario_id: string
           valor_venda?: number | null
+          via_aplicacao?: string | null
         }
         Update: {
           animal_id?: string
@@ -1419,9 +1439,13 @@ export type Database = {
           created_at?: string
           data_evento?: string
           deleted_at?: string | null
+          dose_produto?: string | null
           escore_condicao_corporal?: number | null
           fazenda_id?: string
+          finalidade_protocolo?: string | null
           gemelar?: boolean | null
+          grau_embriao?: number | null
+          grau_qualidade_opu?: string | null
           id?: string
           idade_gestacional_dias?: number | null
           lote_id_destino?: string | null
@@ -1429,9 +1453,14 @@ export type Database = {
           motivo_descarte?: string | null
           natimorto?: boolean | null
           observacoes?: string | null
+          oocitos_coletados?: number | null
+          oocitos_viaveis?: number | null
           peso_kg?: number | null
+          produto_hormonal?: string | null
+          raca_embriao?: string | null
           reprodutor_id?: string | null
           resultado_prenhez?: string | null
+          resultado_te?: string | null
           sexo_crias?: string | null
           tipo?: Database["public"]["Enums"]["tipo_evento_rebanho"]
           tipo_cobertura?: string | null
@@ -1439,6 +1468,7 @@ export type Database = {
           updated_at?: string
           usuario_id?: string
           valor_venda?: number | null
+          via_aplicacao?: string | null
         }
         Relationships: [
           {
@@ -3609,6 +3639,9 @@ export type Database = {
         | "aborto"
         | "descarte"
         | "desmame"
+        | "aspiracao_opu"
+        | "protocolo_hormonal"
+        | "transferencia_embriao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3751,6 +3784,9 @@ export const Constants = {
         "aborto",
         "descarte",
         "desmame",
+        "aspiracao_opu",
+        "protocolo_hormonal",
+        "transferencia_embriao",
       ],
     },
   },
