@@ -1,8 +1,17 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { useDebounce } from 'use-debounce';
 import { q } from '@/lib/supabase/queries-audit';
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debouncedValue;
+}
 import { supabase } from '@/lib/supabase';
 import type {
   Insumo,
@@ -62,7 +71,7 @@ export function useInsumosAbaixoMinimo() {
  * durante a digitação no autocomplete.
  */
 export function useInsumosSearch(term: string) {
-  const [debouncedTerm] = useDebounce(term, 300);
+  const debouncedTerm = useDebounce(term, 300);
 
   return useQuery({
     queryKey: ['insumos', 'search', debouncedTerm],

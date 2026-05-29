@@ -10,13 +10,13 @@ import { filterSensitiveData, sanitizeString } from './sentry.server.config';
 export const sentryBeforeSendHandler = (event: Event, hint: EventHint) => {
   // Filtro de dados sensíveis antes de enviar ao Sentry
   if (event.request) {
-    filterSensitiveData(event.request);
+    filterSensitiveData(event.request as unknown as Record<string, unknown>);
   }
 
   if (event.breadcrumbs) {
     event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => {
       if (breadcrumb.data) {
-        filterSensitiveData(breadcrumb.data);
+        filterSensitiveData(breadcrumb.data as Record<string, unknown>);
       }
       return breadcrumb;
     });

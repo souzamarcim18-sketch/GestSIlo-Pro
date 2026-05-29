@@ -261,9 +261,9 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
         {/* Navegação */}
         <ScrollArea className="-mx-2 px-2 flex-1 min-h-0 h-full">
-          <nav aria-label="Navegação principal">
 
-            {/* Bloco 1 — Dashboard */}
+          {/* Bloco 1 — Dashboard */}
+          <nav role="navigation" aria-label="Menu principal">
             <ul className="space-y-0.5 list-none pb-2">
               <NavItem
                 href="/dashboard"
@@ -273,11 +273,13 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                 onNavigate={onNavigate}
               />
             </ul>
+          </nav>
 
-            {/* Separador */}
-            <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
+          {/* Separador */}
+          <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
 
-            {/* Bloco 2 — Gerencial */}
+          {/* Bloco 2 — Gerencial */}
+          <nav role="navigation" aria-label="Gerencial">
             <div className="pb-2">
               <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Gerencial
@@ -297,11 +299,13 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                 ))}
               </ul>
             </div>
+          </nav>
 
-            {/* Separador */}
-            <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
+          {/* Separador */}
+          <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
 
-            {/* Bloco 3 — Ferramentas */}
+          {/* Bloco 3 — Ferramentas */}
+          <nav role="navigation" aria-label="Ferramentas">
             <div className="pb-2">
               <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Ferramentas
@@ -332,11 +336,13 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                 })}
               </ul>
             </div>
+          </nav>
 
-            {/* Separador */}
-            <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
+          {/* Separador */}
+          <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
 
-            {/* Bloco 4 — Sistema */}
+          {/* Bloco 4 — Sistema */}
+          <nav role="navigation" aria-label="Sistema">
             <div className="pb-2">
               <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
                 Sistema
@@ -355,8 +361,8 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                 ))}
               </ul>
             </div>
-
           </nav>
+
         </ScrollArea>
       </div>
 

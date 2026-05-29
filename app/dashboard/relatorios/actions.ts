@@ -201,7 +201,7 @@ export async function getPlanejamentoSilagemParaPdfAction(id: string) {
 
   const { data, error } = await supabase
     .from('planejamentos_silagem')
-    .select('*')
+    .select('id, fazenda_id, nome, parametros, rebanho, rebanho_snapshot, resultados, sistema, created_at, updated_at')
     .eq('id', id)
     .single();
 

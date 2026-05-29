@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await client
       .from('agendamentos_usuario')
-      .select('*')
+      .select('id, fazenda_id, consultor_id, horario_disponivel_id, tipo, data_agendada, duracao_minutos, link_reuniao, observacoes, status, motivo_recusa, sugestao_nova_data, created_by, created_at, updated_at, deleted_at')
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
       .order('data_agendada', { ascending: true });

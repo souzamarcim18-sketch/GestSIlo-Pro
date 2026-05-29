@@ -44,7 +44,7 @@ export const queryAnotacoes = {
     const client = await getClient();
     let query = client
       .from('anotacoes_assessoria')
-      .select('*')
+      .select('id, fazenda_id, titulo, conteudo, categoria, prioridade, resolvida, data_resolvida, assessor_resposta, created_by, created_at, updated_at, deleted_at')
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
@@ -62,7 +62,7 @@ export const queryAnotacoes = {
     const client = await getClient();
     const { data, error } = await client
       .from('anotacoes_assessoria')
-      .select('*')
+      .select('id, fazenda_id, titulo, conteudo, categoria, prioridade, resolvida, data_resolvida, assessor_resposta, created_by, created_at, updated_at, deleted_at')
       .eq('id', id)
       .is('deleted_at', null)
       .single();
@@ -139,7 +139,7 @@ export const queryHorarios = {
     const client = await getClient();
     let query = client
       .from('horarios_disponiveis_consultor')
-      .select('*')
+      .select('id, consultor_id, data_hora, duracao_minutos, disponivel, created_at, updated_at')
       .eq('disponivel', true)
       .gte('data_hora', new Date().toISOString())
       .order('data_hora', { ascending: true });
@@ -196,7 +196,7 @@ export const queryAgendamentos = {
     const client = await getClient();
     let query = client
       .from('agendamentos_usuario')
-      .select('*')
+      .select('id, fazenda_id, consultor_id, horario_disponivel_id, tipo, data_agendada, duracao_minutos, link_reuniao, observacoes, status, motivo_recusa, sugestao_nova_data, created_by, created_at, updated_at, deleted_at')
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
       .order('data_agendada', { ascending: true });
@@ -212,7 +212,7 @@ export const queryAgendamentos = {
     const client = await getClient();
     const { data, error } = await client
       .from('agendamentos_usuario')
-      .select('*')
+      .select('id, fazenda_id, consultor_id, horario_disponivel_id, tipo, data_agendada, duracao_minutos, link_reuniao, observacoes, status, motivo_recusa, sugestao_nova_data, created_by, created_at, updated_at, deleted_at')
       .eq('id', id)
       .is('deleted_at', null)
       .single();
@@ -292,7 +292,7 @@ export const queryHistoricoAtendimentos = {
     const client = await getClient();
     const { data, error } = await client
       .from('historico_atendimentos')
-      .select('*')
+      .select('id, fazenda_id, agendamento_id, titulo, resumo, orientacoes_recebidas, proximos_passos, data_atendimento, assessor_nome, created_by, created_at, updated_at, deleted_at')
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
       .order('data_atendimento', { ascending: false });

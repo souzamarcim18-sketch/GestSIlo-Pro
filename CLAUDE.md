@@ -20,12 +20,12 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 851+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 3 falhos pré-existentes documentados)
+- **Testes**: Vitest — 852+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 2 falhos pré-existentes documentados)
 
 ### Configuração de Tooling (auditoria 2026-05-29)
 - **TypeScript target**: `ES2020` em `tsconfig.json` — habilita `Promise.allSettled`, `BigInt`, `globalThis` nativos sem polyfill
 - **ESLint**: regra `@typescript-eslint/no-explicit-any: "error"` ativa em `eslint.config.mjs` — zero ocorrências de `any` no codebase
-- **Dependências**: `shadcn` movido para `devDependencies` (sem import runtime); `@types/jspdf` removido (jsPDF 2.x expõe seus próprios tipos); `@testing-library/react` e `@testing-library/jest-dom` removidos (sem uso nos testes)
+- **Dependências**: `shadcn` movido para `devDependencies` (sem import runtime); `@types/jspdf` removido (jsPDF 2.x expõe seus próprios tipos); `@testing-library/react` e `@testing-library/jest-dom` removidos (sem uso nos testes); `use-debounce` removido — hook debounce implementado localmente em `lib/hooks/useInsumos.ts`
 - **CSP `unsafe-eval`**: remoção condicional (prod vs dev) pendente de aprovação — aguardar instrução explícita antes de alterar `next.config.ts`
 
 ---
@@ -502,6 +502,11 @@ export default async function ExemploPage() {
 - `components/Breadcrumbs.tsx`: `text-muted-foreground`, `text-foreground`
 - `app/dashboard/rebanho/RebanhoClient.tsx`, `[id]/page.tsx`, `movimentacoes/MovimentacoesClient.tsx`: dark mode corrigido com classes Tailwind semânticas + breakpoints de grid ajustados para mobile
 
+**Componentes corrigidos em 2026-05-29 (T-5.2 / T-5.5 / T-5.6)**:
+- `components/ui/button.tsx`: variant `gradient` adicionada (gradiente animado); `components/ui/gradient-button.tsx` **deletado** — usar `<Button variant="gradient">` em seu lugar
+- `components/ui/calendar.tsx`: aria-labels adicionados em botões de navegação (anterior/próximo mês) para acessibilidade
+- `components/Sidebar.tsx`: grupos de navegação envolvidos em `<nav role="navigation" aria-label="...">` para acessibilidade; ícones decorativos com `aria-hidden="true"`
+
 ### Referência de Design
 - **PRD Completo**: `PRD-design.md`
 - **Especificação Técnica**: `SPEC-design.md`
@@ -649,6 +654,8 @@ npm run dev          # Servidor local em http://localhost:3000
 npm run build        # Build de produção
 npm run test         # Rodar todos os testes (Vitest)
 npm run test:watch   # Testes em modo watch
+npm run test:coverage  # Cobertura de testes (Vitest + v8)
+npm run test:e2e     # Testes end-to-end (Playwright)
 npm run lint         # ESLint
 npm run clean        # Limpar cache Next.js
 npm run db:types     # Gerar tipos TypeScript do Supabase (requer SUPABASE_PROJECT_ID)
@@ -687,7 +694,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 851+ testes passam (3 falhos pré-existentes: `rls.test.ts` timeout de rede; `projetar-rebanho.test.ts` classificação de categoria; um terceiro falho pré-existente inalterado). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
+4. Confirmar que 852+ testes passam (2 falhos pré-existentes: `rls.test.ts` timeout de rede; `projetar-rebanho.test.ts` classificação de categoria). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -1084,7 +1091,7 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 - `app/dashboard/rebanho/corte/actions.ts` — pesagem em lote
 - `app/dashboard/rebanho/indicadores/actions.ts` — Server Actions KPIs e alertas
 
-**Testes**: 3 falhos pré-existentes sem relação com o código: `__tests__/security/rls.test.ts` (timeout de rede — tenta conectar ao Supabase real), `lib/supabase/__tests__/projetar-rebanho.test.ts` (falha de lógica pré-existente em classificação de categoria), e um terceiro falho pré-existente inalterado
+**Testes**: 2 falhos pré-existentes sem relação com o código: `__tests__/security/rls.test.ts` (timeout de rede — tenta conectar ao Supabase real), `lib/supabase/__tests__/projetar-rebanho.test.ts` (falha de lógica pré-existente em classificação de categoria)
 
 ### 📋 Assessoria Agronômica (100% implementado — 2026-05-20)
 
@@ -1164,7 +1171,7 @@ Fluxo obrigatório para novas features:
 1. Pesquisa → gera PRD-[feature].md
 2. Especificação → lê PRD, gera SPEC-[feature].md  
 3. Execução → lê SPEC, implementa em camadas (banco → backend → UI)
-4. Validação → npm run build + npm run test (mínimo 851 testes passando; warnings React Compiler sobre form.watch() são pré-existentes)
+4. Validação → npm run build + npm run test (mínimo 852 testes passando; warnings React Compiler sobre form.watch() são pré-existentes)
 
 Nunca escrever código na fase de pesquisa ou especificação.
 Nunca entrar em modo plan na fase de execução.
@@ -1292,12 +1299,14 @@ O módulo foi reestruturado em 5 seções principais na página:
 - `components/relatorios/RelatorioCard.tsx` — card padrão para cada relatório
 - `components/relatorios/ExportButtons.tsx` — botões de exportação (XLSX / PDF)
 
-**Correções incluídas nessa versão**:
+**Correções incluídas (T-5.x — 2026-05-29)**:
 - Bloqueio de Operador em rotas e Sidebar do módulo de Relatórios
-- `select('*')` em `q.insumos.list()` substituído por colunas explícitas
+- `select('*')` eliminados em todas as queries Supabase do codebase (T-5.12)
 - Aba de Movimentações de Silos exibe nome do silo (não UUID)
 - Card duplicado "Inventário de Estoque" removido
 - Botão obsoleto "Configurar Dashboards" removido
+- `PeriodoFilter.tsx` movido de `components/ui/` para `components/relatorios/` (T-5.1)
+- `handleExport` substituído por `toast.promise` em `RelatoriosClient.tsx` (T-5.7)
 
 **View Postgres**:
 - `vw_animais_completos` — view com `security_invoker` que une `animais`, `lotes`, `pesos_animal`, `producoes_leiteiras`, `eventos_sanitarios`, `eventos_rebanho` e `reprodutores` para alimentar o construtor dinâmico de relatório de rebanho

@@ -51,7 +51,7 @@ export async function listarHorariosAction() {
 
     const { data, error } = await client
       .from('horarios_disponiveis_consultor')
-      .select('*')
+      .select('id, consultor_id, data_hora, duracao_minutos, disponivel, created_at, updated_at')
       .eq('consultor_id', meuId)
       .order('data_hora', { ascending: true });
 

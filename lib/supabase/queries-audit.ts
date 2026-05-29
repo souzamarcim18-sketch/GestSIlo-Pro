@@ -657,7 +657,7 @@ const movimentacoesInsumo = {
     await getFazendaId();
     const { data, error } = await supabase
       .from('movimentacoes_insumo')
-      .select('*')
+      .select('id, insumo_id, tipo, quantidade, valor_unitario, data, tipo_saida, destino_tipo, destino_id, observacoes, origem, sinal_ajuste, despesa_id, created_at, criado_por, responsavel')
       .eq('insumo_id', insumoId)
       .order('data', { ascending: false });
     if (error) throw error;
@@ -782,7 +782,7 @@ const categorias = {
   async list(): Promise<CategoriaInsumo[]> {
     const { data, error } = await supabase
       .from('categorias_insumo')
-      .select('*')
+      .select('id, nome, descricao, ativo, criado_em')
       .eq('ativo', true)
       .order('nome');
     if (error) throw error;
@@ -792,7 +792,7 @@ const categorias = {
   async getById(id: string): Promise<CategoriaInsumo> {
     const { data, error } = await supabase
       .from('categorias_insumo')
-      .select('*')
+      .select('id, nome, descricao, ativo, criado_em')
       .eq('id', id)
       .eq('ativo', true)
       .single();
@@ -808,7 +808,7 @@ const categoriasServer = {
     const supabaseServer = await createSupabaseServerClient();
     const { data, error } = await supabaseServer
       .from('categorias_insumo')
-      .select('*')
+      .select('id, nome, descricao, ativo, criado_em')
       .eq('ativo', true)
       .order('nome');
     if (error) throw error;
@@ -823,7 +823,7 @@ const tipos = {
   async listByCategoria(categoria_id: string): Promise<TipoInsumo[]> {
     const { data, error } = await supabase
       .from('tipos_insumo')
-      .select('*')
+      .select('id, categoria_id, nome, descricao, ativo, criado_em')
       .eq('categoria_id', categoria_id)
       .eq('ativo', true)
       .order('nome');
@@ -834,7 +834,7 @@ const tipos = {
   async getById(id: string): Promise<TipoInsumo> {
     const { data, error } = await supabase
       .from('tipos_insumo')
-      .select('*')
+      .select('id, categoria_id, nome, descricao, ativo, criado_em')
       .eq('id', id)
       .eq('ativo', true)
       .single();
@@ -865,7 +865,7 @@ const insumosServer = {
     const fazendaId = await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('insumos')
-      .select('*')
+      .select('id, fazenda_id, nome, unidade, estoque_minimo, estoque_atual, categoria_id, tipo_id, custo_medio, fornecedor, local_armazen, data_cadastro, observacoes, ativo, criado_por, atualizado_em, atualizado_por, teor_n_percent, teor_p_percent, teor_k_percent')
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .single();
@@ -1042,7 +1042,7 @@ const tiposServer = {
     const supabaseServer = await createSupabaseServerClient();
     const { data, error } = await supabaseServer
       .from('tipos_insumo')
-      .select('*')
+      .select('id, categoria_id, nome, descricao, ativo, criado_em')
       .eq('id', id)
       .eq('ativo', true)
       .single();
@@ -1392,11 +1392,11 @@ const atividadesCampo = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('atividades_campo')
-      .select('*')
+      .select('id, ciclo_id, talhao_id, tipo_operacao, data, maquina_id, horas_maquina, observacoes, custo_total, custo_manual, tipo_operacao_solo, insumo_id, dose_ton_ha, semente_id, populacao_plantas_ha, sacos_ha, espacamento_entre_linhas_cm, categoria_pulverizacao, dose_valor, dose_unidade, volume_calda_l_ha, produtividade_ton_ha, maquina_colheita_id, horas_colheita, maquina_transporte_id, horas_transporte, maquina_compactacao_id, horas_compactacao, valor_terceirizacao_r, custo_amostra_r, metodo_entrada, url_pdf_analise, ph_cacl2, mo_g_dm3, p_mg_dm3, k_mmolc_dm3, ca_mmolc_dm3, mg_mmolc_dm3, al_mmolc_dm3, h_al_mmolc_dm3, s_mg_dm3, b_mg_dm3, cu_mg_dm3, fe_mg_dm3, mn_mg_dm3, zn_mg_dm3, sb_mmolc_dm3, ctc_mmolc_dm3, v_percent, lamina_mm, horas_irrigacao, custo_por_hora_r, created_at, updated_at')
       .eq('fazenda_id', fazendaId)
       .order('data_atividade', { ascending: false });
     if (error) throw error;
-    return data as AtividadeCampo[];
+    return data as unknown as AtividadeCampo[];
   },
 
   async listByTalhao(talhaoId: string): Promise<AtividadeCampo[]> {
@@ -1414,11 +1414,11 @@ const atividadesCampo = {
     // Buscar atividades (RLS garante isolamento, tabela não tem fazenda_id)
     const { data, error } = await supabase
       .from('atividades_campo')
-      .select('*')
+      .select('id, ciclo_id, talhao_id, tipo_operacao, data, maquina_id, horas_maquina, observacoes, custo_total, custo_manual, tipo_operacao_solo, insumo_id, dose_ton_ha, semente_id, populacao_plantas_ha, sacos_ha, espacamento_entre_linhas_cm, categoria_pulverizacao, dose_valor, dose_unidade, volume_calda_l_ha, produtividade_ton_ha, maquina_colheita_id, horas_colheita, maquina_transporte_id, horas_transporte, maquina_compactacao_id, horas_compactacao, valor_terceirizacao_r, custo_amostra_r, metodo_entrada, url_pdf_analise, ph_cacl2, mo_g_dm3, p_mg_dm3, k_mmolc_dm3, ca_mmolc_dm3, mg_mmolc_dm3, al_mmolc_dm3, h_al_mmolc_dm3, s_mg_dm3, b_mg_dm3, cu_mg_dm3, fe_mg_dm3, mn_mg_dm3, zn_mg_dm3, sb_mmolc_dm3, ctc_mmolc_dm3, v_percent, lamina_mm, horas_irrigacao, custo_por_hora_r, created_at, updated_at')
       .eq('talhao_id', talhaoId)
       .order('data', { ascending: false });
     if (error) throw error;
-    return data as AtividadeCampo[];
+    return data as unknown as AtividadeCampo[];
   },
 
   async create(
@@ -1485,7 +1485,7 @@ const eventosDAP = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('eventos_dap')
-      .select('*')
+      .select('id, ciclo_id, talhao_id, cultura, tipo_operacao, dias_apos_plantio, dias_apos_plantio_final, data_esperada, data_realizada, status, atividade_campo_id, created_at, updated_at')
       .eq('ciclo_id', cicloId)
       .eq(
         'talhao_id',
@@ -1657,7 +1657,7 @@ const planejamentosSilagem = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('planejamentos_silagem')
-      .select('*')
+      .select('id, fazenda_id, nome, sistema, rebanho, rebanho_snapshot, parametros, resultados, created_at, updated_at')
       .eq('fazenda_id', fazendaId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -1681,7 +1681,7 @@ const planejamentosSilagem = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('planejamentos_silagem')
-      .select('*')
+      .select('id, fazenda_id, nome, sistema, rebanho, rebanho_snapshot, parametros, resultados, created_at, updated_at')
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .single();
@@ -1761,7 +1761,7 @@ const planejamentosSilagemServer = {
     const fazendaId = await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('planejamentos_silagem')
-      .select('*')
+      .select('id, fazenda_id, nome, sistema, rebanho, rebanho_snapshot, parametros, resultados, created_at, updated_at')
       .eq('fazenda_id', fazendaId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -1789,7 +1789,7 @@ const planejamentosSilagemServer = {
     const fazendaId = await getFazendaIdServer();
     const { data, error } = await supabaseServer
       .from('planejamentos_silagem')
-      .select('*')
+      .select('id, fazenda_id, nome, sistema, rebanho, rebanho_snapshot, parametros, resultados, created_at, updated_at')
       .eq('id', id)
       .eq('fazenda_id', fazendaId)
       .single();

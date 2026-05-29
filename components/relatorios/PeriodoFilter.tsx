@@ -118,7 +118,7 @@ export function PeriodoFilter({ value, onChange, defaultPreset, className }: Per
       {preset === 'personalizado' && (
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">
-            <CalendarIcon className="h-3 w-3" />
+            <CalendarIcon className="h-3 w-3" aria-hidden="true" />
             {range?.from && range?.to
               ? `${format(range.from, 'dd/MM/yyyy', { locale: ptBR })} – ${format(range.to, 'dd/MM/yyyy', { locale: ptBR })}`
               : 'Selecionar datas'}

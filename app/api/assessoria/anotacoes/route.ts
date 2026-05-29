@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await client
       .from('anotacoes_assessoria')
-      .select('*')
+      .select('id, fazenda_id, titulo, conteudo, categoria, prioridade, resolvida, data_resolvida, assessor_resposta, created_by, created_at, updated_at, deleted_at')
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });

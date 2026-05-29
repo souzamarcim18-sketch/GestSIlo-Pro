@@ -15,7 +15,7 @@ import { gerarExcel } from '@/lib/relatorios/excel-builder';
 import { gerarPdf } from '@/lib/relatorios/pdf-builder';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
 import { RelatorioCard } from '@/components/relatorios/RelatorioCard';
-import { PeriodoFilter } from '@/components/ui/PeriodoFilter';
+import { PeriodoFilter } from '@/components/relatorios/PeriodoFilter';
 import {
   getRelatorioMaoObraAction,
   getRelatorioPastagensAction,
@@ -68,20 +68,17 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
     nomeRelatorio: '',
   }), [fazendaNome]);
 
-  const handleExport = async (key: string, fn: () => Promise<void>) => {
+  const handleExport = async (key: string, fn: () => Promise<void>, label = 'Relatório') => {
     if (!fazendaId) {
       toast.error('Fazenda não identificada. Tente novamente.');
       return;
     }
     setLoadingKey(key);
-    try {
-      await fn();
-    } catch (err: unknown) {
-      console.error('Export error:', err);
-      toast.error('Erro ao gerar relatório. Tente novamente.');
-    } finally {
-      setLoadingKey(null);
-    }
+    await toast.promise(fn().finally(() => setLoadingKey(null)), {
+      loading: `Gerando ${label}...`,
+      success: `${label} exportado com sucesso!`,
+      error: 'Erro ao gerar relatório. Tente novamente.',
+    });
   };
 
   // ─── Silos ───────────────────────────────────────────────────────────────────
