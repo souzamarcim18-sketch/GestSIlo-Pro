@@ -7,3 +7,9 @@ coverage/
 !.env.example
 
 .env.local
+
+# Serwist — arquivos gerados no build
+public/sw.js
+public/sw.js.map
+public/swe-worker*.js
+public/swe-worker*.js.map

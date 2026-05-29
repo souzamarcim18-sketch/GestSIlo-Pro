@@ -1,10 +1,17 @@
 import type {NextConfig} from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
+import withSerwistInit from '@serwist/next';
+import { spawnSync } from 'node:child_process';
 
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
+const revision =
+  spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8' }).stdout?.trim() ??
+  crypto.randomUUID();
+
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
+  additionalPrecacheEntries: [{ url: '/~offline', revision }],
+  reloadOnOnline: true,
   disable: process.env.NODE_ENV === 'development',
 });
 
@@ -94,7 +101,7 @@ const nextConfig: NextConfig = {
 };
 
 export default withSentryConfig(
-  withPWA(nextConfig),
+  withSerwist(nextConfig),
   {
     org: 'gestsilo',
     project: 'gestsilo-pro',
