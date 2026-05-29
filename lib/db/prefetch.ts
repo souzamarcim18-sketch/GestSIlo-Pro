@@ -29,7 +29,7 @@ export async function prefetchDadosCriticos(
     (async () => {
       const { data } = await supabase
         .from('silos')
-        .select('id, nome, tipo, cultura_ensilada, volume_ensilado_ton_mv, capacidade_ton_mv, status')
+        .select('id, nome, tipo, cultura_ensilada, volume_ensilado_ton_mv')
         .eq('fazenda_id', fazendaId);
       if (!data) return;
       const tx = db.transaction('movimentacoes_silo', 'readwrite');
