@@ -11,7 +11,9 @@ import {
   type LoteSimples,
 } from '@/lib/supabase/operador';
 import { enqueue } from '@/lib/db/syncQueue';
+import { getDb } from '@/lib/db/localDb';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { useSyncOnReconnect } from '@/lib/hooks/useSyncOnReconnect';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +69,7 @@ export default function ModoOperadorPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isOnline, updateStatus } = useOfflineSync();
+  const { lastSyncAt } = useSyncOnReconnect();
 
   // fluxo em etapas
   const [etapa, setEtapa] = useState<Etapa>('silo');
@@ -141,6 +144,25 @@ export default function ModoOperadorPage() {
     if (!user) { router.push('/login'); return; }
     checkAuth();
   }, [user, authLoading, router, checkAuth]);
+
+  // Hidrata o cache IndexedDB com movimentações recentes do silo quando online
+  useEffect(() => {
+    if (!isOnline) return;
+    async function hydrate() {
+      const { data } = await supabase
+        .from('movimentacoes_silo')
+        .select('id, silo_id, tipo, subtipo, quantidade, data, responsavel, observacao, created_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (!data) return;
+      const db = await getDb();
+      if (!db) return;
+      for (const mov of data) {
+        await db.put('movimentacoes_silo', mov as Record<string, unknown>);
+      }
+    }
+    hydrate();
+  }, [isOnline]);
 
   // ── Selecionar silo ─────────────────────────────────────────────────────────
 
@@ -699,11 +721,18 @@ export default function ModoOperadorPage() {
       </main>
 
       {/* Footer — status de conexão */}
-      <footer className="px-5 py-3 border-t border-zinc-800 flex items-center justify-center gap-2">
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-primary' : 'bg-amber-400 animate-pulse'}`} aria-hidden="true" />
-        <p className="text-xs text-zinc-500" role="status" aria-live="polite">
-          {isOnline ? 'Sincronizado com a nuvem' : 'Modo Offline — operações salvas localmente'}
-        </p>
+      <footer className="px-5 py-3 border-t border-zinc-800 flex flex-col items-center gap-1">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-primary' : 'bg-amber-400 animate-pulse'}`} aria-hidden="true" />
+          <p className="text-xs text-zinc-500" role="status" aria-live="polite">
+            {isOnline ? 'Sincronizado com a nuvem' : 'Modo Offline — operações salvas localmente'}
+          </p>
+        </div>
+        {lastSyncAt && (
+          <p className="text-xs text-zinc-600">
+            Sincronizado às {lastSyncAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        )}
       </footer>
 
     </div>

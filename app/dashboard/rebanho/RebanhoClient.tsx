@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+import { hydrateEventosFromServer } from '@/lib/db/eventosRebanho';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Plus, BarChart3, Milk, Scale, Stethoscope, ArrowRightLeft, Beef, Dna } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -38,6 +41,7 @@ interface Props {
 
 export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) {
   const router = useRouter();
+  const isOnline = useOnlineStatus();
   const [animais, setAnimais] = useState<Animal[]>(initialAnimais);
   const [busca, setBusca] = useState('');
   const [filtroStatus, setFiltroStatus] = useState<string>('');
@@ -46,6 +50,30 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
   const [filtroSexo, setFiltroSexo] = useState<string>('');
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
   const [loading, setLoading] = useState(false);
+
+  // Hidrata o cache IndexedDB com eventos recentes do servidor na montagem inicial
+  useEffect(() => {
+    if (!isOnline) return;
+    async function hydrate() {
+      const { data } = await supabase
+        .from('eventos_rebanho')
+        .select('id, animal_id, tipo, data_evento, created_at')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (data) {
+        await hydrateEventosFromServer(
+          data.map((e) => ({
+            id: e.id,
+            animal_id: e.animal_id,
+            tipo_evento: e.tipo as Parameters<typeof hydrateEventosFromServer>[0][number]['tipo_evento'],
+            data_evento: e.data_evento,
+            payload: e as Record<string, unknown>,
+          }))
+        );
+      }
+    }
+    hydrate();
+  }, [isOnline]);
 
   const categorias = Array.from(new Set(initialAnimais.map(a => a.categoria).filter(Boolean))).sort();
 

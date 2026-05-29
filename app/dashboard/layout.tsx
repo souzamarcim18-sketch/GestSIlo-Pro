@@ -7,16 +7,26 @@ import { Header } from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
 import { AUTH_PROFILE_FETCH_TIMEOUT_MS } from '@/lib/auth/constants';
 import { authLog } from '@/lib/auth/logger';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
+import { prefetchDadosCriticos } from '@/lib/db/prefetch';
+import { supabase } from '@/lib/supabase';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { loading, needsOnboarding, user, profile } = useAuth();
+  const { loading, needsOnboarding, user, profile, fazendaId } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const isOnline = useOnlineStatus();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  // Prefetch proativo de dados críticos para uso offline
+  useEffect(() => {
+    if (!isOnline || !fazendaId) return;
+    prefetchDadosCriticos(supabase, fazendaId);
+  }, [isOnline, fazendaId]);
 
   const isOnboardingPage = pathname === '/dashboard/onboarding';
 

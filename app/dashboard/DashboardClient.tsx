@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
+import { getPrefetchTimestamp } from '@/lib/db/prefetch';
 import Link from 'next/link';
 import {
   Map,
@@ -109,7 +111,12 @@ const ALERTA_CONFIG: Record<AlertaSeveridade, {
 
 export function DashboardClient({ data, userName }: { data: DashboardData; userName: string }) {
   const router = useRouter();
+  const isOnline = useOnlineStatus();
   const alertShownRef = useRef(false);
+  const prefetchAt = useMemo(
+    () => (!isOnline ? getPrefetchTimestamp() : null),
+    [isOnline]
+  );
 
   const hour = new Date().getHours();
   const greeting =
@@ -135,6 +142,12 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
+      {prefetchAt && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 border border-border rounded-lg px-3 py-2 w-fit">
+          <Info className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+          Dados de {prefetchAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} — modo offline
+        </div>
+      )}
       {/* Cabeçalho */}
       <div className="space-y-1 mb-2">
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#dceede]">

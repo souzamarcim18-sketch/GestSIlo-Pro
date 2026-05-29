@@ -89,7 +89,9 @@
       "Bash(Get-ChildItem public *)",
       "Bash(Write-Output \"Limpeza concluída\")",
       "Bash(rm -f public/sw.js public/sw.js.map public/workbox-*.js public/workbox-*.js.map)",
-      "Bash(ls public/*.js public/*.map)"
+      "Bash(ls public/*.js public/*.map)",
+      "Bash(find . -name \"useOfflineSync.ts\" -not -path \"*/node_modules/*\" -not -path \"*/.next/*\")",
+      "Bash(ls hooks/)"
     ],
     "additionalDirectories": [
       "\\tmp"
