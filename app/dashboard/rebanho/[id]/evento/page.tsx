@@ -415,6 +415,9 @@ export default function EventoPage() {
                         <SelectValue placeholder="Selecionar tipo" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="distocico">Distócico</SelectItem>
+                        <SelectItem value="cesariana">Cesariana</SelectItem>
                         <SelectItem value="simples">Simples</SelectItem>
                         <SelectItem value="gemelar">Gemelar</SelectItem>
                         <SelectItem value="triplo">Triplo</SelectItem>

@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 852+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 2 falhos pré-existentes documentados)
+- **Testes**: Vitest — 854+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 2 falhos pré-existentes documentados)
 
 ### Configuração de Tooling (auditoria 2026-05-29)
 - **TypeScript target**: `ES2020` em `tsconfig.json` — habilita `Promise.allSettled`, `BigInt`, `globalThis` nativos sem polyfill
@@ -694,7 +694,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 852+ testes passam (2 falhos pré-existentes: `rls.test.ts` timeout de rede; `projetar-rebanho.test.ts` classificação de categoria). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
+4. Confirmar que 854+ testes passam (2 falhos pré-existentes: `rls.test.ts` timeout de rede; `projetar-rebanho.test.ts` classificação de categoria). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -1171,7 +1171,7 @@ Fluxo obrigatório para novas features:
 1. Pesquisa → gera PRD-[feature].md
 2. Especificação → lê PRD, gera SPEC-[feature].md  
 3. Execução → lê SPEC, implementa em camadas (banco → backend → UI)
-4. Validação → npm run build + npm run test (mínimo 852 testes passando; warnings React Compiler sobre form.watch() são pré-existentes)
+4. Validação → npm run build + npm run test (mínimo 854 testes passando; warnings React Compiler sobre form.watch() são pré-existentes)
 
 Nunca escrever código na fase de pesquisa ou especificação.
 Nunca entrar em modo plan na fase de execução.

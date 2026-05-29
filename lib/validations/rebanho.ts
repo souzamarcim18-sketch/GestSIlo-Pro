@@ -197,7 +197,7 @@ export const criarEventoPartoSchema = z.object({
       const date = new Date(val);
       return date <= new Date() && !isNaN(date.getTime());
     }, 'Data do evento deve ser válida e não futura'),
-  tipo_parto: z.enum(['simples', 'gemelar', 'triplo']).optional().nullable(),
+  tipo_parto: z.enum(['normal', 'distocico', 'cesariana', 'simples', 'gemelar', 'triplo']).optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });
 

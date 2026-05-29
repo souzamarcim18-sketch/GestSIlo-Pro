@@ -62,13 +62,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "abastecimentos_fazenda_id_fk"
-            columns: ["fazenda_id"]
-            isOneToOne: false
-            referencedRelation: "fazendas"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "abastecimentos_fazenda_id_fkey"
             columns: ["fazenda_id"]
             isOneToOne: false
@@ -282,10 +275,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "animais_mae_id_fkey"
+            columns: ["mae_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "animais_pai_id_fkey"
             columns: ["pai_id"]
             isOneToOne: false
             referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "animais_pai_id_fkey"
+            columns: ["pai_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
             referencedColumns: ["id"]
           },
           {
@@ -1320,6 +1327,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "eventos_parto_crias_animal_criado_id_fkey"
+            columns: ["animal_criado_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "eventos_parto_crias_evento_id_fkey"
             columns: ["evento_id"]
             isOneToOne: false
@@ -1345,6 +1359,7 @@ export type Database = {
           created_at: string
           data_evento: string
           deleted_at: string | null
+          escore_condicao_corporal: number | null
           fazenda_id: string
           gemelar: boolean | null
           id: string
@@ -1374,6 +1389,7 @@ export type Database = {
           created_at?: string
           data_evento: string
           deleted_at?: string | null
+          escore_condicao_corporal?: number | null
           fazenda_id: string
           gemelar?: boolean | null
           id?: string
@@ -1403,6 +1419,7 @@ export type Database = {
           created_at?: string
           data_evento?: string
           deleted_at?: string | null
+          escore_condicao_corporal?: number | null
           fazenda_id?: string
           gemelar?: boolean | null
           id?: string
@@ -1429,6 +1446,13 @@ export type Database = {
             columns: ["animal_id"]
             isOneToOne: false
             referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_rebanho_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
             referencedColumns: ["id"]
           },
           {
@@ -1540,6 +1564,13 @@ export type Database = {
             columns: ["animal_id"]
             isOneToOne: false
             referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_sanitarios_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
             referencedColumns: ["id"]
           },
           {
@@ -1880,6 +1911,13 @@ export type Database = {
             columns: ["animal_id"]
             isOneToOne: false
             referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lactacoes_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
             referencedColumns: ["id"]
           },
           {
@@ -2334,6 +2372,13 @@ export type Database = {
             referencedRelation: "silos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "movimentacoes_silo_talhao_id_fkey"
+            columns: ["talhao_id"]
+            isOneToOne: false
+            referencedRelation: "talhoes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ocupacoes_piquete: {
@@ -2593,6 +2638,13 @@ export type Database = {
             columns: ["animal_id"]
             isOneToOne: false
             referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pesos_animal_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
             referencedColumns: ["id"]
           },
           {
@@ -2921,6 +2973,13 @@ export type Database = {
             columns: ["animal_id"]
             isOneToOne: false
             referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producoes_leiteiras_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
             referencedColumns: ["id"]
           },
           {
@@ -3375,13 +3434,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "uso_maquinas_fazenda_id_fk"
-            columns: ["fazenda_id"]
-            isOneToOne: false
-            referencedRelation: "fazendas"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "uso_maquinas_fazenda_id_fkey"
             columns: ["fazenda_id"]
             isOneToOne: false
@@ -3413,7 +3465,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_animais_completos: {
+        Row: {
+          arroba_estimada: number | null
+          brinco: string | null
+          categoria: string | null
+          data_nascimento: string | null
+          data_parto_previsto: string | null
+          data_ultimo_peso: string | null
+          dias_lactacao: number | null
+          fazenda_id: string | null
+          gmd_90d: number | null
+          id: string | null
+          iep_dias: number | null
+          lote_nome: string | null
+          nome: string | null
+          producao_media_30d: number | null
+          projecao_abate: string | null
+          proxima_vacinacao: string | null
+          qtd_partos: number | null
+          raca: string | null
+          sexo: string | null
+          status: Database["public"]["Enums"]["status_animal"] | null
+          status_reprodutivo: string | null
+          total_lactacao: number | null
+          ultima_cobertura: string | null
+          ultima_vacinacao: string | null
+          ultima_vermifugacao: string | null
+          ultimo_peso_kg: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "animais_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       create_fazenda_and_link: {
@@ -3475,14 +3565,8 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      get_meu_perfil: { Args: never; Returns: string }
       get_minha_fazenda_id: { Args: never; Returns: string }
-      get_my_fazenda_id: { Args: never; Returns: string }
       get_my_fazenda_id_jwt: { Args: never; Returns: string }
-      get_my_perfil: { Args: never; Returns: string }
-      is_admin: { Args: never; Returns: boolean }
-      is_gerente_or_admin: { Args: never; Returns: boolean }
-      is_operador: { Args: never; Returns: boolean }
       posso_criar_fazenda: { Args: never; Returns: boolean }
       registrar_evento_com_status: {
         Args: { p_animal_id: string; p_payload: Json }
