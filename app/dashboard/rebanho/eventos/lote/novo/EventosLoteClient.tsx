@@ -46,39 +46,19 @@ import {
   type ResultadoLote,
 } from '@/lib/types/rebanho-lote';
 import { dadosCompartilhadosPorTipo } from '@/lib/validations/rebanho-lote';
+import {
+  linhaValida,
+  filtrarAnimais,
+  selecionarTodosFiltrados,
+  aplicarCascataEmMemoria,
+  contarAnimaisCompletos,
+} from '@/lib/utils/rebanho-lote';
 import type { Lote } from '@/lib/types/rebanho';
 import type { FieldValues } from 'react-hook-form';
 
 interface Props {
   animais: AnimalParaLote[];
   lotes: Lote[];
-}
-
-// Determina se um campo individual é obrigatório para o tipo
-function getCamposObrigatorios(tipo: TipoEventoLote): string[] {
-  switch (tipo) {
-    case 'pesagem':
-      return ['peso_kg'];
-    case 'diagnostico_prenhez':
-      return ['resultado_prenhez'];
-    default:
-      return [];
-  }
-}
-
-// Verifica se uma linha tem todos os campos obrigatórios preenchidos
-function linhaValida(
-  animalId: string,
-  tipo: TipoEventoLote,
-  dadosIndividuais: Record<string, Record<string, unknown>>
-): boolean {
-  const obrigatorios = getCamposObrigatorios(tipo);
-  if (obrigatorios.length === 0) return true;
-  const dados = dadosIndividuais[animalId] ?? {};
-  return obrigatorios.every((campo) => {
-    const val = dados[campo];
-    return val !== undefined && val !== null && val !== '';
-  });
 }
 
 // Colunas editáveis por tipo
@@ -265,18 +245,10 @@ export function EventosLoteClient({ animais, lotes }: Props) {
   }, [animais, lotes]);
 
   // Animais filtrados (etapa 2)
-  const animaisFiltrados = useMemo(() => {
-    return animais.filter((a) => {
-      if (filtroLote && a.lote_id !== filtroLote) return false;
-      if (filtroCategoria && a.categoria !== filtroCategoria) return false;
-      if (filtroSexo && a.sexo !== filtroSexo) return false;
-      if (termoBusca) {
-        const t = termoBusca.toLowerCase();
-        return a.brinco.toLowerCase().includes(t) || (a.nome ?? '').toLowerCase().includes(t);
-      }
-      return true;
-    });
-  }, [animais, filtroLote, filtroCategoria, filtroSexo, termoBusca]);
+  const animaisFiltrados = useMemo(
+    () => filtrarAnimais(animais, { filtroLote, filtroCategoria, filtroSexo, termoBusca }),
+    [animais, filtroLote, filtroCategoria, filtroSexo, termoBusca]
+  );
 
   const selecionadosSet = useMemo(
     () => new Set(animaisSelecionados.map((a) => a.id)),
@@ -292,12 +264,8 @@ export function EventosLoteClient({ animais, lotes }: Props) {
     });
   }, []);
 
-  const selecionarTodosFiltrados = useCallback(() => {
-    setAnimaisSelecionados((prev) => {
-      const novoSet = new Set(prev.map((a) => a.id));
-      const novos = animaisFiltrados.filter((a) => !novoSet.has(a.id));
-      return [...prev, ...novos];
-    });
+  const handleSelecionarTodosFiltrados = useCallback(() => {
+    setAnimaisSelecionados((prev) => selecionarTodosFiltrados(prev, animaisFiltrados));
   }, [animaisFiltrados]);
 
   const limparSelecao = useCallback(() => setAnimaisSelecionados([]), []);
@@ -316,26 +284,19 @@ export function EventosLoteClient({ animais, lotes }: Props) {
   // Cascata: aplica valor da linha 0 nas demais
   const aplicarCascata = useCallback(
     (campo: string) => {
-      if (animaisSelecionados.length === 0) return;
-      const primeiroId = animaisSelecionados[0].id;
-      const valor = (dadosIndividuais[primeiroId] ?? {})[campo];
-      setDadosIndividuais((prev) => {
-        const novo = { ...prev };
-        for (const a of animaisSelecionados.slice(1)) {
-          novo[a.id] = { ...(novo[a.id] ?? {}), [campo]: valor };
-        }
-        return novo;
-      });
+      setDadosIndividuais((prev) =>
+        aplicarCascataEmMemoria(campo, animaisSelecionados, prev)
+      );
     },
-    [animaisSelecionados, dadosIndividuais]
+    [animaisSelecionados]
   );
 
   const colunas = tipo ? getColunasParaTipo(tipo) : [];
 
-  const animaisCompletos = useMemo(() => {
-    if (!tipo) return 0;
-    return animaisSelecionados.filter((a) => linhaValida(a.id, tipo, dadosIndividuais)).length;
-  }, [animaisSelecionados, tipo, dadosIndividuais]);
+  const animaisCompletos = useMemo(
+    () => (tipo ? contarAnimaisCompletos(animaisSelecionados, tipo, dadosIndividuais) : 0),
+    [animaisSelecionados, tipo, dadosIndividuais]
+  );
 
   // Navegar step 1 → 2
   const irParaStep2 = form.handleSubmit(() => {
@@ -544,7 +505,7 @@ export function EventosLoteClient({ animais, lotes }: Props) {
 
           {/* Ações de seleção */}
           <div className="flex items-center gap-3 text-sm">
-            <Button variant="outline" size="sm" onClick={selecionarTodosFiltrados} className="h-8">
+            <Button variant="outline" size="sm" onClick={handleSelecionarTodosFiltrados} className="h-8">
               Selecionar todos os filtrados ({animaisFiltrados.length})
             </Button>
             {animaisSelecionados.length > 0 && (
