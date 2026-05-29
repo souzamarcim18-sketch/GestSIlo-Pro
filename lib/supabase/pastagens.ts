@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from './server';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
+import { daysBetween } from '@/lib/utils';
 import {
   type Pastagem,
   type Piquete,
@@ -32,12 +33,6 @@ const OCUPACAO_COLS = 'id, fazenda_id, piquete_id, lote_id, data_entrada, data_s
 const EVENTO_COLS = 'id, fazenda_id, piquete_id, tipo, data, insumo_id, quantidade_insumo, unidade_insumo, dose_por_ha, maquina_id, custo_estimado, observacoes, created_by, created_at';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function daysBetween(dateA: string, dateB: string): number {
-  const a = new Date(dateA).getTime();
-  const b = new Date(dateB).getTime();
-  return Math.floor(Math.abs(b - a) / (1000 * 60 * 60 * 24));
-}
 
 function enrichPiquete(
   piquete: Piquete,

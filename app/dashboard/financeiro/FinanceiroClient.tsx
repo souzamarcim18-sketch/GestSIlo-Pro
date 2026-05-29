@@ -40,6 +40,7 @@ import {
 } from '@/lib/supabase/financeiro';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 
 const lancamentoSchema = z.object({
@@ -94,9 +95,7 @@ function CustosPieCard({
       </CardHeader>
       <CardContent className="flex-1 flex flex-col items-center justify-center gap-4">
         {semDados ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Nenhum custo classificado como fixo ou variável ainda.
-          </p>
+          <EmptyState title="Nenhum custo classificado como fixo ou variável ainda." />
         ) : (
           <>
             <div className="relative w-full h-[180px]" role="img" aria-labelledby="pie-titulo">

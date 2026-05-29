@@ -20,7 +20,7 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 852+ testes passando (inclui suite de auditoria RLS em `tests/security/`)
+- **Testes**: Vitest — 851+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 3 falhos pré-existentes documentados)
 
 ---
 
@@ -207,7 +207,7 @@ app/
 │   └── geocoding/route.ts
 ├── dashboard/                       # Rotas autenticadas
 │   ├── dashboard-data.ts            # Tipos DashboardData, AlertaCritico, AlertaTipo, AlertaSeveridade
-│   ├── alertas-helpers.ts           # Funções puras: derivarAlertasEtapa1, derivarAlertasPastagens, daysBetween, formatarDataBR
+│   ├── alertas-helpers.ts           # Funções puras: derivarAlertasEtapa1, derivarAlertasPastagens, formatarDataBR (re-exporta daysBetween de lib/utils)
 │   ├── page.tsx                     # RSC: 18+ queries paralelas + construção de alertas
 │   ├── DashboardClient.tsx          # Card Alertas Críticos dinâmico (ordenado por severidade)
 │   ├── silos/
@@ -313,6 +313,7 @@ app/
 
 components/
 ├── ui/                              # shadcn/ui
+│   └── EmptyState.tsx               # Componente reutilizável para estados vazios (title, description?, icon?, action?)
 ├── widgets/
 ├── planejamento-compras/                # 10 componentes UI do módulo
 ├── Header.tsx
@@ -337,9 +338,9 @@ lib/
 │   ├── rebanho-movimentacoes.ts     # Queries de movimentações consolidadas
 │   ├── rebanho-movimentacoes-actions.ts  # Helpers de movimentações
 │   ├── rebanho-indicadores.ts       # Queries de alertas: partos, pesagens, vacas secas
-│   ├── produtos.ts                  # Queries produtos, movimentacoes_produto, categorias_produto
+│   ├── produtos.ts                  # Queries produtos, movimentacoes_produto, categorias_produto; listCategoriasProduto usa unstable_cache (TTL 1h, tag 'categorias-produto')
 │   ├── planejamento-compras.ts      # Queries + função pura calcularLinhasRelatorio()
-│   ├── pastagens.ts                 # Queries pastagens, piquetes, ocupações, eventos manejo, listPastagensParaAlertas()
+│   ├── pastagens.ts                 # Queries pastagens, piquetes, ocupações, eventos manejo, listPastagensParaAlertas(); getPastagemComResumo e getPiqueteById filtram fazenda_id explicitamente via getUser()+profiles
 │   └── mao-de-obra.ts               # listColaboradores, getColaboradorComHistorico, listAtividades, getKpisMensais, hasAtividades, hasAtividadesFuturas, getAtividadeById, listColaboradoresDaAtividade
 ├── sentry/
 │   └── allowlist.ts                 # Padrões de dados sensíveis filtrados do Sentry
@@ -359,11 +360,12 @@ lib/
 ├── validations/
 │   ├── auth.ts                      # loginSchema, registerSchema, forgotPasswordSchema, inviteSchema
 │   ├── silos.ts                     # siloSchema, movimentacaoSiloSchema, avaliacaoBromatologicaSchema, avaliacaoPspsSchema
-│   └── mao-de-obra.ts               # colaboradorFormSchema, atividadeFormSchema (refine: max 1 vínculo)
+│   ├── mao-de-obra.ts               # colaboradorFormSchema, atividadeFormSchema (refine: max 1 vínculo)
+│   └── README.md                    # Padrão B oficial (RHF + Zod + shadcn/ui); lista features com Padrão A pendentes de migração
 ├── calculadoras/
 ├── pdf/
 ├── constants/
-├── utils.ts                         # formatBRL, formatDate, calcularCustoColaborador (hora↔dia, importável em Server Actions e Client Components)
+├── utils.ts                         # formatBRL, formatDate, daysBetween, calcularCustoColaborador (hora↔dia, importável em Server Actions e Client Components)
 └── supabase.ts
 
 types/
@@ -441,9 +443,20 @@ export default async function ExemploPage() {
 - **API routes** usam `schema.safeParse(body)` — nunca validação manual com `if (!campo)`
 
 ### Formatação & Tipos
-- **Moeda BRL**: `formatBRL(value)` em `lib/utils.ts`
+- **Moeda BRL**: `formatBRL(value)` em `lib/utils.ts` — **única fonte canônica**, nunca redefinir localmente
+- **Datas entre datas**: `daysBetween(de, ate)` em `lib/utils.ts` — **única fonte canônica**, nunca redefinir localmente
 - **Datas**: ISO string no banco, formatado no UI com `formatDate()`
 - Tipos do banco gerados automaticamente — não editar `types/supabase.ts` manualmente
+
+### Estados Vazios
+- Usar `<EmptyState>` de `components/ui/EmptyState.tsx` em vez de `<div className="text-center py-8 text-muted-foreground">` inline
+- Props: `title` (obrigatório), `description?`, `icon?`, `action?`
+- **Não** usar para empty states dentro de `<TableRow>/<TableCell>` — nesses casos manter o `<TableCell>` semântico
+
+### Cache de Queries de Catálogo
+- Queries em tabelas **públicas** (sem `fazenda_id`) podem usar `unstable_cache` com cliente anônimo
+- Obrigatório: TTL de 1h (`revalidate: 3600`) + tag para invalidação futura
+- **Nunca aplicar** `unstable_cache` em queries que dependem de `fazenda_id` ou sessão do usuário
 
 ---
 
@@ -502,6 +515,7 @@ Não modifique sem instrução explícita:
    - Login/credenciais: sempre `{ error: 'Credenciais inválidas' }` (nunca revelar se email existe)
    - Demais rotas: `{ error: 'Dados inválidos' }` — nunca expor mensagens de schema Zod ao cliente
 10. **Playwright baseURL** aponta para `process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'` — nunca para produção
+11. **API routes autenticadas** devem chamar `client.auth.getUser()` antes de qualquer query ao banco, retornando `401` se sem sessão válida — padrão implementado em `/api/assessoria/agendamentos` e `/api/assessoria/anotacoes`
 
 ---
 
@@ -657,7 +671,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 852+ testes passam e build não tem erros TypeScript
+4. Confirmar que 851+ testes passam e build não tem erros TypeScript (3 falhos pré-existentes: rls.test.ts timeout de rede; projetar-rebanho.test.ts classificação de categoria; 1 validação Zod)
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---

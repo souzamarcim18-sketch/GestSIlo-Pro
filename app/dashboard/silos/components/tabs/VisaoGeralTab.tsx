@@ -18,6 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { formatBRL } from '@/lib/utils';
 
 interface VisaoGeralTabProps {
   silo: Silo;
@@ -34,9 +35,6 @@ const CORES_DONUT = [
   '#6366F1', '#84CC16',
 ];
 
-function formatBRL(v: number) {
-  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 interface TooltipPayloadItem {
   name: string;
@@ -50,7 +48,7 @@ function DonutTooltip({ active, payload }: { active?: boolean; payload?: Tooltip
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-md text-sm">
       <p className="font-medium">{name}</p>
-      <p className="text-muted-foreground">R$ {formatBRL(value)}</p>
+      <p className="text-muted-foreground">{formatBRL(value)}</p>
       <p className="text-muted-foreground">{data.pct.toFixed(1)}%</p>
     </div>
   );
@@ -156,7 +154,7 @@ export function VisaoGeralTab({
               </p>
               {custo !== null ? (
                 <p className="font-semibold text-lg text-green-700">
-                  R$ {formatBRL(custo.custoPorTonelada)}/ton
+                  {formatBRL(custo.custoPorTonelada)}/ton
                 </p>
               ) : (
                 <p className="font-medium">-</p>
@@ -166,7 +164,7 @@ export function VisaoGeralTab({
               <p className="text-sm text-muted-foreground">Custo Total Estimado</p>
               {custo !== null ? (
                 <p className="font-semibold text-lg">
-                  R$ {formatBRL(custo.custoTotal)}
+                  {formatBRL(custo.custoTotal)}
                 </p>
               ) : (
                 <p className="font-medium">-</p>
@@ -203,7 +201,7 @@ export function VisaoGeralTab({
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <p className="text-xs text-muted-foreground">Total</p>
                   <p className="text-sm font-semibold leading-tight">
-                    R$ {formatBRL(custo!.custoTotal)}
+                    {formatBRL(custo!.custoTotal)}
                   </p>
                 </div>
               </div>
@@ -223,7 +221,7 @@ export function VisaoGeralTab({
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{fatia.label}</p>
                       <p className="text-xs text-muted-foreground">
-                        R$ {formatBRL(fatia.valor)}
+                        {formatBRL(fatia.valor)}
                         <span className="ml-1 text-muted-foreground/70">
                           ({fatia.pct.toFixed(1)}%)
                         </span>
@@ -296,7 +294,7 @@ export function VisaoGeralTab({
                 <p className="font-medium">{insumoLona.nome}</p>
                 {insumoLona.custo_medio > 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Custo médio: R$ {formatBRL(insumoLona.custo_medio)}/{insumoLona.unidade}
+                    Custo médio: {formatBRL(insumoLona.custo_medio)}/{insumoLona.unidade}
                   </p>
                 )}
               </>
@@ -311,7 +309,7 @@ export function VisaoGeralTab({
                 <p className="font-medium">{insumoInoculante.nome}</p>
                 {insumoInoculante.custo_medio > 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Custo médio: R$ {formatBRL(insumoInoculante.custo_medio)}/{insumoInoculante.unidade}
+                    Custo médio: {formatBRL(insumoInoculante.custo_medio)}/{insumoInoculante.unidade}
                   </p>
                 )}
               </>

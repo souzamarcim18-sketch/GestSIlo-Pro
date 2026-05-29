@@ -7,6 +7,7 @@ import { DashboardClient } from './DashboardClient';
 import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
 import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastagens } from './alertas-helpers';
 import { getAtividadesRecentes } from '@/lib/supabase/calendario';
+import { formatBRL } from '@/lib/utils';
 
 type InsumoAlertaRow = {
   id: string;
@@ -39,9 +40,6 @@ type VacinacaoAlertaRow = {
   animais: { brinco: string | null; nome: string | null } | null;
 };
 
-function formatBRL(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();

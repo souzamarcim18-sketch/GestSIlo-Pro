@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUpRight, ArrowDownRight, Trash2, History } from 'lucide-react';
 import type { Insumo, CategoriaInsumo } from '@/types/insumos';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface InsumosListProps {
   insumos: Array<Insumo & { categoria?: { id: string; nome: string }; tipo?: { id: string; nome: string } }>;
@@ -91,9 +92,7 @@ export default function InsumosList({
       <CardContent className="space-y-4">
         {/* Tabela */}
         {paginatedInsumos.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            {filtered.length === 0 ? 'Nenhum insumo encontrado.' : 'Nenhum item nesta página.'}
-          </div>
+          <EmptyState title={filtered.length === 0 ? 'Nenhum insumo encontrado.' : 'Nenhum item nesta página.'} />
         ) : (
           <>
             <div className="overflow-x-auto">

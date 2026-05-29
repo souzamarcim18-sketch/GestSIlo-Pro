@@ -1,6 +1,8 @@
 'use server';
 
 import { createSupabaseServerClient } from './server';
+import { createClient } from '@supabase/supabase-js';
+import { unstable_cache } from 'next/cache';
 import type { Database } from '@/types/supabase';
 
 type ProdutoRow = Database['public']['Tables']['produtos']['Row'];
@@ -17,17 +19,25 @@ const MOV_PRODUTO_COLS = 'id, produto_id, tipo, tipo_entrada, tipo_saida, quanti
 
 // ========== CATEGORIAS ==========
 
-export async function listCategoriasProduto(): Promise<CategoriaProdutoRow[]> {
-  const supabase = await createSupabaseServerClient();
+// Tabela pública (sem fazenda_id) — seguro cachear com cliente anônimo sem cookies
+export const listCategoriasProduto = unstable_cache(
+  async (): Promise<CategoriaProdutoRow[]> => {
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
 
-  const { data, error } = await supabase
-    .from('categorias_produto')
-    .select('id, nome, unidade_padrao, icone, created_at')
-    .order('nome');
+    const { data, error } = await supabase
+      .from('categorias_produto')
+      .select('id, nome, unidade_padrao, icone, created_at')
+      .order('nome');
 
-  if (error) throw error;
-  return data ?? [];
-}
+    if (error) throw error;
+    return data ?? [];
+  },
+  ['categorias-produto'],
+  { revalidate: 3600, tags: ['categorias-produto'] },
+);
 
 // ========== PRODUTOS ==========
 

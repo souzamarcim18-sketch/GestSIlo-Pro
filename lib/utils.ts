@@ -29,6 +29,12 @@ export function formatBRL(value: number): string {
  *   'horas'      | 'diaria'   | (duracaoValor / HORAS_POR_DIA) * valorRef
  *   'dias'       | 'hora'     | (duracaoValor * HORAS_POR_DIA) * valorRef
  */
+export function daysBetween(de: string, ate: string): number {
+  return Math.floor(
+    (new Date(ate).getTime() - new Date(de).getTime()) / (1000 * 60 * 60 * 24)
+  );
+}
+
 export function calcularCustoColaborador(
   duracaoTipo: 'horas' | 'dias',
   duracaoValor: number,

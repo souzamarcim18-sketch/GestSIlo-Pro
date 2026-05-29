@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useMovimentacoesPorInsumo } from '@/lib/hooks/useMovimentacoes';
 import type { Insumo } from '@/types/insumos';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface HistoricoInsumoDialogProps {
   insumo: Insumo | null;
@@ -47,9 +48,7 @@ export default function HistoricoInsumoDialog({ insumo, open, onOpenChange }: Hi
               ))}
             </div>
           ) : sorted.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Nenhuma movimentação registrada para este insumo.
-            </p>
+            <EmptyState title="Nenhuma movimentação registrada para este insumo." />
           ) : (
             <div className="space-y-1.5">
               {sorted.map((mov) => {

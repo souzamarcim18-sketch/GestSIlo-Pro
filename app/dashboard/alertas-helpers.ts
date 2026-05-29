@@ -1,4 +1,6 @@
 import type { AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
+import { daysBetween } from '@/lib/utils';
+export { daysBetween };
 
 type PiqueteAlertaRow = {
   id: string;
@@ -10,12 +12,6 @@ type PiqueteAlertaRow = {
   pastagens: { id: string; nome: string } | null;
   ocupacoes_piquete: { ua_real: number | null; data_entrada: string; data_saida_real: string | null }[];
 };
-
-export function daysBetween(de: string, ate: string): number {
-  return Math.floor(
-    (new Date(ate).getTime() - new Date(de).getTime()) / (1000 * 60 * 60 * 24)
-  );
-}
 
 export function formatarDataBR(iso: string): string {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
