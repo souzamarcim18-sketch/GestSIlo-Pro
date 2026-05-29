@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { hydrateEventosFromServer } from '@/lib/db/eventosRebanho';
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
-import { Plus, BarChart3, Milk, Scale, Stethoscope, ArrowRightLeft, Beef, Dna } from 'lucide-react';
+import { Plus, BarChart3, Milk, Scale, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -130,6 +130,10 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
         <div className="space-x-2">
           {isAdmin && (
             <>
+              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/eventos/lote/novo')}>
+                <ClipboardList className="mr-2 h-4 w-4" />
+                Lançamento em Lote
+              </Button>
               <Button onClick={() => router.push('/dashboard/rebanho/novo')}>
                 <Plus className="mr-2 h-4 w-4" />
                 Novo Animal

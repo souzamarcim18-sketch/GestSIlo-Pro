@@ -23,7 +23,17 @@ interface GestSiloDB extends DBSchema {
     value: {
       id: string;
       animal_id: string;
-      tipo_evento: 'cobertura' | 'diagnostico' | 'parto' | 'desmame' | 'secagem' | 'aborto' | 'descarte';
+      tipo_evento:
+        | 'cobertura'
+        | 'diagnostico'
+        | 'parto'
+        | 'desmame'
+        | 'secagem'
+        | 'aborto'
+        | 'descarte'
+        | 'aspiracao_opu'
+        | 'protocolo_hormonal'
+        | 'transferencia_embriao';
       data_evento: string;
       payload: Record<string, unknown>;
       _sync_status: 'pending' | 'synced' | 'error' | 'pendente_revisao';
@@ -40,7 +50,7 @@ interface GestSiloDB extends DBSchema {
 }
 
 const DB_NAME = 'gestsilo-offline-db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbPromise: Promise<IDBPDatabase<GestSiloDB>> | null = null;
 
@@ -75,6 +85,12 @@ export const getDb = () => {
           eventosStore.createIndex('by-data', 'data_evento');
           eventosStore.createIndex('by-tipo', 'tipo_evento');
           eventosStore.createIndex('by-sync-status', '_sync_status');
+        }
+
+        // V3: Novos tipos de evento (aspiracao_opu, protocolo_hormonal, transferencia_embriao)
+        // Nenhuma estrutura nova — os eventos dos novos tipos usam o store existente.
+        if (oldVersion < 3) {
+          // Bloco necessário para acionar a migration no browser dos usuários existentes.
         }
       },
     });

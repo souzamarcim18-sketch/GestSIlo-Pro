@@ -4,7 +4,17 @@ import { enqueueRpc } from './syncQueue';
 export interface EventoReprodutivoLocal {
   id: string;
   animal_id: string;
-  tipo_evento: 'cobertura' | 'diagnostico' | 'parto' | 'desmame' | 'secagem' | 'aborto' | 'descarte';
+  tipo_evento:
+    | 'cobertura'
+    | 'diagnostico'
+    | 'parto'
+    | 'desmame'
+    | 'secagem'
+    | 'aborto'
+    | 'descarte'
+    | 'aspiracao_opu'
+    | 'protocolo_hormonal'
+    | 'transferencia_embriao';
   data_evento: string;
   payload: Record<string, unknown>;
   _sync_status: 'pending' | 'synced' | 'error' | 'pendente_revisao';
@@ -15,7 +25,17 @@ export interface EventoReprodutivoLocal {
 // Salva um evento reprodutivo localmente com otimismo de UI
 // e enfileira para sincronização via RPC quando online
 export async function saveEventoLocal(
-  tipoEvento: 'cobertura' | 'diagnostico' | 'parto' | 'desmame' | 'secagem' | 'aborto' | 'descarte',
+  tipoEvento:
+    | 'cobertura'
+    | 'diagnostico'
+    | 'parto'
+    | 'desmame'
+    | 'secagem'
+    | 'aborto'
+    | 'descarte'
+    | 'aspiracao_opu'
+    | 'protocolo_hormonal'
+    | 'transferencia_embriao',
   animalId: string,
   dataEvento: string,
   payload: Record<string, unknown>,

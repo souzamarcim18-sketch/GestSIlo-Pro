@@ -45,6 +45,9 @@ const tipoEventoMap: Record<string, string> = {
   secagem: 'Secagem',
   aborto: 'Aborto',
   descarte: 'Descarte',
+  aspiracao_opu: 'Aspiração / OPU',
+  protocolo_hormonal: 'Protocolo Hormonal',
+  transferencia_embriao: 'Transferência de Embrião',
 };
 
 interface EventoLocalUi {
@@ -235,6 +238,9 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
               <SelectItem value="secagem">Secagem</SelectItem>
               <SelectItem value="aborto">Aborto</SelectItem>
               <SelectItem value="descarte">Descarte</SelectItem>
+              <SelectItem value="aspiracao_opu">Aspiração / OPU</SelectItem>
+              <SelectItem value="protocolo_hormonal">Protocolo Hormonal</SelectItem>
+              <SelectItem value="transferencia_embriao">Transferência de Embrião</SelectItem>
             </SelectContent>
           </Select>
         </div>
