@@ -170,7 +170,7 @@ export function gerarPdfIndicadoresRebanho(options: PdfExportOptions): void {
     },
   });
 
-  posY = (doc as any).lastAutoTable.finalY + 10;
+  posY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
 
   // ===== SEÇÃO COMPOSIÇÃO DO REBANHO =====
   if (indicadores.composicaoRebanho.valor && Object.keys(indicadores.composicaoRebanho.valor).length > 0) {
@@ -209,7 +209,7 @@ export function gerarPdfIndicadoresRebanho(options: PdfExportOptions): void {
         },
       });
 
-      posY = (doc as any).lastAutoTable.finalY + 10;
+      posY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
     }
   }
 
@@ -249,7 +249,7 @@ export function gerarPdfIndicadoresRebanho(options: PdfExportOptions): void {
         },
       });
 
-      posY = (doc as any).lastAutoTable.finalY + 10;
+      posY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
     }
   }
 
@@ -257,7 +257,7 @@ export function gerarPdfIndicadoresRebanho(options: PdfExportOptions): void {
   doc.setFont('Helvetica', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  const totalPaginas = (doc as any).internal.pages.length - 1;
+  const totalPaginas = (doc as unknown as { internal: { pages: unknown[] } }).internal.pages.length - 1;
   doc.text(
     `Gerado por GestSilo — Página 1 de ${totalPaginas} — Usuário: ${usuarioNome}`,
     margemEsquerda,

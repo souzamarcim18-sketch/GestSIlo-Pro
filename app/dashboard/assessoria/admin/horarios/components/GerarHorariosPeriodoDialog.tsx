@@ -122,9 +122,9 @@ export default function GerarHorariosPeriodoDialog({ isOpen, onClose, onAfterSub
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="data_inicio"
-                render={({ field }: any) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Data Inicial *</FormLabel>
                     <FormControl>
@@ -136,9 +136,9 @@ export default function GerarHorariosPeriodoDialog({ isOpen, onClose, onAfterSub
               />
 
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="data_fim"
-                render={({ field }: any) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Data Final *</FormLabel>
                     <FormControl>
@@ -152,9 +152,9 @@ export default function GerarHorariosPeriodoDialog({ isOpen, onClose, onAfterSub
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="hora_inicio"
-                render={({ field }: any) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Hora Inicial *</FormLabel>
                     <FormControl>
@@ -166,9 +166,9 @@ export default function GerarHorariosPeriodoDialog({ isOpen, onClose, onAfterSub
               />
 
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="hora_fim"
-                render={({ field }: any) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Hora Final *</FormLabel>
                     <FormControl>
@@ -181,12 +181,12 @@ export default function GerarHorariosPeriodoDialog({ isOpen, onClose, onAfterSub
             </div>
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="intervalo_minutos"
-              render={({ field }: any) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Intervalo entre slots *</FormLabel>
-                  <Select value={field.value.toString()} onValueChange={(v: string) => field.onChange(parseInt(v))}>
+                  <Select value={field.value.toString()} onValueChange={(v) => field.onChange(v ? parseInt(v) : 0)}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -206,9 +206,9 @@ export default function GerarHorariosPeriodoDialog({ isOpen, onClose, onAfterSub
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="dias_semana"
-              render={({ field }: any) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Dias da Semana *</FormLabel>
                   <div className="grid grid-cols-2 gap-3">

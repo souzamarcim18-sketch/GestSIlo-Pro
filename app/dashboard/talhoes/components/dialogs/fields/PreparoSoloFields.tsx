@@ -21,8 +21,8 @@ const TIPOS_OPERACAO_SOLO = [
 ];
 
 interface PreparoSoloFieldsProps {
-  control: any;
-  errors: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
 }
 
 export function PreparoSoloFields({ control, errors }: PreparoSoloFieldsProps) {

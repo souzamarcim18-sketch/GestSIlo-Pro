@@ -78,7 +78,9 @@ export async function listProducoesLeiteirasNoPeriodo(
 
   if (error) throw error;
 
-  return (data || []).map((row: any) => ({
+  type ProducaoRow = ProducaoLeiteira & { animais?: { brinco?: string; nome?: string | null; status_reprodutivo?: string | null; lote_id?: string | null } | null };
+  const rows = (data || []) as unknown as ProducaoRow[];
+  return rows.map((row) => ({
     id: row.id,
     fazenda_id: row.fazenda_id,
     animal_id: row.animal_id,
@@ -128,7 +130,8 @@ export async function totalProducaoLeiteiraPeriodo(
   > = {};
   let totalLitros = 0;
 
-  (data || []).forEach((row: any) => {
+  type RankingRow = { animal_id: string; volume_litros: number; animais?: { brinco?: string; nome?: string | null } | null };
+  ((data || []) as unknown as RankingRow[]).forEach((row) => {
     totalLitros += row.volume_litros;
     if (!porAnimal[row.animal_id]) {
       porAnimal[row.animal_id] = {

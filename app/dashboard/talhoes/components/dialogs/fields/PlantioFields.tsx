@@ -1,6 +1,6 @@
 'use client';
 
-import { Controller } from 'react-hook-form';
+import { Controller, FieldValues, Control } from 'react-hook-form';
 import {
   Select,
   SelectContent,
@@ -13,8 +13,8 @@ import { Label } from '@/components/ui/label';
 import type { Insumo } from '@/lib/supabase';
 
 interface PlantioFieldsProps {
-  control: any;
-  errors: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
   sementes?: Insumo[];
 }
 

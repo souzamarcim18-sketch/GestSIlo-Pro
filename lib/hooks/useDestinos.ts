@@ -14,7 +14,7 @@ export function useTalhoes() {
     queryFn: async () => {
       try {
         const talhoes = await q.talhoes.list();
-        return (talhoes || []).map((t: any) => ({
+        return (talhoes || []).map((t: { id: string; nome?: string }) => ({
           id: t.id,
           nome: t.nome || `Talhão ${t.id.substring(0, 8)}`,
         })) as Destino[];
@@ -33,7 +33,7 @@ export function useMaquinas() {
     queryFn: async () => {
       try {
         const maquinas = await q.maquinas.list();
-        return (maquinas || []).map((m: any) => ({
+        return (maquinas || []).map((m: { id: string; nome?: string }) => ({
           id: m.id,
           nome: m.nome || `Máquina ${m.id.substring(0, 8)}`,
         })) as Destino[];
@@ -52,7 +52,7 @@ export function useSilos() {
     queryFn: async () => {
       try {
         const silos = await q.silos.list();
-        return (silos || []).map((s: any) => ({
+        return (silos || []).map((s: { id: string; nome?: string }) => ({
           id: s.id,
           nome: s.nome || `Silo ${s.id.substring(0, 8)}`,
         })) as Destino[];

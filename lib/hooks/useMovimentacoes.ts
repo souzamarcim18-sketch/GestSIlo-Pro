@@ -4,7 +4,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { q } from '@/lib/supabase/queries-audit';
 import type { MovimentacaoComNome } from '@/types/insumos';
 
-export function useMovimentacoes(filters?: any) {
+export function useMovimentacoes(filters?: Record<string, unknown>) {
   return useQuery({
     queryKey: ['movimentacoes', filters],
     queryFn: () => q.movimentacoesInsumo.listByFazenda(),
@@ -54,14 +54,14 @@ export function useMovimentacoesMutation() {
 
   return {
     create: useMutation({
-      mutationFn: (data: any) => q.movimentacoesInsumo.create(data),
+      mutationFn: (data: Parameters<typeof q.movimentacoesInsumo.create>[0]) => q.movimentacoesInsumo.create(data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
         queryClient.invalidateQueries({ queryKey: ['insumos'] });
       },
     }),
     createAjuste: useMutation({
-      mutationFn: ({ insumo_id, estoque_real, motivo }: any) =>
+      mutationFn: ({ insumo_id, estoque_real, motivo }: { insumo_id: string; estoque_real: number; motivo: string }) =>
         q.movimentacoesInsumo.createAjuste(insumo_id, estoque_real, motivo),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });

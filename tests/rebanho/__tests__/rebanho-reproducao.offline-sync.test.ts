@@ -1,5 +1,8 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import type * as SyncQueueModule from '../../../lib/db/syncQueue';
+import type * as LocalDbModule from '../../../lib/db/localDb';
+import type * as EventosRbModule from '../../../lib/db/eventosRebanho';
 
 const ANIMAL_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const EVENTO_ID_1 = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
@@ -8,7 +11,7 @@ const EVENTO_ID_3 = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
 
 if (typeof globalThis !== 'undefined' && !globalThis.crypto?.randomUUID) {
   if (!globalThis.crypto) {
-    (globalThis as any).crypto = {};
+    (globalThis as unknown as { crypto: Partial<Crypto> }).crypto = {};
   }
   globalThis.crypto.randomUUID = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -20,20 +23,21 @@ if (typeof globalThis !== 'undefined' && !globalThis.crypto?.randomUUID) {
 }
 
 describe('Rebanho Reprodução — Offline Sync', () => {
-  let mockSupabase: any;
-  let enqueue: any;
-  let enqueueRpc: any;
-  let syncAll: any;
-  let getDb: any;
-  let saveEventoLocal: any;
-  let getEventosByAnimal: any;
-  let getEventosByTipo: any;
-  let getEventosPendentes: any;
-  let getAllEventosLocais: any;
-  let hydrateEventosFromServer: any;
-  let markAsSynced: any;
-  let markAsError: any;
-  let deleteEventoLocal: any;
+  type MockSupabase = { from: ReturnType<typeof vi.fn>; rpc?: ReturnType<typeof vi.fn> };
+  let mockSupabase: MockSupabase;
+  let enqueue: typeof SyncQueueModule.enqueue;
+  let enqueueRpc: typeof SyncQueueModule.enqueueRpc;
+  let syncAll: typeof SyncQueueModule.syncAll;
+  let getDb: typeof LocalDbModule.getDb;
+  let saveEventoLocal: typeof EventosRbModule.saveEventoLocal;
+  let getEventosByAnimal: typeof EventosRbModule.getEventosByAnimal;
+  let getEventosByTipo: typeof EventosRbModule.getEventosByTipo;
+  let getEventosPendentes: typeof EventosRbModule.getEventosPendentes;
+  let getAllEventosLocais: typeof EventosRbModule.getAllEventosLocais;
+  let hydrateEventosFromServer: typeof EventosRbModule.hydrateEventosFromServer;
+  let markAsSynced: typeof EventosRbModule.markAsSynced;
+  let markAsError: typeof EventosRbModule.markAsError;
+  let deleteEventoLocal: typeof EventosRbModule.deleteEventoLocal;
 
   beforeEach(async () => {
     // Importar dinamicamente se ainda não estiver feito
@@ -227,7 +231,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         delete: vi.fn().mockResolvedValue({ data: null, error: null }),
       });
 
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.sincronizados).toBe(3);
       expect(result.conflitos).toBe(0);
@@ -235,7 +239,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
     });
 
     it('syncAll() com fila vazia → retorna {sincronizados:0, conflitos:0}', async () => {
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.sincronizados).toBe(0);
       expect(result.conflitos).toBe(0);
@@ -272,7 +276,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         }),
       });
 
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.sincronizados).toBe(3);
       expect(await db.count('sync_queue')).toBe(0);
@@ -286,7 +290,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         error: null,
       });
 
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.sincronizados).toBe(1);
 
@@ -327,7 +331,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         }),
       });
 
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.conflitos).toBe(1);
       expect(result.sincronizados).toBe(0);
@@ -369,7 +373,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         }),
       });
 
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.conflitos).toBe(1);
 
@@ -409,7 +413,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         }),
       });
 
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.sincronizados).toBe(1);
       expect(result.conflitos).toBe(0);
@@ -823,7 +827,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         }),
       });
 
-      const result = await syncAll(mockSupabase);
+      const result = await syncAll(mockSupabase as unknown as Parameters<typeof syncAll>[0]);
 
       expect(result.sincronizados).toBe(3);
       expect(result.conflitos).toBe(0);

@@ -236,7 +236,7 @@ export function SiloForm({
                 origem: 'silo',
                 data: new Date().toISOString().split('T')[0],
                 observacoes: `Lona para silo: ${data.nome}`,
-              } as any);
+              });
             }
 
             if (data.insumo_inoculante_id) {
@@ -259,7 +259,7 @@ export function SiloForm({
                 origem: 'silo',
                 data: new Date().toISOString().split('T')[0],
                 observacoes: `Inoculante para silo: ${data.nome} (${data.volume_ensilado_ton_mv} ton MV)`,
-              } as any);
+              });
             }
           } catch (insumoError) {
             toast.error(

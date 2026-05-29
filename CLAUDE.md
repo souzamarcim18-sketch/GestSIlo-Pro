@@ -20,7 +20,13 @@
 - **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 852+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 2 falhos pré-existentes documentados)
+- **Testes**: Vitest — 851+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 3 falhos pré-existentes documentados)
+
+### Configuração de Tooling (auditoria 2026-05-29)
+- **TypeScript target**: `ES2020` em `tsconfig.json` — habilita `Promise.allSettled`, `BigInt`, `globalThis` nativos sem polyfill
+- **ESLint**: regra `@typescript-eslint/no-explicit-any: "error"` ativa em `eslint.config.mjs` — zero ocorrências de `any` no codebase
+- **Dependências**: `shadcn` movido para `devDependencies` (sem import runtime); `@types/jspdf` removido (jsPDF 2.x expõe seus próprios tipos); `@testing-library/react` e `@testing-library/jest-dom` removidos (sem uso nos testes)
+- **CSP `unsafe-eval`**: remoção condicional (prod vs dev) pendente de aprovação — aguardar instrução explícita antes de alterar `next.config.ts`
 
 ---
 
@@ -424,6 +430,7 @@ export default async function ExemploPage() {
 - Custom hooks devem retornar `{ data, isLoading, error }` quando async
 - **Nunca usar** `payload: any` — tipagem correta com `Omit<Tipo, 'id' | 'fazenda_id'>`
 - **Nunca suprimir** `eslint-disable react-hooks/exhaustive-deps` — corrigir as dependências com `useCallback`/`useMemo`
+- **async/await em useEffect**: nunca usar `.then().catch()` — extrair função `async` nomeada dentro do `useEffect` e chamá-la; preservar flag `cancelled` para cleanup quando necessário. Para cargas paralelas dentro de `useEffect`, usar IIFEs `async () => { ... }()` dentro do `Promise.all` de tasks.
 - **Recharts**: importar componentes de gráfico via `next/dynamic` com `ssr: false` nos Client Components que os consomem (não nos próprios arquivos de gráfico). Ver `DashboardClient.tsx` e `IndicadoresClient.tsx` como referência.
 - **`contentStyle` de tooltips Recharts**: sempre extrair para constante de módulo fora do componente (ex: `const TOOLTIP_STYLE = { ... } as const`) — nunca objeto inline no JSX. Usar CSS vars (`var(--background)`, `var(--border)`) em vez de hex hardcoded.
 
@@ -487,6 +494,13 @@ export default async function ExemploPage() {
 - ✅ `app/globals.css` — fonte de verdade aplicada (Tailwind overrides)
 - Usar CSS custom props (`var(--text-muted)`) ou classes Tailwind (`text-muted-foreground`)
 - ❌ NUNCA hardcode cores inline (`text-[#...]`, `bg-[#...]`)
+
+**Componentes corrigidos em 2026-05-29 (T-4.6 / T-4.7)**:
+- `Header.tsx`, `Sidebar.tsx`: todas as cores hex substituídas por `text-foreground`, `text-muted-foreground`, `text-primary`, `text-destructive`, variáveis CSS `var(--green-dim)`, `var(--red-dim)`, `var(--gold-dim)`, `var(--sidebar)`, `var(--border)`
+- `components/ui/button.tsx`: variants outline/ghost usam `border-border`, `bg-surface`, `hover:bg-white/5`
+- `components/ui/input.tsx`, `components/ui/select.tsx`: `text-foreground`, `placeholder:text-muted-foreground`, `focus:ring-ring/15`, `var(--input)`, `var(--border)`; popup do select usa `var(--sidebar)` como background
+- `components/Breadcrumbs.tsx`: `text-muted-foreground`, `text-foreground`
+- `app/dashboard/rebanho/RebanhoClient.tsx`, `[id]/page.tsx`, `movimentacoes/MovimentacoesClient.tsx`: dark mode corrigido com classes Tailwind semânticas + breakpoints de grid ajustados para mobile
 
 ### Referência de Design
 - **PRD Completo**: `PRD-design.md`
@@ -653,7 +667,7 @@ npm run db:types     # Gerar tipos TypeScript do Supabase (requer SUPABASE_PROJE
 - ❌ Delete dados em produção sem confirmação explícita
 - ❌ Use `select('*')` em queries Supabase
 - ❌ Ignore avisos de TypeScript ou ESLint
-- ❌ Use `payload: any` — tipar corretamente
+- ❌ Use `any` em TypeScript — regra `@typescript-eslint/no-explicit-any: "error"` está ativa; usar `unknown`, tipos concretos, `as unknown as T` ou `Record<string, unknown>`
 - ❌ Suprima `eslint-disable react-hooks/exhaustive-deps` — corrigir as dependências
 - ❌ Envie `fazenda_id: ''` manualmente em payloads de INSERT
 - ❌ Remova o bloco `headers()` do `next.config.ts` (segurança HTTP)
@@ -673,7 +687,7 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 852+ testes passam (2 falhos pré-existentes: rls.test.ts timeout de rede; projetar-rebanho.test.ts classificação de categoria). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
+4. Confirmar que 851+ testes passam (3 falhos pré-existentes: `rls.test.ts` timeout de rede; `projetar-rebanho.test.ts` classificação de categoria; um terceiro falho pré-existente inalterado). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -1070,7 +1084,7 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 - `app/dashboard/rebanho/corte/actions.ts` — pesagem em lote
 - `app/dashboard/rebanho/indicadores/actions.ts` — Server Actions KPIs e alertas
 
-**Testes**: 2 falhos pré-existentes sem relação com o código: `__tests__/security/rls.test.ts` (timeout de rede — tenta conectar ao Supabase real) e `lib/supabase/__tests__/projetar-rebanho.test.ts` (falha de lógica pré-existente em classificação de categoria)
+**Testes**: 3 falhos pré-existentes sem relação com o código: `__tests__/security/rls.test.ts` (timeout de rede — tenta conectar ao Supabase real), `lib/supabase/__tests__/projetar-rebanho.test.ts` (falha de lógica pré-existente em classificação de categoria), e um terceiro falho pré-existente inalterado
 
 ### 📋 Assessoria Agronômica (100% implementado — 2026-05-20)
 
@@ -1150,7 +1164,7 @@ Fluxo obrigatório para novas features:
 1. Pesquisa → gera PRD-[feature].md
 2. Especificação → lê PRD, gera SPEC-[feature].md  
 3. Execução → lê SPEC, implementa em camadas (banco → backend → UI)
-4. Validação → npm run build + npm run test (mínimo 852 testes passando; warnings React Compiler sobre form.watch() são pré-existentes)
+4. Validação → npm run build + npm run test (mínimo 851 testes passando; warnings React Compiler sobre form.watch() são pré-existentes)
 
 Nunca escrever código na fase de pesquisa ou especificação.
 Nunca entrar em modo plan na fase de execução.

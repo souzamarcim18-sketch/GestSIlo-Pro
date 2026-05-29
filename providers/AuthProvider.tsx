@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let retries = 0;
     const MAX_RETRIES = 2;
 
-    const attemptFetch = async (): Promise<any> => {
+    const attemptFetch = async (): Promise<{ data: Profile | null; error: null } | never> => {
       if (abortController.signal.aborted) {
         throw new DOMException('Fetch cancelled', 'AbortError');
       }
@@ -86,11 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // ✅ Colunas específicas em vez de '*'
         const queryPromise = supabase
           .from('profiles')
-          .select('id, fazenda_id, nome, perfil, created_at')
+          .select('id, fazenda_id, nome, perfil, email, created_at')
           .eq('id', currentUser.id)
           .single();
 
-        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
         if (error) {
           console.error('[FETCH-PROFILE] Query error details:', {

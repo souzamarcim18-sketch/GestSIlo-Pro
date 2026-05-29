@@ -31,7 +31,7 @@ export async function criarProducaoLeiteiraAction(
     return { success: true, producao_id: producao.id };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const mensagem = error.issues.map((e: any) => e.message).join('; ');
+      const mensagem = error.issues.map((e) => e.message).join('; ');
       return { success: false, error: mensagem };
     }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -65,7 +65,7 @@ export async function editarProducaoLeiteiraAction(
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const mensagem = error.issues.map((e: any) => e.message).join('; ');
+      const mensagem = error.issues.map((e) => e.message).join('; ');
       return { success: false, error: mensagem };
     }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';

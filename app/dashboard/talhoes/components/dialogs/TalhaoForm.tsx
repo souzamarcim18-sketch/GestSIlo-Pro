@@ -84,7 +84,7 @@ export function TalhaoForm({
           tipo_solo: data.tipo_solo || null,
           observacoes: data.observacoes || null,
           status: 'Em pousio',
-        } as any);
+        } as Parameters<typeof q.talhoes.create>[0]);
         toast.success('Talhão cadastrado com sucesso!');
       } else if (talhao) {
         await q.talhoes.update(talhao.id, {
@@ -92,7 +92,7 @@ export function TalhaoForm({
           area_ha: data.area_ha,
           tipo_solo: data.tipo_solo,
           observacoes: data.observacoes,
-        } as any);
+        });
         toast.success('Talhão atualizado com sucesso!');
       }
       onOpenChange(false);
@@ -150,7 +150,7 @@ export function TalhaoForm({
 
             <div className="space-y-2">
               <Label htmlFor="tipo_solo">Tipo de Solo</Label>
-              <Select value={tipoSolo || ''} onValueChange={(v) => setValue('tipo_solo', v as any)}>
+              <Select value={tipoSolo || ''} onValueChange={(v) => setValue('tipo_solo', v || undefined)}>
                 <SelectTrigger id="tipo_solo">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>

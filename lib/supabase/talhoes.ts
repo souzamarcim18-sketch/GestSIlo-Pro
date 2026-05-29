@@ -341,7 +341,7 @@ export async function generateEventosDAP(
       .single();
 
     if (cicloError) throw cicloError;
-    const talhaoId = (cicloData as any).talhao_id;
+    const talhaoId = (cicloData as { talhao_id: string }).talhao_id;
 
     const { error } = await supabase.from('eventos_dap').insert(
       eventos.map((evt) => ({
@@ -394,20 +394,20 @@ export async function getProximasOperacoes(fazendaId: string): Promise<ProximaOp
       .lte('data_esperada', fimStr)
       .order('data_esperada', { ascending: true });
 
-    // Filtrar por fazenda_id no lado do cliente (RLS já garante isolamento)
-    const filtradosPorFazenda = (data || []).filter(
-      (evt: any) => evt.talhoes?.fazenda_id === fazendaId
-    );
-
     if (error) throw error;
 
-    return filtradosPorFazenda.map((evento: any) => ({
+    type TalhaoEventoRow = { id: string; data_esperada: string; data_realizada: string | null; tipo_operacao: string; status: string; cultura?: string | null; talhoes?: { id?: string; nome?: string; fazenda_id?: string } | null };
+    const filtradosPorFazenda = ((data || []) as unknown as TalhaoEventoRow[]).filter(
+      (evt) => evt.talhoes?.fazenda_id === fazendaId
+    );
+
+    return filtradosPorFazenda.map((evento) => ({
       id: evento.id,
       data_esperada: evento.data_esperada,
       data_realizada: evento.data_realizada,
       tipo_operacao: evento.tipo_operacao,
-      status: evento.status,
-      cultura: evento.cultura,
+      status: evento.status as ProximaOperacao['status'],
+      cultura: evento.cultura ?? '',
       talhao_nome: evento.talhoes?.nome || 'N/A',
     }));
   } catch (error) {
@@ -438,7 +438,7 @@ export async function generateEventosRebrota(
       .single();
 
     if (cicloError) throw cicloError;
-    const talhaoId = (cicloData as any).talhao_id;
+    const talhaoId = (cicloData as { talhao_id: string }).talhao_id;
 
     // Inserir eventos na tabela
     const { error } = await supabase.from('eventos_dap').insert(

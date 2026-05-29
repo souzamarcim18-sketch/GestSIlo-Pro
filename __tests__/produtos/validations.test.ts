@@ -54,7 +54,7 @@ describe('entradaFormSchema', () => {
   };
 
   it('T04 — rejeita tipo_entrada fora do enum', () => {
-    const r = entradaFormSchema.safeParse({ ...valid, tipo_entrada: 'INVALIDO' as any });
+    const r = entradaFormSchema.safeParse({ ...valid, tipo_entrada: 'INVALIDO' });
     expect(r.success).toBe(false);
     if (!r.success) expect(r.error.flatten().fieldErrors.tipo_entrada).toBeDefined();
   });

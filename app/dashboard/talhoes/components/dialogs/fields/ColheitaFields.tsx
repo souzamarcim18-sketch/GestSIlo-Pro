@@ -21,9 +21,9 @@ const MAQUINAS_EXEMPLO = [
 ];
 
 interface ColheitaFieldsProps {
-  control: any;
-  errors: any;
-  watch?: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
+  watch?: (name: string) => unknown;
   culturaAtiva?: string;
 }
 

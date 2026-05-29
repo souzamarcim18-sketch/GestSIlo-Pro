@@ -612,7 +612,7 @@ export const queryIndicadoresReprodutivos = {
       descartada: 0,
     };
 
-    (data || []).forEach((animal: any) => {
+    (data || []).forEach((animal: { status_reprodutivo?: string }) => {
       const status = animal.status_reprodutivo as keyof typeof contagem;
       if (status in contagem) {
         contagem[status]++;
@@ -636,8 +636,8 @@ export const queryIndicadoresReprodutivos = {
 
     if (!data || data.length === 0) return 0;
 
-    const prenhas = data.filter((a: any) => a.status_reprodutivo === 'prenha').length;
-    const aptos = data.filter((a: any) => a.status_reprodutivo !== 'descartada').length;
+    const prenhas = data.filter((a: { status_reprodutivo?: string }) => a.status_reprodutivo === 'prenha').length;
+    const aptos = data.filter((a: { status_reprodutivo?: string }) => a.status_reprodutivo !== 'descartada').length;
 
     if (aptos === 0) return 0;
     return Math.round((prenhas / aptos) * 100);
@@ -660,9 +660,10 @@ export const queryIndicadoresReprodutivos = {
     if (!eventos || eventos.length === 0) return null;
 
     const psms: number[] = [];
-    const eventoPorAnimal: Record<string, any[]> = {};
+    type EventoRow = { animal_id: string; tipo: string; data_evento: string; resultado_prenhez?: string; tipo_cobertura?: string };
+    const eventoPorAnimal: Record<string, EventoRow[]> = {};
 
-    (eventos || []).forEach((e: any) => {
+    (eventos || []).forEach((e: EventoRow) => {
       if (!eventoPorAnimal[e.animal_id]) {
         eventoPorAnimal[e.animal_id] = [];
       }
@@ -702,9 +703,10 @@ export const queryIndicadoresReprodutivos = {
     if (error) throw error;
     if (!partos || partos.length < 2) return null;
 
-    const partosPorAnimal: Record<string, any[]> = {};
+    type PartoRow = { animal_id: string; data_evento: string };
+    const partosPorAnimal: Record<string, PartoRow[]> = {};
 
-    (partos || []).forEach((p: any) => {
+    (partos || []).forEach((p: PartoRow) => {
       if (!partosPorAnimal[p.animal_id]) {
         partosPorAnimal[p.animal_id] = [];
       }
@@ -745,8 +747,9 @@ export const queryIndicadoresReprodutivos = {
     if (error) throw error;
     if (!eventos || eventos.length === 0) return null;
 
-    const eventoPorAnimal: Record<string, any[]> = {};
-    (eventos || []).forEach((e: any) => {
+    type EventoCoberturaRow = { animal_id: string; tipo: string; data_evento: string; resultado_prenhez?: string; tipo_cobertura?: string };
+    const eventoPorAnimal: Record<string, EventoCoberturaRow[]> = {};
+    (eventos || []).forEach((e: EventoCoberturaRow) => {
       if (!eventoPorAnimal[e.animal_id]) {
         eventoPorAnimal[e.animal_id] = [];
       }
@@ -800,7 +803,7 @@ export const queryIndicadoresReprodutivos = {
     const diasEmAberto: number[] = [];
     const hoje = new Date();
 
-    vacas.forEach((v: any) => {
+    vacas.forEach((v: { data_ultimo_parto?: string | null }) => {
       if (v.data_ultimo_parto) {
         const dias = Math.floor(
           (hoje.getTime() - new Date(v.data_ultimo_parto).getTime()) /
@@ -831,13 +834,13 @@ export const queryIndicadoresReprodutivos = {
 
     if (errFemeas) throw errFemeas;
 
-    const femeAsAptas = (femeas || []).filter((f: any) =>
-      ['vazia', 'lactacao', 'seca'].includes(f.status_reprodutivo)
+    const femeAsAptas = (femeas || []).filter((f: { id: string; status_reprodutivo?: string }) =>
+      ['vazia', 'lactacao', 'seca'].includes(f.status_reprodutivo ?? '')
     );
 
     if (femeAsAptas.length === 0) return null;
 
-    const femeasIds = femeAsAptas.map((f: any) => f.id);
+    const femeasIds = femeAsAptas.map((f: { id: string }) => f.id);
 
     const { data: coberturas, error: errCoberturas } = await supabase
       .from('eventos_rebanho')
@@ -870,8 +873,9 @@ export const queryIndicadoresReprodutivos = {
     if (!partos || partos.length === 0) return null;
 
     // Para cada animal, pegar PRIMEIRO parto
-    const primeirPartosPorAnimal: Record<string, any> = {};
-    (partos || []).forEach((p: any) => {
+    type PrimeiroParto = { animal_id: string; data_evento: string };
+    const primeirPartosPorAnimal: Record<string, PrimeiroParto> = {};
+    (partos || []).forEach((p: PrimeiroParto) => {
       if (!primeirPartosPorAnimal[p.animal_id]) {
         primeirPartosPorAnimal[p.animal_id] = p;
       }
@@ -888,7 +892,7 @@ export const queryIndicadoresReprodutivos = {
     if (errAnimais) throw errAnimais;
 
     const idades: number[] = [];
-    (animais || []).forEach((a: any) => {
+    (animais || []).forEach((a: { id: string; data_nascimento?: string | null }) => {
       const parto = primeirPartosPorAnimal[a.id];
       if (a.data_nascimento && parto) {
         const meses = Math.floor(

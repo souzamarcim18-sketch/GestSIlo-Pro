@@ -15,7 +15,7 @@ export async function savePlanejamentoAction(
   }
 ): Promise<{ success: boolean; data?: PlanejamentoSilagem; error?: string }> {
   try {
-    const result = await qServer.planejamentosSilagem.create(payload as any);
+    const result = await qServer.planejamentosSilagem.create(payload);
     revalidatePath('/dashboard/planejamento-silagem/historico');
     return {
       success: true,

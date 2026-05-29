@@ -77,7 +77,7 @@ export function CicloForm({
         data_plantio: data.data_plantio,
         data_colheita_prevista: data.data_colheita_prevista,
         ativo: true,
-      } as any);
+      } as Parameters<typeof q.ciclosAgricolas.create>[0]);
       toast.success('Ciclo agrícola criado com sucesso!');
       onOpenChange(false);
       reset();
@@ -103,7 +103,7 @@ export function CicloForm({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="cultura">Cultura</Label>
-            <Select value={cultura || ''} onValueChange={(v) => setValue('cultura', v as any)}>
+            <Select value={cultura || ''} onValueChange={(v) => setValue('cultura', v as string)}>
               <SelectTrigger id="cultura">
                 <SelectValue placeholder="Selecione a cultura" />
               </SelectTrigger>

@@ -30,9 +30,9 @@ const CAMPOS_ANALISE = [
 ];
 
 interface AnaliseSoloFieldsProps {
-  control: any;
-  errors: any;
-  watch?: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
+  watch?: (name: string) => unknown;
 }
 
 export function AnaliseSoloFields({

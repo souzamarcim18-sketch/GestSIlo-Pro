@@ -196,7 +196,7 @@ export function MaquinaDialog({ open, onOpenChange, maquina, onSuccess }: Maquin
         await q.maquinas.update(maquina.id, payload);
         toast.success('Máquina atualizada com sucesso!');
       } else {
-        await q.maquinas.create(payload as any);
+        await q.maquinas.create(payload);
         toast.success('Máquina cadastrada com sucesso!');
       }
 

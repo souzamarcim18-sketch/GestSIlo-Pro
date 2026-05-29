@@ -91,11 +91,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -114,11 +114,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '90d',
@@ -137,11 +137,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '365d',
@@ -160,11 +160,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: 'safra',
@@ -219,11 +219,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -245,11 +245,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -274,11 +274,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -300,11 +300,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '90d',
@@ -324,11 +324,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'CORTE' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -348,11 +348,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'LEITE' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -405,11 +405,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -429,11 +429,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '90d',
@@ -454,11 +454,11 @@ describe('getIndicadoresAction', () => {
             single: vi.fn().mockResolvedValue({ data: { tipo_exploracao: 'MISTO' }, error: null }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -484,7 +484,7 @@ describe('getIndicadoresAction', () => {
             }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -503,7 +503,7 @@ describe('getIndicadoresAction', () => {
             }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -522,11 +522,11 @@ describe('getIndicadoresAction', () => {
             }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -569,11 +569,11 @@ describe('getIndicadoresAction', () => {
             }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',
@@ -603,11 +603,11 @@ describe('getIndicadoresAction', () => {
             }),
           }),
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-      (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-      (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-      (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+      vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+      vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
       const filtros: FiltrosIndicadoresValidados = {
         periodo: '30d',

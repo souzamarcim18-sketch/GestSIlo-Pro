@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface IrrigacaoFieldsProps {
-  control: any;
-  errors: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
 }
 
 export function IrrigacaoFields({ control, errors }: IrrigacaoFieldsProps) {

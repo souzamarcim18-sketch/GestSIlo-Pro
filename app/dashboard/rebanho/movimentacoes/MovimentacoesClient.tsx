@@ -154,12 +154,12 @@ export function MovimentacoesClient({
 
   const getBadgeColor = (tipo: TipoMovimentacao) => {
     switch (tipo) {
-      case 'nascimento': return 'bg-green-100 text-green-800';
-      case 'venda': return 'bg-emerald-100 text-emerald-800';
-      case 'morte': return 'bg-red-100 text-red-800';
-      case 'descarte': return 'bg-orange-100 text-orange-800';
-      case 'transferencia_lote': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'nascimento': return 'border-green-600 text-green-600';
+      case 'venda': return 'border-emerald-600 text-emerald-600';
+      case 'morte': return 'border-red-600 text-red-600';
+      case 'descarte': return 'border-orange-600 text-orange-600';
+      case 'transferencia_lote': return 'border-muted-foreground text-muted-foreground';
+      default: return 'border-muted-foreground text-muted-foreground';
     }
   };
 
@@ -323,7 +323,7 @@ export function MovimentacoesClient({
                       <TableRow key={m.id}>
                         <TableCell>{formatDate(m.data_evento)}</TableCell>
                         <TableCell>
-                          <Badge className={getBadgeColor(m.tipo as TipoMovimentacao)}>
+                          <Badge variant="outline" className={getBadgeColor(m.tipo as TipoMovimentacao)}>
                             {getTipoLabel(m.tipo as TipoMovimentacao)}
                           </Badge>
                         </TableCell>

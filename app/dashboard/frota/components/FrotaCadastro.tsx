@@ -36,7 +36,7 @@ function calcularDepreciacao(maquina: Maquina) {
   };
 }
 
-const STATUS_BADGE: Record<string, string> = {
+const STATUS_BADGE: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
   'Ativo': 'default',
   'Em manutenção': 'secondary',
   'Parado': 'outline',
@@ -154,7 +154,7 @@ export function FrotaCadastro({ maquinas, usos, loading, onRefresh, profile }: F
                         {[maquina.marca, maquina.modelo, maquina.ano].filter(Boolean).join(' ')}
                       </span>
                       {maquina.status && (
-                        <Badge variant={(STATUS_BADGE[maquina.status] as any) ?? 'outline'}>
+                        <Badge variant={STATUS_BADGE[maquina.status] ?? 'outline'}>
                           {maquina.status}
                         </Badge>
                       )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, type FieldValues, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
@@ -78,7 +78,7 @@ export function AtividadeDialog({
   const methods = useForm<AtividadeInput>({
     resolver: zodResolver(AtividadeCampoSchema),
     defaultValues: {
-      tipo_operacao: '' as any,
+      tipo_operacao: '' as TipoOperacao,
       data: new Date().toISOString().split('T')[0],
       observacoes: '',
     },
@@ -331,38 +331,38 @@ export function AtividadeDialog({
             {/* Sub-componentes Dinâmicos */}
             {tipoOperacao === 'Preparo de Solo' && (
               <div className="border-t pt-4">
-                <PreparoSoloFields control={control} errors={errors} />
+                <PreparoSoloFields control={control as unknown as Control<FieldValues>} errors={errors} />
               </div>
             )}
 
             {tipoOperacao === 'Calagem' && (
               <div className="border-t pt-4">
-                <CalagemFields control={control} errors={errors} />
+                <CalagemFields control={control as unknown as Control<FieldValues>} errors={errors} />
               </div>
             )}
 
             {tipoOperacao === 'Gessagem' && (
               <div className="border-t pt-4">
-                <GessagemFields control={control} errors={errors} />
+                <GessagemFields control={control as unknown as Control<FieldValues>} errors={errors} />
               </div>
             )}
 
             {tipoOperacao === 'Plantio' && (
               <div className="border-t pt-4">
-                <PlantioFields control={control} errors={errors} sementes={sementes} />
+                <PlantioFields control={control as unknown as Control<FieldValues>} errors={errors} sementes={sementes} />
               </div>
             )}
 
             {tipoOperacao === 'Pulverização' && (
               <div className="border-t pt-4">
-                <PulverizacaoFields control={control} errors={errors} watch={watch} />
+                <PulverizacaoFields control={control as unknown as Control<FieldValues>} errors={errors} watch={watch} />
               </div>
             )}
 
             {tipoOperacao === 'Colheita' && (
               <div className="border-t pt-4">
                 <ColheitaFields
-                  control={control}
+                  control={control as unknown as Control<FieldValues>}
                   errors={errors}
                   watch={watch}
                   culturaAtiva={cicloAtivo?.cultura}
@@ -372,13 +372,13 @@ export function AtividadeDialog({
 
             {tipoOperacao === 'Análise de Solo' && (
               <div className="border-t pt-4">
-                <AnaliseSoloFields control={control} errors={errors} watch={watch} />
+                <AnaliseSoloFields control={control as unknown as Control<FieldValues>} errors={errors} watch={watch} />
               </div>
             )}
 
             {tipoOperacao === 'Irrigação' && (
               <div className="border-t pt-4">
-                <IrrigacaoFields control={control} errors={errors} />
+                <IrrigacaoFields control={control as unknown as Control<FieldValues>} errors={errors} />
               </div>
             )}
 

@@ -1,7 +1,7 @@
 // Sensitive data filtering utilities for Sentry
 // Exported functions are used via next.config.ts
 
-export function filterSensitiveData(obj: Record<string, any>): void {
+export function filterSensitiveData(obj: Record<string, unknown>): void {
   const sensitivePatterns = [
     /password/i,
     /token/i,
@@ -50,14 +50,14 @@ export function filterSensitiveData(obj: Record<string, any>): void {
       } else if (typeof value === 'string') {
         obj[key] = sanitizeString(value);
       } else if (typeof value === 'object' && value !== null) {
-        filterSensitiveData(value);
+        filterSensitiveData(value as Record<string, unknown>);
       }
     }
   }
 
-  if (obj.url) {
-    if (sensitiveEndpoints.some((pattern) => pattern.test(obj.url))) {
-      obj.url = obj.url.replace(/[?&]([^=&]+)=[^&]*/g, '[$1]=***');
+  if (typeof obj.url === 'string') {
+    if (sensitiveEndpoints.some((pattern) => pattern.test(obj.url as string))) {
+      obj.url = (obj.url as string).replace(/[?&]([^=&]+)=[^&]*/g, '[$1]=***');
     }
   }
 }

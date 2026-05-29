@@ -102,9 +102,9 @@ export default function CriarHorarioDialog({ isOpen, onClose, onAfterSubmit }: P
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="data"
-              render={({ field }: any) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Data *</FormLabel>
                   <FormControl>
@@ -116,9 +116,9 @@ export default function CriarHorarioDialog({ isOpen, onClose, onAfterSubmit }: P
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="hora"
-              render={({ field }: any) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Hora *</FormLabel>
                   <FormControl>
@@ -130,12 +130,12 @@ export default function CriarHorarioDialog({ isOpen, onClose, onAfterSubmit }: P
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="duracao_minutos"
-              render={({ field }: any) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Duração (minutos) *</FormLabel>
-                  <Select value={field.value.toString()} onValueChange={(v: string) => field.onChange(parseInt(v))}>
+                  <Select value={field.value.toString()} onValueChange={(v) => field.onChange(v ? parseInt(v) : 0)}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />

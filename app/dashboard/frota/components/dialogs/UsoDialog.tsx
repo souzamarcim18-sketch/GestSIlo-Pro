@@ -152,7 +152,7 @@ export function UsoDialog({ open, onOpenChange, maquinas, talhoes, onSuccess }: 
         talhao_id: data.talhao_id || null,
         area_ha: data.area_ha ?? null,
         origem: 'manual',
-      } as any);
+      });
 
       toast.success('Uso registrado com sucesso!');
       reset();

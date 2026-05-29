@@ -33,7 +33,7 @@ function makeEvento(overrides: Partial<EventoRebanho> = {}): EventoRebanho {
     id: 'evento-1',
     fazenda_id: 'fazenda-1',
     animal_id: 'animal-1',
-    tipo: 'nascimento' as any,
+    tipo: 'nascimento' as EventoRebanho['tipo'],
     data_evento: '2024-01-15',
     peso_kg: null,
     lote_id_destino: null,
@@ -68,7 +68,7 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
     fazenda_id: 'fazenda-1',
     brinco: '001',
     sexo: 'Fêmea',
-    tipo_rebanho: 'leiteiro' as any,
+    tipo_rebanho: 'leiteiro' as Animal['tipo_rebanho'],
     data_nascimento: '2020-01-01',
     categoria: 'Vaca em Lactação',
     status: 'Ativo',
@@ -81,13 +81,13 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
     deleted_at: null,
     created_at: '2020-01-01T00:00:00Z',
     updated_at: '2024-01-15T00:00:00Z',
-    status_reprodutivo: 'lactacao' as any,
+    status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
     is_reprodutor: false,
     ...overrides,
   };
 }
 
-function createMockQueryBuilder(data: any[], error: any = null) {
+function createMockQueryBuilder(data: unknown[], error: unknown = null) {
   return {
     select: function (cols?: string) {
       return this;
@@ -95,25 +95,25 @@ function createMockQueryBuilder(data: any[], error: any = null) {
     from: function (table?: string) {
       return this;
     },
-    eq: function (field?: string, value?: any) {
+    eq: function (field?: string, value?: unknown) {
       return this;
     },
-    is: function (field?: string, value?: any) {
+    is: function (field?: string, value?: unknown) {
       return this;
     },
-    gte: function (field?: string, value?: any) {
+    gte: function (field?: string, value?: unknown) {
       return this;
     },
-    lte: function (field?: string, value?: any) {
+    lte: function (field?: string, value?: unknown) {
       return this;
     },
-    in: function (field?: string, values?: any[]) {
+    in: function (field?: string, values?: unknown[]) {
       return this;
     },
-    order: function (field?: string, opts?: any) {
+    order: function (field?: string, opts?: unknown) {
       return this;
     },
-    then: function (onFulfill?: (value: any) => any) {
+    then: function (onFulfill?: (value: unknown) => unknown) {
       const result = { data, error };
       return onFulfill ? Promise.resolve(result).then(onFulfill) : Promise.resolve(result);
     },
@@ -131,19 +131,19 @@ describe('buscarEventosNoPeriodo', () => {
     const evento1 = makeEvento({
       id: 'evt-1',
       data_evento: '2024-01-15',
-      tipo: 'nascimento' as any,
+      tipo: 'nascimento' as EventoRebanho['tipo'],
     });
     const evento2 = makeEvento({
       id: 'evt-2',
       data_evento: '2024-02-01',
-      tipo: 'morte' as any,
+      tipo: 'morte' as EventoRebanho['tipo'],
     });
 
     const mockClient = {
       from: vi.fn(() => createMockQueryBuilder([evento1, evento2])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -165,7 +165,7 @@ describe('buscarEventosNoPeriodo', () => {
       from: vi.fn(() => createMockQueryBuilder([])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -189,7 +189,7 @@ describe('buscarEventosNoPeriodo', () => {
       from: vi.fn(() => createMockQueryBuilder([evento])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -224,7 +224,7 @@ describe('buscarEventosNoPeriodo', () => {
       from: vi.fn(() => createMockQueryBuilder([evento1, evento2, evento3])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -246,7 +246,7 @@ describe('buscarEventosNoPeriodo', () => {
       from: vi.fn(() => createMockQueryBuilder([], erro)),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -281,7 +281,7 @@ describe('buscarPesosNoPeriodo', () => {
       from: vi.fn(() => createMockQueryBuilder([peso1, peso2])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -303,7 +303,7 @@ describe('buscarPesosNoPeriodo', () => {
       from: vi.fn(() => createMockQueryBuilder([])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -334,7 +334,7 @@ describe('buscarPesosNoPeriodo', () => {
       from: vi.fn(() => createMockQueryBuilder([peso1, peso2])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -371,7 +371,7 @@ describe('buscarAnimaisFiltrados', () => {
       from: vi.fn(() => createMockQueryBuilder([animal1, animal2])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -397,7 +397,7 @@ describe('buscarAnimaisFiltrados', () => {
       from: vi.fn(() => createMockQueryBuilder([animal])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -417,14 +417,14 @@ describe('buscarAnimaisFiltrados', () => {
   it('filtra animais por tipo_rebanho', async () => {
     const animal = makeAnimal({
       id: 'animal-1',
-      tipo_rebanho: 'leiteiro' as any,
+      tipo_rebanho: 'leiteiro' as Animal['tipo_rebanho'],
     });
 
     const mockClient = {
       from: vi.fn(() => createMockQueryBuilder([animal])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -446,7 +446,7 @@ describe('buscarAnimaisFiltrados', () => {
       from: vi.fn(() => createMockQueryBuilder([])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',
@@ -471,7 +471,7 @@ describe('buscarAnimaisFiltrados', () => {
       from: vi.fn(() => createMockQueryBuilder([animalAtivo])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const filtro = {
       fazenda_id: 'fazenda-1',

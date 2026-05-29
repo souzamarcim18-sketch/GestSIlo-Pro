@@ -8,8 +8,8 @@ export const anotacaoFormSchema = z.object({
   conteudo: z.string()
     .min(10, 'Mínimo 10 caracteres')
     .max(5000),
-  categoria: z.enum(['duvida', 'observacao_campo', 'sugestao', 'outro']).default('outro'),
-  prioridade: z.enum(['baixa', 'normal', 'alta', 'urgente']).default('normal'),
+  categoria: z.enum(['duvida', 'observacao_campo', 'sugestao', 'outro']),
+  prioridade: z.enum(['baixa', 'normal', 'alta', 'urgente']),
 });
 
 export type AnotacaoFormInput = z.infer<typeof anotacaoFormSchema>;

@@ -102,7 +102,7 @@ export default function SolicitarConsultaDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="nome"
               render={({ field }) => (
                 <FormItem>
@@ -115,7 +115,7 @@ export default function SolicitarConsultaDialog({
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="fazenda"
               render={({ field }) => (
                 <FormItem>
@@ -128,7 +128,7 @@ export default function SolicitarConsultaDialog({
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="localizacao"
               render={({ field }) => (
                 <FormItem>
@@ -141,7 +141,7 @@ export default function SolicitarConsultaDialog({
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="telefone"
               render={({ field }) => (
                 <FormItem>
@@ -154,7 +154,7 @@ export default function SolicitarConsultaDialog({
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -168,7 +168,7 @@ export default function SolicitarConsultaDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="sugestao_dia"
                 render={({ field }) => (
                   <FormItem>
@@ -181,7 +181,7 @@ export default function SolicitarConsultaDialog({
               />
 
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="sugestao_horario"
                 render={({ field }) => (
                   <FormItem>

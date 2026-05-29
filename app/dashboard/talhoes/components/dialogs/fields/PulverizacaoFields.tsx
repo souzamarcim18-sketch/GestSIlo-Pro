@@ -44,9 +44,9 @@ const UNIDADES_POR_CATEGORIA: Record<string, string[]> = {
 };
 
 interface PulverizacaoFieldsProps {
-  control: any;
-  errors: any;
-  watch?: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
+  watch?: (name: string) => unknown;
 }
 
 export function PulverizacaoFields({
@@ -54,7 +54,7 @@ export function PulverizacaoFields({
   errors,
   watch,
 }: PulverizacaoFieldsProps) {
-  const categoria = watch?.('categoria_pulverizacao');
+  const categoria = watch?.('categoria_pulverizacao') as string | undefined;
   const produtosDisponiveis = categoria
     ? PRODUTOS_POR_CATEGORIA[categoria] || []
     : [];

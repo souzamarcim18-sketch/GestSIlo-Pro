@@ -50,7 +50,7 @@ describe('Rebanho Reprodução — Queries & Lógica de Negócio', () => {
     });
 
     it('0 vacas → taxa 0%', () => {
-      const animais: any[] = [];
+      const animais: { status_reprodutivo: string }[] = [];
 
       const prenhas = animais.filter(a => a.status_reprodutivo === 'prenha').length;
       const aptos = animais.filter(a => a.status_reprodutivo !== 'descartada').length;
@@ -107,7 +107,7 @@ describe('Rebanho Reprodução — Queries & Lógica de Negócio', () => {
     });
 
     it('PSM nulo quando não há cobertura/diagnóstico', () => {
-      const eventos: any[] = [];
+      const eventos: { tipo: string }[] = [];
 
       const psms: number[] = [];
       for (let i = 0; i < eventos.length - 1; i++) {
@@ -202,7 +202,7 @@ describe('Rebanho Reprodução — Queries & Lógica de Negócio', () => {
       };
 
       // Simulando trigger: após inserir evento parto, criar lactação
-      const lactacoes: any[] = [];
+      const lactacoes: { id: string; animal_id: string; fazenda_id: string; data_inicio_parto: string }[] = [];
 
       if (evento_parto.tipo === 'parto') {
         lactacoes.push({
@@ -228,7 +228,7 @@ describe('Rebanho Reprodução — Queries & Lógica de Negócio', () => {
       };
 
       // Simulando trigger: após parto gemelar, criar 2 animais
-      const bezerros_criados: any[] = [];
+      const bezerros_criados: { id: string; mae_id: string; data_nascimento: string; origem: string }[] = [];
 
       if (evento_parto.tipo === 'parto' && evento_parto.gemelar) {
         for (let i = 0; i < 2; i++) {

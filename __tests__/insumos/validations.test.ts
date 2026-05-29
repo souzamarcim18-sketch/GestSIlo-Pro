@@ -186,7 +186,7 @@ describe('saidaFormSchema', () => {
   it('rejeita tipo_saida inválido', () => {
     const resultado = saidaFormSchema.safeParse({
       ...validSaida,
-      tipo_saida: 'TIPO_INVALIDO' as any,
+      tipo_saida: 'TIPO_INVALIDO',
     });
     expect(resultado.success).toBe(false);
   });
@@ -283,7 +283,7 @@ describe('saidaFormSchema', () => {
     tipos.forEach((tipo) => {
       const resultado = saidaFormSchema.safeParse({
         ...validSaida,
-        tipo_saida: tipo as any,
+        tipo_saida: tipo,
         destino_tipo: tipo === 'USO_INTERNO' ? 'talhao' : undefined,
         destino_id: tipo === 'USO_INTERNO' ? '550e8400-e29b-41d4-a716-446655440002' : undefined,
       });
@@ -359,7 +359,7 @@ describe('ajusteInventarioSchema', () => {
   it('rejeita estoque_real não numérico', () => {
     const resultado = ajusteInventarioSchema.safeParse({
       ...validAjuste,
-      estoque_real: 'não é número' as any,
+      estoque_real: 'não é número',
     });
     expect(resultado.success).toBe(false);
   });

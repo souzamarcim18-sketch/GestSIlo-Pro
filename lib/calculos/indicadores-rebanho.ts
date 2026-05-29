@@ -37,39 +37,39 @@ export const CATEGORIAS_VACAS = [
 // ========== HELPERS DE CATEGORIA ==========
 
 export function isBezerro(categoria: string): boolean {
-  return CATEGORIAS_BEZERROS.includes(categoria as any);
+  return CATEGORIAS_BEZERROS.includes(categoria as never);
 }
 
 export function isNovilha(categoria: string): boolean {
-  return CATEGORIAS_NOVILHAS.includes(categoria as any);
+  return CATEGORIAS_NOVILHAS.includes(categoria as never);
 }
 
 export function isNovilho(categoria: string): boolean {
-  return CATEGORIAS_NOVILHOS.includes(categoria as any);
+  return CATEGORIAS_NOVILHOS.includes(categoria as never);
 }
 
 export function isVaca(categoria: string): boolean {
-  return CATEGORIAS_VACAS.includes(categoria as any);
+  return CATEGORIAS_VACAS.includes(categoria as never);
 }
 
 export function isTouro(categoria: string): boolean {
-  return CATEGORIAS_TOURO.includes(categoria as any);
+  return CATEGORIAS_TOURO.includes(categoria as never);
 }
 
 export function isBoi(categoria: string): boolean {
-  return CATEGORIAS_BOI.includes(categoria as any);
+  return CATEGORIAS_BOI.includes(categoria as never);
 }
 
 export function isDescarte(categoria: string): boolean {
-  return CATEGORIAS_DESCARTE.includes(categoria as any);
+  return CATEGORIAS_DESCARTE.includes(categoria as never);
 }
 
 export function isVacaProdutiva(categoria: string): boolean {
-  return CATEGORIAS_VACAS_LEITEIRAS.includes(categoria as any);
+  return CATEGORIAS_VACAS_LEITEIRAS.includes(categoria as never);
 }
 
 export function isVacaMatriz(categoria: string): boolean {
-  return CATEGORIAS_VACAS_CORTE.includes(categoria as any);
+  return CATEGORIAS_VACAS_CORTE.includes(categoria as never);
 }
 
 // ========== COMPOSIÇÃO REBANHO (SNAPSHOT — NÃO DEPENDE DE PERÍODO) ==========

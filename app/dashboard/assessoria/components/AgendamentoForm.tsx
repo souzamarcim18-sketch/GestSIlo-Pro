@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, type FieldValues } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import {
@@ -49,7 +49,7 @@ export default function AgendamentoForm({
   consultorId,
   onAfterSubmit,
 }: AgendamentoFormProps) {
-  const form = useForm({
+  const form = useForm<CriarAgendamentoInput>({
     resolver: zodResolver(criarAgendamentoSchema),
     defaultValues: {
       horario_disponivel_id: horarioSelecionado?.id || '',
@@ -60,7 +60,7 @@ export default function AgendamentoForm({
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CriarAgendamentoInput) => {
     try {
       const result = await criarAgendamentoAction(data);
       if (result.success) {
@@ -94,7 +94,7 @@ export default function AgendamentoForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="tipo"
               render={({ field }) => (
                 <FormItem>
@@ -117,7 +117,7 @@ export default function AgendamentoForm({
 
             {form.watch('tipo') === 'reuniao_video' && (
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="link_reuniao"
                 render={({ field }) => (
                   <FormItem>
@@ -135,7 +135,7 @@ export default function AgendamentoForm({
             )}
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="observacoes"
               render={({ field }) => (
                 <FormItem>

@@ -794,7 +794,7 @@ describe('Projeção de Rebanho — Fase 3', () => {
 
     it('fallback mantém compatibilidade backward quando rebanho_snapshot está ausente', async () => {
       // Simula lógica de fallback em componente de carregamento
-      const loadPlanejamentoDone = (planejamento: any) => {
+      const loadPlanejamentoDone = (planejamento: { id: string; rebanho_snapshot?: unknown }) => {
         if (!planejamento.rebanho_snapshot) {
           // Fallback: usar dados legados do planejamento
           return {

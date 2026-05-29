@@ -34,7 +34,7 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
     fazenda_id: 'fazenda-1',
     brinco: '001',
     sexo: 'Fêmea',
-    tipo_rebanho: 'leiteiro' as any,
+    tipo_rebanho: 'leiteiro' as Animal['tipo_rebanho'],
     data_nascimento: '2024-01-01',
     categoria: 'Vaca em Lactação',
     status: 'Ativo',
@@ -47,7 +47,7 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
     deleted_at: null,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
-    status_reprodutivo: 'lactacao' as any,
+    status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
     is_reprodutor: false,
     ...overrides,
   };
@@ -56,16 +56,16 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
 // ── Mock Builder ──────────────────────────────────────────────────────────────
 
 function createMockQueryBuilder(
-  dataFn: ((tipo?: string) => any) | any,
-  error: any = null,
+  dataFn: ((tipo?: string) => unknown) | unknown,
+  error: unknown = null,
   status: number = 200
 ) {
   let requestedTipo: string | undefined;
 
   return {
     select: function () { return this; },
-    eq: function (field?: string, value?: any) {
-      if (field === 'tipo') requestedTipo = value;
+    eq: function (field?: string, value?: unknown) {
+      if (field === 'tipo') requestedTipo = value as string;
       return this;
     },
     is: function () { return this; },
@@ -73,12 +73,12 @@ function createMockQueryBuilder(
     lte: function () { return this; },
     limit: function () { return this; },
     order: function () { return this; },
-    then: function (onFulfill?: (value: any) => any) {
+    then: function (onFulfill?: (value: unknown) => unknown) {
       const data = typeof dataFn === 'function' ? dataFn(requestedTipo) : dataFn;
       const result = { data, error, status };
       return onFulfill ? Promise.resolve(result).then(onFulfill) : Promise.resolve(result);
     },
-    catch: function (onReject?: (error: any) => any) {
+    catch: function (onReject?: (error: unknown) => unknown) {
       const data = typeof dataFn === 'function' ? dataFn(requestedTipo) : dataFn;
       const result = { data, error, status };
       return onReject ? Promise.resolve(result).catch(onReject) : Promise.resolve(result);
@@ -111,7 +111,7 @@ describe('projetarRebanho()', () => {
       id: 'vaca-1',
       sexo: 'Fêmea',
       data_nascimento: '2020-01-01',
-      status_reprodutivo: 'lactacao' as any,
+      status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
       is_reprodutor: false,
     });
 
@@ -125,7 +125,7 @@ describe('projetarRebanho()', () => {
       }),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await projetarRebanho(hoje);
 
@@ -143,7 +143,7 @@ describe('projetarRebanho()', () => {
       from: vi.fn(() => createMockQueryBuilder(() => [])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await projetarRebanho(amanha);
 
@@ -160,7 +160,7 @@ describe('projetarRebanho()', () => {
       makeAnimal({
         id: `vaca-${i}`,
         brinco: `00${i}`,
-        status_reprodutivo: 'lactacao' as any,
+        status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
       })
     );
 
@@ -176,7 +176,7 @@ describe('projetarRebanho()', () => {
       }),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await projetarRebanho(dataAlvo);
 
@@ -191,7 +191,7 @@ describe('projetarRebanho()', () => {
 
     const vaca = makeAnimal({
       id: 'vaca-1',
-      status_reprodutivo: 'lactacao' as any,
+      status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
     });
 
     let eventoQueryCount = 0;
@@ -206,7 +206,7 @@ describe('projetarRebanho()', () => {
       }),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await projetarRebanho(dataAlvo);
 
@@ -245,7 +245,7 @@ describe('projetarRebanho()', () => {
       }),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await projetarRebanho(dataAlvo);
 
@@ -270,14 +270,14 @@ describe('projetarRebanho()', () => {
       sexo: 'Fêmea',
       data_nascimento: nascimentoISO,
       categoria: 'Bezerra',
-      status_reprodutivo: null as any,
+      status_reprodutivo: null,
     });
 
     const mockClient = {
       from: vi.fn(() => createMockQueryBuilder(() => [bezerra])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await projetarRebanho(dataAlvo);
 
@@ -296,7 +296,7 @@ describe('projetarRebanho()', () => {
       from: vi.fn(() => createMockQueryBuilder(() => [vaca])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await projetarRebanho(dataAlvo);
     const snapshot = resultado.toSnapshot();
@@ -320,7 +320,7 @@ describe('detectarRebanho()', () => {
       from: vi.fn(() => createMockQueryBuilder(() => [])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await detectarRebanho();
 
@@ -335,7 +335,7 @@ describe('detectarRebanho()', () => {
       from: vi.fn(() => createMockQueryBuilder(null, new Error('RLS'), 403)),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await detectarRebanho();
 
@@ -352,7 +352,7 @@ describe('detectarRebanho()', () => {
       from: vi.fn(() => createMockQueryBuilder(() => [animal])),
     };
 
-    (createSupabaseServerClient as any).mockResolvedValue(mockClient);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createSupabaseServerClient>>);
 
     const resultado = await detectarRebanho();
 

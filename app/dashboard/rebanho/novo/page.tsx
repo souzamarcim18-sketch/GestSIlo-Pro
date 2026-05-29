@@ -55,7 +55,7 @@ export default function NovoAnimalPage() {
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    const dados: Record<string, any> = Object.fromEntries(formData);
+    const dados: Record<string, unknown> = Object.fromEntries(formData);
 
     if (dados.peso_nascimento) {
       const peso = String(dados.peso_nascimento).replace(',', '.');

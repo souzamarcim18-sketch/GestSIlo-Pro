@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { toast } from 'sonner';
 import { calcularCalagem, type CalagemInput, type MetodoCalagemType } from '@/lib/calculadoras';
 import { calagemInputSchema } from '@/lib/validations/calculadoras';
+import { z } from 'zod';
 import { tabelaCaDesejadoUFLA } from '@/lib/calculadoras/smp-tabela';
 import { ResultCard } from './ResultCard';
 import { ExportPDFDialog } from '../dialogs';
@@ -23,7 +24,7 @@ import { AlertCircle, AlertTriangle, ChevronDown, Download, HelpCircle, Lightbul
 
 interface CalagemCalculatorProps {
   initialMethod?: MetodoCalagemType;
-  onResultChange?: (result: any) => void;
+  onResultChange?: (result: unknown) => void;
 }
 
 export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalculatorProps) {
@@ -88,10 +89,10 @@ export function CalagemCalculator({ initialMethod = 'saturacao' }: CalagemCalcul
       } else {
         toast.success('Cálculo realizado com sucesso');
       }
-    } catch (error: any) {
+    } catch (error) {
       const errosObj: Record<string, string> = {};
-      if (error.errors) {
-        error.errors.forEach((err: any) => {
+      if (error instanceof z.ZodError) {
+        error.issues.forEach((err) => {
           const path = err.path.join('.');
           errosObj[path] = err.message;
         });

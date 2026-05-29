@@ -138,9 +138,9 @@ export default function AjusteInventario({
             {insumoAtual && (
               <p className="text-xs text-muted-foreground mt-1">
                 Diferença:{' '}
-                <span className={parseFloat(form.watch('estoque_real') as any) - insumoAtual.estoque_atual < 0 ? 'text-red-600' : 'text-green-600'}>
-                  {parseFloat(form.watch('estoque_real') as any) - insumoAtual.estoque_atual > 0 ? '+' : ''}
-                  {(parseFloat(form.watch('estoque_real') as any) - insumoAtual.estoque_atual).toFixed(2)}
+                <span className={Number(form.watch('estoque_real')) - insumoAtual.estoque_atual < 0 ? 'text-red-600' : 'text-green-600'}>
+                  {Number(form.watch('estoque_real')) - insumoAtual.estoque_atual > 0 ? '+' : ''}
+                  {(Number(form.watch('estoque_real')) - insumoAtual.estoque_atual).toFixed(2)}
                 </span>
               </p>
             )}

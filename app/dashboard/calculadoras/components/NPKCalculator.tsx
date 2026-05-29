@@ -23,7 +23,10 @@ import {
   getAllFertilizantes,
   type NPKInput,
   type Fertilizante,
+  type FertilizanteComDose,
+  type FertilizanteCombinacao,
 } from '@/lib/calculadoras';
+import { z } from 'zod';
 import { npkInputSchema } from '@/lib/validations/calculadoras';
 import { ResultCard } from './ResultCard';
 import { FertilizantesManager } from './FertilizantesManager';
@@ -44,7 +47,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
     fertilizantes_selecionados: [],
   });
 
-  const [resultado, setResultado] = useState<any>(null);
+  const [resultado, setResultado] = useState<ReturnType<typeof otimizarNPK>>(null);
   const [erros, setErros] = useState<Record<string, string>>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedFerts, setSelectedFerts] = useState<string[]>([]);
@@ -101,10 +104,10 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
         setResultado(res);
         toast.success(`${res.top5.length} opção(ões) encontrada(s)`);
       }
-    } catch (error: any) {
+    } catch (error) {
       const errosObj: Record<string, string> = {};
-      if (error.errors) {
-        error.errors.forEach((err: any) => {
+      if (error instanceof z.ZodError) {
+        error.issues.forEach((err) => {
           const path = err.path.join('.');
           errosObj[path] = err.message;
         });
@@ -260,9 +263,9 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
             subtitleUnit="R$"
             color="primary"
             details={[
-              { label: 'Fertilizante(s)', value: resultado.melhorOpcao.fertilizantes.map((f: any) => f.fertilizante.nome).join(' + ') },
-              { label: 'Sacos/ha', value: resultado.melhorOpcao.fertilizantes.reduce((acc: number, f: any) => acc + f.sacos_por_ha, 0) },
-              { label: 'Total Sacos', value: resultado.melhorOpcao.fertilizantes.reduce((acc: number, f: any) => acc + f.total_sacos, 0) },
+              { label: 'Fertilizante(s)', value: resultado.melhorOpcao.fertilizantes.map((f: FertilizanteComDose) => f.fertilizante.nome).join(' + ') },
+              { label: 'Sacos/ha', value: resultado.melhorOpcao.fertilizantes.reduce((acc: number, f: FertilizanteComDose) => acc + f.sacos_por_ha, 0) },
+              { label: 'Total Sacos', value: resultado.melhorOpcao.fertilizantes.reduce((acc: number, f: FertilizanteComDose) => acc + f.total_sacos, 0) },
             ]}
           />
 
@@ -272,7 +275,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
               <CardTitle className="text-sm">Composição da Recomendação</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {resultado.melhorOpcao.fertilizantes.map((item: any, idx: number) => (
+              {resultado.melhorOpcao.fertilizantes.map((item: FertilizanteComDose, idx: number) => (
                 <div key={idx} className="rounded-lg border p-4 space-y-2">
                   <div className="flex items-start justify-between">
                     <h4 className="font-semibold">{item.fertilizante.nome}</h4>
@@ -378,17 +381,17 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {resultado.top5.map((opcao: any, idx: number) => (
+                      {resultado.top5.map((opcao: FertilizanteCombinacao, idx: number) => (
                         <TableRow key={idx} className={idx === 0 ? 'bg-primary/5' : ''}>
                           <TableCell className="font-bold">{idx + 1}</TableCell>
                           <TableCell className="font-medium text-sm">
-                            {opcao.fertilizantes.map((f: any) => f.fertilizante.nome).join(' + ')}
+                            {opcao.fertilizantes.map((f: FertilizanteComDose) => f.fertilizante.nome).join(' + ')}
                           </TableCell>
                           <TableCell className="text-right text-sm">
-                            {opcao.fertilizantes.map((f: any) => f.dose_kg_ha.toFixed(0)).join(' + ')}
+                            {opcao.fertilizantes.map((f: FertilizanteComDose) => f.dose_kg_ha.toFixed(0)).join(' + ')}
                           </TableCell>
                           <TableCell className="text-right text-sm">
-                            {opcao.fertilizantes.reduce((acc: number, f: any) => acc + f.sacos_por_ha, 0)}
+                            {opcao.fertilizantes.reduce((acc: number, f: FertilizanteComDose) => acc + f.sacos_por_ha, 0)}
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             R$ {opcao.custoTotal_r_ha.toFixed(2)}
@@ -414,7 +417,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
 
                 {/* CARDS PARA MOBILE */}
                 <div className="md:hidden space-y-3">
-                  {resultado.top5.map((opcao: any, idx: number) => (
+                  {resultado.top5.map((opcao: FertilizanteCombinacao, idx: number) => (
                     <div key={idx} className={`rounded-lg border p-4 space-y-2 ${idx === 0 ? 'border-primary bg-primary/5' : ''}`}>
                       <div className="flex items-start justify-between mb-3">
                         <span className="text-lg font-bold text-primary">#{idx + 1}</span>
@@ -425,16 +428,16 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
                       <div className="space-y-2 text-sm">
                         <div>
                           <p className="text-xs text-muted-foreground font-semibold">Fertilizante(s)</p>
-                          <p className="font-medium">{opcao.fertilizantes.map((f: any) => f.fertilizante.nome).join(' + ')}</p>
+                          <p className="font-medium">{opcao.fertilizantes.map((f: FertilizanteComDose) => f.fertilizante.nome).join(' + ')}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <p className="text-sm text-muted-foreground">Dose</p>
-                            <p className="font-semibold">{opcao.fertilizantes.map((f: any) => f.dose_kg_ha.toFixed(0)).join(' + ')} kg/ha</p>
+                            <p className="font-semibold">{opcao.fertilizantes.map((f: FertilizanteComDose) => f.dose_kg_ha.toFixed(0)).join(' + ')} kg/ha</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Sacos/ha</p>
-                            <p className="font-semibold">{opcao.fertilizantes.reduce((acc: number, f: any) => acc + f.sacos_por_ha, 0)}</p>
+                            <p className="font-semibold">{opcao.fertilizantes.reduce((acc: number, f: FertilizanteComDose) => acc + f.sacos_por_ha, 0)}</p>
                           </div>
                         </div>
                         <div className="flex gap-1 pt-2">
@@ -473,7 +476,7 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
             open={openExportDialog}
             onOpenChange={setOpenExportDialog}
             calculadora="npk"
-            dadosNPK={resultado ? { input: formData, resultado } : undefined}
+            dadosNPK={resultado ? { input: formData, resultado: resultado as unknown as import('@/lib/calculadoras').NPKResult } : undefined}
           />
         </div>
       )}

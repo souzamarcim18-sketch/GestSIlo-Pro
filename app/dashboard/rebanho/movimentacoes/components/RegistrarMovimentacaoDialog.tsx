@@ -228,7 +228,7 @@ export default function RegistrarMovimentacaoDialog({
           {/* Tipo */}
           <div>
             <Label htmlFor="tipo">Tipo de Movimentação *</Label>
-            <Select value={tipo} onValueChange={(v: any) => setTipo(v)}>
+            <Select value={tipo} onValueChange={(v) => setTipo(v as TipoMovimentacao)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um tipo" />
               </SelectTrigger>

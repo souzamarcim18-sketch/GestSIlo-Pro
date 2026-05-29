@@ -111,7 +111,7 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
       const periodo = { dataInicio: '2026-03-01', dataFim: '2026-05-01' };
 
       const resultado = calcularTaxaNatalidade(
-        nascimentos as any, // filtra por tipo === 'nascimento', tem field tipo
+        nascimentos,
         vacasAptas,
         periodo
       );
@@ -131,7 +131,7 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
       );
 
       const resultado = calcularTaxaMortalidade(
-        eventosPeriodo as any,
+        eventosPeriodo,
         10, // rebanho início
         10, // rebanho fim
         periodo
@@ -150,7 +150,7 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
         (e) => e.data_evento >= periodo.dataInicio && e.data_evento <= periodo.dataFim
       );
 
-      const resultado = calcularTaxaMortalidadeBezerros(eventosPeriodo as any, periodo);
+      const resultado = calcularTaxaMortalidadeBezerros(eventosPeriodo, periodo);
 
       // Valida estrutura ResultadoTaxa
       expect(resultado).toHaveProperty('numerador');
@@ -168,7 +168,7 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
       );
 
       const resultado = calcularTaxaDesfrute(
-        eventosPeriodo as any,
+        eventosPeriodo,
         10,
         10,
         periodo
@@ -200,7 +200,7 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
       const relacaoMaeFilho = new Map<string, string[]>();
       // Sem múltiplos filhos por mãe no fixture
 
-      const resultado = calcularIntervaloEntrePartos(datasParto as any, relacaoMaeFilho);
+      const resultado = calcularIntervaloEntrePartos(datasParto, relacaoMaeFilho);
       expect(resultado).toBeNull();
     });
   });
@@ -218,8 +218,8 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
       relacaoMaeFilho.set('a3', ['filho3']);
 
       const resultado = calcularIdadePrimeiroParto(
-        vacas as any,
-        datasParto as any,
+        vacas,
+        datasParto,
         relacaoMaeFilho
       );
 

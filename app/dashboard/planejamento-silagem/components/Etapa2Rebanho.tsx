@@ -18,14 +18,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CATEGORIAS_LEITE, CATEGORIAS_CORTE } from '@/lib/constants/planejamento-silagem';
-import { WizardState } from '@/lib/types/planejamento-silagem';
+import { WizardState, type RebanhoSnapshot } from '@/lib/types/planejamento-silagem';
 import { detectarRebanhoAction, projetarRebanhoAction } from '../actions';
 import { mapearCategoriasProjetadas } from '@/lib/services/planejamento-silagem';
 import type { RebanhoProjetado } from '@/lib/types/rebanho';
 
 interface Etapa2RebanhoProps {
   wizard: WizardState;
-  onNext: (rebanho: Record<string, number>, dataAlvo: Date, snapshot?: any) => void;
+  onNext: (rebanho: Record<string, number>, dataAlvo: Date, snapshot?: RebanhoSnapshot) => void;
   onBack: () => void;
   errors: Record<string, string>;
 }
@@ -188,6 +188,8 @@ export function Etapa2Rebanho({
     let snapshot = undefined;
     if (rebanhoDetectado && dadosProjetados && estadoInicial) {
       snapshot = {
+        modo: 'PROJETADO' as const,
+        usuario_editou: false,
         composicao: Object.entries(estadoInicial).map(([categoria_id, quantidade]) => ({
           categoria_id,
           quantidade,
@@ -195,6 +197,7 @@ export function Etapa2Rebanho({
         total_cabecas: Object.values(estadoInicial).reduce((a, b) => a + b, 0),
         partos_inclusos: dadosProjetados.fatores_aplicados.partos_confirmados,
         data_calculo: dadosProjetados.data_calculo.toISOString(),
+        data_projecao: dataAlvo,
       };
     }
 

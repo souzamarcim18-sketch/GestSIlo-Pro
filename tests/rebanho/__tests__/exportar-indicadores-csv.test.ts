@@ -98,11 +98,11 @@ describe('exportarIndicadoresCSVAction', () => {
           }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-    (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-    (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-    (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+    vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+    vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+    vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
     const filtros: FiltrosIndicadoresValidados = {
       periodo: '30d',
@@ -122,7 +122,7 @@ describe('exportarIndicadoresCSVAction', () => {
           error: new Error('Unauthorized'),
         }),
       },
-    } as any);
+    } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
     const filtros: FiltrosIndicadoresValidados = {
       periodo: '30d',
@@ -147,7 +147,7 @@ describe('exportarIndicadoresCSVAction', () => {
           }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
     const filtros: FiltrosIndicadoresValidados = {
       periodo: '30d',
@@ -172,11 +172,11 @@ describe('exportarIndicadoresCSVAction', () => {
           }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof createSupabaseServerClient>);
 
-    (buscarEventosNoPeriodo as any).mockResolvedValue([]);
-    (buscarPesosNoPeriodo as any).mockResolvedValue([]);
-    (buscarAnimaisFiltrados as any).mockResolvedValue([]);
+    vi.mocked(buscarEventosNoPeriodo).mockResolvedValue([]);
+    vi.mocked(buscarPesosNoPeriodo).mockResolvedValue([]);
+    vi.mocked(buscarAnimaisFiltrados).mockResolvedValue([]);
 
     const filtros: FiltrosIndicadoresValidados = {
       periodo: '90d',

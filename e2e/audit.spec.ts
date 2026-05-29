@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'fs';
 
@@ -39,7 +39,7 @@ interface RelatorioRota {
 
 const relatorio: RelatorioRota[] = [];
 
-async function fazerLogin(page: any) {
+async function fazerLogin(page: Page) {
   await page.goto(`${BASE}/login`);
   await page.getByRole('textbox', { name: 'seu@email.com' }).fill(EMAIL);
   await page.getByRole('link', { name: 'Esqueceu a senha?' }).press('Tab');
@@ -48,7 +48,7 @@ async function fazerLogin(page: any) {
   await page.waitForURL('**/dashboard', { timeout: 15000 });
 }
 
-async function auditarPagina(page: any, rota: string, tipo: 'publica' | 'protegida') {
+async function auditarPagina(page: Page, rota: string, tipo: 'publica' | 'protegida') {
   await page.goto(`${BASE}${rota}`);
   await page.waitForLoadState('networkidle');
 

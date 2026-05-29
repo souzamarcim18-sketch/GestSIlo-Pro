@@ -47,17 +47,17 @@ export default function AnotacaoForm({
   anotacao,
   onAfterSubmit,
 }: AnotacaoFormProps) {
-  const form = useForm({
+  const form = useForm<AnotacaoFormInput>({
     resolver: zodResolver(anotacaoFormSchema),
     defaultValues: {
       titulo: anotacao?.titulo || '',
       conteudo: anotacao?.conteudo || '',
-      categoria: (anotacao?.categoria as any) || 'outro',
-      prioridade: (anotacao?.prioridade as any) || 'normal',
+      categoria: (anotacao?.categoria as AnotacaoFormInput['categoria']) || 'outro',
+      prioridade: (anotacao?.prioridade as AnotacaoFormInput['prioridade']) || 'normal',
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: AnotacaoFormInput) => {
     try {
       let result;
       if (anotacao) {
@@ -92,7 +92,7 @@ export default function AnotacaoForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="titulo"
               render={({ field }) => (
                 <FormItem>
@@ -106,7 +106,7 @@ export default function AnotacaoForm({
             />
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="conteudo"
               render={({ field }) => (
                 <FormItem>
@@ -125,7 +125,7 @@ export default function AnotacaoForm({
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="categoria"
                 render={({ field }) => (
                   <FormItem>
@@ -149,7 +149,7 @@ export default function AnotacaoForm({
               />
 
               <FormField
-                control={form.control as any}
+                control={form.control}
                 name="prioridade"
                 render={({ field }) => (
                   <FormItem>

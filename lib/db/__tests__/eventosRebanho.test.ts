@@ -25,7 +25,7 @@ class MockIndex {
 }
 
 class MockObjectStore {
-  data: Map<string, any> = new Map();
+  data: Map<string, Record<string, unknown>> = new Map();
   indexes: Map<string, Map<string, string[]>> = new Map(['by-animal', 'by-data', 'by-tipo', 'by-sync-status'].map((name) => [name, new Map()]));
   indexNames: string[] = ['by-animal', 'by-data', 'by-tipo', 'by-sync-status'];
 
@@ -33,7 +33,7 @@ class MockObjectStore {
     return this.data.get(key);
   }
 
-  async put(item: any) {
+  async put(item: Record<string, unknown>) {
     const existingItem = this.data.get(item.id);
 
     // Clean up old index entries if updating
@@ -121,7 +121,7 @@ class MockObjectStore {
 }
 
 class MockTransaction {
-  store: any;
+  store: MockObjectStore;
   constructor(store: MockObjectStore) {
     this.store = store;
   }
@@ -143,12 +143,12 @@ class MockIndexedDB {
     return store.get(key);
   }
 
-  async put(storeName: string, item: any) {
+  async put(storeName: string, item: Record<string, unknown>) {
     const store = storeName === 'sync_queue' ? this.sync_queue : this.eventos_rebanho;
     return store.put(item);
   }
 
-  async add(storeName: string, item: any) {
+  async add(storeName: string, item: Record<string, unknown>) {
     const store = storeName === 'sync_queue' ? this.sync_queue : this.eventos_rebanho;
     const id = storeName === 'sync_queue' ? (store.data.size + 1) : item.id;
     await store.put({ ...item, id });
@@ -176,7 +176,7 @@ describe('eventosRebanho - Offline API', () => {
 
   beforeEach(() => {
     mockDb = new MockIndexedDB();
-    vi.spyOn(localDbModule, 'getDb').mockResolvedValue(mockDb as any);
+    vi.spyOn(localDbModule, 'getDb').mockResolvedValue(mockDb as unknown as Awaited<ReturnType<typeof localDbModule.getDb>>);
     vi.spyOn(syncQueueModule, 'enqueueRpc').mockImplementation(async (rpc, params, localPayload) => {
       const id = mockDb.sync_queue.data.size + 1;
       await mockDb.sync_queue.put({

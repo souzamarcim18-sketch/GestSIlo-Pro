@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface GessagemFieldsProps {
-  control: any;
-  errors: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
 }
 
 export function GessagemFields({ control, errors }: GessagemFieldsProps) {

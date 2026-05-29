@@ -47,17 +47,17 @@ import type { Animal, EventoRebanho, PesoAnimal, Lote } from '@/lib/types/rebanh
 function getBadgeColorMovimentacao(tipo: string): string {
   switch (tipo) {
     case 'nascimento':
-      return 'bg-green-100 text-green-800';
+      return 'border-green-600 text-green-600';
     case 'venda':
-      return 'bg-emerald-100 text-emerald-800';
+      return 'border-emerald-600 text-emerald-600';
     case 'morte':
-      return 'bg-red-100 text-red-800';
+      return 'border-red-600 text-red-600';
     case 'descarte':
-      return 'bg-orange-100 text-orange-800';
+      return 'border-orange-600 text-orange-600';
     case 'transferencia_lote':
-      return 'bg-gray-100 text-gray-800';
+      return 'border-muted-foreground text-muted-foreground';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'border-muted-foreground text-muted-foreground';
   }
 }
 
@@ -115,10 +115,10 @@ function DesempenhoCorteContent({ animal, pesos }: { animal: Animal; pesos: Peso
   }, [diasAbate]);
 
   const getGmdColor = (gmd: number | null) => {
-    if (gmd === null) return 'bg-muted text-muted-foreground';
-    if (gmd > 1) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-    if (gmd >= 0.5) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
-    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+    if (gmd === null) return 'border-muted-foreground text-muted-foreground';
+    if (gmd > 1) return 'border-green-600 text-green-600';
+    if (gmd >= 0.5) return 'border-yellow-600 text-yellow-600';
+    return 'border-red-600 text-red-600';
   };
 
   return (
@@ -131,7 +131,7 @@ function DesempenhoCorteContent({ animal, pesos }: { animal: Animal; pesos: Peso
               {gmdUltimas ? `${gmdUltimas.toFixed(2)} kg/dia` : '—'}
             </div>
             {gmdUltimas !== null && (
-              <Badge className={getGmdColor(gmdUltimas)}>
+              <Badge variant="outline" className={getGmdColor(gmdUltimas)}>
                 {gmdUltimas > 1
                   ? 'Ótimo'
                   : gmdUltimas >= 0.5
@@ -521,7 +521,7 @@ export default function AnimalDetailPage() {
                           <TableRow key={mov.id}>
                             <TableCell>{formatDate(mov.data_evento)}</TableCell>
                             <TableCell>
-                              <Badge className={getBadgeColorMovimentacao(mov.tipo)}>
+                              <Badge variant="outline" className={getBadgeColorMovimentacao(mov.tipo)}>
                                 {getTipoLabelMovimentacao(mov.tipo)}
                               </Badge>
                             </TableCell>

@@ -7,17 +7,17 @@ interface GestSiloDB extends DBSchema {
       id?: number;
       tabela: string;
       operacao: 'INSERT' | 'UPDATE' | 'DELETE' | 'RPC';
-      payload: any;
+      payload: Record<string, unknown>;
       timestamp: number;
     };
     indexes: { 'by-timestamp': number };
   };
-  movimentacoes_silo: { key: string; value: any };
-  atividades_campo: { key: string; value: any };
-  movimentacoes_insumo: { key: string; value: any };
-  financeiro: { key: string; value: any };
-  uso_maquinas: { key: string; value: any };
-  abastecimentos: { key: string; value: any };
+  movimentacoes_silo: { key: string; value: Record<string, unknown> };
+  atividades_campo: { key: string; value: Record<string, unknown> };
+  movimentacoes_insumo: { key: string; value: Record<string, unknown> };
+  financeiro: { key: string; value: Record<string, unknown> };
+  uso_maquinas: { key: string; value: Record<string, unknown> };
+  abastecimentos: { key: string; value: Record<string, unknown> };
   eventos_rebanho: {
     key: string;
     value: {
@@ -25,7 +25,7 @@ interface GestSiloDB extends DBSchema {
       animal_id: string;
       tipo_evento: 'cobertura' | 'diagnostico' | 'parto' | 'desmame' | 'secagem' | 'aborto' | 'descarte';
       data_evento: string;
-      payload: Record<string, any>;
+      payload: Record<string, unknown>;
       _sync_status: 'pending' | 'synced' | 'error' | 'pendente_revisao';
       _created_at: number;
       _conflict_motivo?: string;

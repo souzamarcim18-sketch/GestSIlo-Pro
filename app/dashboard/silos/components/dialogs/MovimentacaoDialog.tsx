@@ -70,7 +70,7 @@ export function MovimentacaoDialog({
       silo_id: siloId || '',
       tipo: 'Saída',
       subtipo: undefined,
-      quantidade: undefined as any,
+      quantidade: undefined,
       data: TODAY,
       responsavel: '',
       observacao: '',
@@ -105,7 +105,7 @@ export function MovimentacaoDialog({
         silo_id: siloId || '',
         tipo: 'Saída',
         subtipo: undefined,
-        quantidade: undefined as any,
+        quantidade: undefined,
         data: TODAY,
         responsavel: '',
         observacao: '',
@@ -137,7 +137,7 @@ export function MovimentacaoDialog({
         talhao_id: null,
         valor_unitario: data.subtipo === 'Venda' ? (data.valor_unitario ?? null) : null,
         comprador: data.subtipo === 'Venda' ? (data.comprador || null) : null,
-      } as any);
+      });
       toast.success('Movimentação registrada com sucesso!');
       onOpenChange(false);
       onSuccess();

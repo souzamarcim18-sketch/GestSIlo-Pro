@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { listAnimais } from '@/lib/supabase/rebanho';
 import type { Animal, Lote } from '@/lib/types/rebanho';
 
@@ -253,15 +254,18 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
                       <TableCell>{animal.sexo}</TableCell>
                       <TableCell>{animal.categoria}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                          animal.status === 'Ativo'
-                            ? 'bg-green-100 text-green-700'
-                            : animal.status === 'Morto'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                        }`}>
+                        <Badge
+                          variant="outline"
+                          className={
+                            animal.status === 'Ativo'
+                              ? 'border-green-600 text-green-600'
+                              : animal.status === 'Morto'
+                                ? 'border-red-600 text-red-600'
+                                : 'border-yellow-600 text-yellow-600'
+                          }
+                        >
                           {animal.status}
-                        </span>
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {animal.peso_atual ? `${animal.peso_atual.toFixed(2)} kg` : '—'}

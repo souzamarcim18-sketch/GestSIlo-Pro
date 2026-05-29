@@ -32,10 +32,10 @@ interface FormEventoSanitarioProps {
 
 type TipoForm = TipoEventoSanitario;
 
-const getErrorMessage = (error: any): string | null => {
+const getErrorMessage = (error: unknown): string | null => {
   if (!error) return null;
   if (typeof error === 'string') return error;
-  if (error.message && typeof error.message === 'string') return error.message;
+  if (error instanceof Error) return error.message;
   return null;
 };
 
@@ -100,11 +100,12 @@ export function FormEventoSanitario({
     reset,
     formState: { errors },
     watch,
-  } = useForm<any>({
+  } = useForm<CriarEventoSanitarioInput>({
     resolver: zodResolver(criarEventoSanitarioSchema),
-    defaultValues,
+    defaultValues: defaultValues as unknown as CriarEventoSanitarioInput,
   });
 
+  const formErrors = errors as unknown as Record<string, { message?: string } | undefined>;
   const tipoValue = watch('tipo') || selectedTipo;
 
   const animaisPorLote = useMemo(() => {
@@ -138,7 +139,7 @@ export function FormEventoSanitario({
         toast.success(
           `${TIPO_LABELS[selectedTipo]} registrada${animalIds.length > 1 ? ' para ' + animalIds.length + ' animais' : ''}`
         );
-        reset(defaultValues);
+        reset(defaultValues as unknown as CriarEventoSanitarioInput);
         setSelectedAnimalsIds(animalPre ? new Set([animalPre.id]) : new Set());
         onSuccess();
       } else {
@@ -252,7 +253,7 @@ export function FormEventoSanitario({
           </Select>
         )}
         <input type="hidden" {...register('animal_id')} value={animalPre?.id || watch('animal_id')} />
-        {getErrorMessage(errors.animal_id) && <p className="text-sm text-red-600">{getErrorMessage(errors.animal_id)}</p>}
+        {getErrorMessage(formErrors.animal_id) && <p className="text-sm text-red-600">{getErrorMessage(formErrors.animal_id)}</p>}
       </div>
 
       {/* Data do Evento */}
@@ -264,8 +265,8 @@ export function FormEventoSanitario({
           {...register('data_evento')}
           disabled={isLoading}
         />
-        {getErrorMessage(errors.data_evento) && (
-          <p className="text-sm text-red-600">{getErrorMessage(errors.data_evento)}</p>
+        {getErrorMessage(formErrors.data_evento) && (
+          <p className="text-sm text-red-600">{getErrorMessage(formErrors.data_evento)}</p>
         )}
       </div>
 
@@ -280,8 +281,8 @@ export function FormEventoSanitario({
               {...register('vacina_nome')}
               disabled={isLoading}
             />
-            {getErrorMessage(errors.vacina_nome) && (
-              <p className="text-sm text-red-600">{getErrorMessage(errors.vacina_nome)}</p>
+            {getErrorMessage(formErrors.vacina_nome) && (
+              <p className="text-sm text-red-600">{getErrorMessage(formErrors.vacina_nome)}</p>
             )}
           </div>
 
@@ -293,7 +294,7 @@ export function FormEventoSanitario({
               {...register('dose')}
               disabled={isLoading}
             />
-            {getErrorMessage(errors.dose) && <p className="text-sm text-red-600">{getErrorMessage(errors.dose)}</p>}
+            {getErrorMessage(formErrors.dose) && <p className="text-sm text-red-600">{getErrorMessage(formErrors.dose)}</p>}
           </div>
 
           <div className="space-y-2">
@@ -346,8 +347,8 @@ export function FormEventoSanitario({
               {...register('vacina_nome')}
               disabled={isLoading}
             />
-            {errors.vacina_nome?.message && (
-              <p className="text-sm text-red-600">{String(errors.vacina_nome.message)}</p>
+            {formErrors.vacina_nome?.message && (
+              <p className="text-sm text-red-600">{String(formErrors.vacina_nome.message)}</p>
             )}
           </div>
 
@@ -402,8 +403,8 @@ export function FormEventoSanitario({
               {...register('diagnostico')}
               disabled={isLoading}
             />
-            {getErrorMessage(errors.diagnostico) && (
-              <p className="text-sm text-red-600">{getErrorMessage(errors.diagnostico)}</p>
+            {getErrorMessage(formErrors.diagnostico) && (
+              <p className="text-sm text-red-600">{getErrorMessage(formErrors.diagnostico)}</p>
             )}
           </div>
 
@@ -415,8 +416,8 @@ export function FormEventoSanitario({
               {...register('medicamento')}
               disabled={isLoading}
             />
-            {getErrorMessage(errors.medicamento) && (
-              <p className="text-sm text-red-600">{getErrorMessage(errors.medicamento)}</p>
+            {getErrorMessage(formErrors.medicamento) && (
+              <p className="text-sm text-red-600">{getErrorMessage(formErrors.medicamento)}</p>
             )}
           </div>
 
@@ -461,8 +462,8 @@ export function FormEventoSanitario({
               {...register('tipo_exame')}
               disabled={isLoading}
             />
-            {getErrorMessage(errors.tipo_exame) && (
-              <p className="text-sm text-red-600">{getErrorMessage(errors.tipo_exame)}</p>
+            {getErrorMessage(formErrors.tipo_exame) && (
+              <p className="text-sm text-red-600">{getErrorMessage(formErrors.tipo_exame)}</p>
             )}
           </div>
 

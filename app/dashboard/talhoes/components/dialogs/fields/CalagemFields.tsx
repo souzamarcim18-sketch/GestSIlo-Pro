@@ -18,8 +18,8 @@ const TIPOS_CALCARIO = [
 ];
 
 interface CalagemFieldsProps {
-  control: any;
-  errors: any;
+  control: Control<FieldValues>;
+  errors: FieldValues;
 }
 
 export function CalagemFields({ control, errors }: CalagemFieldsProps) {

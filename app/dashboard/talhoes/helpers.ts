@@ -201,18 +201,20 @@ export function verificarAlertaSilagem(
  * @param dataColheitaPrevista Data de colheita prevista (opcional, para validação)
  * @returns Array de objetos prontos para insert na tabela eventos_dap
  */
+type EventoDAPInsert = { cultura: string; tipo_operacao: string; dias_apos_plantio: number; dias_apos_plantio_final: number; data_esperada: string; status: string };
+
 export function gerarEventosDAP(
   cultura: string,
   dataplantio: string,
   dataColheitaPrevista?: string
-): any[] {
+): EventoDAPInsert[] {
   const dapEntries = MATRIZ_DAP[cultura] || [];
   if (dapEntries.length === 0) return [];
 
   const plantioDate = new Date(dataplantio);
   const colheitaDate = dataColheitaPrevista ? new Date(dataColheitaPrevista) : null;
 
-  const eventos: any[] = [];
+  const eventos: EventoDAPInsert[] = [];
 
   for (const entry of dapEntries) {
     // Calcular data esperada usando o ponto médio do range DAP
@@ -247,7 +249,7 @@ export function gerarEventosDAP(
 export function gerarEventosRebrota(
   cultura: string,
   dataColheitaReal: string
-): any[] {
+): EventoDAPInsert[] {
   if (cultura !== 'Sorgo Silagem') return [];
 
   const rebrotaEntries = MATRIZ_DAP_REBROTA[cultura] || [];

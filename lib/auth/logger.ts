@@ -10,7 +10,7 @@ import { DEBUG_AUTH } from "./constants";
  * Log de informações sobre autenticação
  * Apenas executa em desenvolvimento ou com DEBUG_AUTH=true
  */
-export function authLog(...args: any[]): void {
+export function authLog(...args: unknown[]): void {
   if (!DEBUG_AUTH) {
     return;
   }
@@ -24,7 +24,7 @@ export function authLog(...args: any[]): void {
  * Sempre executa (importante para debug em produção)
  * Em produção, poderia ser integrado com Sentry/LogRocket
  */
-export function authError(...args: any[]): void {
+export function authError(...args: unknown[]): void {
   const timestamp = new Date().toISOString();
 
   // Parse objects to string for better console display
@@ -50,7 +50,7 @@ export function authError(...args: any[]): void {
  * Log de avisos de autenticação
  * Útil para race conditions, timeouts, comportamentos inesperados
  */
-export function authWarn(...args: any[]): void {
+export function authWarn(...args: unknown[]): void {
   if (!DEBUG_AUTH) {
     return;
   }

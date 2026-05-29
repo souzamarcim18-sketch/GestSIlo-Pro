@@ -74,9 +74,9 @@ export default function TalhaoDetailPage() {
         throw new Error(`Falha ao buscar atividades: ${e instanceof Error ? e.message : 'erro desconhecido'}`);
       }
 
-      setTalhao((talhaoData as any) || null);
-      setCiclos((ciclosData as any) || []);
-      setAtividades((atividadesData as any) || []);
+      setTalhao((talhaoData as unknown as Talhao) || null);
+      setCiclos((ciclosData as unknown as CicloAgricola[]) || []);
+      setAtividades((atividadesData as unknown as AtividadeCampo[]) || []);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido ao carregar talhão';
       console.error('🚨 Erro final:', errorMsg);

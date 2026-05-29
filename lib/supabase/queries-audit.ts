@@ -231,7 +231,7 @@ const movimentacoesSilo = {
     const mov = data as MovimentacaoSilo & { valor_unitario?: number | null; comprador?: string | null; receita_id?: string | null };
 
     // Auto-registrar data de abertura real na primeira saída
-    if (payload.tipo === 'Saída' && !(silo as any).data_abertura_real) {
+    if (payload.tipo === 'Saída' && !(silo as { data_abertura_real: string | null }).data_abertura_real) {
       const { count: countSaidas, error: countError } = await supabase
         .from('movimentacoes_silo')
         .select('id', { count: 'exact', head: true })
@@ -256,7 +256,7 @@ const movimentacoesSilo = {
         const receitaPayload = {
           tipo: 'Receita' as const,
           categoria: 'Silagem',
-          descricao: `Venda de silagem — Silo: ${(silo as any).nome}`,
+          descricao: `Venda de silagem — Silo: ${(silo as { nome: string }).nome}`,
           valor: payload.quantidade * payload.valor_unitario,
           data: payload.data,
           referencia_tipo: 'Silo',
@@ -676,12 +676,12 @@ const movimentacoesInsumo = {
       .order('data', { ascending: false });
     if (error) throw error;
 
-    return (data ?? []).map((row: any) => ({
+    return (data ?? []).map((row: { insumos?: { nome?: string; unidade?: string } | null } & Record<string, unknown>) => ({
       ...row,
       insumo_nome: row.insumos?.nome ?? '',
       insumo_unidade: row.insumos?.unidade ?? '',
       insumos: undefined,
-    }));
+    })) as unknown as (MovimentacaoInsumo & { insumo_nome: string; insumo_unidade: string })[];
   },
 
   async create(payload: Omit<MovimentacaoInsumo, 'id'>): Promise<MovimentacaoInsumo> {
@@ -1558,7 +1558,7 @@ const eventosDAP = {
       .single();
 
     if (cicloError) throw cicloError;
-    const talhaoId = (cicloData as any).talhao_id;
+    const talhaoId = (cicloData as { talhao_id: string }).talhao_id;
 
     const { error: insertError } = await supabase.from('eventos_dap').insert(
       eventosRebrota.map((evt) => ({

@@ -40,7 +40,7 @@ const getClient = async () => {
 // ============================================================
 
 export const queryAnotacoes = {
-  async list(fazendaId: string, filters?: any) {
+  async list(fazendaId: string, filters?: { categoria?: string; prioridade?: string; resolvida?: boolean }) {
     const client = await getClient();
     let query = client
       .from('anotacoes_assessoria')
@@ -112,7 +112,7 @@ export const queryAnotacoes = {
     }
   },
 
-  async marcarResolvida(id: string, payload: any) {
+  async marcarResolvida(id: string, payload: { resolvida: boolean; assessor_resposta?: string }) {
     const client = await getClient();
     const { data, error } = await client
       .from('anotacoes_assessoria')
@@ -192,7 +192,7 @@ export const queryHorarios = {
 // ============================================================
 
 export const queryAgendamentos = {
-  async list(fazendaId: string, filters?: any) {
+  async list(fazendaId: string, filters?: { status?: string }) {
     const client = await getClient();
     let query = client
       .from('agendamentos_usuario')

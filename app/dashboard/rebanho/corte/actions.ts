@@ -55,7 +55,7 @@ export async function registrarPesagemLoteAction(
     return { success: true, count: parsed.pesagens.length };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const mensagem = error.issues.map((e: any) => e.message).join('; ');
+      const mensagem = error.issues.map((e) => e.message).join('; ');
       return { success: false, error: mensagem };
     }
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';

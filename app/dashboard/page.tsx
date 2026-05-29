@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
-import type { CicloAgricola } from '@/lib/types/talhoes';
+import type { CicloAgricola, ProximaOperacao } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
 import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
 import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastagens } from './alertas-helpers';
@@ -345,7 +345,8 @@ export default async function DashboardPage() {
   }));
 
   // --- Próximas Operações ---
-  const eventosRaw = (eventosOperacoesRes.data ?? []) as any[];
+  type EventoDapRow = { id: string; data_esperada: string | null; data_realizada: string | null; tipo_operacao: string | null; status: string | null; cultura: string | null; talhoes: { id: string; nome: string; fazenda_id: string } | null };
+  const eventosRaw = (eventosOperacoesRes.data ?? []) as unknown as EventoDapRow[];
   const operacoesFiltradas = eventosRaw.filter((evt) => evt.talhoes?.fazenda_id === fazendaId);
   const proximasOperacoes: ProximaOperacaoComBadge[] = operacoesFiltradas
     .map((evento) => {
@@ -363,11 +364,11 @@ export default async function DashboardPage() {
       }
       return {
         id: evento.id,
-        data_esperada: evento.data_esperada,
+        data_esperada: evento.data_esperada ?? '',
         data_realizada: evento.data_realizada,
-        tipo_operacao: evento.tipo_operacao,
-        status: evento.status,
-        cultura: evento.cultura,
+        tipo_operacao: evento.tipo_operacao ?? '',
+        status: (evento.status ?? 'Planejado') as ProximaOperacao['status'],
+        cultura: evento.cultura ?? '',
         talhao_nome: evento.talhoes?.nome || 'N/A',
         janelaColheita,
       };

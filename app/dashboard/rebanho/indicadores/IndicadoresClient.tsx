@@ -15,6 +15,8 @@ import type {
   IndicadorRebanho,
 } from '@/types/rebanho-indicadores';
 import type { AlertasRebanho } from './page';
+import type { AlertaSanitario } from '@/lib/types/rebanho-sanitario';
+import type { AlertaAnimal } from '@/lib/supabase/rebanho-indicadores';
 import dynamic from 'next/dynamic';
 import { FiltrosIndicadores as FiltrosComponent } from './components/FiltrosIndicadores';
 import { CardIndicador } from './components/CardIndicador';
@@ -192,14 +194,14 @@ export default function IndicadoresClient({
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {alertas.vacinacoes.map((alerta: any) => (
+                  {alertas.vacinacoes.map((alerta: AlertaSanitario) => (
                     <Link
-                      key={alerta.id}
+                      key={alerta.animal_id + alerta.vacina_nome}
                       href={`/dashboard/rebanho/${alerta.animal_id}`}
                       className="block p-2 rounded border border-amber-500/30 hover:bg-amber-500/10 transition-colors"
                     >
                       <p className="text-sm font-medium">
-                        {alerta.animais?.brinco || 'N/A'} - {alerta.vacina_nome}
+                        {alerta.animal_brinco || 'N/A'} - {alerta.vacina_nome}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {alerta.dias_para_vencimento} dias
@@ -227,7 +229,7 @@ export default function IndicadoresClient({
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {alertas.partosPrevistos.map((alerta: any) => (
+                  {alertas.partosPrevistos.map((alerta: AlertaAnimal) => (
                     <Link
                       key={alerta.id}
                       href={`/dashboard/rebanho/${alerta.id}`}
@@ -265,7 +267,7 @@ export default function IndicadoresClient({
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {alertas.semPesagem.map((alerta: any) => (
+                  {alertas.semPesagem.map((alerta: AlertaAnimal) => (
                     <Link
                       key={alerta.id}
                       href={`/dashboard/rebanho/${alerta.id}`}
@@ -296,7 +298,7 @@ export default function IndicadoresClient({
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {alertas.vacasSecasComParto.map((alerta: any) => (
+                  {alertas.vacasSecasComParto.map((alerta: AlertaAnimal) => (
                     <Link
                       key={alerta.id}
                       href={`/dashboard/rebanho/${alerta.id}`}

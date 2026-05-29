@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Animal, Lote, EventoRebanho, PesoAnimal } from '../types/rebanho';
-import { TipoEvento, StatusAnimal } from '../types/rebanho';
+import { TipoEvento, StatusAnimal, type TipoRebanho } from '../types/rebanho';
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -10,7 +10,7 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
     fazenda_id: 'fazenda-1',
     brinco: '001',
     sexo: 'Macho',
-    tipo_rebanho: 'leiteiro' as any,
+    tipo_rebanho: 'leiteiro' as TipoRebanho,
     data_nascimento: '2020-01-01',
     categoria: 'Touro',
     status: StatusAnimal.ATIVO,

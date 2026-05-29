@@ -123,7 +123,7 @@ export function AbastecimentoDialog({
         litros: data.litros,
         valor: data.valor,
         hodometro: data.hodometro ?? null,
-      } as any);
+      });
 
       // Integração Frota → Insumos
       if (data.registrar_como_saida && data.insumo_id) {
@@ -148,7 +148,7 @@ export function AbastecimentoDialog({
             origem: 'frota',
             data: data.data,
             observacoes: `Abastecimento de ${data.combustivel} - ${data.litros} L`,
-          } as any);
+          });
 
           toast.success('Abastecimento registrado com saída de insumo');
         } catch (insumoError) {
@@ -221,7 +221,7 @@ export function AbastecimentoDialog({
               <Label htmlFor="abs-combustivel">Combustível</Label>
               <Select
                 value={watch('combustivel') || ''}
-                onValueChange={(v: string | null) => v && setValue('combustivel', v as any)}
+                onValueChange={(v: string | null) => v && setValue('combustivel', v as AbastecimentoFormData['combustivel'])}
               >
                 <SelectTrigger id="abs-combustivel">
                   <SelectValue>{watch('combustivel') || 'Selecione'}</SelectValue>

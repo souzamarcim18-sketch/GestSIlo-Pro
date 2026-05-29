@@ -204,7 +204,7 @@ export function ManutencaoDialog({
       if (isEditing && manutencao) {
         await q.manutencoes.update(manutencao.id, payload);
       } else {
-        await q.manutencoes.create(payload as any);
+        await q.manutencoes.create(payload);
       }
 
       // Atualizar status da máquina conforme regras definidas

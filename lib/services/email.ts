@@ -25,7 +25,7 @@ export function verificarTokenConfirmacao(
   token: string
 ): { agendamento_id: string; tipo: string } | null {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'seu-secret-aqui') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'seu-secret-aqui') as { agendamento_id: string; tipo: string };
     return {
       agendamento_id: decoded.agendamento_id,
       tipo: decoded.tipo,
@@ -39,27 +39,29 @@ export function verificarTokenConfirmacao(
  * Envia email com link mágico via Resend
  */
 export async function enviarEmailSolicitacaoAgendamento(
-  agendamento: any,
-  fazenda: any,
-  usuario: any
+  agendamento: Record<string, unknown>,
+  fazenda: Record<string, unknown>,
+  usuario: Record<string, unknown>
 ) {
   try {
+    const agId = agendamento.id as string;
+    const agDataAgendada = agendamento.data_agendada as string;
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gestsilo.com';
-    const tokenConfirmar = gerarTokenConfirmacao(agendamento.id, 'confirmar');
-    const tokenRecusar = gerarTokenConfirmacao(agendamento.id, 'recusar');
-    const tokenRemarcar = gerarTokenConfirmacao(agendamento.id, 'remarcar');
+    const tokenConfirmar = gerarTokenConfirmacao(agId, 'confirmar');
+    const tokenRecusar = gerarTokenConfirmacao(agId, 'recusar');
+    const tokenRemarcar = gerarTokenConfirmacao(agId, 'remarcar');
 
-    const linkConfirmar = `${baseUrl}/assessor/confirmar?token=${tokenConfirmar}&agendamento=${agendamento.id}`;
-    const linkRecusar = `${baseUrl}/assessor/confirmar?token=${tokenRecusar}&agendamento=${agendamento.id}`;
-    const linkRemarcar = `${baseUrl}/assessor/confirmar?token=${tokenRemarcar}&agendamento=${agendamento.id}`;
+    const linkConfirmar = `${baseUrl}/assessor/confirmar?token=${tokenConfirmar}&agendamento=${agId}`;
+    const linkRecusar = `${baseUrl}/assessor/confirmar?token=${tokenRecusar}&agendamento=${agId}`;
+    const linkRemarcar = `${baseUrl}/assessor/confirmar?token=${tokenRemarcar}&agendamento=${agId}`;
 
-    const dataFormatada = new Date(agendamento.data_agendada).toLocaleDateString('pt-BR', {
+    const dataFormatada = new Date(agDataAgendada).toLocaleDateString('pt-BR', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
 
-    const horaFormatada = new Date(agendamento.data_agendada).toLocaleTimeString('pt-BR', {
+    const horaFormatada = new Date(agDataAgendada).toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -175,8 +177,8 @@ export async function enviarEmailSolicitacaoAgendamento(
  * Envia confirmação para usuário via Resend
  */
 export async function enviarEmailConfirmacaoAgendamento(
-  agendamento: any,
-  fazenda: any,
+  agendamento: Record<string, unknown>,
+  fazenda: Record<string, unknown>,
   status: 'solicitado' | 'confirmado' | 'recusado' | 'remarcado' | 'cancelado' | 'concluido'
 ) {
   try {
@@ -189,10 +191,12 @@ export async function enviarEmailConfirmacaoAgendamento(
       solicitado: 'Aguardando Resposta',
     };
 
+    const agDataAgendada2 = agendamento.data_agendada as string;
+    const agSugestaoNovaData = agendamento.sugestao_nova_data as string | undefined;
     const mensagem = {
-      confirmado: `Seu agendamento foi confirmado para ${new Date(agendamento.data_agendada).toLocaleDateString('pt-BR')} às ${new Date(agendamento.data_agendada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+      confirmado: `Seu agendamento foi confirmado para ${new Date(agDataAgendada2).toLocaleDateString('pt-BR')} às ${new Date(agDataAgendada2).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
       recusado: `Seu agendamento foi recusado. Motivo: ${agendamento.motivo_recusa || 'Não informado'}`,
-      remarcado: `O assessor sugeriu uma remarcação para ${agendamento.sugestao_nova_data ? new Date(agendamento.sugestao_nova_data).toLocaleDateString('pt-BR') : 'uma data em breve'}`,
+      remarcado: `O assessor sugeriu uma remarcação para ${agSugestaoNovaData ? new Date(agSugestaoNovaData).toLocaleDateString('pt-BR') : 'uma data em breve'}`,
       cancelado: 'Seu agendamento foi cancelado',
       concluido: 'Seu atendimento foi finalizado',
       solicitado: 'Aguardando resposta do assessor',

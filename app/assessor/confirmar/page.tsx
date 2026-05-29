@@ -18,7 +18,7 @@ export default function ConfirmarAgendamentoPage() {
   const token = searchParams.get('token');
   const agendamentoId = searchParams.get('agendamento');
 
-  const [agendamento, setAgendamento] = useState<any>(null);
+  const [agendamento, setAgendamento] = useState<{ data_agendada: string; tipo: string; observacoes?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [erro, setErro] = useState<string | null>(null);

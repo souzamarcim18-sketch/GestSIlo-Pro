@@ -12,7 +12,7 @@ export type TableName =
 
 export type Operation = 'INSERT' | 'UPDATE' | 'DELETE';
 
-export async function enqueue(tabela: TableName, operacao: Operation, payload: any) {
+export async function enqueue(tabela: TableName, operacao: Operation, payload: Record<string, unknown>) {
   const db = await getDb();
   if (!db) return;
 
@@ -30,7 +30,7 @@ export async function enqueue(tabela: TableName, operacao: Operation, payload: a
   if (operacao === 'INSERT' && payload.id) {
     await db.put(tabela, payload);
   } else if (operacao === 'DELETE' && payload.id) {
-    await db.delete(tabela, payload.id);
+    await db.delete(tabela, payload.id as string);
   } else if (operacao === 'UPDATE' && payload.id) {
     await db.put(tabela, payload);
   }
@@ -38,8 +38,8 @@ export async function enqueue(tabela: TableName, operacao: Operation, payload: a
 
 export async function enqueueRpc(
   rpcName: string,
-  params: Record<string, any>,
-  localPayload?: { tabela: 'eventos_rebanho'; data: any }
+  params: Record<string, unknown>,
+  localPayload?: { tabela: 'eventos_rebanho'; data: Record<string, unknown> }
 ) {
   const db = await getDb();
   if (!db) return;
@@ -59,14 +59,15 @@ export async function enqueueRpc(
 
   // Se houver payload local, salva no cache para otimismo da UI
   if (localPayload?.data && localPayload.data.id) {
-    await db.put(localPayload.tabela, localPayload.data);
+    // localPayload.data is EventoReprodutivoLocal which satisfies the IDB schema at runtime
+    await db.put(localPayload.tabela, localPayload.data as unknown as Parameters<typeof db.put<'eventos_rebanho'>>[1]);
   }
 }
 
 async function detectarConflito(
   supabase: SupabaseClient,
   tabela: string,
-  payload: any
+  payload: Record<string, unknown>
 ): Promise<{ conflito: boolean; motivo?: string }> {
   if (tabela !== 'eventos_rebanho') return { conflito: false };
 
@@ -116,7 +117,7 @@ export async function syncAll(supabase: SupabaseClient): Promise<{ sincronizados
         // Marcar evento como pendente_revisao no IndexedDB (eventos_rebanho cache)
         if (action.tabela === 'eventos_rebanho') {
           try {
-            const eventoId = action.payload?.id;
+            const eventoId = action.payload?.id as string | undefined;
             if (eventoId) {
               const evento = await db.get('eventos_rebanho', eventoId);
               if (evento) {
@@ -148,7 +149,8 @@ export async function syncAll(supabase: SupabaseClient): Promise<{ sincronizados
       } else if (action.operacao === 'DELETE') {
         result = await supabase.from(action.tabela).delete().eq('id', action.payload.id);
       } else if (action.operacao === 'RPC') {
-        const { rpc, params } = action.payload;
+        const rpc = action.payload.rpc as string;
+        const params = action.payload.params as Record<string, unknown>;
         result = await supabase.rpc(rpc, params);
       }
 

@@ -8,6 +8,7 @@ import {
   AlertaPlanejamento,
   DefinicaoSistema,
   ParametrosPlanejamento,
+  type RebanhoSnapshot,
 } from '@/lib/types/planejamento-silagem';
 import {
   Etapa1SistemaSchema,
@@ -86,7 +87,7 @@ export function WizardContainer() {
     setEtapaAtual(2);
   };
 
-  const handleNextEtapa2 = (rebanho: Record<string, number>, dataAlvo: Date, snapshot?: any) => {
+  const handleNextEtapa2 = (rebanho: Record<string, number>, dataAlvo: Date, snapshot?: RebanhoSnapshot) => {
     const validacao = Etapa2RebanhoSchema.safeParse({ rebanho });
     if (!validacao.success) {
       const errosMap: Record<string, string> = {};

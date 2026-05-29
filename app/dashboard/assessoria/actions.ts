@@ -103,7 +103,7 @@ export async function deletarAnotacaoAction(id: string) {
   } catch (error) {
     console.error('[deletarAnotacaoAction] Erro completo:', error);
     console.error('[deletarAnotacaoAction] Tipo de erro:', typeof error);
-    console.error('[deletarAnotacaoAction] Stack:', (error as any)?.stack);
+    console.error('[deletarAnotacaoAction] Stack:', error instanceof Error ? error.stack : undefined);
 
     let errorMsg = 'Erro desconhecido';
     if (error instanceof Error) {
@@ -117,7 +117,7 @@ export async function deletarAnotacaoAction(id: string) {
   }
 }
 
-export async function marcarAnotacaoResolvidaAction(id: string, payload: unknown) {
+export async function marcarAnotacaoResolvidaAction(id: string, payload: { resolvida: boolean; assessor_resposta?: string }) {
   try {
     const anotacao = await queryAnotacoes.marcarResolvida(id, payload);
     return { success: true, data: anotacao, message: 'Status atualizado' };
@@ -168,7 +168,7 @@ export async function criarAgendamentoAction(payload: unknown) {
 
     // Enviar email com link mágico
     await enviarEmailSolicitacaoAgendamento(
-      agendamento,
+      agendamento as unknown as Record<string, unknown>,
       fazenda || { nome: 'Fazenda' },
       { nome: user?.user_metadata?.nome || 'Usuário' }
     );
@@ -203,7 +203,7 @@ export async function atualizarStatusAgendamentoAction(id: string, payload: unkn
     }
 
     // Enviar email de confirmação/recusa/remarcação
-    await enviarEmailConfirmacaoAgendamento(agendamento, {}, validated.status);
+    await enviarEmailConfirmacaoAgendamento(agendamento as unknown as Record<string, unknown>, {}, validated.status);
 
     return { success: true, data: agendamento, message: 'Status atualizado com sucesso' };
   } catch (error) {

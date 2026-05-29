@@ -107,7 +107,7 @@ export function gerarPdfPlanejamento(
       },
     });
 
-    posY = (doc as any).lastAutoTable.finalY + 10;
+    posY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   }
 
   // ===== SEÇÃO RESULTADOS =====
@@ -185,7 +185,7 @@ export function gerarPdfPlanejamento(
       },
     });
 
-    posY = (doc as any).lastAutoTable.finalY + 10;
+    posY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   }
 
   // ===== SEÇÃO PAINEL FRONTAL =====
@@ -229,7 +229,7 @@ export function gerarPdfPlanejamento(
   doc.setFont('Helvetica', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  const totalPaginas = (doc as any).internal.pages.length - 1;
+  const totalPaginas = (doc as unknown as { internal: { pages: unknown[] } }).internal.pages.length - 1;
   doc.text(
     `Gerado por GestSilo — Página 1 de ${totalPaginas}`,
     margemEsquerda,

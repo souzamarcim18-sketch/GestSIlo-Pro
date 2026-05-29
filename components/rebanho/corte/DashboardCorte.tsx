@@ -155,9 +155,9 @@ export function DashboardCorte({
     }
 
     // Calcular média por lote por data
-    const dados: any[] = [];
+    const dados: Record<string, string | number>[] = [];
     for (const [data, record] of Array.from(dataMap.entries()).sort()) {
-      const novoRecord: any = { data };
+      const novoRecord: Record<string, string | number> = { data };
       for (const [lote, pesos] of Object.entries(record)) {
         if (lote !== 'data' && Array.isArray(pesos)) {
           novoRecord[lote] = pesos.reduce((a, b) => a + b, 0) / pesos.length;

@@ -6,7 +6,7 @@ export interface EventoReprodutivoLocal {
   animal_id: string;
   tipo_evento: 'cobertura' | 'diagnostico' | 'parto' | 'desmame' | 'secagem' | 'aborto' | 'descarte';
   data_evento: string;
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
   _sync_status: 'pending' | 'synced' | 'error' | 'pendente_revisao';
   _created_at: number;
   _conflict_motivo?: string;
@@ -18,9 +18,9 @@ export async function saveEventoLocal(
   tipoEvento: 'cobertura' | 'diagnostico' | 'parto' | 'desmame' | 'secagem' | 'aborto' | 'descarte',
   animalId: string,
   dataEvento: string,
-  payload: Record<string, any>,
+  payload: Record<string, unknown>,
   rpcName: string,
-  rpcParams: Record<string, any>
+  rpcParams: Record<string, unknown>
 ): Promise<string> {
   const db = await getDb();
   if (!db) throw new Error('IndexedDB não disponível');
@@ -44,7 +44,7 @@ export async function saveEventoLocal(
   // 2. Enfileira RPC para sincronização quando online
   await enqueueRpc(rpcName, rpcParams, {
     tabela: 'eventos_rebanho',
-    data: evento,
+    data: evento as unknown as Record<string, unknown>,
   });
 
   return eventoId;

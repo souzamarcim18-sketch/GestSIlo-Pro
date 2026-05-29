@@ -150,15 +150,16 @@ export const queryMovimentacoes = {
     if (error) throw error;
 
     // Transformar dados para formato esperado
-    const movimentacoes: MovimentacaoListItem[] = (data || []).map((item: any) => ({
+    type EventoRow = EventoRebanho & { motivo_descarte?: string | null; animais?: { brinco?: string; nome?: string | null; categoria?: string; tipo_rebanho?: string; peso_atual?: number | null } | null };
+    const movimentacoes: MovimentacaoListItem[] = ((data || []) as unknown as EventoRow[]).map((item) => ({
       id: item.id,
-      tipo: item.tipo,
+      tipo: item.tipo as unknown as MovimentacaoListItem['tipo'],
       data_evento: item.data_evento,
       observacoes: item.observacoes,
       comprador: item.comprador,
       valor_venda: item.valor_venda,
       lote_id_destino: item.lote_id_destino,
-      motivo_descarte: item.motivo_descarte,
+      motivo_descarte: item.motivo_descarte ?? null,
       animal_id: item.animal_id,
       brinco: item.animais?.brinco || '',
       nome: item.animais?.nome || null,
@@ -188,22 +189,22 @@ export const queryMovimentacoes = {
 
     if (error) throw error;
 
-    const eventos = data || [];
+    type ResumoRow = { tipo: string; valor_venda: number | null };
+    const eventos: ResumoRow[] = (data || []) as unknown as ResumoRow[];
 
     // Contar entradas (nascimento, compra)
-    const entradas = eventos.filter((e: any) => ['nascimento', 'compra'].includes(e.tipo)).length;
+    const entradas = eventos.filter((e) => ['nascimento', 'compra'].includes(e.tipo)).length;
 
     // Contar saídas (venda, morte, descarte)
-    const saidas = eventos.filter((e: any) => ['venda', 'morte', 'descarte', 'abate_proprio'].includes(e.tipo))
-      .length;
+    const saidas = eventos.filter((e) => ['venda', 'morte', 'descarte', 'abate_proprio'].includes(e.tipo)).length;
 
     // Saldo
     const saldo = entradas - saidas;
 
     // Valor total de vendas
     const valor_vendas = eventos
-      .filter((e: any) => e.tipo === 'venda' && e.valor_venda)
-      .reduce((sum: number, e: any) => sum + (e.valor_venda || 0), 0);
+      .filter((e) => e.tipo === 'venda' && e.valor_venda)
+      .reduce((sum, e) => sum + (e.valor_venda || 0), 0);
 
     return JSON.parse(JSON.stringify({
       entradas,
@@ -229,15 +230,16 @@ export const queryMovimentacoes = {
 
     if (error) throw error;
 
-    const resultado = (data || []).map((item: any) => ({
+    type HistoricoRow = EventoRebanho & { motivo_descarte?: string | null; animais?: { brinco?: string; nome?: string | null; categoria?: string; tipo_rebanho?: string; peso_atual?: number | null } | null };
+    const resultado = ((data || []) as unknown as HistoricoRow[]).map((item) => ({
       id: item.id,
-      tipo: item.tipo,
+      tipo: item.tipo as unknown as MovimentacaoListItem['tipo'],
       data_evento: item.data_evento,
       observacoes: item.observacoes,
       comprador: item.comprador,
       valor_venda: item.valor_venda,
       lote_id_destino: item.lote_id_destino,
-      motivo_descarte: item.motivo_descarte,
+      motivo_descarte: item.motivo_descarte ?? null,
       animal_id: item.animal_id,
       brinco: item.animais?.brinco || '',
       nome: item.animais?.nome || null,

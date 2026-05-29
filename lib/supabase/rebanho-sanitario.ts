@@ -81,7 +81,8 @@ export async function listAlertasVacinacao(
 
   if (error) throw error;
 
-  const resultado = (data || []).map((row: any) => {
+  type AlertaRow = { animal_id: string; animais?: { brinco?: string; nome?: string | null } | null; tipo: string; vacina_nome?: string | null; data_proxima_dose: string };
+  const resultado = ((data || []) as unknown as AlertaRow[]).map((row) => {
     const diasRestantes = Math.ceil(
       (new Date(row.data_proxima_dose).getTime() - new Date().getTime()) /
         (1000 * 60 * 60 * 24)
