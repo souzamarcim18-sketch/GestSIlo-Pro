@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { deletarEventoReprodutivo } from '@/app/dashboard/rebanho/reproducao/actions';
-import { ReproducaoStats } from './ReproducaoStats';
 import { getAllEventosLocais } from '@/lib/db/eventosRebanho';
 import { getSyncStatus } from '@/lib/db/syncQueue';
 import { useSyncContext } from './ReproducaoSyncProvider';
@@ -211,8 +210,7 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
   if (filtrados.length === 0) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
-        <ReproducaoStats eventos={eventos} />
-        <div className="text-center">
+        <div className="text-center py-8">
           <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground/40 mb-4" />
           <p className="text-muted-foreground">Nenhum evento reprodutivo encontrado</p>
         </div>
@@ -222,7 +220,6 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
-      <ReproducaoStats eventos={eventos} />
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="tipo-filtro" className="text-sm font-semibold">Tipo de Evento</Label>

@@ -17,7 +17,7 @@ export function GaugeOcupacaoSilos({ percentual }: Props) {
   const fgData = [{ value: 1, fill: 'var(--chart-1)' }]
 
   return (
-    <div className="relative w-42 h-42">
+    <div className="relative w-44 h-44">
       <div
         className="absolute inset-0 rounded-full blur-xl opacity-25 pointer-events-none"
         style={{ background: 'var(--chart-1)' }}

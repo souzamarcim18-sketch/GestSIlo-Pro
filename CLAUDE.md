@@ -297,11 +297,11 @@ app/
 │       ├── lotes/
 │       ├── importar/
 │       ├── indicadores/             # Dashboard geral + KPIs + 4 alertas proativos
-│       ├── reproducao/              # Hub com 3 abas: Eventos, Reprodutores, Parâmetros
-│       │   ├── page.tsx             # Hub de reprodução (layout com abas via TabsNav)
+│       ├── reproducao/              # 4 abas: Dashboard, Histórico, Reprodutores, Parâmetros
+│       │   ├── page.tsx             # Dashboard de reprodução (RSC — 12 queries paralelas)
 │       │   ├── layout.tsx
 │       │   ├── TabsNav.tsx
-│       │   ├── eventos/page.tsx
+│       │   ├── eventos/page.tsx     # Aba "Histórico" — lista eventos reprodutivos filtráveis
 │       │   ├── reprodutores/
 │       │   │   ├── page.tsx
 │       │   │   ├── ReprodutoresClient.tsx
@@ -309,8 +309,8 @@ app/
 │       │   │       ├── page.tsx               # Server Component — busca reprodutor + coberturas
 │       │   │       └── ReprodutorDetailClient.tsx  # Client Component — useAuth, permissões, UI
 │       │   ├── parametros/page.tsx
-│       │   ├── indicadores/page.tsx
-│       │   └── repetidoras/page.tsx
+│       │   ├── indicadores/page.tsx # redirect → /dashboard/rebanho/reproducao
+│       │   └── repetidoras/page.tsx # redirect → /dashboard/rebanho/reproducao
 │       ├── leiteira/page.tsx        # Dashboard leiteiro + registro de produção
 │       ├── corte/page.tsx           # Dashboard de corte + pesagem em lote + projeção de abate
 │       ├── sanidade/page.tsx        # Alertas sanitários + calendário + registro de eventos
@@ -1123,11 +1123,43 @@ vacinacao, vermifugacao, tratamento_veterinario, exame_laboratorial
 
 **Sub-módulos**:
 - **Indicadores** (`/indicadores`): dashboard geral, KPIs, 4 alertas proativos (vacinações, partos, sem pesagem, vacas secas)
-- **Reprodução** (`/reproducao`): hub com 3 abas (Eventos, Reprodutores, Parâmetros) + calendário reprodutivo, IEP, taxa de prenhez, DG, IATF, repetidoras, indicadores reprodutivos
+- **Reprodução** (`/reproducao`): 4 abas — Dashboard (kanban + KPIs + repetidoras + distribuição por status), Histórico (lista eventos reprodutivos), Reprodutores, Parâmetros
 - **Leiteira** (`/leiteira`): registro individual/coletivo, curva de lactação, gráfico 30 dias, ranking top 10 vacas
 - **Corte** (`/corte`): GMD, arrobas projetadas, projeção de abate, pesagem em lote, gráfico evolução/lote
 - **Sanidade** (`/sanidade`): vacinação/vermifugação/tratamento/exame, registro em lote, calendário sanitário, alertas
 - **Movimentações** (`/movimentacoes`): entradas (nascimento/compra), saídas (venda/morte/descarte/abate), transferência entre lotes, KPIs, export CSV
+
+### Dashboard de Reprodução (`/reproducao` — reestruturado 2026-05-29)
+
+**Estrutura de abas** (4 abas, antes eram 6):
+
+| Aba | Rota | Conteúdo |
+|---|---|---|
+| **Dashboard** | `/reproducao` | Kanban + KPIs + Repetidoras + Distribuição por status |
+| **Histórico** | `/reproducao/eventos` | Lista filtrada de eventos reprodutivos |
+| **Reprodutores** | `/reproducao/reprodutores` | CRUD de reprodutores |
+| **Parâmetros** | `/reproducao/parametros` | Metas reprodutivas da fazenda |
+| ~~Indicadores~~ | `/reproducao/indicadores` | redirect → `/reproducao` |
+| ~~Repetidoras~~ | `/reproducao/repetidoras` | redirect → `/reproducao` |
+
+**Componente principal**: `components/rebanho/reproducao/DashboardReprodutivo.tsx`
+
+O `page.tsx` do Dashboard executa 12 queries em paralelo (`Promise.all`):
+- `listByPeriodo` (últimos 120 dias) — para o Kanban
+- `animais` (id, brinco, lote_id, status_reprodutivo, tipo_rebanho) — para o Kanban
+- `queryRepetidoras.list` — para o card de repetidoras
+- 8 queries de indicadores (`getTaxaPrenhez`, `getContagemPorStatus`, `getPSMMedia`, `getIEPMedia`, `getTaxaConcepçãoIA`, `getDiasEmAberto`, `getTaxaServiço`, `getIdadePrimeiraPariçao`)
+- `queryParametrosReprodutivos.get` — metas da fazenda
+
+**Seções do Dashboard**:
+1. **Cards de contagem rápida** — Prenhez Confirmada (`status = prenha`), Fêmeas em Aberto (`vazia + inseminada`), Em Lactação, Repetidoras (card clicável que expande lista inline com badge âmbar)
+2. **Kanban de Acompanhamento** (3 colunas, sem coluna "Histórico") — Diagnóstico Pendente, Parto Próximo, Secagem Próxima; com filtros de Lote, Data Inicial e Data Final
+3. **Indicadores Reprodutivos** — Taxa de Prenhez (com Progress bar vs meta), PSM Médio, IEP Médio, Taxa Concepção IA, Dias em Aberto, Taxa de Serviço, Idade 1ª Parição
+4. **Distribuição por Status Reprodutivo** — gráfico de pizza (Recharts via `next/dynamic ssr:false`)
+
+**Aba Histórico** (`EventosListagem`): tabela filtrada por tipo e data — apenas eventos reprodutivos (cobertura, diagnóstico, parto, secagem, aborto, descarte). `ReproducaoStats` (cards coloridos) foi removido.
+
+**`CalendarioReprodutivo.tsx`** e **`IndicadoresCard.tsx`** e **`RepetidorasAlerta.tsx`** — componentes legados, não mais usados pelo Dashboard principal. Podem ser removidos em cleanup futuro se nenhuma outra rota os importar.
 
 ### Reprodutores (`/reproducao/reprodutores/[id]`)
 - Página detalhada: Server Component busca dados reais via `queryReprodutores.getById(id)`

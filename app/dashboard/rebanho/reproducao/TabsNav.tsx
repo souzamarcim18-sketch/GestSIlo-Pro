@@ -2,33 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Tab {
   label: string;
   href: string;
-  badge?: number;
-  icon?: React.ReactNode;
 }
 
-interface TabsNavProps {
-  badgeRepetidoras?: number;
-}
-
-export function TabsNav({ badgeRepetidoras = 0 }: TabsNavProps) {
+export function TabsNav() {
   const pathname = usePathname();
 
   const tabs: Tab[] = [
-    { label: 'Calendário', href: '/dashboard/rebanho/reproducao' },
-    { label: 'Eventos', href: '/dashboard/rebanho/reproducao/eventos' },
-    { label: 'Indicadores', href: '/dashboard/rebanho/reproducao/indicadores' },
-    {
-      label: 'Repetidoras',
-      href: '/dashboard/rebanho/reproducao/repetidoras',
-      badge: badgeRepetidoras,
-      icon: <AlertTriangle className="h-4 w-4" />,
-    },
+    { label: 'Dashboard', href: '/dashboard/rebanho/reproducao' },
+    { label: 'Histórico', href: '/dashboard/rebanho/reproducao/eventos' },
     { label: 'Reprodutores', href: '/dashboard/rebanho/reproducao/reprodutores' },
     { label: 'Parâmetros', href: '/dashboard/rebanho/reproducao/parametros' },
   ];
@@ -37,7 +23,6 @@ export function TabsNav({ badgeRepetidoras = 0 }: TabsNavProps) {
     <div className="border-b border-border/40 px-4 sm:px-6">
       <nav className="flex gap-6" aria-label="Reprodução">
         {tabs.map((tab) => {
-          // Para a aba raiz "Calendário", usar igualdade exata
           const isActive =
             tab.href === '/dashboard/rebanho/reproducao'
               ? pathname === tab.href
@@ -55,13 +40,7 @@ export function TabsNav({ badgeRepetidoras = 0 }: TabsNavProps) {
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              {tab.icon}
               {tab.label}
-              {tab.badge != null && tab.badge > 0 && (
-                <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-xs font-semibold text-white">
-                  {tab.badge}
-                </span>
-              )}
             </Link>
           );
         })}
