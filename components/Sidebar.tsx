@@ -114,14 +114,14 @@ function NavItem({
         className={cn(
           'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2',
           isActive
-            ? 'text-[#00c45a]'
-            : 'text-[#688070] hover:text-[#dceede] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-150',
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all duration-150',
         )}
         style={isActive ? {
-          background: 'rgba(0,196,90,0.12)',
-          border: '1px solid rgba(0,196,90,0.2)',
+          background: 'var(--green-dim)',
+          border: '1px solid var(--green-border)',
           borderRadius: 8,
-          boxShadow: '0 0 12px rgba(0,196,90,0.15)',
+          boxShadow: '0 0 12px var(--green-glow)',
         } : undefined}
       >
         <span className="flex items-center gap-2">
@@ -129,7 +129,7 @@ function NavItem({
             aria-hidden="true"
             className={cn(
               'h-4 w-4 flex-shrink-0',
-              isActive ? 'text-[#00c45a]' : 'text-[#688070]'
+              isActive ? 'text-primary' : 'text-muted-foreground'
             )}
           />
           <span>{label}</span>
@@ -137,7 +137,7 @@ function NavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0"
+            className="ml-1 bg-[color:var(--gold-dim)] text-status-warning border-[color:var(--gold-border)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0"
           >
             Em breve
           </Badge>
@@ -172,14 +172,14 @@ function SubNavItem({
         className={cn(
           'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 pl-8 pr-3 mr-2',
           isActive
-            ? 'text-[#00c45a]'
-            : 'text-[#688070] hover:text-[#dceede] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-150',
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all duration-150',
         )}
         style={isActive ? {
-          background: 'rgba(0,196,90,0.12)',
-          border: '1px solid rgba(0,196,90,0.2)',
+          background: 'var(--green-dim)',
+          border: '1px solid var(--green-border)',
           borderRadius: 8,
-          boxShadow: '0 0 12px rgba(0,196,90,0.15)',
+          boxShadow: '0 0 12px var(--green-glow)',
         } : undefined}
       >
         <span className="flex items-center gap-2">
@@ -187,7 +187,7 @@ function SubNavItem({
             aria-hidden="true"
             className={cn(
               'h-3 w-3 flex-shrink-0',
-              isActive ? 'text-[#00c45a]' : 'text-[#688070]'
+              isActive ? 'text-primary' : 'text-muted-foreground'
             )}
           />
           <span>{label}</span>
@@ -195,7 +195,7 @@ function SubNavItem({
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="ml-1 bg-[rgba(245,208,0,0.09)] text-status-warning border-[rgba(245,208,0,0.2)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0"
+            className="ml-1 bg-[color:var(--gold-dim)] text-status-warning border-[color:var(--gold-border)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0"
           >
             Em breve
           </Badge>
@@ -228,13 +228,13 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   return (
     <div
       className="flex flex-col h-full w-64 relative"
-      style={{ background: '#0a140d', borderRight: '1px solid rgba(255,255,255,0.065)' }}
+      style={{ background: 'var(--sidebar)', borderRight: '1px solid var(--border)' }}
     >
       {/* Glow topo */}
       <div
         style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 120,
-          background: 'linear-gradient(180deg, rgba(0,196,90,0.07) 0%, transparent 100%)',
+          background: 'linear-gradient(180deg, var(--green-dim) 0%, transparent 100%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -275,7 +275,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </ul>
 
             {/* Separador */}
-            <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }} />
+            <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
 
             {/* Bloco 2 — Gerencial */}
             <div className="pb-2">
@@ -299,7 +299,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </div>
 
             {/* Separador */}
-            <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }} />
+            <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
 
             {/* Bloco 3 — Ferramentas */}
             <div className="pb-2">
@@ -334,7 +334,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
             </div>
 
             {/* Separador */}
-            <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }} />
+            <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
 
             {/* Bloco 4 — Sistema */}
             <div className="pb-2">
@@ -361,10 +361,10 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
       </div>
 
       {/* Rodapé — Sair */}
-      <div className="p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.065)' }}>
+      <div className="p-4" style={{ borderTop: '1px solid var(--border)' }}>
         <Button
           variant="ghost"
-          className="text-[#688070] hover:text-[#e05454] hover:bg-[rgba(224,84,84,0.08)] rounded-lg transition-all w-full justify-start py-1.5 px-3 h-auto text-xs font-semibold"
+          className="text-muted-foreground hover:text-destructive hover:bg-[color:var(--red-dim)] rounded-lg transition-all w-full justify-start py-1.5 px-3 h-auto text-xs font-semibold"
           onClick={handleLogout}
           aria-label="Sair da conta"
         >

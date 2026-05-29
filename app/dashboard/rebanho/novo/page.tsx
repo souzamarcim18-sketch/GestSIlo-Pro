@@ -39,7 +39,15 @@ export default function NovoAnimalPage() {
       return;
     }
 
-    listLotes(100, 0).then(setLotes).catch(() => toast.error('Erro ao carregar lotes'));
+    const carregarLotes = async () => {
+      try {
+        const data = await listLotes(100, 0);
+        setLotes(data);
+      } catch {
+        toast.error('Erro ao carregar lotes');
+      }
+    };
+    carregarLotes();
   }, [authLoading, profile, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

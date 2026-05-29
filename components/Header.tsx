@@ -113,7 +113,7 @@ export function Header() {
 
         {/* Nome + Fazenda — desktop */}
         <div className="hidden md:flex flex-col items-end" aria-hidden="true">
-          <p className="text-sm font-medium text-[#dceede] leading-tight">
+          <p className="text-sm font-medium text-foreground leading-tight">
             {displayName}
           </p>
           {fazendaNome && (
@@ -132,8 +132,8 @@ export function Header() {
             <Avatar className="h-10 w-10 rounded-2xl border-2 border-primary/30 shadow-sm">
               <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt="" />
               <AvatarFallback
-                className="font-bold rounded-2xl text-sm text-[#00c45a]"
-                style={{ background: 'rgba(0,196,90,0.15)', border: '1px solid rgba(0,196,90,0.3)' }}
+                className="font-bold rounded-2xl text-sm text-primary"
+                style={{ background: 'var(--green-dim)', border: '1px solid var(--green-glow)' }}
               >
                 {initials}
               </AvatarFallback>
@@ -167,13 +167,13 @@ export function Header() {
             <div className="p-1">
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl p-3 cursor-pointer text-[#dceede] hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)]"
+                className="rounded-xl p-3 cursor-pointer text-foreground hover:bg-white/5 focus:bg-white/5"
               >
                 Perfil do Usuário
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl p-3 cursor-pointer text-[#dceede] hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)]"
+                className="rounded-xl p-3 cursor-pointer text-foreground hover:bg-white/5 focus:bg-white/5"
               >
                 Configurações
               </DropdownMenuItem>
@@ -184,7 +184,7 @@ export function Header() {
             <div className="p-1">
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="rounded-xl p-3 cursor-pointer text-[#e05454] hover:bg-[rgba(224,84,84,0.08)] focus:bg-[rgba(224,84,84,0.08)] focus:text-[#e05454]"
+                className="rounded-xl p-3 cursor-pointer text-destructive hover:bg-[color:var(--red-dim)] focus:bg-[color:var(--red-dim)] focus:text-destructive"
               >
                 Sair da conta
               </DropdownMenuItem>

@@ -21,7 +21,7 @@ export function Breadcrumbs() {
       {/* Home */}
       <Link
         href="/dashboard"
-        className="flex items-center transition-colors flex-shrink-0 text-[#688070] hover:text-[#dceede]"
+        className="flex items-center transition-colors flex-shrink-0 text-muted-foreground hover:text-foreground"
         aria-label="Voltar ao Dashboard"
       >
         <Home className="h-3.5 w-3.5" />
@@ -34,7 +34,7 @@ export function Breadcrumbs() {
 
         return (
           <div key={segment.href} className="flex items-center gap-1.5 flex-shrink-0">
-            <ChevronRight className="h-3 w-3 text-[#2a4433]" aria-hidden="true" />
+            <ChevronRight className="h-3 w-3 text-text-faint" aria-hidden="true" />
 
             {segment.isLoading ? (
               <Skeleton className="h-3.5 w-20" />
@@ -44,8 +44,8 @@ export function Breadcrumbs() {
                 className={cn(
                   'transition-colors whitespace-nowrap text-xs leading-none',
                   isLast
-                    ? 'font-semibold text-[#dceede] pointer-events-none'
-                    : 'text-[#688070] hover:text-[#dceede]'
+                    ? 'font-semibold text-foreground pointer-events-none'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-current={isLast ? 'page' : undefined}
               >

@@ -180,30 +180,34 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
 
         if (needsUsos)
           tasks.push(
-            q.usoMaquinas.listByMaquinas(ids).then((d) => {
+            (async () => {
+              const d = await q.usoMaquinas.listByMaquinas(ids);
               if (!cancelled) { setUsos(d); fetchedRef.current.add('usos'); }
-            })
+            })()
           );
 
         if (needsManutencoes)
           tasks.push(
-            q.manutencoes.listByMaquinas(ids).then((d) => {
+            (async () => {
+              const d = await q.manutencoes.listByMaquinas(ids);
               if (!cancelled) { setManutencoes(d); fetchedRef.current.add('manutencoes'); }
-            })
+            })()
           );
 
         if (needsAbastecimentos)
           tasks.push(
-            q.abastecimentos.listByMaquinas(ids).then((d) => {
+            (async () => {
+              const d = await q.abastecimentos.listByMaquinas(ids);
               if (!cancelled) { setAbastecimentos(d); fetchedRef.current.add('abastecimentos'); }
-            })
+            })()
           );
 
         if (needsPlanos)
           tasks.push(
-            q.planosManutencao.listByMaquinas(ids).then((d) => {
+            (async () => {
+              const d = await q.planosManutencao.listByMaquinas(ids);
               if (!cancelled) { setPlanos(d); fetchedRef.current.add('planos'); }
-            })
+            })()
           );
 
         if (tasks.length > 0) await Promise.all(tasks);

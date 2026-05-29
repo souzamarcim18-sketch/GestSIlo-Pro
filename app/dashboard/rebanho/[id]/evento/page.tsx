@@ -133,7 +133,15 @@ export default function EventoPage() {
   const tipoSelecionado = watch('tipo');
 
   useEffect(() => {
-    listLotes(100, 0).then(setLotes).catch(() => {});
+    const carregarLotes = async () => {
+      try {
+        const data = await listLotes(100, 0);
+        setLotes(data);
+      } catch {
+        // silencioso — lotes são opcionais nesta tela
+      }
+    };
+    carregarLotes();
   }, []);
 
   const onSubmit = handleSubmit(async (v) => {

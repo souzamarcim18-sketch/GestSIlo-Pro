@@ -62,12 +62,12 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex h-9 w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-[#dceede] outline-none transition-all focus:border-[rgba(0,196,90,0.5)] focus:ring-2 focus:ring-[rgba(0,196,90,0.15)] disabled:pointer-events-none disabled:opacity-50 data-placeholder:text-[#688070] data-[size=sm]:h-7 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex h-9 w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-all focus:border-ring/50 focus:ring-2 focus:ring-ring/15 disabled:pointer-events-none disabled:opacity-50 data-placeholder:text-muted-foreground data-[size=sm]:h-7 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       style={{
-        background: 'rgba(255,255,255,0.052)',
-        border: '1px solid rgba(255,255,255,0.065)',
+        background: 'var(--input)',
+        border: '1px solid var(--border)',
       }}
       {...props}
     >
@@ -108,8 +108,8 @@ function SelectContent({
         <SelectPrimitive.Popup
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
-          className={cn("relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-hidden rounded-xl text-[#dceede] shadow-xl duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className)}
-          style={{ background: '#0f1f14', border: '1px solid rgba(255,255,255,0.065)' }}
+          className={cn("relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-hidden rounded-xl text-foreground shadow-xl duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className)}
+          style={{ background: 'var(--sidebar)', border: '1px solid var(--border)' }}
           {...props}
         >
           <SelectScrollUpButton />
@@ -156,7 +156,7 @@ function SelectItem({
       data-slot="select-item"
       value={value}
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm outline-none transition-colors data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-[rgba(0,196,90,0.10)] data-highlighted:text-[#00c45a] data-selected:text-[#00c45a] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm outline-none transition-colors data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-[color:var(--green-dim)] data-highlighted:text-primary data-selected:text-primary [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

@@ -79,7 +79,8 @@
       "Bash(git -C \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" status)",
       "Bash(git -C \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" diff)",
       "Bash(git -C \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" log --oneline -5)",
-      "Bash(git -C 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro' commit -m ' *)"
+      "Bash(git -C 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro' commit -m ' *)",
+      "Bash(grep -n \"#[0-9a-fA-F]\\\\{3,6\\\\}\\\\|rgba\\(\" c:/Projetos/GestSilo/GestSIlo-Pro/components/Header.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/Sidebar.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/ui/button.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/ui/input.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/ui/select.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/Breadcrumbs.tsx)"
     ],
     "additionalDirectories": [
       "\\tmp"
