@@ -13,7 +13,7 @@
 - **Deploy**: Vercel (production + preview automático por branch)
 - **Linguagem**: TypeScript 5.9 strict
 - **UI**: shadcn/ui + Tailwind CSS 4.1 + Lucide React
-- **Recursos**: PWA offline-ready, temas escuro/claro, gráficos (Recharts com `next/dynamic` + `ssr: false`), formulários (React Hook Form + Zod)
+- **Recursos**: PWA offline-ready (`@serwist/next` + `serwist`), temas escuro/claro, gráficos (Recharts com `next/dynamic` + `ssr: false`), formulários (React Hook Form + Zod)
 
 ### Segurança & Infraestrutura
 - **Rate Limiting**: Upstash Redis (`@upstash/ratelimit`) — rotas de auth protegidas
@@ -27,6 +27,7 @@
 - **ESLint**: regra `@typescript-eslint/no-explicit-any: "error"` ativa em `eslint.config.mjs` — zero ocorrências de `any` no codebase
 - **Dependências**: `shadcn` movido para `devDependencies` (sem import runtime); `@types/jspdf` removido (jsPDF 2.x expõe seus próprios tipos); `@testing-library/react` e `@testing-library/jest-dom` removidos (sem uso nos testes); `use-debounce` removido — hook debounce implementado localmente em `lib/hooks/useInsumos.ts`
 - **CSP `unsafe-eval`**: remoção condicional (prod vs dev) pendente de aprovação — aguardar instrução explícita antes de alterar `next.config.ts`
+- **PWA — migração Serwist (2026-05-29)**: `next-pwa` v5.6.0 (abandonado, sem suporte ao App Router) substituído por `@serwist/next` + `serwist` v9.5.x. Service Worker em `app/sw.ts` com 14 estratégias de cache. `tsconfig.json` recebeu `"webworker"` em `lib` e `public/sw.js` em `exclude`. `next.config.ts` usa `withSerwistInit` (wrapping externo, antes do `withSentryConfig`). SW desabilitado em `development`. Arquivos `workbox-*.js` removidos do `public/`.
 
 ---
 
@@ -384,6 +385,8 @@ middleware.ts                        # Valida sessão, setAll/remove cookies; re
 sentry.client.config.ts
 sentry.server.config.ts
 instrumentation.ts
+app/sw.ts                            # Service Worker Serwist — 14 estratégias de cache; /api/auth/* excluído do cache
+app/~offline/page.tsx                # Página de fallback offline (precacheada pelo Serwist)
 .github/
 └── workflows/
     └── backup-db.yml                # Backup semanal Cloudflare R2
@@ -515,7 +518,7 @@ export default async function ExemploPage() {
 
 ### Arquivos Intocáveis (Verificar com revisão)
 Não modifique sem instrução explícita:
-- `next.config.ts` — contém headers de segurança críticos
+- `next.config.ts` — contém headers de segurança críticos + configuração Serwist (`withSerwistInit`) + `withSentryConfig`
 - `app/globals.css` — fonte de verdade do tema Tailwind (atualizado 2026-05-12)
 - `colors_and_type.css` — referência de tokens de design (atualizado 2026-05-12)
 - `DESIGN-SYSTEM.md` — especificação de padrões (atualizado 2026-05-12)
@@ -666,7 +669,7 @@ npm run db:types     # Gerar tipos TypeScript do Supabase (requer SUPABASE_PROJE
 ## Regras Invioláveis — Nunca Faça
 
 - ❌ Altere `.env` ou `.env.local`
-- ❌ Altere `next.config.ts` sem instrução explícita (contém headers de segurança críticos)
+- ❌ Altere `next.config.ts` sem instrução explícita (contém headers de segurança críticos + configuração Serwist + Sentry)
 - ❌ Altere `turbo.json` ou configurações de build
 - ❌ Reescreva componentes inteiros sem ser pedido
 - ❌ Remova espaços em branco ou refatore sem contexto

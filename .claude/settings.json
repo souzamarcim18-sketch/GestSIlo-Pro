@@ -81,7 +81,15 @@
       "Bash(git -C \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\" log --oneline -5)",
       "Bash(git -C 'c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro' commit -m ' *)",
       "Bash(grep -n \"#[0-9a-fA-F]\\\\{3,6\\\\}\\\\|rgba\\(\" c:/Projetos/GestSilo/GestSIlo-Pro/components/Header.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/Sidebar.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/ui/button.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/ui/input.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/ui/select.tsx c:/Projetos/GestSilo/GestSIlo-Pro/components/Breadcrumbs.tsx)",
-      "Bash(Remove-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\components\\\\ui\\\\PeriodoFilter.tsx\")"
+      "Bash(Remove-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\components\\\\ui\\\\PeriodoFilter.tsx\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}; print\\('\\\\n'.join\\(f'{k}: {v}' for k,v in deps.items\\(\\) if 'pwa' in k.lower\\(\\) or 'workbox' in k.lower\\(\\) or 'serwist' in k.lower\\(\\) or 'sw' in k.lower\\(\\)\\)\\)\")",
+      "Bash(Select-String -NotMatch \"node_modules|\\\\.next|sw\\\\.js\\\\.map|workbox-\")",
+      "Bash(Remove-Item -Force public/sw.js, public/sw.js.map -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Force public/workbox-*.js, public/workbox-*.js.map -ErrorAction SilentlyContinue)",
+      "Bash(Get-ChildItem public *)",
+      "Bash(Write-Output \"Limpeza concluída\")",
+      "Bash(rm -f public/sw.js public/sw.js.map public/workbox-*.js public/workbox-*.js.map)",
+      "Bash(ls public/*.js public/*.map)"
     ],
     "additionalDirectories": [
       "\\tmp"
