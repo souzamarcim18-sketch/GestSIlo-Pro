@@ -17,13 +17,29 @@ export function useOfflineSync() {
 
   const handleSync = useCallback(async () => {
     if (isSyncing) return;
-    
+
     setIsSyncing(true);
     try {
+      // Verificar sessão antes de sincronizar — JWT pode ter expirado enquanto offline
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        toast.error('Sua sessão expirou. Faça login novamente para sincronizar os dados offline.');
+        return;
+      }
+      await supabase.auth.refreshSession();
+
       await syncAll(supabase);
       await updateStatus();
     } catch (error) {
-      console.error('[useOfflineSync] Erro na sincronização:', error);
+      const isAuthError =
+        (error instanceof Error && error.message.includes('JWT')) ||
+        (typeof error === 'object' && error !== null && 'code' in error && (error as { code: unknown }).code === 401);
+
+      if (isAuthError) {
+        toast.error('Sessão expirada durante a sincronização. Faça login e tente novamente.');
+      } else {
+        console.error('[useOfflineSync] Erro na sincronização:', error);
+      }
     } finally {
       setIsSyncing(false);
     }

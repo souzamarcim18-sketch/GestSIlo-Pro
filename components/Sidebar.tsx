@@ -29,6 +29,7 @@ import {
   NotebookPen,
   Beef,
   ShoppingCart,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,13 @@ const sistemaRoutes: RouteItem[] = [
   { label: 'Configurações', icon: Settings,   href: '/dashboard/configuracoes', badge: null },
   { label: 'Suporte',       icon: HelpCircle, href: '/dashboard/suporte',       badge: null },
 ];
+
+const sincronizacaoRoute: RouteItem = {
+  label: 'Sincronização',
+  icon: RefreshCw,
+  href: '/dashboard/configuracoes/sincronizacao',
+  badge: null,
+};
 
 // const rebanhoSubRoutes: RouteItem[] = [
 //   { label: 'Indicadores',    icon: BarChart3,          href: '/dashboard/rebanho/indicadores'             },
@@ -359,6 +367,15 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                     badge={route.badge}
                   />
                 ))}
+                {profile?.perfil !== 'Operador' && (
+                  <NavItem
+                    href={sincronizacaoRoute.href}
+                    icon={sincronizacaoRoute.icon}
+                    label={sincronizacaoRoute.label}
+                    isActive={pathname === sincronizacaoRoute.href}
+                    onNavigate={onNavigate}
+                  />
+                )}
               </ul>
             </div>
           </nav>
