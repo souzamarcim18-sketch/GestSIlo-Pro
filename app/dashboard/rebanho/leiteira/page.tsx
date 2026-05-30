@@ -118,22 +118,6 @@ export default async function LeiteiraPage() {
               </p>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Eficiência Alimentar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Disponível após configurar consumo no módulo de Silos
-              </p>
-              {/* TODO [backlog]: Eficiência alimentar (litros/kg MS).
-                  Bloqueado por: query de consumo do módulo Silos não disponível.
-                  Ref: SPEC-rebanho-v3.md Fase 6, BUGS-rebanho.md Seção 2.3 */}
-            </CardContent>
-          </Card>
         </div>
 
         {/* Painel Interativo */}
