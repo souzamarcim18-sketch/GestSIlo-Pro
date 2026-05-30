@@ -16,7 +16,7 @@ import {
   Leaf,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn, formatBRL } from '@/lib/utils';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import { KpiChartCard } from '@/components/widgets/KpiChartCard';
@@ -79,6 +79,42 @@ function KpiCard({
               <Icon className="h-4 w-4 text-[#00c45a]" />
             </div>
           )}
+        </div>
+      </Card>
+    </button>
+  );
+}
+
+function FinanceiroCard({
+  title,
+  value,
+  variante,
+  href,
+}: {
+  title: string;
+  value: string;
+  variante: 'receita' | 'despesa' | 'saldo_positivo' | 'saldo_negativo';
+  href: string;
+}) {
+  const router = useRouter();
+  const valueColor =
+    variante === 'receita'
+      ? 'text-[#00c45a]'
+      : variante === 'despesa'
+        ? 'text-[#f87171]'
+        : variante === 'saldo_positivo'
+          ? 'text-[#00c45a]'
+          : 'text-[#f87171]';
+  return (
+    <button
+      onClick={() => router.push(href)}
+      className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+    >
+      <Card className="rounded-[13px] p-4 h-full transition-all duration-300 group-hover:-translate-y-1">
+        <div className="space-y-1.5">
+          <p className="uppercase tracking-[0.13em] font-bold text-xs text-[#688070]">{title}</p>
+          <p className={cn('text-xl md:text-2xl font-black tracking-tight truncate', valueColor)}>{value}</p>
+          <p className="text-xs text-[#688070]">Mês corrente</p>
         </div>
       </Card>
     </button>
@@ -387,9 +423,15 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       {/* Financeiro */}
       <section aria-label="Financeiro">
         <SectionLabel>Financeiro</SectionLabel>
-        <div className="grid grid-cols-2 gap-4">
-          <KpiCard title="RECEITA DO MÊS" value={data.receitaMes} detail="Mês corrente" icon={TrendingUp} href="/dashboard/financeiro" />
-          <KpiCard title="DESPESA DO MÊS" value={data.despesaMes} detail="Mês corrente" icon={DollarSign} href="/dashboard/financeiro" />
+        <div className="grid grid-cols-3 gap-3">
+          <FinanceiroCard title="RECEITA DO MÊS" value={data.receitaMes} variante="receita" href="/dashboard/financeiro" />
+          <FinanceiroCard title="DESPESA DO MÊS" value={data.despesaMes} variante="despesa" href="/dashboard/financeiro" />
+          <FinanceiroCard
+            title="SALDO LÍQUIDO"
+            value={data.receitaMesNum === 0 && data.despesaMesNum === 0 ? '—' : formatBRL(data.receitaMesNum - data.despesaMesNum)}
+            variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+            href="/dashboard/financeiro"
+          />
         </div>
       </section>
 

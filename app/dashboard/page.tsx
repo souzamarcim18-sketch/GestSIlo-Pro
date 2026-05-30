@@ -4,7 +4,7 @@ import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 import type { CicloAgricola, ProximaOperacao } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
 import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
-import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastagens } from './alertas-helpers';
+import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastagens, derivarAlertasSilosAbertos } from './alertas-helpers';
 import { getAtividadesRecentes } from '@/lib/supabase/calendario';
 import { formatBRL } from '@/lib/utils';
 
@@ -293,14 +293,10 @@ export default async function DashboardPage() {
 
   // --- Financeiro ---
   const finData = finRes.data ?? [];
-  const receitaMes =
-    finData.length > 0
-      ? formatBRL(finData.filter((l) => l.tipo === 'Receita').reduce((acc, l) => acc + l.valor, 0))
-      : '—';
-  const despesaMes =
-    finData.length > 0
-      ? formatBRL(finData.filter((l) => l.tipo === 'Despesa').reduce((acc, l) => acc + l.valor, 0))
-      : '—';
+  const receitaMesNum = finData.filter((l) => l.tipo === 'Receita').reduce((acc, l) => acc + l.valor, 0);
+  const despesaMesNum = finData.filter((l) => l.tipo === 'Despesa').reduce((acc, l) => acc + l.valor, 0);
+  const receitaMes = finData.length > 0 ? formatBRL(receitaMesNum) : '—';
+  const despesaMes = finData.length > 0 ? formatBRL(despesaMesNum) : '—';
 
   // --- Frota ---
   const totalMaquinas = maquinasRes.count ?? 0;
@@ -479,6 +475,17 @@ export default async function DashboardPage() {
     return dias >= p.dias_descanso_ideal;
   }).length;
 
+  // Etapa 2 — alertas de silos abertos sem consumo há 3+ dias
+  const silosAbertosParaAlerta = silosData
+    .filter((s) => s.data_abertura_real)
+    .map((s) => ({ id: s.id, nome: s.nome, data_abertura_real: s.data_abertura_real }));
+  const movsParaAlerta = (movsRecentesRes.data ?? []).map((m) => ({
+    silo_id: m.silo_id,
+    tipo: m.tipo,
+    data: m.data,
+  }));
+  const alertasSilosAbertos = derivarAlertasSilosAbertos(silosAbertosParaAlerta, movsParaAlerta);
+
   const alertas: AlertaCritico[] = [
     ...alertasEtapa1,
     ...alertasInsumos,
@@ -486,6 +493,7 @@ export default async function DashboardPage() {
     ...alertasVacinacao,
     ...alertasProdutos,
     ...alertasPastagens,
+    ...alertasSilosAbertos,
   ];
 
   const rawUserName =
@@ -515,6 +523,8 @@ export default async function DashboardPage() {
     culturasAtivas,
     receitaMes,
     despesaMes,
+    receitaMesNum,
+    despesaMesNum,
     maquinasTotal,
     maquinasDetalhe,
     totalAnimais,

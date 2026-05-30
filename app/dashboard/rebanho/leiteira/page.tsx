@@ -4,6 +4,7 @@ import { getCurrentFazendaId } from '@/lib/auth/helpers';
 import {
   listProducoesLeiteirasNoPeriodo,
   totalProducaoLeiteiraPeriodo,
+  getDELMedioAtivo,
 } from '@/lib/supabase/rebanho-leiteira';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardLeiteiro } from '@/components/rebanho/leiteira/DashboardLeiteiro';
@@ -31,7 +32,7 @@ export default async function LeiteiraPage() {
   const dataFim = hoje.toISOString().split('T')[0];
 
   // Buscar animais fêmeas em lactação + dupla-aptidão
-  const [producoesData, totaisData, animaisRes] = await Promise.all([
+  const [producoesData, totaisData, animaisRes, delMedio] = await Promise.all([
     listProducoesLeiteirasNoPeriodo(dataInicio, dataFim),
     totalProducaoLeiteiraPeriodo(dataInicio, dataFim),
     supabase
@@ -43,6 +44,7 @@ export default async function LeiteiraPage() {
       .eq('sexo', 'Fêmea')
       .in('tipo_rebanho', ['leiteiro', 'dupla_aptidao'])
       .is('deleted_at', null),
+    getDELMedioAtivo(),
   ]);
 
   const animais = JSON.parse(JSON.stringify((animaisRes.data || []) as Animal[])) as Animal[];
@@ -60,6 +62,13 @@ export default async function LeiteiraPage() {
 
   const animalEmSeco = animais.filter((a) => a.status_reprodutivo === 'seca');
 
+  // Taxa de eficiência: vacas em lactação ÷ total de fêmeas adultas (lactação + seco + vazias)
+  const animaisVazias = animais.filter((a) => a.status_reprodutivo === 'vazia' && a.status === 'Ativo');
+  const totalFemeasAdultas = animalEmLactacao.length + animalEmSeco.length + animaisVazias.length;
+  const taxaEficiencia = totalFemeasAdultas > 0
+    ? Math.round((animalEmLactacao.length / totalFemeasAdultas) * 100)
+    : null;
+
   return (
     <div className="p-6 md:p-8">
       <div className="space-y-6">
@@ -69,7 +78,7 @@ export default async function LeiteiraPage() {
         </div>
 
         {/* KPIs */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Produção Hoje</CardTitle>
@@ -106,6 +115,20 @@ export default async function LeiteiraPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
+                DEL Médio
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {delMedio !== null ? `${delMedio} dias` : '—'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">dias em lactação</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Status do Rebanho
               </CardTitle>
             </CardHeader>
@@ -116,6 +139,20 @@ export default async function LeiteiraPage() {
               <p className="text-xs text-muted-foreground mt-1">
                 {animalEmSeco.length} em seco
               </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Eficiência do Rebanho
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {taxaEficiencia !== null ? `${taxaEficiencia}%` : '—'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">vacas em produção</p>
             </CardContent>
           </Card>
         </div>

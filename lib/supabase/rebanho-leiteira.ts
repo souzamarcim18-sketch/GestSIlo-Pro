@@ -154,6 +154,28 @@ export async function totalProducaoLeiteiraPeriodo(
   };
 }
 
+// ========== DEL MÉDIO (dias em lactação) das vacas ativas ==========
+
+export async function getDELMedioAtivo(): Promise<number | null> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('lactacoes')
+    .select('animal_id, data_inicio_parto')
+    .is('data_fim_secagem', null)
+    .is('deleted_at', null);
+
+  if (error || !data || data.length === 0) return null;
+
+  const hoje = new Date();
+  const somasDias = data.map((l) => {
+    const inicio = new Date(l.data_inicio_parto);
+    return Math.floor((hoje.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+  });
+
+  return Math.round(somasDias.reduce((a, b) => a + b, 0) / somasDias.length);
+}
+
 // ========== DELETAR PRODUÇÃO ==========
 
 export async function deletarProducaoLeiteira(id: string): Promise<void> {

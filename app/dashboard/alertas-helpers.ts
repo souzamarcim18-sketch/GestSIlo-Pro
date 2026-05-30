@@ -62,6 +62,62 @@ export function derivarAlertasEtapa1(params: {
   return alertas;
 }
 
+type SiloAberturaRow = {
+  id: string;
+  nome: string;
+  data_abertura_real: string | null;
+};
+
+type MovSiloRow = {
+  silo_id: string;
+  tipo: string;
+  data: string;
+};
+
+export function derivarAlertasSilosAbertos(
+  silos: SiloAberturaRow[],
+  movimentacoes: MovSiloRow[],
+): AlertaCritico[] {
+  const alertas: AlertaCritico[] = [];
+  const hoje = new Date();
+
+  for (const silo of silos) {
+    if (!silo.data_abertura_real) continue;
+
+    const saidas = movimentacoes.filter((m) => m.silo_id === silo.id && m.tipo === 'Saída');
+    if (saidas.length === 0) {
+      // Aberto mas nunca teve saída — verificar há quantos dias está aberto
+      const diasAberto = daysBetween(silo.data_abertura_real.split('T')[0], hoje.toISOString().split('T')[0]);
+      if (diasAberto >= 3) {
+        alertas.push({
+          id: `silo_aberto_sem_consumo_${silo.id}`,
+          tipo: 'silo_aberto_sem_consumo',
+          severidade: 'urgente',
+          mensagem: `Silo aberto sem consumo — ${silo.nome}`,
+          detalhe: `Aberto há ${diasAberto} dias sem registrar saída de silagem`,
+          href: '/dashboard/silos',
+        });
+      }
+      continue;
+    }
+
+    const ultimaSaida = saidas.sort((a, b) => b.data.localeCompare(a.data))[0];
+    const diasSemConsumo = daysBetween(ultimaSaida.data, hoje.toISOString().split('T')[0]);
+    if (diasSemConsumo >= 3) {
+      alertas.push({
+        id: `silo_aberto_sem_consumo_${silo.id}`,
+        tipo: 'silo_aberto_sem_consumo',
+        severidade: 'urgente',
+        mensagem: `Sem consumo há ${diasSemConsumo} dias — ${silo.nome}`,
+        detalhe: 'Silo aberto sem registro de saída nos últimos 3 dias',
+        href: '/dashboard/silos',
+      });
+    }
+  }
+
+  return alertas;
+}
+
 export function derivarAlertasPastagens(piquetes: PiqueteAlertaRow[]): AlertaCritico[] {
   const alertas: AlertaCritico[] = [];
   const hoje = new Date().toISOString().split('T')[0];

@@ -10,6 +10,7 @@ import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
 import { SiloCard, SiloKpiStrip } from './components';
 import { SiloForm } from './components/dialogs/SiloForm';
+import { AbrirSiloDialog } from './components/dialogs/AbrirSiloDialog';
 import { calcularDadosSilos, type SiloCardData } from './helpers';
 
 type InsumoSelect = { id: string; nome: string };
@@ -19,15 +20,17 @@ interface Props {
   initialTalhoes: Talhao[];
   initialInsumosLona: InsumoSelect[];
   initialInsumosInoculante: InsumoSelect[];
+  isAdmin?: boolean;
 }
 
-export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumosLona, initialInsumosInoculante }: Props) {
+export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumosLona, initialInsumosInoculante, isAdmin }: Props) {
   const router = useRouter();
   const [siloCardData, setSiloCardData] = useState<SiloCardData[]>(initialSiloCardData);
   const [talhoes] = useState<Talhao[]>(initialTalhoes);
   const [insumosLona] = useState<InsumoSelect[]>(initialInsumosLona);
   const [insumosInoculante] = useState<InsumoSelect[]>(initialInsumosInoculante);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
+  const [abrirSiloTarget, setAbrirSiloTarget] = useState<{ id: string; nome: string; dataAberturaPrevia?: string | null } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,7 +60,15 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
             <SiloCard
               key={card.silo.id}
               {...card}
+              isAdmin={isAdmin}
               onClick={() => router.push(`/dashboard/silos/${card.silo.id}`)}
+              onAbrirSilo={() =>
+                setAbrirSiloTarget({
+                  id: card.silo.id,
+                  nome: card.silo.nome,
+                  dataAberturaPrevia: card.silo.data_abertura_prevista,
+                })
+              }
             />
           ))}
 
@@ -83,6 +94,20 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
         insumosInoculante={insumosInoculante}
         onSuccess={fetchData}
       />
+
+      {abrirSiloTarget && (
+        <AbrirSiloDialog
+          open={!!abrirSiloTarget}
+          onOpenChange={(v) => { if (!v) setAbrirSiloTarget(null); }}
+          siloId={abrirSiloTarget.id}
+          siloNome={abrirSiloTarget.nome}
+          dataAberturaMinima={abrirSiloTarget.dataAberturaPrevia ?? undefined}
+          onSuccess={() => {
+            setAbrirSiloTarget(null);
+            fetchData();
+          }}
+        />
+      )}
     </div>
   );
 }

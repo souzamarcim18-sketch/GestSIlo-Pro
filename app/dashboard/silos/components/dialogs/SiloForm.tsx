@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { siloSchema, type SiloInput, TIPOS_SILO } from '@/lib/validations/silos';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type Silo, type Talhao } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
@@ -91,6 +92,8 @@ export function SiloForm({
           custo_aquisicao_rs_ton: silo.custo_aquisicao_rs_ton ?? null,
           insumo_lona_id: silo.insumo_lona_id ?? null,
           quantidade_lona: null,
+          insumo_lona2_id: (silo as Record<string, unknown>).insumo_lona2_id as string | null ?? null,
+          quantidade_lona2: null,
           insumo_inoculante_id: silo.insumo_inoculante_id ?? null,
           quantidade_inoculante: null,
         }
@@ -111,6 +114,8 @@ export function SiloForm({
           custo_aquisicao_rs_ton: null,
           insumo_lona_id: null,
           quantidade_lona: null,
+          insumo_lona2_id: null,
+          quantidade_lona2: null,
           insumo_inoculante_id: null,
           quantidade_inoculante: null,
         },
@@ -136,6 +141,8 @@ export function SiloForm({
         custo_aquisicao_rs_ton: null,
         insumo_lona_id: null,
         quantidade_lona: null,
+        insumo_lona2_id: null,
+        quantidade_lona2: null,
         insumo_inoculante_id: null,
         quantidade_inoculante: null,
       });
@@ -149,11 +156,10 @@ export function SiloForm({
   const talhaoId = form.watch('talhao_id');
   const dataFechamento = form.watch('data_fechamento');
 
-  // Auto-preenche data_abertura_prevista com +60 dias quando data_fechamento muda
+  // No create, abertura prevista é sempre fechamento + 60 dias (prazo mínimo de fermentação)
+  // No edit, sobrescreve apenas se o usuário mudar a data de fechamento
   useEffect(() => {
     if (!dataFechamento) return;
-    const dataAberturaAtual = form.getValues('data_abertura_prevista');
-    if (dataAberturaAtual) return; // não sobrescreve se já preenchido
     const d = new Date(dataFechamento + 'T00:00:00');
     d.setDate(d.getDate() + 60);
     form.setValue('data_abertura_prevista', d.toISOString().slice(0, 10));
@@ -170,6 +176,10 @@ export function SiloForm({
     }
     if (mode === 'create' && (!data.volume_ensilado_ton_mv || data.volume_ensilado_ton_mv <= 0)) {
       form.setError('volume_ensilado_ton_mv', { message: 'Volume é obrigatório para criar um silo' });
+      return;
+    }
+    if (mode === 'create' && !data.insumo_lona_id) {
+      form.setError('insumo_lona_id', { message: 'Lona é obrigatória' });
       return;
     }
 
@@ -190,6 +200,7 @@ export function SiloForm({
         observacoes_gerais: data.observacoes_gerais || null,
         custo_aquisicao_rs_ton: showCustoAquisicao ? (data.custo_aquisicao_rs_ton ?? null) : null,
         insumo_lona_id: data.insumo_lona_id || null,
+        insumo_lona2_id: data.insumo_lona2_id || null,
         insumo_inoculante_id: data.insumo_inoculante_id || null,
       };
 
@@ -220,7 +231,7 @@ export function SiloForm({
         }
 
         // Integração opcional com insumos (não reverte silo se falhar)
-        if (data.insumo_lona_id || data.insumo_inoculante_id) {
+        if (data.insumo_lona_id || data.insumo_lona2_id || data.insumo_inoculante_id) {
           try {
             if (data.insumo_lona_id) {
               const insumoLona = await q.insumos.getById(data.insumo_lona_id);
@@ -235,7 +246,24 @@ export function SiloForm({
                 destino_id: novoSilo.id,
                 origem: 'silo',
                 data: new Date().toISOString().split('T')[0],
-                observacoes: `Lona para silo: ${data.nome}`,
+                observacoes: `Lona de cobertura para silo: ${data.nome}`,
+              });
+            }
+
+            if (data.insumo_lona2_id) {
+              const insumoLona2 = await q.insumos.getById(data.insumo_lona2_id);
+              const quantidadeLona2 = data.quantidade_lona2 ?? 1;
+              await q.movimentacoesInsumo.create({
+                insumo_id: data.insumo_lona2_id,
+                tipo: 'Saída',
+                quantidade: quantidadeLona2,
+                valor_unitario: insumoLona2.custo_medio,
+                tipo_saida: 'USO_INTERNO',
+                destino_tipo: 'silo',
+                destino_id: novoSilo.id,
+                origem: 'silo',
+                data: new Date().toISOString().split('T')[0],
+                observacoes: `Lona barreira de oxigênio para silo: ${data.nome}`,
               });
             }
 
@@ -357,12 +385,24 @@ export function SiloForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="silo-abertura-prevista">Abertura Prevista</Label>
+              <Label htmlFor="silo-abertura-prevista">
+                Abertura Prevista
+                {mode === 'create' && (
+                  <span className="text-xs text-muted-foreground ml-1">(60 dias após fechamento)</span>
+                )}
+              </Label>
               <Input
                 id="silo-abertura-prevista"
                 type="date"
+                readOnly={mode === 'create'}
+                className={mode === 'create' ? 'bg-muted cursor-not-allowed' : ''}
                 {...form.register('data_abertura_prevista')}
               />
+              {mode === 'create' && (
+                <p className="text-xs text-muted-foreground">
+                  Prazo mínimo de fermentação — calculado automaticamente
+                </p>
+              )}
             </div>
           </div>
 
@@ -537,108 +577,177 @@ export function SiloForm({
             </div>
           )}
 
-          {/* Insumos */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="silo-lona">Lona</Label>
-              <Controller
-                control={form.control}
-                name="insumo_lona_id"
-                render={({ field }) => (
-                  <Select
-                    onValueChange={(val) => {
-                      field.onChange(val === '' ? null : val);
-                      if (val === '') form.setValue('quantidade_lona', null);
-                    }}
-                    value={field.value ?? ''}
-                  >
-                    <SelectTrigger id="silo-lona">
-                      <SelectValue placeholder="Selecione">
-                        {field.value
-                          ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                          : 'Nenhuma'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhuma</SelectItem>
-                      {insumosLona.map((i) => (
-                        <SelectItem key={i.id} value={i.id}>
-                          {i.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {form.watch('insumo_lona_id') && (
-                <div className="space-y-1">
-                  <Label htmlFor="silo-qtd-lona" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
-                  <Input
-                    id="silo-qtd-lona"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    placeholder="Ex: 1"
-                    {...form.register('quantidade_lona', {
-                      setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                    })}
-                  />
-                  {form.formState.errors.quantidade_lona && (
-                    <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona.message}</p>
+          {/* Insumos — Lonas */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium">
+              Lonas <span className="text-xs text-muted-foreground font-normal">(cobertura + barreira de O₂ opcional)</span>
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Lona principal — obrigatória no create */}
+              <div className="space-y-2">
+                <Label htmlFor="silo-lona">
+                  Lona de cobertura {mode === 'create' && <span className="text-destructive">*</span>}
+                </Label>
+                <Controller
+                  control={form.control}
+                  name="insumo_lona_id"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val === '' ? null : val);
+                        if (val === '') form.setValue('quantidade_lona', null);
+                      }}
+                      value={field.value ?? ''}
+                    >
+                      <SelectTrigger id="silo-lona">
+                        <SelectValue placeholder={mode === 'create' ? 'Selecione (obrigatório)' : 'Selecione'}>
+                          {field.value
+                            ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                            : (mode === 'create' ? 'Selecione (obrigatório)' : 'Nenhuma')}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mode === 'edit' && <SelectItem value="">Nenhuma</SelectItem>}
+                        {insumosLona.map((i) => (
+                          <SelectItem key={i.id} value={i.id}>
+                            {i.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="silo-inoc">Inoculante</Label>
-              <Controller
-                control={form.control}
-                name="insumo_inoculante_id"
-                render={({ field }) => (
-                  <Select
-                    onValueChange={(val) => {
-                      field.onChange(val === '' ? null : val);
-                      if (val === '') form.setValue('quantidade_inoculante', null);
-                    }}
-                    value={field.value ?? ''}
-                  >
-                    <SelectTrigger id="silo-inoc">
-                      <SelectValue placeholder="Selecione">
-                        {field.value
-                          ? (insumosInoculante.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                          : 'Nenhum'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {insumosInoculante.map((i) => (
-                        <SelectItem key={i.id} value={i.id}>
-                          {i.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                />
+                {form.formState.errors.insumo_lona_id && (
+                  <p className="text-sm text-destructive">{form.formState.errors.insumo_lona_id.message}</p>
                 )}
-              />
-              {form.watch('insumo_inoculante_id') && (
-                <div className="space-y-1">
-                  <Label htmlFor="silo-qtd-inoc" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
-                  <Input
-                    id="silo-qtd-inoc"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    placeholder={`Ex: ${form.watch('volume_ensilado_ton_mv') ? ((form.watch('volume_ensilado_ton_mv') ?? 0) / 1000).toFixed(3) : '0.001'}`}
-                    {...form.register('quantidade_inoculante', {
-                      setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                    })}
-                  />
-                  {form.formState.errors.quantidade_inoculante && (
-                    <p className="text-sm text-destructive">{form.formState.errors.quantidade_inoculante.message}</p>
+                {form.watch('insumo_lona_id') && (
+                  <div className="space-y-1">
+                    <Label htmlFor="silo-qtd-lona" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                    <Input
+                      id="silo-qtd-lona"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="Ex: 1"
+                      {...form.register('quantidade_lona', {
+                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                      })}
+                    />
+                    {form.formState.errors.quantidade_lona && (
+                      <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Lona de barreira de O₂ — opcional */}
+              <div className="space-y-2">
+                <Label htmlFor="silo-lona2">
+                  Barreira de oxigênio <span className="text-xs text-muted-foreground">(opcional)</span>
+                </Label>
+                <Controller
+                  control={form.control}
+                  name="insumo_lona2_id"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val === '' ? null : val);
+                        if (val === '') form.setValue('quantidade_lona2', null);
+                      }}
+                      value={field.value ?? ''}
+                    >
+                      <SelectTrigger id="silo-lona2">
+                        <SelectValue placeholder="Selecione">
+                          {field.value
+                            ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                            : 'Nenhuma'}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhuma</SelectItem>
+                        {insumosLona.map((i) => (
+                          <SelectItem key={i.id} value={i.id}>
+                            {i.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
-                </div>
-              )}
+                />
+                {form.watch('insumo_lona2_id') && (
+                  <div className="space-y-1">
+                    <Label htmlFor="silo-qtd-lona2" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                    <Input
+                      id="silo-qtd-lona2"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="Ex: 1"
+                      {...form.register('quantidade_lona2', {
+                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                      })}
+                    />
+                    {form.formState.errors.quantidade_lona2 && (
+                      <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona2.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* Inoculante — opcional */}
+          <div className="space-y-2">
+            <Label htmlFor="silo-inoc">
+              Inoculante <span className="text-xs text-muted-foreground">(opcional — nem todos os produtores utilizam)</span>
+            </Label>
+            <Controller
+              control={form.control}
+              name="insumo_inoculante_id"
+              render={({ field }) => (
+                <Select
+                  onValueChange={(val) => {
+                    field.onChange(val === '' ? null : val);
+                    if (val === '') form.setValue('quantidade_inoculante', null);
+                  }}
+                  value={field.value ?? ''}
+                >
+                  <SelectTrigger id="silo-inoc">
+                    <SelectValue placeholder="Selecione">
+                      {field.value
+                        ? (insumosInoculante.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                        : 'Nenhum'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum</SelectItem>
+                    {insumosInoculante.map((i) => (
+                      <SelectItem key={i.id} value={i.id}>
+                        {i.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.watch('insumo_inoculante_id') && (
+              <div className="space-y-1">
+                <Label htmlFor="silo-qtd-inoc" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                <Input
+                  id="silo-qtd-inoc"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder={`Ex: ${form.watch('volume_ensilado_ton_mv') ? ((form.watch('volume_ensilado_ton_mv') ?? 0) / 1000).toFixed(3) : '0.001'}`}
+                  {...form.register('quantidade_inoculante', {
+                    setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                  })}
+                />
+                {form.formState.errors.quantidade_inoculante && (
+                  <p className="text-sm text-destructive">{form.formState.errors.quantidade_inoculante.message}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Observações */}

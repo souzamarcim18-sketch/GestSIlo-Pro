@@ -19,7 +19,8 @@ export type AlertaTipo =
   | 'vacinacao_urgente'
   | 'piquete_superlotacao'
   | 'piquete_pronto_entrada'
-  | 'piquete_reforma_longa';
+  | 'piquete_reforma_longa'
+  | 'silo_aberto_sem_consumo';
 
 export type AlertaSeveridade = 'critico' | 'urgente' | 'aviso';
 
@@ -56,6 +57,8 @@ export interface DashboardData {
   // Financeiro
   receitaMes: string;
   despesaMes: string;
+  receitaMesNum: number;
+  despesaMesNum: number;
   // Frota
   maquinasTotal: string;
   maquinasDetalhe: string;

@@ -12,7 +12,7 @@ import { type Silo } from '@/lib/supabase';
 import { type SiloStatus } from '../helpers';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MoreVertical, Pencil, Eye, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { MoreVertical, Pencil, Eye, TrendingUp, TrendingDown, Minus, DoorOpen } from 'lucide-react';
 import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts';
 
 interface SiloCardProps {
@@ -24,9 +24,11 @@ interface SiloCardProps {
   status: SiloStatus;
   onClick?: () => void;
   onEdit?: () => void;
+  onAbrirSilo?: () => void;
   dataFechamento?: string | null;
   dataAberturaReal?: string | null;
   dataAberturaPrevia?: string | null;
+  isAdmin?: boolean;
 }
 
 const STATUS_CONFIG: Record<SiloStatus, { label: string; badgeClass: string; gaugeColor: string }> = {
@@ -164,9 +166,11 @@ export function SiloCard({
   status,
   onClick,
   onEdit,
+  onAbrirSilo,
   dataFechamento,
   dataAberturaReal,
   dataAberturaPrevia,
+  isAdmin,
 }: SiloCardProps) {
   const capacidade = getCapacidade(silo);
   const percentage = capacidade > 0 ? Math.min(Math.round((estoque / capacidade) * 100), 100) : 0;
@@ -236,6 +240,12 @@ export function SiloCard({
                 <DropdownMenuItem onClick={onEdit}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Editar
+                </DropdownMenuItem>
+              )}
+              {isAdmin && status === 'Fechado' && onAbrirSilo && (
+                <DropdownMenuItem onClick={onAbrirSilo}>
+                  <DoorOpen className="mr-2 h-4 w-4" />
+                  Registrar Abertura
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

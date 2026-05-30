@@ -377,7 +377,7 @@ lib/
 │   └── prefetch.ts                  # prefetchDadosCriticos(supabase, fazendaId) — Promise.allSettled; getPrefetchTimestamp()
 ├── validations/
 │   ├── auth.ts                      # loginSchema, registerSchema, forgotPasswordSchema, inviteSchema
-│   ├── silos.ts                     # siloSchema, movimentacaoSiloSchema, avaliacaoBromatologicaSchema, avaliacaoPspsSchema
+│   ├── silos.ts                     # siloSchema (lona2 adicionada), movimentacaoSiloSchema, avaliacaoBromatologicaSchema, avaliacaoPspsSchema, abrirSiloSchema
 │   ├── mao-de-obra.ts               # colaboradorFormSchema, atividadeFormSchema (refine: max 1 vínculo)
 │   ├── rebanho-lote.ts              # dadosCompartilhadosPorTipo, dadosIndividuaisPorTipo (discriminated unions), superRefine opu, criarEventosLoteSchema
 │   └── README.md                    # Padrão B oficial (RHF + Zod + shadcn/ui); lista features com Padrão A pendentes de migração
@@ -821,6 +821,7 @@ O card "Alertas Críticos" no dashboard é **totalmente dinâmico**: agrega aler
 | Vacinações (`eventos_sanitarios`) | próximos 15 dias, `tipo = 'vacinacao'` | `critico` (vencida) / `urgente` |
 | Produtos (`produtos`) | `estoque_atual < estoque_minimo`, filtrado em JS | `urgente` |
 | Piquetes (`piquetes` + `ocupacoes_piquete`) | superlotação, pronto para entrada, reforma longa | `urgente` / `aviso` |
+| Silos abertos (`silos` + `movimentacoes_silo`) | `data_abertura_real != null` + sem saída há ≥ 3 dias | `urgente` |
 
 **Regras importantes**:
 - Operador vê alertas do dashboard; queries de insumos/produtos retornam vazio via RLS (`sou_admin_ou_visualizador()`) — sem lógica condicional de perfil
@@ -839,12 +840,72 @@ Fluxo simples de primeiro acesso — não é um wizard multi-etapa.
 
 **Lacuna conhecida**: dashboard vazio após onboarding (sem empty states por módulo). Não há wizard multi-etapa — o wizard de 4 etapas é exclusivo do Planejamento de Silagem.
 
-### 🌾 Silos & Estoque (Core)
+### 🌾 Silos & Estoque (Core — atualizado 2026-05-30)
+
 - Cadastro e monitoramento de silos de silagem por fazenda
 - Controle de capacidade e estoque com percentuais visuais
 - Movimentações entrada/saída com rastreamento
 - Avaliação de qualidade: bromatológica e PSPS
 - Faixas de qualidade personalizáveis
+
+#### Regras de negócio do formulário de cadastro
+
+**Data de abertura prevista**:
+- Calculada automaticamente como `data_fechamento + 60 dias` (prazo mínimo de fermentação)
+- Campo **somente leitura** no modo create — o usuário não pode alterar
+- No modo edit o campo é editável, mas recalcula automaticamente se `data_fechamento` mudar
+- Lógica em `useEffect` em `SiloForm.tsx` — sempre sobrescreve ao mudar a data de fechamento
+
+**Lonas (colunas `insumo_lona_id` / `insumo_lona2_id` na tabela `silos`)**:
+- **Lona de cobertura (`insumo_lona_id`)**: **obrigatória** ao criar um silo — sem opção "Nenhuma" no create; validação no submit via `form.setError`
+- **Barreira de oxigênio (`insumo_lona2_id`)**: opcional — campo separado para quem usa 2 lonas; usa a mesma lista de insumos de lona
+- Ambas geram saída de estoque de insumos no momento do cadastro (`tipo_saida: 'USO_INTERNO'`, `destino_tipo: 'silo'`)
+- Migration: `supabase/migrations/20260529000005_silos_lona2_e_abertura.sql` — adiciona `insumo_lona2_id uuid REFERENCES insumos(id) ON DELETE SET NULL` e `quantidade_lona2 numeric(10,3)`
+
+**Inoculante (`insumo_inoculante_id`)**: opcional — label deixa explícito que nem todos os produtores utilizam
+
+#### Status do silo e abertura
+
+`data_abertura_real` é preenchida por **dois caminhos independentes**:
+
+1. **Automático**: primeira movimentação de saída registrada via `q.movimentacoesSilo.create()` — comportamento pré-existente, inalterado
+2. **Manual**: botão "Registrar Abertura" no dropdown do `SiloCard` (visível apenas para `Administrador`, apenas silos com status `Fechado`) → `AbrirSiloDialog` → `abrirSiloAction`
+
+`abrirSiloAction` (`app/dashboard/silos/actions.ts`):
+- Valida com `abrirSiloSchema`: data obrigatória, formato YYYY-MM-DD, não pode ser no futuro
+- Atualiza apenas `silos.data_abertura_real` — não cria movimentação
+- Retorna `{ success: boolean; error?: string }`
+
+Status derivados (função `obterStatusSilo` em `lib/supabase/silos.ts`):
+
+| Status | Condição |
+|---|---|
+| `Enchendo` | tem entradas, sem `data_fechamento` |
+| `Fechado` | tem `data_fechamento`, sem `data_abertura_real` |
+| `Aberto` | tem `data_abertura_real` e `estoque_atual > 0` |
+| `Vazio` | `estoque_atual = 0` |
+
+#### Alerta: silo aberto sem consumo (adicionado 2026-05-30)
+
+Tipo `silo_aberto_sem_consumo` em `AlertaTipo` (`dashboard-data.ts`).
+
+Função `derivarAlertasSilosAbertos(silos, movimentacoes)` em `alertas-helpers.ts`:
+- Condição: silo com `data_abertura_real != null` + última saída há ≥ 3 dias (ou nunca teve saída e aberto há ≥ 3 dias)
+- Severidade: `urgente`
+- Aparece no card "Alertas Críticos" do dashboard
+- Usa dados já presentes no `Promise.all` do dashboard: `silosRes` (id, nome, data_abertura_real) + `movsRecentesRes` (movimentações dos últimos 30 dias com campo `data`)
+
+**Arquivos principais**:
+- `lib/validations/silos.ts` — `siloSchema` (lona2), `abrirSiloSchema` (novo)
+- `app/dashboard/silos/actions.ts` — `abrirSiloAction` (novo)
+- `app/dashboard/silos/components/dialogs/SiloForm.tsx` — lona obrigatória, lona2, abertura prevista readonly
+- `app/dashboard/silos/components/dialogs/AbrirSiloDialog.tsx` — dialog de abertura manual (novo)
+- `app/dashboard/silos/components/SiloCard.tsx` — props `onAbrirSilo`, `isAdmin`; item "Registrar Abertura" no dropdown
+- `app/dashboard/silos/SilosClient.tsx` — estado `abrirSiloTarget`, monta `AbrirSiloDialog`
+- `app/dashboard/silos/page.tsx` — busca `perfil` e passa `isAdmin` para `SilosClient`
+- `app/dashboard/dashboard-data.ts` — `silo_aberto_sem_consumo` em `AlertaTipo`
+- `app/dashboard/alertas-helpers.ts` — `derivarAlertasSilosAbertos()` (novo)
+- `app/dashboard/page.tsx` — inclui `alertasSilosAbertos` no array `alertas`
 
 ### ⚖️ Balanço Forrageiro (100% implementado — 2026-05-29, pastagens integradas)
 

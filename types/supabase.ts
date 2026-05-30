@@ -3263,10 +3263,12 @@ export type Database = {
           id: string
           insumo_inoculante_id: string | null
           insumo_lona_id: string | null
+          insumo_lona2_id: string | null
           largura_m: number | null
           materia_seca_percent: number | null
           nome: string
           observacoes_gerais: string | null
+          quantidade_lona2: number | null
           talhao_id: string | null
           tipo: string
           volume_ensilado_ton_mv: number | null
@@ -3286,10 +3288,12 @@ export type Database = {
           id?: string
           insumo_inoculante_id?: string | null
           insumo_lona_id?: string | null
+          insumo_lona2_id?: string | null
           largura_m?: number | null
           materia_seca_percent?: number | null
           nome: string
           observacoes_gerais?: string | null
+          quantidade_lona2?: number | null
           talhao_id?: string | null
           tipo: string
           volume_ensilado_ton_mv?: number | null
@@ -3309,10 +3313,12 @@ export type Database = {
           id?: string
           insumo_inoculante_id?: string | null
           insumo_lona_id?: string | null
+          insumo_lona2_id?: string | null
           largura_m?: number | null
           materia_seca_percent?: number | null
           nome?: string
           observacoes_gerais?: string | null
+          quantidade_lona2?: number | null
           talhao_id?: string | null
           tipo?: string
           volume_ensilado_ton_mv?: number | null
@@ -3335,6 +3341,13 @@ export type Database = {
           {
             foreignKeyName: "silos_insumo_lona_id_fkey"
             columns: ["insumo_lona_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "silos_insumo_lona2_id_fkey"
+            columns: ["insumo_lona2_id"]
             isOneToOne: false
             referencedRelation: "insumos"
             referencedColumns: ["id"]

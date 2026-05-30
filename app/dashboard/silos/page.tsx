@@ -14,6 +14,13 @@ export default async function SilosPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect('/login');
 
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('perfil')
+    .eq('id', user.id)
+    .single();
+  const isAdmin = profileData?.perfil === 'Administrador';
+
   const [silosRes, talhoesRes, insumosRes] = await Promise.all([
     supabase
       .from('silos')
@@ -65,6 +72,7 @@ export default async function SilosPage() {
       initialTalhoes={talhoes}
       initialInsumosLona={insumosLona}
       initialInsumosInoculante={insumosInoculante}
+      isAdmin={isAdmin}
     />
   );
 }

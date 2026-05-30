@@ -77,6 +77,9 @@ export const siloSchema = z.object({
     .optional(),
   insumo_lona_id: z.string().uuid('ID da lona inválido').nullable().optional(),
   quantidade_lona: z.number().positive('Quantidade deve ser maior que 0').nullable().optional(),
+  // Segunda lona — barreira de oxigênio (opcional)
+  insumo_lona2_id: z.string().uuid('ID da segunda lona inválido').nullable().optional(),
+  quantidade_lona2: z.number().positive('Quantidade deve ser maior que 0').nullable().optional(),
   insumo_inoculante_id: z
     .string()
     .uuid('ID do inoculante inválido')
@@ -212,3 +215,19 @@ export const avaliacaoPspsSchema = avaliacaoPspsFormSchema.extend({
 });
 
 export type AvaliacaoPspsInput = z.infer<typeof avaliacaoPspsSchema>;
+
+/**
+ * Schema para registrar abertura manual de silo.
+ */
+export const abrirSiloSchema = z.object({
+  silo_id: z.string().uuid('ID do silo inválido'),
+  data_abertura_real: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida')
+    .refine((d) => d <= new Date().toISOString().split('T')[0], {
+      message: 'A data de abertura não pode ser no futuro',
+    }),
+  observacoes: z.string().max(500).nullable().optional(),
+});
+
+export type AbrirSiloInput = z.infer<typeof abrirSiloSchema>;
