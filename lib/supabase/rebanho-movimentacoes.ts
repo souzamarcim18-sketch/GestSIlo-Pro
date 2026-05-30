@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from './server';
+import { qServer } from './queries-audit';
 import type { Animal, Lote, EventoRebanho } from '@/lib/types/rebanho';
 
 // ---------------------------------------------------------------------------
@@ -336,6 +337,24 @@ export async function registrarVenda(payload: RegistrarVendaPayload): Promise<Ev
       .eq('id', animal_id);
 
     if (updateError) throw updateError;
+  }
+
+  // Registrar receita no financeiro quando valor informado
+  if (payload.valor_recebido) {
+    const animaisDesc = payload.animal_ids.length === 1
+      ? `1 animal`
+      : `${payload.animal_ids.length} animais`;
+    await qServer.financeiro.create({
+      tipo: 'Receita',
+      categoria: 'Rebanho',
+      descricao: `Venda de ${animaisDesc} para ${payload.comprador}`,
+      valor: payload.valor_recebido,
+      data: payload.data_evento,
+      forma_pagamento: null,
+      referencia_id: eventos[0]?.id ?? null,
+      referencia_tipo: 'venda_animal' as never,
+      natureza: 'variavel',
+    });
   }
 
   return JSON.parse(JSON.stringify(eventos));

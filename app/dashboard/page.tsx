@@ -129,7 +129,8 @@ export default async function DashboardPage() {
       .from('animais')
       .select('categoria')
       .eq('fazenda_id', fazendaId)
-      .eq('status', 'Ativo'),
+      .eq('status', 'Ativo')
+      .is('deleted_at', null),
     supabase
       .from('ciclos_agricolas')
       .select('id, cultura, data_colheita_prevista, data_colheita_real')
@@ -138,7 +139,8 @@ export default async function DashboardPage() {
       .from('animais')
       .select('tipo_rebanho')
       .eq('fazenda_id', fazendaId)
-      .eq('status', 'Ativo'),
+      .eq('status', 'Ativo')
+      .is('deleted_at', null),
     supabase
       .from('lotes')
       .select('id, nome')
@@ -149,6 +151,7 @@ export default async function DashboardPage() {
       .select('lote_id')
       .eq('fazenda_id', fazendaId)
       .eq('status', 'Ativo')
+      .is('deleted_at', null)
       .not('lote_id', 'is', null),
     supabase
       .from('eventos_dap')
