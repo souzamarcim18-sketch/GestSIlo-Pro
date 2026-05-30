@@ -24,9 +24,8 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
-import { type CicloAgricola, type AtividadeCampoInput, TipoOperacao, CategoriaPulverizacao } from '@/lib/types/talhoes';
+import { type CicloAgricola, TipoOperacao, CategoriaPulverizacao } from '@/lib/types/talhoes';
 import type { Insumo } from '@/lib/supabase';
-import type { MovimentacaoInsumo } from '@/types/insumos';
 import { AtividadeCampoSchema, type AtividadeCampoInput as AtividadeCampoInputType } from '@/lib/validators/atividades-campo';
 import {
   PreparoSoloFields,
@@ -39,7 +38,7 @@ import {
   IrrigacaoFields,
 } from './fields';
 import { ColaboradorSelect } from '@/components/ColaboradorSelect';
-import { vincularColaboradorAtividadeAction } from '@/app/dashboard/talhoes/actions';
+import { criarAtividadeCampoAction } from '@/app/dashboard/talhoes/actions';
 
 const TIPOS_OPERACAO = Object.values(TipoOperacao);
 
@@ -122,101 +121,16 @@ export function AtividadeDialog({
 
     setIsLoading(true);
     try {
-      const payload: AtividadeCampoInput = {
-        ciclo_id: cicloAtivo.id,
-        talhao_id: talhaoId,
-        tipo_operacao: data.tipo_operacao as TipoOperacao,
-        data: data.data,
-        maquina_id: data.maquina_id || null,
-        horas_maquina: data.horas_maquina || null,
-        observacoes: data.observacoes || null,
-        custo_manual: data.custo_manual || null,
-        custo_total: custoEstimado,
-        tipo_operacao_solo: data.tipo_operacao_solo || null,
-        insumo_id: data.insumo_id || null,
-        dose_ton_ha: data.dose_ton_ha || null,
-        semente_id: data.semente_id || null,
-        populacao_plantas_ha: data.populacao_plantas_ha || null,
-        sacos_ha: data.sacos_ha || null,
-        espacamento_entre_linhas_cm: data.espacamento_entre_linhas_cm || null,
-        categoria_pulverizacao: (data.categoria_pulverizacao as CategoriaPulverizacao | null) || null,
-        dose_valor: data.dose_valor || null,
-        dose_unidade: (data.dose_unidade as 'L/ha' | 'kg/ha' | null) || null,
-        volume_calda_l_ha: data.volume_calda_l_ha || null,
-        produtividade_ton_ha: data.produtividade_ton_ha || null,
-        maquina_colheita_id: data.maquina_colheita_id || null,
-        horas_colheita: data.horas_colheita || null,
-        maquina_transporte_id: data.maquina_transporte_id || null,
-        horas_transporte: data.horas_transporte || null,
-        maquina_compactacao_id: data.maquina_compactacao_id || null,
-        horas_compactacao: data.horas_compactacao || null,
-        valor_terceirizacao_r: data.valor_terceirizacao_r || null,
-        custo_amostra_r: data.custo_amostra_r || null,
-        metodo_entrada: (data.metodo_entrada as 'Manual' | 'Upload PDF' | null) || null,
-        ph_cacl2: data.ph_cacl2 || null,
-        mo_g_dm3: data.mo_g_dm3 || null,
-        p_mg_dm3: data.p_mg_dm3 || null,
-        k_mmolc_dm3: data.k_mmolc_dm3 || null,
-        ca_mmolc_dm3: data.ca_mmolc_dm3 || null,
-        mg_mmolc_dm3: data.mg_mmolc_dm3 || null,
-        al_mmolc_dm3: data.al_mmolc_dm3 || null,
-        h_al_mmolc_dm3: data.h_al_mmolc_dm3 || null,
-        s_mg_dm3: data.s_mg_dm3 || null,
-        b_mg_dm3: data.b_mg_dm3 || null,
-        cu_mg_dm3: data.cu_mg_dm3 || null,
-        fe_mg_dm3: data.fe_mg_dm3 || null,
-        mn_mg_dm3: data.mn_mg_dm3 || null,
-        zn_mg_dm3: data.zn_mg_dm3 || null,
-        lamina_mm: data.lamina_mm || null,
-        horas_irrigacao: data.horas_irrigacao || null,
-        custo_por_hora_r: data.custo_por_hora_r || null,
-      };
+      const result = await criarAtividadeCampoAction(data, {
+        cicloId: cicloAtivo.id,
+        talhaoId,
+        talhaoAreaHa: talhaoAreaHa || 1,
+        talhaoNome: cicloAtivo.cultura,
+      });
 
-      const atividade = await q.atividadesCampo.create(payload);
-      const criadaAtividadeId = atividade.id;
-
-      if (data.colaborador_id) {
-        vincularColaboradorAtividadeAction(atividade.id, data.colaborador_id).catch(
-          (e) => console.error('[AtividadeDialog] Falha ao vincular colaborador:', e)
-        );
-      }
-
-      // Integração Talhões → Insumos: Se aplicou insumo, criar saída
-      if (data.insumo_id && ['Calagem', 'Gessagem', 'Pulverização'].includes(data.tipo_operacao)) {
-        try {
-          const insumo = await q.insumos.getById(data.insumo_id);
-          const quantidade = data.dose_ton_ha ? data.dose_ton_ha * (talhaoAreaHa || 1) : 0;
-
-          if (quantidade > 0) {
-            // Validar estoque antes de criar saída
-            if (insumo.estoque_atual < quantidade) {
-              throw new Error(
-                `Estoque insuficiente de ${insumo.nome}. Disponível: ${insumo.estoque_atual} ${insumo.unidade}, Solicitado: ${quantidade}`
-              );
-            }
-
-            // Criar saída de insumo (integração)
-            await q.movimentacoesInsumo.create({
-              insumo_id: data.insumo_id,
-              tipo: 'Saída',
-              quantidade,
-              valor_unitario: insumo.custo_medio,
-              tipo_saida: 'USO_INTERNO',
-              destino_tipo: 'talhao',
-              destino_id: talhaoId,
-              origem: 'talhao',
-              data: data.data,
-              observacoes: `Aplicado em atividade: ${data.tipo_operacao}`,
-            } as Omit<MovimentacaoInsumo, 'id'>);
-          }
-        } catch (insumoError) {
-          console.error('Erro ao integrar insumo em talhão:', insumoError);
-          // Reverter atividade se falhar integração de insumo
-          if (criadaAtividadeId) {
-            await q.atividadesCampo.remove(criadaAtividadeId);
-          }
-          throw insumoError;
-        }
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
 
       // Gerar eventos DAP automaticamente ao registrar Plantio

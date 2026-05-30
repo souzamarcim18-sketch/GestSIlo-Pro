@@ -150,12 +150,65 @@ export function calcularCustoTotalEstimado(atividades: AtividadeCampo[]): number
 
 /**
  * Calcula o custo por hectare
- * Dependente de: calcularCustoTotalEstimado (que usa dados de custo_total das atividades)
- * TODO [Bloco Frota/Insumos]: Garantir que custo_total seja calculado automaticamente
  */
 export function calcularCustoPorHectare(custoTotal: number, areaHa: number): number {
   if (areaHa <= 0) return 0;
   return custoTotal / areaHa;
+}
+
+/**
+ * Breakdown do custo de produção por componente.
+ * Insumos: atividades com insumo_id (Calagem, Gessagem, Pulverização)
+ * Máquinas: atividades com maquina_id e horas_maquina
+ * Serviços: colheita/calagem terceirizada, irrigação, análise de solo
+ * Outros: custo_manual sem categoria específica
+ */
+export function calcularBreakdownCusto(atividades: AtividadeCampo[]): {
+  insumos: number;
+  maquinas: number;
+  servicos: number;
+  outros: number;
+} {
+  const OPERACOES_INSUMO = ['Calagem', 'Gessagem', 'Pulverização'];
+  const OPERACOES_SERVICO = ['Análise de Solo', 'Irrigação'];
+
+  let insumos = 0;
+  let maquinas = 0;
+  let servicos = 0;
+  let outros = 0;
+
+  for (const at of atividades) {
+    const custo = at.custo_total || 0;
+    if (custo === 0) continue;
+
+    if (at.custo_manual && at.custo_manual > 0) {
+      outros += at.custo_manual;
+      continue;
+    }
+
+    const temInsumo = at.insumo_id && OPERACOES_INSUMO.includes(at.tipo_operacao);
+    const temMaquina = at.maquina_id && at.horas_maquina;
+    const ehServico = OPERACOES_SERVICO.includes(at.tipo_operacao) ||
+      (at.tipo_operacao === 'Colheita' && at.valor_terceirizacao_r && at.valor_terceirizacao_r > 0) ||
+      (at.tipo_operacao === 'Calagem' && at.valor_terceirizacao_r && at.valor_terceirizacao_r > 0);
+
+    if (ehServico) {
+      servicos += custo;
+    } else if (temInsumo && temMaquina) {
+      // Custo misto: separar proporcionalmente não é possível sem refazer o cálculo
+      // Por ora, classificar pelo componente dominante
+      insumos += custo * 0.6;
+      maquinas += custo * 0.4;
+    } else if (temInsumo) {
+      insumos += custo;
+    } else if (temMaquina) {
+      maquinas += custo;
+    } else {
+      outros += custo;
+    }
+  }
+
+  return { insumos, maquinas, servicos, outros };
 }
 
 /**

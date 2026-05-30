@@ -12,6 +12,7 @@ export const criarAnimalSchema = z.object({
       message: 'Tipo de rebanho inválido',
     })
     .default('leiteiro'),
+  categoria: z.string().max(100).optional().nullable(),
   data_nascimento: z.string().refine((val) => {
     const d = new Date(val);
     return !isNaN(d.getTime()) && d <= new Date();
@@ -31,6 +32,7 @@ export const editarAnimalSchema = z.object({
   sexo: z
     .enum(['Macho', 'Fêmea'], { message: 'Sexo deve ser Macho ou Fêmea' })
     .optional(),
+  categoria: z.string().min(1).max(100).optional().nullable(),
   data_nascimento: z
     .string()
     .refine((val) => {
@@ -395,6 +397,7 @@ export const animalCSVRowSchema = z.object({
   tipo_rebanho: z
     .enum(['leiteiro', 'corte', 'dupla_aptidao'])
     .default('leiteiro'),
+  categoria: z.string().max(100).optional().nullable(),
   lote: z.string().optional().nullable(),
   raca: z.string().max(255).optional().nullable(),
   observacoes: z.string().optional().nullable(),

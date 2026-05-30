@@ -198,42 +198,43 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             >
               <div className="relative rounded-[13px] border border-border bg-card p-5 flex flex-col gap-4 h-full transition-all duration-300 group-hover:-translate-y-1 shadow-[0_2px_12px_rgba(0,0,0,0.08)] group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
                 <p className="text-sm font-bold uppercase tracking-[0.13em] text-[#688070]">Ocupação dos Silos</p>
-                <div className="flex items-center gap-5 flex-1">
-                  <div className="shrink-0">
-                    <GaugeOcupacaoSilos percentual={data.silosOcupacaoPctNum} />
-                  </div>
-                  <div className="flex flex-col gap-2 flex-1 min-w-0">
-                    <p className="text-2xl font-black tracking-tight text-[#dceede]">{data.silosGaugeDetalhe}</p>
-                    <p className="text-xs text-muted-foreground mb-1">estoque atual</p>
-                    {data.silosAbertosNomes.length > 0 ? (
-                      <div className="space-y-2">
-                        {data.silosAbertosNomes.map((nome) => (
-                          <div key={nome} className="space-y-1">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground truncate">{nome}</span>
-                              <span className="text-xs font-semibold text-[#dceede] ml-2">{data.silosOcupacaoPctNum}%</span>
-                            </div>
-                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all"
-                                style={{
-                                  width: `${data.silosOcupacaoPctNum}%`,
-                                  background: data.silosOcupacaoPctNum > 90
-                                    ? 'var(--chart-1)'
-                                    : data.silosOcupacaoPctNum > 50
-                                    ? 'var(--chart-2)'
-                                    : 'var(--chart-3)',
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">Nenhum silo aberto</p>
-                    )}
-                  </div>
+                {/* Gauge centralizado */}
+                <div className="flex justify-center">
+                  <GaugeOcupacaoSilos percentual={data.silosOcupacaoPctNum} />
                 </div>
+                {/* Estoque abaixo do gauge */}
+                <div className="text-center -mt-2">
+                  <p className="text-base font-bold tracking-tight text-[#dceede]">{data.silosGaugeDetalhe}</p>
+                  <p className="text-xs text-muted-foreground">estoque atual</p>
+                </div>
+                {/* Barras de silos ocupando largura total */}
+                {data.silosAbertosNomes.length > 0 ? (
+                  <div className="space-y-2 w-full">
+                    {data.silosAbertosNomes.map((nome) => (
+                      <div key={nome} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground truncate">{nome}</span>
+                          <span className="text-xs font-semibold text-[#dceede] ml-2">{data.silosOcupacaoPctNum}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${data.silosOcupacaoPctNum}%`,
+                              background: data.silosOcupacaoPctNum > 90
+                                ? 'var(--chart-1)'
+                                : data.silosOcupacaoPctNum > 50
+                                ? 'var(--chart-2)'
+                                : 'var(--chart-3)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center">Nenhum silo aberto</p>
+                )}
               </div>
             </button>
           </div>

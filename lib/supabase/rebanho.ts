@@ -247,7 +247,50 @@ export async function editarAnimal(
     throw new Error('Apenas administradores podem editar animais.');
   }
 
+  const animalAtual = await queryAnimais.getById(id);
   await queryAnimais.update(id, formData);
+
+  if (formData.categoria && formData.categoria !== animalAtual.categoria) {
+    const userId = await getCurrentUserId();
+    const supabase = await createSupabaseServerClient();
+    await supabase.from('eventos_rebanho').insert({
+      animal_id: id,
+      tipo: TipoEvento.MUDANCA_CATEGORIA,
+      data_evento: new Date().toISOString().split('T')[0],
+      observacoes: `Categoria alterada: ${animalAtual.categoria ?? 'sem categoria'} → ${formData.categoria}`,
+      usuario_id: userId,
+    });
+  }
+
+  return { success: true };
+}
+
+export async function mudarCategoriaAnimalAction(
+  id: string,
+  novaCategoria: string
+): Promise<{ success: boolean; error?: string }> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem alterar a categoria de animais.');
+  }
+
+  const animalAtual = await queryAnimais.getById(id);
+  if (animalAtual.categoria === novaCategoria) {
+    return { success: true };
+  }
+
+  await queryAnimais.update(id, { categoria: novaCategoria });
+
+  const userId = await getCurrentUserId();
+  const supabase = await createSupabaseServerClient();
+  await supabase.from('eventos_rebanho').insert({
+    animal_id: id,
+    tipo: TipoEvento.MUDANCA_CATEGORIA,
+    data_evento: new Date().toISOString().split('T')[0],
+    observacoes: `Categoria alterada: ${animalAtual.categoria ?? 'sem categoria'} → ${novaCategoria}`,
+    usuario_id: userId,
+  });
+
   return { success: true };
 }
 

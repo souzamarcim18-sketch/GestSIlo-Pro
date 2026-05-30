@@ -33,7 +33,46 @@ export enum TipoEvento {
   MORTE = 'morte',
   VENDA = 'venda',
   TRANSFERENCIA_LOTE = 'transferencia_lote',
+  MUDANCA_CATEGORIA = 'mudanca_categoria',
 }
+
+export const CATEGORIAS_POR_TIPO: Record<string, string[]> = {
+  leiteiro: [
+    'Bezerro',
+    'Bezerra',
+    'Novilha',
+    'Novilha (Prenha)',
+    'Novilho',
+    'Vaca em Lactação',
+    'Vaca Seca',
+    'Vaca Prenha',
+    'Vaca Vazia',
+    'Touro',
+  ],
+  corte: [
+    'Bezerro',
+    'Bezerra',
+    'Novilha',
+    'Novilho',
+    'Vaca Matriz',
+    'Boi',
+    'Boi Descartado',
+    'Fêmea Descartada',
+    'Touro',
+  ],
+  dupla_aptidao: [
+    'Bezerro',
+    'Bezerra',
+    'Novilha',
+    'Novilha (Prenha)',
+    'Novilho',
+    'Vaca em Lactação',
+    'Vaca Seca',
+    'Vaca Prenha',
+    'Vaca Vazia',
+    'Touro',
+  ],
+};
 
 // ========== INTERFACES PRINCIPAIS ==========
 

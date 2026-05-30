@@ -61,6 +61,7 @@ const TIPO_LABELS: Record<TipoEvento, string> = {
   [TipoEvento.MORTE]: 'Morte',
   [TipoEvento.VENDA]: 'Venda',
   [TipoEvento.TRANSFERENCIA_LOTE]: 'Transferência de Lote',
+  [TipoEvento.MUDANCA_CATEGORIA]: 'Mudança de Categoria',
 };
 
 const HOJE = new Date().toISOString().split('T')[0];

@@ -25,6 +25,7 @@ import {
   deletarLote,
   registrarEvento,
   importarAnimaisCSV,
+  mudarCategoriaAnimalAction as mudarCategoriaAnimal,
 } from '@/lib/supabase/rebanho';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { TipoEvento } from '@/lib/types/rebanho';
@@ -74,6 +75,21 @@ export async function deletarAnimalAction(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     await deletarAnimal(id);
+    revalidatePath('/dashboard/rebanho');
+    return { success: true };
+  } catch (error) {
+    const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
+    return { success: false, error: mensagem };
+  }
+}
+
+export async function mudarCategoriaAction(
+  id: string,
+  novaCategoria: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await mudarCategoriaAnimal(id, novaCategoria);
+    revalidatePath(`/dashboard/rebanho/${id}`);
     revalidatePath('/dashboard/rebanho');
     return { success: true };
   } catch (error) {

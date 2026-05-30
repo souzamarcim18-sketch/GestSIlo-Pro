@@ -3,6 +3,21 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
+export type PiqueteAtivoRow = {
+  piquete_id: string;
+  piquete_nome: string;
+  area_ha: number;
+  ua_suportada: number | null;
+  sistema_pastejo: string;
+  especie_forrageira: string | null;
+  pastagem_nome: string;
+  // ocupação ativa
+  ocupacao_id: string | null;
+  quantidade_animais: number | null;
+  ua_real: number | null;
+  data_entrada: string | null;
+};
+
 export type MovimentacaoSiloRow = {
   silo_id: string;
   silo_nome: string;
@@ -81,6 +96,55 @@ export async function getConsumoPorPeriodo(
     quantidade: row.quantidade,
     data: row.data,
   }));
+}
+
+export async function getPiquetesAtivosParaBalanco(
+  supabase: SupabaseClient<Database>
+): Promise<PiqueteAtivoRow[]> {
+  // Busca piquetes Em pastejo com a ocupação aberta (sem data_saida_real)
+  const { data, error } = await supabase
+    .from('piquetes')
+    .select(
+      'id, nome, area_ha, ua_suportada, pastagens(nome, especie_forrageira, sistema_pastejo), ocupacoes_piquete(id, quantidade_animais, ua_real, data_entrada, data_saida_real)'
+    )
+    .eq('status', 'Em pastejo');
+
+  if (error || !data) return [];
+
+  const rows: PiqueteAtivoRow[] = [];
+
+  for (const p of data as unknown as Array<{
+    id: string;
+    nome: string;
+    area_ha: number;
+    ua_suportada: number | null;
+    pastagens: { nome: string; especie_forrageira: string | null; sistema_pastejo: string } | null;
+    ocupacoes_piquete: Array<{
+      id: string;
+      quantidade_animais: number | null;
+      ua_real: number | null;
+      data_entrada: string;
+      data_saida_real: string | null;
+    }>;
+  }>) {
+    const ocupacaoAtiva = p.ocupacoes_piquete?.find((o) => !o.data_saida_real) ?? null;
+
+    rows.push({
+      piquete_id: p.id,
+      piquete_nome: p.nome,
+      area_ha: p.area_ha,
+      ua_suportada: p.ua_suportada,
+      sistema_pastejo: p.pastagens?.sistema_pastejo ?? 'rotacionado',
+      especie_forrageira: p.pastagens?.especie_forrageira ?? null,
+      pastagem_nome: p.pastagens?.nome ?? '',
+      ocupacao_id: ocupacaoAtiva?.id ?? null,
+      quantidade_animais: ocupacaoAtiva?.quantidade_animais ?? null,
+      ua_real: ocupacaoAtiva?.ua_real ?? null,
+      data_entrada: ocupacaoAtiva?.data_entrada ?? null,
+    });
+  }
+
+  return rows;
 }
 
 export async function getAnimaisAtivosPorCategoria(

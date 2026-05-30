@@ -15,6 +15,7 @@ import {
   Ban,
   Scissors,
   Milk,
+  Tag,
 } from 'lucide-react';
 import type { EventoRebanho, Lote } from '@/lib/types/rebanho';
 import { TipoEvento } from '@/lib/types/rebanho';
@@ -38,6 +39,7 @@ const iconMap: Record<TipoEvento, React.ElementType> = {
   [TipoEvento.MORTE]: AlertCircle,
   [TipoEvento.VENDA]: ShoppingCart,
   [TipoEvento.TRANSFERENCIA_LOTE]: ArrowRight,
+  [TipoEvento.MUDANCA_CATEGORIA]: Tag,
 };
 
 function formatarData(dataIso: string): string {

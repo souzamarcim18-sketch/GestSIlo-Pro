@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/alert';
 import { TalhaoForm } from '../dialogs/TalhaoForm';
 import { CicloForm } from '../dialogs/CicloForm';
-import { calcularCustoTotalEstimado, calcularCustoPorHectare, verificarAlertaSilagem } from '../../helpers';
+import { calcularCustoTotalEstimado, calcularCustoPorHectare, calcularBreakdownCusto, verificarAlertaSilagem } from '../../helpers';
 
 interface TalhaoResumoTabProps {
   talhao: Talhao;
@@ -39,6 +39,7 @@ export function TalhaoResumoTab({
 
   const custoTotal = calcularCustoTotalEstimado(atividades);
   const custoPorHa = calcularCustoPorHectare(custoTotal, talhao.area_ha);
+  const breakdown = calcularBreakdownCusto(atividades);
   const alertaSilagem = cicloAtivo ? verificarAlertaSilagem(cicloAtivo) : null;
 
   return (
@@ -149,7 +150,7 @@ export function TalhaoResumoTab({
       {cicloAtivo && (
         <Card>
           <CardHeader>
-            <CardTitle>Custos do Ciclo</CardTitle>
+            <CardTitle>Custo de Produção do Ciclo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
@@ -166,7 +167,37 @@ export function TalhaoResumoTab({
                 </div>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground pt-2 border-t">
+            {/* Breakdown por componente */}
+            <div className="pt-2 border-t space-y-2">
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Composição do custo</div>
+              <div className="grid grid-cols-1 gap-1">
+                {breakdown.insumos > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Insumos (custo médio)</span>
+                    <span className="font-medium">R$ {breakdown.insumos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+                {breakdown.maquinas > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Máquinas (custo/hora)</span>
+                    <span className="font-medium">R$ {breakdown.maquinas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+                {breakdown.servicos > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Serviços terceirizados</span>
+                    <span className="font-medium">R$ {breakdown.servicos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+                {breakdown.outros > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Outros</span>
+                    <span className="font-medium">R$ {breakdown.outros.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground pt-1 border-t">
               Baseado em {atividades.length} atividades registradas
             </div>
           </CardContent>

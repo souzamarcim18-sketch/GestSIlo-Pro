@@ -376,6 +376,7 @@ export type Database = {
           custo_por_hora_r: number | null
           custo_total: number
           data: string
+          despesa_id: string | null
           dose_ton_ha: number | null
           dose_unidade: string | null
           dose_valor: number | null
@@ -435,6 +436,7 @@ export type Database = {
           custo_por_hora_r?: number | null
           custo_total?: number
           data: string
+          despesa_id?: string | null
           dose_ton_ha?: number | null
           dose_unidade?: string | null
           dose_valor?: number | null
@@ -494,6 +496,7 @@ export type Database = {
           custo_por_hora_r?: number | null
           custo_total?: number
           data?: string
+          despesa_id?: string | null
           dose_ton_ha?: number | null
           dose_unidade?: string | null
           dose_valor?: number | null
@@ -544,6 +547,13 @@ export type Database = {
             columns: ["ciclo_id"]
             isOneToOne: false
             referencedRelation: "ciclos_agricolas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_campo_despesa_id_fkey"
+            columns: ["despesa_id"]
+            isOneToOne: false
+            referencedRelation: "financeiro"
             referencedColumns: ["id"]
           },
           {
@@ -1213,6 +1223,7 @@ export type Database = {
           created_by: string | null
           custo_estimado: number | null
           data: string
+          despesa_id: string | null
           dose_por_ha: number | null
           fazenda_id: string
           id: string
@@ -1229,6 +1240,7 @@ export type Database = {
           created_by?: string | null
           custo_estimado?: number | null
           data?: string
+          despesa_id?: string | null
           dose_por_ha?: number | null
           fazenda_id: string
           id?: string
@@ -1245,6 +1257,7 @@ export type Database = {
           created_by?: string | null
           custo_estimado?: number | null
           data?: string
+          despesa_id?: string | null
           dose_por_ha?: number | null
           fazenda_id?: string
           id?: string
@@ -1257,6 +1270,13 @@ export type Database = {
           unidade_insumo?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "eventos_manejo_pastagem_despesa_id_fkey"
+            columns: ["despesa_id"]
+            isOneToOne: false
+            referencedRelation: "financeiro"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "eventos_manejo_pastagem_fazenda_id_fkey"
             columns: ["fazenda_id"]
@@ -3642,6 +3662,7 @@ export type Database = {
         | "aspiracao_opu"
         | "protocolo_hormonal"
         | "transferencia_embriao"
+        | "mudanca_categoria"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3787,6 +3808,7 @@ export const Constants = {
         "aspiracao_opu",
         "protocolo_hormonal",
         "transferencia_embriao",
+        "mudanca_categoria",
       ],
     },
   },

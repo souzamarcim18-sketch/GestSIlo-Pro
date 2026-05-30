@@ -39,6 +39,7 @@ type ActionResult = { success: true } | { success: false; error: string };
 function revalidate() {
   revalidatePath('/dashboard/pastagens');
   revalidatePath('/dashboard');
+  revalidatePath('/dashboard/financeiro');
 }
 
 // ─── Pastagens ───────────────────────────────────────────────────────────────
@@ -330,6 +331,8 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
       }
     }
 
+    const supabase = await createSupabaseServerClient();
+
     const evento = await createEventoManejo({
       piquete_id: parsed.piquete_id,
       tipo: parsed.tipo,
@@ -345,13 +348,46 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
 
     if (parsed.tipo === 'reforma' || parsed.tipo === 'interdicao') {
       const novoStatus = parsed.tipo === 'reforma' ? 'Em reforma' : 'Interditado';
-      const supabase = await createSupabaseServerClient();
       const { error: statusError } = await supabase
         .from('piquetes')
         .update({ status: novoStatus })
         .eq('id', parsed.piquete_id);
 
       if (statusError) throw statusError;
+    }
+
+    if (parsed.custo_estimado) {
+      const { data: userRes } = await supabase.auth.getUser();
+      const fazenda_id = userRes.user?.user_metadata?.fazenda_id as string | undefined;
+
+      const descricao = `Manejo de pastagem — ${parsed.tipo}${parsed.observacoes ? `: ${parsed.observacoes}` : ''}`;
+
+      const { data: despesa, error: despesaError } = await supabase
+        .from('financeiro')
+        .insert({
+          tipo: 'Despesa',
+          categoria: 'Pastagens',
+          descricao,
+          valor: parsed.custo_estimado,
+          data: parsed.data,
+          forma_pagamento: null,
+          referencia_id: evento.id,
+          referencia_tipo: 'Evento Manejo Pastagem',
+          natureza: 'variavel',
+          fazenda_id,
+        })
+        .select('id')
+        .single();
+
+      if (despesaError || !despesa) {
+        await supabase.from('eventos_manejo_pastagem').delete().eq('id', evento.id);
+        return { success: false, error: 'Falha ao registrar despesa financeira. Operação revertida.' };
+      }
+
+      await supabase
+        .from('eventos_manejo_pastagem')
+        .update({ despesa_id: despesa.id })
+        .eq('id', evento.id);
     }
 
     if (parsed.colaborador_id) {
@@ -368,6 +404,25 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
 
 export async function deletarEventoManejoAction(id: string): Promise<ActionResult> {
   try {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: evento } = await supabase
+      .from('eventos_manejo_pastagem')
+      .select('despesa_id')
+      .eq('id', id)
+      .single();
+
+    if (evento?.despesa_id) {
+      const { error: despesaError } = await supabase
+        .from('financeiro')
+        .delete()
+        .eq('id', evento.despesa_id);
+
+      if (despesaError) {
+        console.error('[deletarEventoManejoAction] Falha ao remover despesa:', despesaError.message);
+      }
+    }
+
     await deleteRegistroColaborador('evento_manejo_pastagem', id);
     await deleteEventoManejo(id);
     revalidate();

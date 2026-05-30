@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { criarAnimalAction } from '../actions';
 import { listLotes } from '@/lib/supabase/rebanho';
 import type { Lote } from '@/lib/types/rebanho';
+import { CATEGORIAS_POR_TIPO } from '@/lib/types/rebanho';
 
 export default function NovoAnimalPage() {
   const router = useRouter();
@@ -30,6 +31,8 @@ export default function NovoAnimalPage() {
   const [origem, setOrigem] = useState<'nascido' | 'comprado'>('nascido');
   const [dataEstimada, setDataEstimada] = useState(false);
   const [loteId, setLoteId] = useState<string>('');
+  const [tipoRebanho, setTipoRebanho] = useState<string>('leiteiro');
+  const [categoria, setCategoria] = useState<string>('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -90,10 +93,10 @@ export default function NovoAnimalPage() {
             <CardDescription>Preencha as informações do novo animal</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Brinco e Nome */}
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="brinco">Brinco *</Label>
                   <Input
                     id="brinco"
@@ -103,7 +106,7 @@ export default function NovoAnimalPage() {
                     disabled={isSubmitting}
                   />
                 </div>
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="nome">Nome</Label>
                   <Input
                     id="nome"
@@ -116,7 +119,7 @@ export default function NovoAnimalPage() {
 
               {/* Sexo e Data de Nascimento */}
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="sexo">Sexo *</Label>
                   <Select name="sexo" defaultValue="Macho" required>
                     <SelectTrigger id="sexo" disabled={isSubmitting}>
@@ -128,19 +131,18 @@ export default function NovoAnimalPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="data_nascimento">Data de Nascimento *</Label>
-                  <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Input
-                        id="data_nascimento"
-                        name="data_nascimento"
-                        type="date"
-                        required
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 pb-2">
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      id="data_nascimento"
+                      name="data_nascimento"
+                      type="date"
+                      required
+                      disabled={isSubmitting}
+                      className="flex-1"
+                    />
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <Checkbox
                         id="data_nascimento_estimada"
                         name="data_nascimento_estimada"
@@ -148,7 +150,7 @@ export default function NovoAnimalPage() {
                         onCheckedChange={(checked) => setDataEstimada(checked === true)}
                         disabled={isSubmitting}
                       />
-                      <Label htmlFor="data_nascimento_estimada" className="text-sm cursor-pointer">
+                      <Label htmlFor="data_nascimento_estimada" className="text-sm cursor-pointer whitespace-nowrap">
                         Estimada
                       </Label>
                     </div>
@@ -158,9 +160,16 @@ export default function NovoAnimalPage() {
 
               {/* Tipo de Rebanho e Raça */}
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="tipo_rebanho">Tipo de Rebanho *</Label>
-                  <Select name="tipo_rebanho" defaultValue="leiteiro" required>
+                  <Select
+                    value={tipoRebanho}
+                    onValueChange={(val) => {
+                      setTipoRebanho(val ?? 'leiteiro');
+                      setCategoria('');
+                    }}
+                    required
+                  >
                     <SelectTrigger id="tipo_rebanho" disabled={isSubmitting}>
                       <SelectValue />
                     </SelectTrigger>
@@ -170,8 +179,9 @@ export default function NovoAnimalPage() {
                       <SelectItem value="dupla_aptidao">Dupla Aptidão</SelectItem>
                     </SelectContent>
                   </Select>
+                  <input type="hidden" name="tipo_rebanho" value={tipoRebanho} />
                 </div>
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="raca">Raça</Label>
                   <Input
                     id="raca"
@@ -182,8 +192,29 @@ export default function NovoAnimalPage() {
                 </div>
               </div>
 
+              {/* Categoria */}
+              <div className="space-y-1.5">
+                <Label htmlFor="categoria">Categoria</Label>
+                <Select
+                  value={categoria}
+                  onValueChange={(val) => setCategoria(val ?? '')}
+                >
+                  <SelectTrigger id="categoria" disabled={isSubmitting}>
+                    <SelectValue placeholder="Selecione a categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(CATEGORIAS_POR_TIPO[tipoRebanho] ?? []).map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input type="hidden" name="categoria" value={categoria} />
+              </div>
+
               {/* Origem */}
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="origem">Origem *</Label>
                 <Select value={origem} onValueChange={(val) => setOrigem(val as 'nascido' | 'comprado')}>
                   <SelectTrigger id="origem" disabled={isSubmitting}>
@@ -199,7 +230,7 @@ export default function NovoAnimalPage() {
 
               {/* Peso ao Nascimento (se nascido) */}
               {origem === 'nascido' && (
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="peso_nascimento">Peso ao Nascimento (kg)</Label>
                   <Input
                     id="peso_nascimento"
@@ -214,7 +245,7 @@ export default function NovoAnimalPage() {
               )}
 
               {/* SISBOV/CRBIO */}
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="sisbov_crbio">Código SISBOV/CRBIO</Label>
                 <Input
                   id="sisbov_crbio"
@@ -225,16 +256,14 @@ export default function NovoAnimalPage() {
               </div>
 
               {/* Lote */}
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="lote_id">Lote</Label>
                 <Select
                   value={loteId}
                   onValueChange={(value) => setLoteId(value || '')}
                 >
                   <SelectTrigger id="lote_id" disabled={isSubmitting}>
-                    <SelectValue>
-                      {loteId ? lotes.find((l) => l.id === loteId)?.nome || 'Sem lote' : 'Sem lote'}
-                    </SelectValue>
+                    <SelectValue placeholder="Sem lote" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Sem lote</SelectItem>
@@ -249,14 +278,13 @@ export default function NovoAnimalPage() {
               </div>
 
               {/* Observações */}
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="observacoes">Observações</Label>
                 <Textarea
                   id="observacoes"
                   name="observacoes"
                   placeholder="Adicione informações extras sobre o animal"
                   disabled={isSubmitting}
-                  className="mt-1"
                 />
               </div>
 

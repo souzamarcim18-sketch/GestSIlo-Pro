@@ -20,6 +20,7 @@ import { Loader2 } from 'lucide-react';
 import { editarAnimalAction } from '../../actions';
 import { listAnimais, listLotes } from '@/lib/supabase/rebanho';
 import type { Animal, Lote } from '@/lib/types/rebanho';
+import { CATEGORIAS_POR_TIPO } from '@/lib/types/rebanho';
 
 export default function EditarAnimalPage() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function EditarAnimalPage() {
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [animaisParaGenealgia, setAnimaisParaGenealgia] = useState<Animal[]>([]);
   const [loteId, setLoteId] = useState<string>('');
+  const [categoria, setCategoria] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,6 +74,7 @@ export default function EditarAnimalPage() {
   useEffect(() => {
     if (lotes.length > 0 && animal) {
       setLoteId(animal.lote_id || '');
+      setCategoria(animal.categoria || '');
     }
   }, [lotes, animal]);
 
@@ -189,6 +192,31 @@ export default function EditarAnimalPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label htmlFor="categoria">Categoria</Label>
+                  <Select
+                    value={categoria}
+                    onValueChange={(val) => setCategoria(val ?? '')}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger id="categoria" className="mt-1">
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(CATEGORIAS_POR_TIPO[animal.tipo_rebanho] ?? []).map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="categoria" value={categoria} />
+                  {categoria !== (animal.categoria || '') && (
+                    <p className="text-xs text-amber-500 mt-1">
+                      Mudança de categoria será registrada no histórico do animal.
+                    </p>
+                  )}
                 </div>
               </div>
 

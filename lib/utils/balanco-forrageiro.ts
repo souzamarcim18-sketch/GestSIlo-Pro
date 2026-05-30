@@ -1,5 +1,13 @@
-import { CONSUMO_MS_POR_CATEGORIA, CONSUMO_MS_PADRAO } from '@/lib/constants/balanco-forrageiro';
-import type { MovimentacaoSiloRow, AnimalPorCategoriaRow } from '@/lib/supabase/balanco-forrageiro';
+import {
+  CONSUMO_MS_POR_CATEGORIA,
+  CONSUMO_MS_PADRAO,
+  OFERTA_MS_POR_ESPECIE,
+  OFERTA_MS_PADRAO,
+  COBERTURA_PASTO_MINIMA_PERC,
+  getEpocaAtual,
+  type EpocaAno,
+} from '@/lib/constants/balanco-forrageiro';
+import type { MovimentacaoSiloRow, AnimalPorCategoriaRow, PiqueteAtivoRow } from '@/lib/supabase/balanco-forrageiro';
 
 export type { MovimentacaoSiloRow, AnimalPorCategoriaRow };
 
@@ -42,12 +50,46 @@ export type ResultadoComparativo = {
 
 export type PeriodoBalanco = 7 | 30 | 60 | 90;
 
+// ─── Tipos de oferta de pasto ────────────────────────────────────────────────
+
+export type PiqueteContribuicao = {
+  piquete_id: string;
+  piquete_nome: string;
+  pastagem_nome: string;
+  area_ha: number;
+  especie_forrageira: string | null;
+  especie_estimada: boolean;
+  oferta_kg_ms_dia: number;
+  ua_real: number | null;
+  ua_suportada: number | null;
+  quantidade_animais: number | null;
+  sistema_pastejo: string;
+};
+
+export type ResultadoOfertaPasto = {
+  epoca: EpocaAno;
+  oferta_total_kg_ms_dia: number;
+  por_piquete: PiqueteContribuicao[];
+  sem_piquetes: boolean;
+  piquetes_sem_especie: number;
+  alerta_cobertura_baixa: boolean;
+};
+
+export type ResultadoDemandaLiquidaSilos = {
+  demanda_liquida_kg_ms_dia: number;
+  autonomia_liquida_dias: number | null;
+  pasto_cobre_tudo: boolean;
+};
+
 export type BalancoForrageiroClientProps = {
   estoqueTotal_kg: number;
   initialConsumo: ResultadoConsumoReal;
   initialDemanda: ResultadoDemandaProjetada;
+  initialOfertaPasto: ResultadoOfertaPasto;
+  initialDemandaLiquida: ResultadoDemandaLiquidaSilos;
   saidasUltimos90Dias: MovimentacaoSiloRow[];
   animaisPorCategoria: AnimalPorCategoriaRow[];
+  piquetesAtivos: PiqueteAtivoRow[];
 };
 
 export function calcularEstoqueTotal(
@@ -203,6 +245,87 @@ export function calcularComparativo(
       : null;
 
   return { saldo_diario_kg, diferenca_autonomia_dias, status };
+}
+
+export function calcularOfertaPasto(
+  piquetes: PiqueteAtivoRow[],
+  demandaTotalKgMsDia: number,
+  mesAtual?: number
+): ResultadoOfertaPasto {
+  const epoca = getEpocaAtual(mesAtual);
+  let piquetes_sem_especie = 0;
+
+  if (piquetes.length === 0) {
+    return {
+      epoca,
+      oferta_total_kg_ms_dia: 0,
+      por_piquete: [],
+      sem_piquetes: true,
+      piquetes_sem_especie: 0,
+      alerta_cobertura_baixa: demandaTotalKgMsDia > 0,
+    };
+  }
+
+  const por_piquete: PiqueteContribuicao[] = piquetes.map((p) => {
+    const mapeado = p.especie_forrageira
+      ? OFERTA_MS_POR_ESPECIE.get(p.especie_forrageira)
+      : undefined;
+    const especie_estimada = mapeado === undefined;
+    if (especie_estimada) piquetes_sem_especie++;
+
+    const taxaEspecie = mapeado ?? OFERTA_MS_PADRAO;
+    const oferta_kg_ms_dia = taxaEspecie[epoca] * p.area_ha;
+
+    return {
+      piquete_id: p.piquete_id,
+      piquete_nome: p.piquete_nome,
+      pastagem_nome: p.pastagem_nome,
+      area_ha: p.area_ha,
+      especie_forrageira: p.especie_forrageira,
+      especie_estimada,
+      oferta_kg_ms_dia,
+      ua_real: p.ua_real,
+      ua_suportada: p.ua_suportada,
+      quantidade_animais: p.quantidade_animais,
+      sistema_pastejo: p.sistema_pastejo,
+    };
+  });
+
+  const oferta_total_kg_ms_dia = por_piquete.reduce(
+    (acc, p) => acc + p.oferta_kg_ms_dia,
+    0
+  );
+
+  const cobertura = demandaTotalKgMsDia > 0
+    ? oferta_total_kg_ms_dia / demandaTotalKgMsDia
+    : 1;
+
+  return {
+    epoca,
+    oferta_total_kg_ms_dia,
+    por_piquete,
+    sem_piquetes: false,
+    piquetes_sem_especie,
+    alerta_cobertura_baixa: cobertura < COBERTURA_PASTO_MINIMA_PERC,
+  };
+}
+
+export function calcularDemandaLiquidaSilos(
+  demandaTotalKgMsDia: number,
+  ofertaPastoKgMsDia: number,
+  estoqueTotal_kg: number
+): ResultadoDemandaLiquidaSilos {
+  const demanda_liquida_kg_ms_dia = Math.max(
+    0,
+    demandaTotalKgMsDia - ofertaPastoKgMsDia
+  );
+  const pasto_cobre_tudo = ofertaPastoKgMsDia >= demandaTotalKgMsDia;
+  const autonomia_liquida_dias =
+    demanda_liquida_kg_ms_dia === 0
+      ? null
+      : Math.floor(estoqueTotal_kg / demanda_liquida_kg_ms_dia);
+
+  return { demanda_liquida_kg_ms_dia, autonomia_liquida_dias, pasto_cobre_tudo };
 }
 
 export function classesAutonomia(dias: number | null): {

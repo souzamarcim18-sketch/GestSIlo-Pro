@@ -38,6 +38,7 @@ export default async function SanidadePage() {
       .select('id, brinco, nome, sexo, tipo_rebanho, categoria, status, lote_id, deleted_at')
       .eq('fazenda_id', fazendaId)
       .is('deleted_at', null)
+      .eq('status', 'Ativo')
       .order('brinco'),
     supabase
       .from('lotes')

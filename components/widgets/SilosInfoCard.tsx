@@ -33,22 +33,28 @@ export function SilosInfoCard({
         <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Silos Abertos / Cadastrados
         </p>
-        <div className="flex items-baseline gap-1">
-          <span className="text-3xl font-extrabold text-card-foreground leading-none">{silosAbertos}</span>
-          <span className="text-lg text-muted-foreground font-medium">/{silosCadastrados}</span>
+        <div className="flex items-start justify-between gap-3 flex-1">
+          {/* Lista de silos à esquerda */}
+          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+            {silosAbertosNomes.length > 0 ? (
+              <ul className="flex flex-col gap-1.5">
+                {silosAbertosNomes.slice(0, 4).map((nome, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                    <span className="text-card-foreground truncate">{nome}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum silo aberto</p>
+            )}
+          </div>
+          {/* Contagem à direita */}
+          <div className="flex items-baseline gap-0.5 shrink-0">
+            <span className="text-3xl font-extrabold text-card-foreground leading-none">{silosAbertos}</span>
+            <span className="text-lg text-muted-foreground font-medium">/{silosCadastrados}</span>
+          </div>
         </div>
-        {silosAbertosNomes.length > 0 ? (
-          <ul className="flex flex-col gap-1.5">
-            {silosAbertosNomes.slice(0, 4).map((nome, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm">
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                <span className="text-card-foreground truncate">{nome}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">Nenhum silo aberto</p>
-        )}
       </div>
 
       {/* Seção 2 — Culturas Ensiladas */}
