@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
+import { Trash2, AlertCircle, RefreshCw, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +26,6 @@ import {
 import { toast } from 'sonner';
 import { deletarEventoReprodutivo } from '@/app/dashboard/rebanho/reproducao/actions';
 import { getAllEventosLocais } from '@/lib/db/eventosRebanho';
-import { getSyncStatus } from '@/lib/db/syncQueue';
 import { useSyncContext } from './ReproducaoSyncProvider';
 import type { EventoReprodutivo } from '@/lib/types/rebanho-reproducao';
 import type { EventoReprodutivoLocal } from '@/lib/db/eventosRebanho';
@@ -116,7 +115,6 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
   useEffect(() => {
     const carregarEventosLocais = async () => {
       const locais = await getAllEventosLocais();
-      const syncStatus = await getSyncStatus();
 
       const eventosUi: EventoLocalUi[] = locais.map((evento) => ({
         id: evento.id,
@@ -153,18 +151,10 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
     }
   };
 
-  const SyncStatusBadgeRow = ({ status, errorMessage }: { status: string; errorMessage?: string }) => {
-    if (status === 'synced' || !status) {
-      return (
-        <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800">
-          <CheckCircle2 className="h-3 w-3" />
-          Sincronizado
-        </Badge>
-      );
-    }
+  const SyncBadgeInline = ({ status, errorMessage }: { status: string | undefined; errorMessage?: string }) => {
     if (status === 'pending') {
       return (
-        <Badge variant="outline" className="flex items-center gap-1 bg-amber-100 text-amber-800">
+        <Badge variant="outline" className="ml-2 flex items-center gap-1 bg-amber-100 text-amber-800 text-xs">
           <Clock className="h-3 w-3" />
           Pendente
         </Badge>
@@ -172,17 +162,10 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
     }
     if (status === 'error') {
       return (
-        <div className="flex items-center gap-1">
-          <Badge variant="destructive" className="flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Erro
-          </Badge>
-          {errorMessage && (
-            <span className="text-sm text-muted-foreground" title={errorMessage}>
-              ?
-            </span>
-          )}
-        </div>
+        <Badge variant="destructive" className="ml-2 flex items-center gap-1 text-xs" title={errorMessage}>
+          <AlertCircle className="h-3 w-3" />
+          Erro
+        </Badge>
       );
     }
     return null;
@@ -280,14 +263,13 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
               <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Animal</TableHead>
               <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Tipo</TableHead>
               <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Resumo</TableHead>
-              <TableHead className="text-sm font-semibold uppercase tracking-[0.13em]">Status</TableHead>
               {isAdmin && <TableHead className="text-right text-sm font-semibold uppercase tracking-[0.13em]">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {eventosPaginados.map((evento) => {
               const isLocal = 'is_local' in evento;
-              const syncStatus = isLocal ? evento.sync_status : 'synced';
+              const syncStatus = isLocal ? evento.sync_status : undefined;
               const errorMessage = isLocal ? evento.error_message : undefined;
 
               return (
@@ -296,33 +278,37 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
                     {format(new Date(evento.data_evento), 'dd/MM/yyyy', { locale: ptBR })}
                   </TableCell>
                   <TableCell className="font-semibold">{evento.animal_id.slice(0, 8)}</TableCell>
-                  <TableCell>{tipoEventoMap[evento.tipo] || evento.tipo}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {resumoPayload(evento)}
-                  </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <SyncStatusBadgeRow status={syncStatus} errorMessage={errorMessage} />
-                      {isLocal && syncStatus === 'error' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            setIsSyncing(evento.id);
-                            try {
-                              await syncNow();
-                            } finally {
-                              setIsSyncing(null);
-                            }
-                          }}
-                          disabled={isSyncing === evento.id}
-                          className="h-6 w-6 p-0"
-                          title="Tentar sincronizar"
-                        >
-                          <RefreshCw className={`h-3 w-3 ${isSyncing === evento.id ? 'animate-spin' : ''}`} />
-                        </Button>
+                    <div className="flex items-center flex-wrap gap-1">
+                      <span>{tipoEventoMap[evento.tipo] || evento.tipo}</span>
+                      {isLocal && (
+                        <>
+                          <SyncBadgeInline status={syncStatus} errorMessage={errorMessage} />
+                          {syncStatus === 'error' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                setIsSyncing(evento.id);
+                                try {
+                                  await syncNow();
+                                } finally {
+                                  setIsSyncing(null);
+                                }
+                              }}
+                              disabled={isSyncing === evento.id}
+                              className="h-5 w-5 p-0"
+                              title="Tentar sincronizar"
+                            >
+                              <RefreshCw className={`h-3 w-3 ${isSyncing === evento.id ? 'animate-spin' : ''}`} />
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {resumoPayload(evento)}
                   </TableCell>
                   {isAdmin && (
                     <TableCell className="text-right">

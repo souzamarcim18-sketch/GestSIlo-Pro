@@ -405,7 +405,7 @@ async function fetchMovimentacoesSilo(
     fonte: 'movimentacoes_silo',
     modulo: 'silo' as const,
     titulo: `${r.tipo}${r.subtipo ? ` (${r.subtipo})` : ''} — ${(r.silos as { nome?: string } | null)?.nome ?? ''}`,
-    subtitulo: `${(r.quantidade / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 3 })} t`,
+    subtitulo: `${r.quantidade.toLocaleString('pt-BR', { maximumFractionDigits: 3 })} t`,
     data: r.data,
     status: 'realizado' as const,
     href: '/dashboard/silos',

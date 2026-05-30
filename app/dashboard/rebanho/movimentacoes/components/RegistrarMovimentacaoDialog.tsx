@@ -23,8 +23,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { registrarMovimentacaoAction } from '../actions';
-import { listAnimais, listLotes } from '@/lib/supabase/rebanho';
+import { registrarMovimentacaoAction, listAnimaisAtivosAction, listLotesAction } from '../actions';
 import type { Animal, Lote } from '@/lib/types/rebanho';
 
 interface RegistrarMovimentacaoDialogProps {
@@ -74,8 +73,8 @@ export default function RegistrarMovimentacaoDialog({
       setLoadingData(true);
       try {
         const [animaisData, lotesData] = await Promise.all([
-          listAnimais({ status: 'Ativo' }, 1000, 0),
-          listLotes(100, 0),
+          listAnimaisAtivosAction(),
+          listLotesAction(),
         ]);
         setAnimais(animaisData);
         setLotes(lotesData);

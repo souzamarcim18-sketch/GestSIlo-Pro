@@ -296,7 +296,12 @@ export const queryEventosRebanho = {
   ): Promise<Array<{ id: string; animal_id: string; tipo: string; data_evento: string; [key: string]: unknown }>> {
     const supabase = await createSupabaseServerClient();
 
-    let query = supabase
+    const TIPOS_REPRODUTIVOS = [
+      'cobertura', 'diagnostico_prenhez', 'parto', 'secagem', 'aborto',
+      'descarte', 'aspiracao_opu', 'protocolo_hormonal', 'transferencia_embriao',
+    ] as const;
+
+    const query = supabase
       .from('eventos_rebanho')
       .select(
         'id, animal_id, tipo, data_evento, tipo_cobertura, reprodutor_id, metodo_diagnostico, resultado_prenhez, motivo_descarte, observacoes, created_at'
@@ -304,11 +309,8 @@ export const queryEventosRebanho = {
       .eq('fazenda_id', fazenda_id)
       .gte('data_evento', inicio)
       .lte('data_evento', fim)
-      .is('deleted_at', null);
-
-    if (tipo) {
-      query = query.eq('tipo', tipo);
-    }
+      .is('deleted_at', null)
+      .in('tipo', tipo ? [tipo] : [...TIPOS_REPRODUTIVOS]);
 
     const { data, error } = await query.order('data_evento', { ascending: false });
 

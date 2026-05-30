@@ -17,7 +17,38 @@ import {
   type RegistrarTransferenciaPayload,
   type CausaMorte,
 } from '@/lib/supabase/rebanho-movimentacoes';
+import { listAnimais, listLotes } from '@/lib/supabase/rebanho';
+import {
+  queryMovimentacoes,
+  type MovimentacaoFiltros,
+  type MovimentacaoListItem,
+  type MovimentacaoResumoPeriodo,
+} from '@/lib/supabase/rebanho-movimentacoes';
 import { getCurrentUserId } from '@/lib/auth/helpers';
+import type { Animal, Lote } from '@/lib/types/rebanho';
+
+export async function listAnimaisAtivosAction(): Promise<Animal[]> {
+  return listAnimais({ status: 'Ativo' }, 1000, 0);
+}
+
+export async function listLotesAction(): Promise<Lote[]> {
+  return listLotes(100, 0);
+}
+
+export async function listMovimentacoesAction(
+  filtros: MovimentacaoFiltros,
+  limit: number,
+  offset: number
+): Promise<{ data: MovimentacaoListItem[]; total: number }> {
+  return queryMovimentacoes.list(filtros, limit, offset);
+}
+
+export async function getResumoMovimentacoesAction(
+  data_inicio: string,
+  data_fim: string
+): Promise<MovimentacaoResumoPeriodo> {
+  return queryMovimentacoes.getResumo(data_inicio, data_fim);
+}
 
 interface MovimentacaoPayload {
   tipo: string;

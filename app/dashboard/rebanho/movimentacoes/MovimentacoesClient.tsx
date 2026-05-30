@@ -27,7 +27,8 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { queryMovimentacoes, type MovimentacaoListItem, type TipoMovimentacao } from '@/lib/supabase/rebanho-movimentacoes';
+import { listMovimentacoesAction, getResumoMovimentacoesAction } from './actions';
+import type { MovimentacaoListItem, TipoMovimentacao } from '@/lib/supabase/rebanho-movimentacoes';
 import type { Lote } from '@/lib/types/rebanho';
 import { formatDate, formatBRL } from '@/lib/utils';
 import RegistrarMovimentacaoDialog from './components/RegistrarMovimentacaoDialog';
@@ -93,7 +94,7 @@ export function MovimentacoesClient({
     setLoading(true);
     try {
       const [{ data, total: t }, resumo] = await Promise.all([
-        queryMovimentacoes.list(
+        listMovimentacoesAction(
           {
             tipo: tipoFiltro || undefined,
             data_inicio: datas.inicio,
@@ -104,7 +105,7 @@ export function MovimentacoesClient({
           25,
           newPage * 25
         ),
-        queryMovimentacoes.getResumo(datas.inicio, datas.fim),
+        getResumoMovimentacoesAction(datas.inicio, datas.fim),
       ]);
       setMovimentacoes(data);
       setTotal(t);

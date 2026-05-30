@@ -32,14 +32,6 @@ const PieCategoriasRebanho = dynamic(
   () => import('@/components/widgets/PieCategoriasRebanho').then((m) => ({ default: m.PieCategoriasRebanho })),
   { ssr: false, loading: () => <Skeleton className="h-36 w-36 rounded-full" /> },
 );
-const PieComposicaoRebanho = dynamic(
-  () => import('@/components/widgets/PieComposicaoRebanho').then((m) => ({ default: m.PieComposicaoRebanho })),
-  { ssr: false, loading: () => <Skeleton className="h-36 w-full" /> },
-);
-const PieCulturasAtivas = dynamic(
-  () => import('@/components/widgets/PieCulturasAtivas').then((m) => ({ default: m.PieCulturasAtivas })),
-  { ssr: false, loading: () => <Skeleton className="h-36 w-36 rounded-full" /> },
-);
 import type { DashboardData, AlertaSeveridade } from './dashboard-data';
 import { AtividadesRecentesList } from '@/components/dashboard/AtividadesRecentesList';
 
@@ -200,13 +192,50 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         <SectionLabel>Silagem</SectionLabel>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div className="row-span-2 flex">
-            <KpiChartCard
-              label="Ocupação dos Silos"
-              sublabel={data.silosGaugeDetalhe || undefined}
-              chart={<GaugeOcupacaoSilos percentual={data.silosOcupacaoPctNum} />}
-              className="flex-1 min-h-[280px]"
+            <button
               onClick={() => router.push('/dashboard/silos')}
-            />
+              className="text-left group w-full flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+            >
+              <div className="relative rounded-[13px] border border-border bg-card p-5 flex flex-col gap-4 h-full transition-all duration-300 group-hover:-translate-y-1 shadow-[0_2px_12px_rgba(0,0,0,0.08)] group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
+                <p className="text-sm font-bold uppercase tracking-[0.13em] text-[#688070]">Ocupação dos Silos</p>
+                <div className="flex items-center gap-5 flex-1">
+                  <div className="shrink-0">
+                    <GaugeOcupacaoSilos percentual={data.silosOcupacaoPctNum} />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    <p className="text-2xl font-black tracking-tight text-[#dceede]">{data.silosGaugeDetalhe}</p>
+                    <p className="text-xs text-muted-foreground mb-1">estoque atual</p>
+                    {data.silosAbertosNomes.length > 0 ? (
+                      <div className="space-y-2">
+                        {data.silosAbertosNomes.map((nome) => (
+                          <div key={nome} className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground truncate">{nome}</span>
+                              <span className="text-xs font-semibold text-[#dceede] ml-2">{data.silosOcupacaoPctNum}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${data.silosOcupacaoPctNum}%`,
+                                  background: data.silosOcupacaoPctNum > 90
+                                    ? 'var(--chart-1)'
+                                    : data.silosOcupacaoPctNum > 50
+                                    ? 'var(--chart-2)'
+                                    : 'var(--chart-3)',
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Nenhum silo aberto</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </button>
           </div>
           <div className="row-span-2 flex">
             <SilagemMetricasCard
@@ -239,12 +268,6 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               className="flex-1"
               onClick={() => router.push('/dashboard/rebanho')}
             />
-            <KpiChartCard
-              label="Composição do Rebanho"
-              chart={<PieComposicaoRebanho data={data.composicaoRebanho} />}
-              className="flex-1"
-              onClick={() => router.push('/dashboard/rebanho')}
-            />
           </div>
 
           {/* Coluna Lavouras */}
@@ -257,12 +280,28 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               icon={Map}
               href="/dashboard/talhoes"
             />
-            <KpiChartCard
-              label="Culturas Ativas"
-              chart={<PieCulturasAtivas data={data.culturasAtivas} total={data.culturasAtivas.length} />}
-              className="flex-1"
+            <button
               onClick={() => router.push('/dashboard/talhoes')}
-            />
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
+            >
+              <div className="relative rounded-[13px] border border-border bg-card p-5 flex flex-col gap-3 h-full transition-all duration-300 group-hover:-translate-y-1 shadow-[0_2px_12px_rgba(0,0,0,0.08)] group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
+                <p className="text-sm font-bold uppercase tracking-[0.13em] text-[#688070]">Culturas Ativas</p>
+                {data.culturasAtivas.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground">Nenhuma cultura ativa</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 flex-1">
+                    {data.culturasAtivas.map((c) => (
+                      <div key={c.name} className="flex items-center justify-between gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                        <span className="text-sm font-medium text-[#dceede] truncate">{c.name}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{c.value} talhão{c.value > 1 ? 'ões' : ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </button>
           </div>
 
           {/* Coluna Pastagens */}
@@ -312,23 +351,23 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             </button>
             <button
               onClick={() => router.push('/dashboard/pastagens')}
-              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
             >
-              <Card className="rounded-[13px] p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5 flex-1 min-w-0">
-                    <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-[#688070]">Área de Pastagem</p>
+              <Card className="rounded-[13px] p-4 md:p-5 transition-all duration-300 group-hover:-translate-y-1">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <p className="uppercase tracking-[0.13em] font-bold text-xs text-[#688070]">Área de Pastagem</p>
                     {data.pastagensCount === 0 ? (
                       <p className="text-sm text-muted-foreground">Nenhuma pastagem cadastrada</p>
                     ) : (
-                      <>
-                        <p className="text-xl md:text-2xl font-black tracking-tight text-[#dceede]">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <p className="text-xl font-black tracking-tight text-[#dceede]">
                           {data.pastagensAreaTotalHa.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ha
                         </p>
-                        <p className="text-sm text-[#688070]">
-                          {data.pastagensCount} sistema{data.pastagensCount > 1 ? 's' : ''} cadastrado{data.pastagensCount > 1 ? 's' : ''}
+                        <p className="text-xs text-[#688070]">
+                          {data.pastagensCount} sistema{data.pastagensCount > 1 ? 's' : ''}
                         </p>
-                      </>
+                      </div>
                     )}
                   </div>
                   <div

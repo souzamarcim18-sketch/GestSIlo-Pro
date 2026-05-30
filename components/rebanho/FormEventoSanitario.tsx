@@ -54,10 +54,17 @@ const TIPO_ICONS: Record<TipoForm, React.ReactElement> = {
 };
 
 const TIPO_COLORS: Record<TipoForm, string> = {
-  vacinacao: 'bg-green-100 text-green-800 border-green-300',
-  vermifugacao: 'bg-blue-100 text-blue-800 border-blue-300',
-  tratamento_veterinario: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  exame_laboratorial: 'bg-purple-100 text-purple-800 border-purple-300',
+  vacinacao: 'bg-green-500/15 text-green-400 border-green-500/30',
+  vermifugacao: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  tratamento_veterinario: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
+  exame_laboratorial: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+};
+
+const TIPO_SECTION_COLORS: Record<TipoForm, string> = {
+  vacinacao: 'bg-green-500/8 border-green-500/20',
+  vermifugacao: 'bg-blue-500/8 border-blue-500/20',
+  tratamento_veterinario: 'bg-yellow-500/8 border-yellow-500/20',
+  exame_laboratorial: 'bg-purple-500/8 border-purple-500/20',
 };
 
 export function FormEventoSanitario({
@@ -177,8 +184,8 @@ export function FormEventoSanitario({
               }}
               className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all ${
                 tipoValue === tipo
-                  ? `${TIPO_COLORS[tipo]} border-current`
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? `${TIPO_COLORS[tipo]}`
+                  : 'border-border bg-card hover:bg-white/5 text-muted-foreground hover:text-foreground'
               }`}
             >
               {TIPO_ICONS[tipo]}
@@ -209,12 +216,12 @@ export function FormEventoSanitario({
         </div>
 
         {multipleAnimals && !animalPre ? (
-          <div className="space-y-3 max-h-96 overflow-y-auto border rounded-lg p-3">
+          <div className="space-y-3 max-h-96 overflow-y-auto border border-border rounded-lg p-3 bg-card">
             {lotes.length > 0 && (
               <>
                 {lotes.map((lote) => (
                   <div key={lote.id}>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">{lote.nome}</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">{lote.nome}</p>
                     <div className="space-y-2 ml-3">
                       {(animaisPorLote[lote.id] || []).map((animal) => (
                         <div key={animal.id} className="flex items-center gap-2">
@@ -272,7 +279,7 @@ export function FormEventoSanitario({
 
       {/* VACINAÇÃO */}
       {tipoValue === 'vacinacao' && (
-        <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+        <div className={`space-y-4 p-4 rounded-lg border ${TIPO_SECTION_COLORS['vacinacao']}`}>
           <div className="space-y-2">
             <Label htmlFor="vacina-nome" className="text-sm font-semibold">Nome da Vacina *</Label>
             <Input
@@ -338,7 +345,7 @@ export function FormEventoSanitario({
 
       {/* VERMIFUGAÇÃO */}
       {tipoValue === 'vermifugacao' && (
-        <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className={`space-y-4 p-4 rounded-lg border ${TIPO_SECTION_COLORS['vermifugacao']}`}>
           <div className="space-y-2">
             <Label htmlFor="produto-nome" className="text-sm font-semibold">Produto *</Label>
             <Input
@@ -393,7 +400,7 @@ export function FormEventoSanitario({
 
       {/* TRATAMENTO VETERINÁRIO */}
       {tipoValue === 'tratamento_veterinario' && (
-        <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+        <div className={`space-y-4 p-4 rounded-lg border ${TIPO_SECTION_COLORS['tratamento_veterinario']}`}>
           <div className="space-y-2">
             <Label htmlFor="diagnostico" className="text-sm font-semibold">Diagnóstico *</Label>
             <Textarea
@@ -453,7 +460,7 @@ export function FormEventoSanitario({
 
       {/* EXAME LABORATORIAL */}
       {tipoValue === 'exame_laboratorial' && (
-        <div className="space-y-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+        <div className={`space-y-4 p-4 rounded-lg border ${TIPO_SECTION_COLORS['exame_laboratorial']}`}>
           <div className="space-y-2">
             <Label htmlFor="tipo-exame" className="text-sm font-semibold">Tipo de Exame *</Label>
             <Input
