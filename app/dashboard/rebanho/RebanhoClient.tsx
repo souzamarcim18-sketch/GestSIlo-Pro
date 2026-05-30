@@ -148,24 +148,22 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
 
       {/* Acesso Rápido */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">Acesso Rápido</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Acesso Rápido</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
           {[
-            { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'Dashboard com KPIs e 4 alertas proativos' },
-            { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Calendário reprodutivo, eventos, reprodutores' },
-            { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Leiteira', descricao: 'Registro e curva de lactação' },
-            { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Corte', descricao: 'GMD, arrobas, projeção de abate' },
-            { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação, sanitários, alertas' },
-            { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas, saídas, transferências' },
+            { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'KPIs e alertas' },
+            { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Eventos e reprodutores' },
+            { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Leiteira', descricao: 'Produção de leite' },
+            { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Corte', descricao: 'GMD e abate' },
+            { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação e alertas' },
+            { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas e saídas' },
           ].map(({ href, icon: Icon, titulo, descricao }) => (
             <Link key={href} href={href}>
-              <Card className="cursor-pointer hover:shadow-lg hover:bg-accent/50 transition-all duration-150 h-full">
-                <CardContent className="flex flex-col items-start justify-center gap-2 p-6 min-h-[120px]">
-                  <Icon className="h-8 w-8 text-[#00A651]" />
-                  <p className="font-semibold text-base">{titulo}</p>
-                  <p className="text-sm text-muted-foreground">{descricao}</p>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-accent/50 hover:border-primary/30 transition-all duration-150 cursor-pointer text-center group">
+                <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+                <p className="font-semibold text-sm leading-tight">{titulo}</p>
+                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">{descricao}</p>
+              </div>
             </Link>
           ))}
         </div>

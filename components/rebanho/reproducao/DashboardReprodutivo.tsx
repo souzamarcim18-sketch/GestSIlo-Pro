@@ -35,7 +35,7 @@ import type { AnimalRepetidora } from '@/lib/supabase/rebanho-reproducao';
 const PieChart = dynamic(() => import('recharts').then((m) => m.PieChart), { ssr: false });
 const Pie = dynamic(() => import('recharts').then((m) => m.Pie), { ssr: false });
 const Cell = dynamic(() => import('recharts').then((m) => m.Cell), { ssr: false });
-const Legend = dynamic(() => import('recharts').then((m) => m.Legend), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then((m) => m.Tooltip), { ssr: false });
 const ResponsiveContainer = dynamic(() => import('recharts').then((m) => m.ResponsiveContainer), { ssr: false });
 
 interface DashboardReprodutivoProps {
@@ -72,12 +72,12 @@ interface KanbanCard {
 }
 
 const PIE_COLORS: Record<string, string> = {
-  vazia: '#ef4444',
-  inseminada: '#eab308',
-  prenha: '#22c55e',
-  lactacao: '#3b82f6',
-  seca: '#8b5cf6',
-  descartada: '#64748b',
+  vazia: 'hsl(0 72% 51%)',
+  inseminada: 'hsl(43 96% 56%)',
+  prenha: 'hsl(142 71% 45%)',
+  lactacao: 'hsl(217 91% 60%)',
+  seca: 'hsl(262 83% 58%)',
+  descartada: 'hsl(215 16% 47%)',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -459,24 +459,67 @@ export function DashboardReprodutivo({
           <h2 className="text-sm font-semibold uppercase tracking-[0.13em] text-muted-foreground mb-4">
             Distribuição por Status Reprodutivo
           </h2>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }: PieLabelRenderProps) => `${name ?? ''}: ${value ?? ''}`}
-                outerRadius={90}
-                dataKey="value"
-              >
-                {pieData.map((entry) => (
-                  <Cell key={`cell-${entry.status}`} fill={PIE_COLORS[entry.status] ?? '#94a3b8'} />
-                ))}
-              </Pie>
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="flex flex-col lg:flex-row items-center gap-6">
+            <ResponsiveContainer width="100%" height={260} className="flex-1 min-w-0">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ cx: pcx, cy: pcy, midAngle, innerRadius, outerRadius, percent }: PieLabelRenderProps) => {
+                    if ((percent as number) < 0.05) return null;
+                    const RADIAN = Math.PI / 180;
+                    const radius = (innerRadius as number) + ((outerRadius as number) - (innerRadius as number)) * 0.6;
+                    const x = (pcx as number) + radius * Math.cos(-midAngle! * RADIAN);
+                    const y = (pcy as number) + radius * Math.sin(-midAngle! * RADIAN);
+                    return (
+                      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={600}>
+                        {`${((percent as number) * 100).toFixed(0)}%`}
+                      </text>
+                    );
+                  }}
+                  outerRadius={110}
+                  innerRadius={50}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {pieData.map((entry) => (
+                    <Cell key={`cell-${entry.status}`} fill={PIE_COLORS[entry.status] ?? 'hsl(215 16% 47%)'} stroke="transparent" />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  formatter={(value, name) => {
+                    const v = typeof value === 'number' ? value : 0;
+                    const total = pieData.reduce((s, d) => s + d.value, 0);
+                    const pct = total > 0 ? ((v / total) * 100).toFixed(1) : '0';
+                    return [`${v} animal(is) — ${pct}%`, name];
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+
+            {/* Legenda manual à direita */}
+            <div className="flex flex-col gap-2 min-w-[160px]">
+              {pieData.map((entry) => {
+                const total = pieData.reduce((s, d) => s + d.value, 0);
+                const pct = total > 0 ? ((entry.value / total) * 100).toFixed(1) : '0';
+                return (
+                  <div key={entry.status} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="inline-block h-3 w-3 rounded-sm flex-shrink-0"
+                        style={{ backgroundColor: PIE_COLORS[entry.status] ?? 'hsl(215 16% 47%)' }}
+                      />
+                      <span className="text-sm text-foreground">{entry.name}</span>
+                    </div>
+                    <span className="text-sm font-semibold tabular-nums">{entry.value} <span className="text-xs text-muted-foreground font-normal">({pct}%)</span></span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
     </div>

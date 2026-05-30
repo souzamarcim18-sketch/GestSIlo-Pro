@@ -15,6 +15,8 @@ export function CardIndicador({
   benchmark,
   icon,
   onRefresh,
+  mensagemInsuficiente,
+  acaoInsuficiente,
 }: CardIndicadorProps) {
   const renderizarConteudo = () => {
     switch (valor.estado) {
@@ -79,22 +81,26 @@ export function CardIndicador({
     );
   };
 
-  const renderizarDadosInsuficientes = () => (
-    <div className="space-y-3">
-      <div className="flex items-start gap-2">
-        <AlertCircle className="h-5 w-5 flex-shrink-0 text-yellow-400" />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-foreground">Dados Insuficientes</p>
-          <p className="text-xs text-muted-foreground">Registre mais pesagens para calcular este indicador</p>
+  const renderizarDadosInsuficientes = () => {
+    const msg = mensagemInsuficiente ?? 'Registre mais dados para calcular este indicador';
+    const acao = acaoInsuficiente ?? { label: 'Registrar Pesagem', href: '/dashboard/rebanho/eventos/lote/novo' };
+    return (
+      <div className="space-y-3">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 text-yellow-400" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">Dados Insuficientes</p>
+            <p className="text-xs text-muted-foreground">{msg}</p>
+          </div>
         </div>
+        <Link href={acao.href} className="block">
+          <Button variant="outline" size="sm" className="w-full">
+            {acao.label}
+          </Button>
+        </Link>
       </div>
-      <Link href="/dashboard/rebanho/pesagens" className="block">
-        <Button variant="outline" size="sm" className="w-full">
-          Registrar Pesagem
-        </Button>
-      </Link>
-    </div>
-  );
+    );
+  };
 
   const renderizarErro = () => (
     <div className="space-y-3">

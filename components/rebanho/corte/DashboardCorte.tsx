@@ -114,16 +114,15 @@ export function DashboardCorte({
   const gmdMedioRebanho =
     gmdsMedios.length > 0 ? gmdsMedios.reduce((a, b) => a + b, 0) / gmdsMedios.length : 0;
 
-  const pesoMedioAtual =
-    animaisAtivos.length > 0
-      ? animaisAtivos.filter((a) => a.peso_atual !== null).reduce((acc, a) => acc + (a.peso_atual || 0), 0) /
-        animaisAtivos.filter((a) => a.peso_atual !== null).length
-      : 0;
+  const animaisComPeso = animaisAtivos.filter((a) => a.peso_atual !== null && a.peso_atual > 0);
+  const pesoMedioAtual = animaisComPeso.length > 0
+    ? animaisComPeso.reduce((acc, a) => acc + (a.peso_atual || 0), 0) / animaisComPeso.length
+    : null;
 
   const pesoAlvoNum = parseFloat(pesoAlvo) || 480;
-  const arrobasProjetadas = animaisAtivos
-    .map((a) => calcularArrobasEstimadas(a.peso_atual, 0.52) || 0)
-    .reduce((a, b) => a + b, 0);
+  const arrobasProjetadas = animaisComPeso.length > 0
+    ? animaisComPeso.map((a) => calcularArrobasEstimadas(a.peso_atual, 0.52) || 0).reduce((a, b) => a + b, 0)
+    : null;
 
   // ========== SEÇÃO A: GRÁFICO (EVOLUÇÃO POR LOTE) ==========
 
@@ -204,57 +203,9 @@ export function DashboardCorte({
 
   return (
     <div className="space-y-6">
-      {/* SEÇÃO A: KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total de Animais
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAnimaisCorte}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              GMD Médio
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{gmdMedioRebanho.toFixed(2)} kg/dia</div>
-            <p className="text-xs text-muted-foreground mt-1">últimas 2 pesagens</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Peso Médio
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pesoMedioAtual.toFixed(0)} kg</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Arrobas Projetadas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{arrobasProjetadas.toFixed(0)} @</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* FILTROS */}
+      {/* FILTROS — acima dos KPIs para contextualizar os números */}
       <div className="flex gap-4 flex-wrap">
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[180px]">
           <Label className="text-sm">Período</Label>
           <Select value={periodo} onValueChange={(v) => v && setPeriodo(v)}>
             <SelectTrigger>
@@ -268,7 +219,7 @@ export function DashboardCorte({
           </Select>
         </div>
 
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[180px]">
           <Label className="text-sm">Lote</Label>
           <Select value={loteFiltroPId} onValueChange={(v) => v && setLoteFiltroPId(v)}>
             <SelectTrigger>
@@ -286,19 +237,97 @@ export function DashboardCorte({
         </div>
       </div>
 
-      {/* GRÁFICO */}
-      {dadosGrafico.length > 0 && (
+      {/* SEÇÃO A: KPIs */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Evolução do Peso Médio por Lote</CardTitle>
-            <CardDescription>
-              Acompanhe a tendência de ganho de peso nos últimos {periodo} dias
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total de Animais
+            </CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="text-2xl font-bold">{totalAnimaisCorte}</div>
+            <p className="text-xs text-muted-foreground mt-1">de corte / dupla aptidão</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              GMD Médio
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {gmdsMedios.length > 0 ? (
+              <>
+                <div className="text-2xl font-bold">{gmdMedioRebanho.toFixed(2)} kg/dia</div>
+                <p className="text-xs text-muted-foreground mt-1">últimas 2 pesagens · {gmdsMedios.length} animal(is)</p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-muted-foreground">—</div>
+                <p className="text-xs text-muted-foreground mt-1">sem pesagens suficientes</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Peso Médio
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pesoMedioAtual !== null ? (
+              <>
+                <div className="text-2xl font-bold">{pesoMedioAtual.toFixed(0)} kg</div>
+                <p className="text-xs text-muted-foreground mt-1">{animaisComPeso.length} animal(is) com peso</p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-muted-foreground">—</div>
+                <p className="text-xs text-muted-foreground mt-1">nenhuma pesagem registrada</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Arrobas Projetadas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {arrobasProjetadas !== null ? (
+              <>
+                <div className="text-2xl font-bold">{arrobasProjetadas.toFixed(0)} @</div>
+                <p className="text-xs text-muted-foreground mt-1">rendimento 52% carcaça</p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-muted-foreground">—</div>
+                <p className="text-xs text-muted-foreground mt-1">registre pesagens para calcular</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* GRÁFICO */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Evolução do Peso Médio por Lote</CardTitle>
+          <CardDescription>
+            Tendência de ganho de peso nos últimos {periodo} dias
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {dadosGrafico.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dadosGrafico}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis
                   dataKey="data"
                   tick={{ fontSize: 12 }}
@@ -307,11 +336,11 @@ export function DashboardCorte({
                     day: '2-digit',
                   })}
                 />
-                <YAxis label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }} />
+                <YAxis label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft', fontSize: 12 }} tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}
                   labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
-                  formatter={(value) => (typeof value === 'number' ? `${value.toFixed(1)} kg` : value)}
+                  formatter={(value) => (typeof value === 'number' ? [`${value.toFixed(1)} kg`] : [value])}
                 />
                 <Legend />
                 {Array.from(
@@ -321,16 +350,22 @@ export function DashboardCorte({
                     key={lote}
                     type="monotone"
                     dataKey={lote}
-                    stroke={`hsl(${(i * 360) / 8}, 70%, 50%)`}
-                    dot={false}
+                    stroke={`hsl(${(i * 137) % 360}, 70%, 55%)`}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
                     isAnimationActive={false}
                   />
                 ))}
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+              <p className="text-sm font-medium mb-1">Sem pesagens no período</p>
+              <p className="text-xs">Registre pesagens para visualizar a evolução do peso por lote</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* SEÇÃO B: ANIMAIS PRÓXIMOS AO ABATE */}
       <Card>

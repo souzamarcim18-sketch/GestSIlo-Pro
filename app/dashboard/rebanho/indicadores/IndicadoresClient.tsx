@@ -340,12 +340,16 @@ export default function IndicadoresClient({
               valor={indicadores.gmd}
               unidade="kg/dia"
               benchmark={{ min: 0.8, max: 1.5 }}
+              mensagemInsuficiente="Registre ao menos 2 pesagens por animal para calcular o GMD"
+              acaoInsuficiente={{ label: 'Registrar Pesagem', href: '/dashboard/rebanho/eventos/lote/novo' }}
             />
             <CardIndicador
               nome="Taxa de Natalidade"
               valor={indicadores.taxaNatalidade}
               unidade="%"
               benchmark={{ min: 80, max: 95 }}
+              mensagemInsuficiente="Registre eventos de nascimento para calcular este indicador"
+              acaoInsuficiente={{ label: 'Registrar Evento', href: '/dashboard/rebanho/eventos/lote/novo' }}
             />
             <CardIndicador
               nome="Taxa de Mortalidade Geral"
@@ -370,18 +374,24 @@ export default function IndicadoresClient({
               valor={indicadores.taxaPrenhez}
               unidade="%"
               benchmark={{ min: 80, max: 95 }}
+              mensagemInsuficiente="Registre diagnósticos de prenhez para calcular este indicador"
+              acaoInsuficiente={{ label: 'Ver Reprodução', href: '/dashboard/rebanho/reproducao' }}
             />
             <CardIndicador
               nome="IEP (Intervalo Entre Partos)"
               valor={indicadores.iep}
               unidade="dias"
-              benchmark={{ min: 380, max: 420 }}
+              benchmark={{ min: 365, max: 400 }}
+              mensagemInsuficiente="Registre ao menos 2 partos por fêmea para calcular o IEP"
+              acaoInsuficiente={{ label: 'Registrar Parto', href: '/dashboard/rebanho/eventos/lote/novo' }}
             />
             <CardIndicador
               nome="IPP (Idade Primeiro Parto)"
               valor={indicadores.ipp}
               unidade="meses"
-              benchmark={{ min: 22, max: 26 }}
+              benchmark={{ min: 22, max: 30 }}
+              mensagemInsuficiente="Registre eventos de parto de novilhas para calcular o IPP"
+              acaoInsuficiente={{ label: 'Registrar Parto', href: '/dashboard/rebanho/eventos/lote/novo' }}
             />
             <CardIndicador
               nome="Taxa de Reposição"

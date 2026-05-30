@@ -141,6 +141,8 @@ export interface CardIndicadorProps {
   benchmark?: { min: number; max: number };
   icon?: React.ReactNode;
   onRefresh?: () => void;
+  mensagemInsuficiente?: string;
+  acaoInsuficiente?: { label: string; href: string };
 }
 
 /**

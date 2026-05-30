@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus } from 'lucide-react';
+import { Plus, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   Dialog,
@@ -18,9 +18,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { criarProducaoLeiteiraAction } from '@/app/dashboard/rebanho/leiteira/actions';
 import type { ProducaoLeiteira, TurnoProducao } from '@/lib/types/rebanho-leiteira';
 import type { Animal } from '@/lib/types/rebanho';
+
+const TOOLTIP_STYLE = {
+  backgroundColor: 'var(--background)',
+  border: '1px solid var(--border)',
+  borderRadius: '6px',
+  fontSize: '12px',
+} as const;
 
 const TURNO_LABELS_MAP: Record<TurnoProducao, string> = {
   manha: 'Manhã',
@@ -53,6 +68,7 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [modoRegistro, setModoRegistro] = useState<'individual' | 'coletivo'>('individual');
   const [isSaving, setIsSaving] = useState(false);
+  const [periodoGrafico, setPeriodoGrafico] = useState<'7' | '14' | '30'>('30');
 
   // Form state
   const hoje = new Date().toISOString().split('T')[0];
@@ -121,20 +137,26 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
     }
   }
 
-  // Preparar dados para gráfico (últimos 30 dias)
+  // Preparar dados para gráfico com seletor de período
   const graficoData = useMemo(() => {
+    const diasAtras = parseInt(periodoGrafico);
+    const corte = new Date();
+    corte.setDate(corte.getDate() - diasAtras);
+    const corteStr = corte.toISOString().split('T')[0];
+
     const resultado: Record<string, number> = {};
-    producoes.forEach((p) => {
-      resultado[p.data] = (resultado[p.data] || 0) + p.volume_litros;
-    });
+    producoes
+      .filter((p) => p.data >= corteStr)
+      .forEach((p) => {
+        resultado[p.data] = (resultado[p.data] || 0) + p.volume_litros;
+      });
     return Object.entries(resultado)
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-30)
       .map(([data, volume]) => ({
-        data: new Date(data).toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit' }),
+        data: new Date(data + 'T12:00:00').toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit' }),
         volume: parseFloat(volume.toFixed(2)),
       }));
-  }, [producoes]);
+  }, [producoes, periodoGrafico]);
 
   // Ranking top 10
   const ranking = useMemo(() => {
@@ -188,24 +210,72 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
 
   return (
     <div className="space-y-6">
+      {/* Alertas — queda de produção */}
+      {vacsComQueda.length > 0 && (
+        <Card className="border-l-4 border-l-amber-500 bg-amber-500/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <CardTitle className="text-base">Alerta — Queda de Produção</CardTitle>
+              <span className="ml-auto text-sm text-muted-foreground">{vacsComQueda.length} vaca(s)</span>
+            </div>
+            <CardDescription>Vacas com redução de mais de 20% nos últimos 7 dias</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1.5">
+              {vacsComQueda.map((v) => (
+                <div key={v.animal_id} className="flex justify-between items-center py-1.5 px-3 rounded border border-border/50 bg-background">
+                  <span className="font-medium text-sm">{v.brinco}</span>
+                  <span className="text-destructive font-semibold text-sm">−{v.queda_pct.toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Gráfico de Produção Diária */}
       <Card>
         <CardHeader>
-          <CardTitle>Produção Diária (últimos 30 dias)</CardTitle>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>Produção Diária</CardTitle>
+              <CardDescription>Litros registrados por dia no período selecionado</CardDescription>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Select value={periodoGrafico} onValueChange={(v) => setPeriodoGrafico(v as '7' | '14' | '30')}>
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="14">Últimos 14 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button size="sm" onClick={() => setIsOpenDialog(true)}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                Registrar
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {graficoData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={graficoData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="data" />
-                <YAxis label={{ value: 'Litros', angle: -90, position: 'insideLeft' }} />
-                <Tooltip formatter={(value) => `${value} L`} />
-                <Bar dataKey="volume" fill="#8b5cf6" />
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={graficoData} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="data" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} label={{ value: 'Litros', angle: -90, position: 'insideLeft', fontSize: 12 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value) => [`${value} L`, 'Produção']} />
+                <Bar dataKey="volume" fill="hsl(217 91% 60%)" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-center text-muted-foreground py-8">Sem dados de produção</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+              <p className="text-sm font-medium mb-1">Sem dados de produção no período</p>
+              <p className="text-xs">Registre produções para visualizar o gráfico</p>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -214,68 +284,40 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
       <Card>
         <CardHeader>
           <CardTitle>Ranking de Produção (Top 10)</CardTitle>
-          <CardDescription>Vacas com maior produção total no período</CardDescription>
+          <CardDescription>Vacas com maior produção total nos últimos 30 dias</CardDescription>
         </CardHeader>
         <CardContent>
           {ranking.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 text-sm font-medium">Brinco</th>
-                    <th className="text-right py-2 text-sm font-medium">Total (L)</th>
-                    <th className="text-right py-2 text-sm font-medium">Média/dia</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranking.map((animal, idx) => (
-                    <tr key={animal.animal_id} className="border-b">
-                      <td className="py-2">{animal.brinco}</td>
-                      <td className="text-right font-medium">{animal.total_litros.toFixed(1)}</td>
-                      <td className="text-right text-muted-foreground">
-                        {(animal.total_litros / 30).toFixed(1)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8">#</TableHead>
+                  <TableHead>Brinco / Nome</TableHead>
+                  <TableHead className="text-right">Total (L)</TableHead>
+                  <TableHead className="text-right">Média/dia</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ranking.map((animal, idx) => (
+                  <TableRow key={animal.animal_id}>
+                    <TableCell className="text-muted-foreground text-sm">{idx + 1}</TableCell>
+                    <TableCell className="font-medium">
+                      {animal.brinco}
+                      {animal.nome && <span className="text-muted-foreground font-normal"> — {animal.nome}</span>}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">{animal.total_litros.toFixed(1)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {(animal.total_litros / 30).toFixed(1)} L
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
-            <p className="text-center text-muted-foreground py-8">Sem dados</p>
+            <p className="text-center text-muted-foreground py-8 text-sm">Sem dados de produção registrados</p>
           )}
         </CardContent>
       </Card>
-
-      {/* Alertas */}
-      {vacsComQueda.length > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-yellow-900">⚠️ Alertas - Queda de Produção</CardTitle>
-            <CardDescription className="text-yellow-800">
-              Vacas com redução de produção superior a 20%
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {vacsComQueda.map((v) => (
-                <div key={v.animal_id} className="flex justify-between items-center p-2 bg-white rounded border border-yellow-200">
-                  <span className="font-medium">{v.brinco}</span>
-                  <span className="text-yellow-700 font-semibold">-{v.queda_pct.toFixed(1)}%</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Botão Registrar Produção */}
-      <Button
-        onClick={() => setIsOpenDialog(true)}
-        className="w-full"
-      >
-        <Plus className="mr-2 h-4 w-4" />
-        Registrar Produção
-      </Button>
 
       {/* Dialog Registrar Produção */}
       <Dialog open={isOpenDialog} onOpenChange={(open) => { setIsOpenDialog(open); if (!open) resetForm(); }}>
