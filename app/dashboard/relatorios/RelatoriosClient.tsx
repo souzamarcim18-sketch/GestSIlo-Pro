@@ -634,7 +634,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome }: { fazendaId: string
   const exportarPlanejamentoSilagem = async (id: string) => {
     await handleExport('plan_silagem', async () => {
       const data = await getPlanejamentoSilagemParaPdfAction(id);
-      gerarPdfPlanejamento(data as Parameters<typeof gerarPdfPlanejamento>[0], fazendaNome);
+      await gerarPdfPlanejamento(data as Parameters<typeof gerarPdfPlanejamento>[0], fazendaNome);
       toast.success('Planejamento de Silagem (PDF) exportado com sucesso!');
       setShowPlanejamentoSelect(false);
     });

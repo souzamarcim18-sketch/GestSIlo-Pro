@@ -1,5 +1,23 @@
-﻿import jsPDF from 'jspdf';
+import jsPDF from 'jspdf';
 import { CalagemResult, NPKResult, CalagemInput, NPKInput } from '@/lib/calculadoras';
+import {
+  FONT_FAMILY,
+  PDF_MARGIN,
+  PDF_HEADER_HEIGHT,
+  PDF_HEADER_ACCENT_H,
+  PDF_LOGO_HEIGHT,
+  PDF_LOGO_WIDTH,
+  PDF_FIRST_CONTENT_Y,
+  TEXT_DARK_HEX,
+  TEXT_MUTED_HEX,
+  SECTION_TITLE_HEX,
+  REPORT_HEADER_FILL_RGB,
+  REPORT_HEADER_ACCENT_RGB,
+  REPORT_HEADER_TEXT_HEX,
+  REPORT_HEADER_SUBTEXT_HEX,
+  BRAND_VIVID_HEX,
+  BRAND_VIVID_RGB,
+} from '@/lib/branding/tokens';
 
 export interface PDFOptions {
   nomeProdutor?: string;
@@ -9,52 +27,119 @@ export interface PDFOptions {
   responsavelTecnico?: string;
 }
 
-/**
- * Exportar laudo de calagem em PDF
- */
+// ── Helpers compartilhados ──────────────────────────────────────────────────
+
+function carregarLogoBase64(): string | undefined {
+  if (typeof window !== 'undefined') return undefined;
+  try {
+    const fs = require('fs') as typeof import('fs');
+    const path = require('path') as typeof import('path');
+    return fs.readFileSync(path.join(process.cwd(), 'public', 'logo_verde.png')).toString('base64');
+  } catch {
+    return undefined;
+  }
+}
+
+function desenharCabecalho(
+  doc: jsPDF,
+  titulo: string,
+  subtitulo: string,
+  geradoEm: string,
+  logoBase64: string | undefined
+): void {
+  const pageW = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(...REPORT_HEADER_FILL_RGB);
+  doc.rect(0, 0, pageW, PDF_HEADER_HEIGHT, 'F');
+
+  doc.setFillColor(...REPORT_HEADER_ACCENT_RGB);
+  doc.rect(0, PDF_HEADER_HEIGHT - PDF_HEADER_ACCENT_H, pageW, PDF_HEADER_ACCENT_H, 'F');
+
+  const logoX = PDF_MARGIN;
+  const logoY = (PDF_HEADER_HEIGHT - PDF_LOGO_HEIGHT) / 2 - 1;
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', logoX, logoY, PDF_LOGO_WIDTH, PDF_LOGO_HEIGHT);
+    } catch {
+      doc.setFont(FONT_FAMILY, 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(REPORT_HEADER_TEXT_HEX);
+      doc.text('GestSilo', logoX, PDF_HEADER_HEIGHT / 2 + 2);
+    }
+  } else {
+    doc.setFont(FONT_FAMILY, 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(REPORT_HEADER_TEXT_HEX);
+    doc.text('GestSilo', logoX, PDF_HEADER_HEIGHT / 2 + 2);
+  }
+
+  const titleX = logoX + PDF_LOGO_WIDTH + 8;
+  doc.setFont(FONT_FAMILY, 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(REPORT_HEADER_TEXT_HEX);
+  doc.text(titulo, titleX, 14);
+
+  doc.setFont(FONT_FAMILY, 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(REPORT_HEADER_SUBTEXT_HEX);
+  doc.text(subtitulo, titleX, 22);
+
+  const rightX = doc.internal.pageSize.getWidth() - PDF_MARGIN;
+  doc.setFont(FONT_FAMILY, 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(REPORT_HEADER_SUBTEXT_HEX);
+  doc.text(`Gerado em: ${geradoEm}`, rightX, 17, { align: 'right' });
+}
+
+function adicionarSecao(doc: jsPDF, titulo: string, posY: number): void {
+  doc.setFont(FONT_FAMILY, 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(SECTION_TITLE_HEX);
+  doc.text(titulo, PDF_MARGIN, posY);
+
+  doc.setDrawColor(SECTION_TITLE_HEX);
+  doc.setLineWidth(0.4);
+  doc.line(PDF_MARGIN, posY + 2, PDF_MARGIN + 150, posY + 2);
+
+  doc.setTextColor(TEXT_DARK_HEX);
+}
+
+function desenharRodape(doc: jsPDF): void {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  doc.setFont(FONT_FAMILY, 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(TEXT_MUTED_HEX);
+  doc.line(PDF_MARGIN, pageH - 14, pageW - PDF_MARGIN, pageH - 14);
+  doc.text('Gerado por GestSilo — Plataforma de Gestão Agrícola', PDF_MARGIN, pageH - 10);
+  doc.text('Recomendações indicativas — consulte um agrônomo para implementação.', PDF_MARGIN, pageH - 6);
+  doc.setTextColor(TEXT_DARK_HEX);
+}
+
+// ── Calagem ─────────────────────────────────────────────────────────────────
+
 export function exportarLaudoCalagem(
   input: CalagemInput,
   resultado: CalagemResult,
   options: PDFOptions = {}
 ): void {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const logoBase64 = carregarLogoBase64();
+  const geradoEm = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  const subtitulo = options.nomeFazenda ? `Fazenda: ${options.nomeFazenda}` : 'Calculadora Agronômica';
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
+  desenharCabecalho(doc, 'Laudo Técnico de Calagem', subtitulo, geradoEm, logoBase64);
 
-  let yPos = margin;
+  let yPos = PDF_FIRST_CONTENT_Y;
 
-  // --- HEADER ---
-  doc.setFontSize(18);
-  doc.text('LAUDO TÉCNICO DE CALAGEM', margin, yPos);
-  yPos += 15;
-
-  doc.setFontSize(10);
-  doc.text(`GestSilo`, margin, yPos);
-  yPos += 6;
-  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos);
-  yPos += 8;
-  if (options.responsavelTecnico) {
-    doc.text(`Responsável Técnico: ${options.responsavelTecnico}`, margin, yPos);
-    yPos += 8;
-  }
-
-  yPos += 5;
-
-  // Linha separadora
-  doc.setDrawColor(100, 100, 100);
-  doc.line(margin, yPos, pageWidth - margin, yPos);
+  // Informações da Propriedade
+  adicionarSecao(doc, 'INFORMAÇÕES DA PROPRIEDADE', yPos);
   yPos += 8;
 
-  // --- INFORMAÇÕES DA PROPRIEDADE ---
-  doc.setFontSize(12);
-  doc.setTextColor(0, 0, 0);
-  doc.text('INFORMAÇÕES DA PROPRIEDADE', margin, yPos);
-  yPos += 10;
-
-  doc.setFontSize(10);
-  const propriedadeLines = [
+  doc.setFontSize(9);
+  const propriedadeLines: [string, string][] = [
     ['Produtor:', options.nomeProdutor || '___________________'],
     ['Fazenda:', options.nomeFazenda || '___________________'],
     ['Localidade:', options.localidade || '___________________'],
@@ -62,100 +147,106 @@ export function exportarLaudoCalagem(
   ];
 
   propriedadeLines.forEach(([label, value]) => {
-    doc.text(label, margin, yPos);
-    doc.text(value, margin + 50, yPos);
-    yPos += 8;
-  });
-
-  yPos += 5;
-
-  // --- DADOS DA ANÁLISE ---
-  doc.setFontSize(12);
-  doc.text('DADOS DA ANÁLISE', margin, yPos);
-  yPos += 10;
-
-  doc.setFontSize(10);
-  doc.text(`Método: ${nomeMetodo(resultado.metodo)}`, margin, yPos);
-  yPos += 8;
-
-  const prnt = parseFloat(input.prnt);
-  doc.text(`PRNT do Calcário: ${prnt.toFixed(1)}%`, margin, yPos);
-  yPos += 8;
-
-  // Parâmetros específicos do método
-  const paramLines = obterParametrosPorMetodo(input, resultado);
-  paramLines.forEach(([label, value]) => {
-    doc.text(label, margin, yPos);
-    doc.text(value, margin + 60, yPos);
+    doc.setFont(FONT_FAMILY, 'bold');
+    doc.setTextColor(TEXT_DARK_HEX);
+    doc.text(label, PDF_MARGIN, yPos);
+    doc.setFont(FONT_FAMILY, 'normal');
+    doc.setTextColor(TEXT_MUTED_HEX);
+    doc.text(value, PDF_MARGIN + 50, yPos);
     yPos += 7;
   });
 
+  if (options.responsavelTecnico) {
+    doc.setFont(FONT_FAMILY, 'bold');
+    doc.setTextColor(TEXT_DARK_HEX);
+    doc.text('Resp. Técnico:', PDF_MARGIN, yPos);
+    doc.setFont(FONT_FAMILY, 'normal');
+    doc.setTextColor(TEXT_MUTED_HEX);
+    doc.text(options.responsavelTecnico, PDF_MARGIN + 50, yPos);
+    yPos += 7;
+  }
+
+  yPos += 5;
+
+  // Dados da Análise
+  adicionarSecao(doc, 'DADOS DA ANÁLISE', yPos);
   yPos += 8;
 
-  // --- RESULTADO ---
-  doc.setFontSize(12);
-  doc.text('RESULTADO', margin, yPos);
-  yPos += 10;
-
-  // Caixa destacada para o resultado
-  doc.setFillColor(240, 248, 245); // Verde claro
-  doc.rect(margin, yPos - 5, pageWidth - 2 * margin, 20, 'F');
-
-  doc.setFontSize(14);
-  doc.setTextColor(0, 166, 81); // Verde GestSilo
-  doc.text(`Necessidade de Calagem: ${resultado.nc.toFixed(2)} t/ha`, margin + 5, yPos + 5);
-  yPos += 12;
-
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(10);
-  doc.text(`Total para a Área: ${resultado.total.toFixed(1)} toneladas`, margin + 5, yPos + 5);
-  yPos += 15;
-
-  // --- RECOMENDAÇÕES ---
-  doc.setFontSize(12);
-  doc.text('RECOMENDAÇÕES TÉCNICAS', margin, yPos);
-  yPos += 10;
-
   doc.setFontSize(9);
-  const recomendacoes = gerarRecomendacoesCalagem(resultado);
-  recomendacoes.forEach(rec => {
-    const lines = doc.splitTextToSize(rec, pageWidth - 2 * margin - 5);
-    doc.text(lines, margin + 3, yPos);
-    yPos += lines.length * 4 + 2;
+  const prnt = parseFloat(input.prnt);
+  const analiseLines: [string, string][] = [
+    ['Método:', nomeMetodo(resultado.metodo)],
+    ['PRNT do Calcário:', `${prnt.toFixed(1)}%`],
+    ...obterParametrosPorMetodo(input, resultado),
+  ];
+
+  analiseLines.forEach(([label, value]) => {
+    doc.setFont(FONT_FAMILY, 'bold');
+    doc.setTextColor(TEXT_DARK_HEX);
+    doc.text(label, PDF_MARGIN, yPos);
+    doc.setFont(FONT_FAMILY, 'normal');
+    doc.setTextColor(TEXT_MUTED_HEX);
+    doc.text(value, PDF_MARGIN + 60, yPos);
+    yPos += 6;
+  });
+
+  yPos += 8;
+
+  // Resultado em destaque
+  adicionarSecao(doc, 'RESULTADO', yPos);
+  yPos += 8;
+
+  doc.setFillColor(242, 247, 244); // ROW_ZEBRA
+  doc.rect(PDF_MARGIN, yPos - 4, pageW - PDF_MARGIN * 2, 22, 'F');
+
+  doc.setFont(FONT_FAMILY, 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(...BRAND_VIVID_RGB);
+  doc.text(`Necessidade de Calagem: ${resultado.nc.toFixed(2)} t/ha`, PDF_MARGIN + 4, yPos + 4);
+
+  doc.setFont(FONT_FAMILY, 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(TEXT_DARK_HEX);
+  doc.text(`Total para a área: ${resultado.total.toFixed(1)} toneladas`, PDF_MARGIN + 4, yPos + 13);
+  yPos += 28;
+
+  // Recomendações Técnicas
+  adicionarSecao(doc, 'RECOMENDAÇÕES TÉCNICAS', yPos);
+  yPos += 8;
+
+  doc.setFont(FONT_FAMILY, 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(TEXT_DARK_HEX);
+  gerarRecomendacoesCalagem(resultado).forEach((rec) => {
+    const lines = doc.splitTextToSize(rec, pageW - PDF_MARGIN * 2 - 5);
+    doc.text(lines, PDF_MARGIN + 3, yPos);
+    yPos += lines.length * 4.5 + 2;
   });
 
   yPos += 5;
 
-  // --- DISCLAIMER ---
+  // Disclaimer
+  if (yPos > pageH - 55) { doc.addPage(); yPos = PDF_MARGIN + 10; }
+  doc.setFont(FONT_FAMILY, 'italic');
   doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(TEXT_MUTED_HEX);
   const disclaimer = 'Disclaimer: Estas recomendações são indicativas e baseadas em fórmulas técnicas. Consulte um agrônomo qualificado para validar e implementar adequadamente.';
-  const disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - 2 * margin);
-  doc.text(disclaimerLines, margin, yPos);
+  doc.text(doc.splitTextToSize(disclaimer, pageW - PDF_MARGIN * 2), PDF_MARGIN, yPos);
 
-  // --- RODAPÉ ---
-  yPos = pageHeight - 30;
-  doc.setFontSize(8);
-  doc.setTextColor(128, 128, 128);
-  doc.line(margin, yPos, pageWidth - margin, yPos);
-  yPos += 5;
-  doc.text('Gerado por GestSilo - Plataforma de Gestão Agrícola', margin, yPos);
-  yPos += 5;
-  doc.text(`Responsabilidade: Recomendações indicativas. Consulte agrônomo para implementação.`, margin, yPos);
-
-  // --- ASSINATURA ---
-  yPos = pageHeight - 15;
-  doc.setTextColor(0, 0, 0);
+  // Linha de assinatura
+  const assinaturaY = pageH - 22;
+  doc.setTextColor(TEXT_DARK_HEX);
   doc.setFontSize(9);
-  doc.text('Assinatura do Responsável Técnico:', margin, yPos);
-  doc.line(margin + 50, yPos + 2, margin + 130, yPos + 2);
+  doc.text('Assinatura do Responsável Técnico:', PDF_MARGIN, assinaturaY);
+  doc.setDrawColor(TEXT_MUTED_HEX);
+  doc.line(PDF_MARGIN + 52, assinaturaY + 2, PDF_MARGIN + 130, assinaturaY + 2);
 
-  doc.save(`laudo_calagem_${new Date().getTime()}.pdf`);
+  desenharRodape(doc);
+  doc.save(`laudo_calagem_${Date.now()}.pdf`);
 }
 
-/**
- * Exportar relatório de otimização NPK
- */
+// ── NPK ─────────────────────────────────────────────────────────────────────
+
 export function exportarRelatorioNPK(
   input: NPKInput,
   resultado: NPKResult,
@@ -163,139 +254,134 @@ export function exportarRelatorioNPK(
   faseAdubacao?: 'plantio' | 'cobertura'
 ): void {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const logoBase64 = carregarLogoBase64();
+  const geradoEm = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
+  const faseLabel = faseAdubacao === 'plantio'
+    ? 'Adubação de Base (Plantio)'
+    : faseAdubacao === 'cobertura'
+    ? 'Adubação de Cobertura'
+    : undefined;
+  const subtitulo = [options.nomeFazenda ? `Fazenda: ${options.nomeFazenda}` : undefined, faseLabel]
+    .filter(Boolean)
+    .join('  |  ') || 'Calculadora Agronômica';
 
-  let yPos = margin;
+  desenharCabecalho(doc, 'Recomendação de Adubação NPK', subtitulo, geradoEm, logoBase64);
 
-  // --- HEADER ---
-  doc.setFontSize(18);
-  doc.text('RECOMENDAÇÃO DE ADUBAÇÃO NPK', margin, yPos);
-  yPos += 15;
+  let yPos = PDF_FIRST_CONTENT_Y;
 
-  doc.setFontSize(10);
-  doc.text('GestSilo', margin, yPos);
-  yPos += 6;
-  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos);
-  yPos += 6;
-  if (faseAdubacao) {
-    const faseLabel = faseAdubacao === 'plantio' ? 'Adubação de Base (Plantio)' : 'Adubação de Cobertura';
-    doc.text(`Fase: ${faseLabel}`, margin, yPos);
-    yPos += 6;
-  }
-  yPos += 5;
-
-  // Linha separadora
-  doc.setDrawColor(100, 100, 100);
-  doc.line(margin, yPos, pageWidth - margin, yPos);
+  // Necessidade de Nutrientes
+  adicionarSecao(doc, 'NECESSIDADE DE NUTRIENTES', yPos);
   yPos += 8;
 
-  // --- NECESSIDADE ---
-  doc.setFontSize(12);
-  doc.text('NECESSIDADE DE NUTRIENTES', margin, yPos);
-  yPos += 10;
-
-  doc.setFontSize(10);
   const nNec = parseFloat(input.n_nec);
   const pNec = parseFloat(input.p_nec);
   const kNec = parseFloat(input.k_nec);
   const area = parseFloat(input.area);
 
-  doc.text(`N: ${nNec.toFixed(0)} kg/ha`, margin, yPos);
-  yPos += 7;
-  doc.text(`P₂O₅: ${pNec.toFixed(0)} kg/ha`, margin, yPos);
-  yPos += 7;
-  doc.text(`K₂O: ${kNec.toFixed(0)} kg/ha`, margin, yPos);
-  yPos += 7;
-  doc.text(`Área: ${area.toFixed(2)} ha`, margin, yPos);
-  yPos += 10;
+  doc.setFontSize(9);
+  const nutrientes: [string, string][] = [
+    ['N:', `${nNec.toFixed(0)} kg/ha`],
+    ['P₂O₅:', `${pNec.toFixed(0)} kg/ha`],
+    ['K₂O:', `${kNec.toFixed(0)} kg/ha`],
+    ['Área:', `${area.toFixed(2)} ha`],
+  ];
+  nutrientes.forEach(([label, value]) => {
+    doc.setFont(FONT_FAMILY, 'bold');
+    doc.setTextColor(TEXT_DARK_HEX);
+    doc.text(label, PDF_MARGIN, yPos);
+    doc.setFont(FONT_FAMILY, 'normal');
+    doc.setTextColor(TEXT_MUTED_HEX);
+    doc.text(value, PDF_MARGIN + 30, yPos);
+    yPos += 6;
+  });
+  yPos += 6;
 
-  // --- RESULTADO / OPÇÕES ---
+  // Resultado / Opções
   if (resultado.modo === 'simples') {
-    doc.setFontSize(12);
-    doc.text('RECOMENDAÇÃO SIMPLES', margin, yPos);
-    yPos += 10;
-
-    doc.setFontSize(10);
-    doc.setTextColor(0, 166, 81);
-    doc.text(`${resultado.fertNome}: ${resultado.dosePorHa.toFixed(0)} kg/ha`, margin, yPos);
+    adicionarSecao(doc, 'RECOMENDAÇÃO SIMPLES', yPos);
     yPos += 8;
 
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Total para a Área: ${resultado.total.toFixed(2)} t`, margin, yPos);
-    yPos += 15;
-  } else if (resultado.top5 && resultado.top5.length > 0) {
-    doc.setFontSize(12);
-    doc.text('TOP 5 OPÇÕES OTIMIZADAS (por custo)', margin, yPos);
-    yPos += 10;
+    doc.setFillColor(242, 247, 244);
+    doc.rect(PDF_MARGIN, yPos - 4, pageW - PDF_MARGIN * 2, 20, 'F');
 
-    doc.setFontSize(8);
+    doc.setFont(FONT_FAMILY, 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...BRAND_VIVID_RGB);
+    doc.text(`${resultado.fertNome}: ${resultado.dosePorHa.toFixed(0)} kg/ha`, PDF_MARGIN + 4, yPos + 4);
+
+    doc.setFont(FONT_FAMILY, 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(TEXT_DARK_HEX);
+    doc.text(`Total para a área: ${resultado.total.toFixed(2)} t`, PDF_MARGIN + 4, yPos + 12);
+    yPos += 26;
+
+  } else if (resultado.top5 && resultado.top5.length > 0) {
+    adicionarSecao(doc, 'TOP 5 OPÇÕES OTIMIZADAS (por custo)', yPos);
+    yPos += 8;
+
     resultado.top5.forEach((opcao, idx) => {
-      // Número da opção
-      doc.setTextColor(0, 166, 81);
-      doc.text(`${idx + 1}. ${opcao.fertilizantes.map(f => f.fertilizante.nome).join(' + ')}`, margin, yPos);
+      if (yPos > pageH - 40) {
+        doc.addPage();
+        desenharCabecalho(doc, 'Recomendação de Adubação NPK', subtitulo, geradoEm, logoBase64);
+        yPos = PDF_FIRST_CONTENT_Y;
+      }
+
+      // Título da opção
+      doc.setFont(FONT_FAMILY, 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(BRAND_VIVID_HEX);
+      doc.text(`${idx + 1}. ${opcao.fertilizantes.map((f) => f.fertilizante.nome).join(' + ')}`, PDF_MARGIN, yPos);
       yPos += 6;
 
-      // Doses
-      doc.setTextColor(0, 0, 0);
-      opcao.fertilizantes.forEach(f => {
-        const doseStr = `${f.fertilizante.nome}: ${f.dose_kg_ha.toFixed(0)} kg/ha (${f.sacos_por_ha} sacos/ha)`;
-        doc.text(doseStr, margin + 5, yPos);
+      // Doses por fertilizante
+      doc.setFont(FONT_FAMILY, 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(TEXT_DARK_HEX);
+      opcao.fertilizantes.forEach((f) => {
+        doc.text(`${f.fertilizante.nome}: ${f.dose_kg_ha.toFixed(0)} kg/ha (${f.sacos_por_ha} sacos/ha)`, PDF_MARGIN + 5, yPos);
         yPos += 5;
       });
 
       // Custo
       const totalSacos = opcao.fertilizantes.reduce((acc, f) => acc + f.total_sacos, 0);
-      const custoTotalArea = opcao.custoTotal_r_ha * area;
-      doc.text(`Custo: R$ ${opcao.custoTotal_r_ha.toFixed(2)}/ha | Total: R$ ${custoTotalArea.toFixed(2)} (${totalSacos} sacos)`, margin + 5, yPos);
-      yPos += 6;
+      doc.setTextColor(TEXT_MUTED_HEX);
+      doc.text(
+        `Custo: R$ ${opcao.custoTotal_r_ha.toFixed(2)}/ha  |  Total: R$ ${(opcao.custoTotal_r_ha * area).toFixed(2)}  |  ${totalSacos} sacos`,
+        PDF_MARGIN + 5,
+        yPos
+      );
+      yPos += 5;
 
       // Nutrientes fornecidos
-      const nutriStr = `N: ${opcao.nutrientes_fornecidos.n.toFixed(0)} kg/ha | P: ${opcao.nutrientes_fornecidos.p.toFixed(0)} kg/ha | K: ${opcao.nutrientes_fornecidos.k.toFixed(0)} kg/ha`;
-      doc.text(nutriStr, margin + 5, yPos);
-      yPos += 6;
-
-      yPos += 3;
-
-      // Se espaço está acabando, criar nova página
-      if (yPos > pageHeight - 30) {
-        doc.addPage();
-        yPos = margin;
-      }
+      doc.text(
+        `N: ${opcao.nutrientes_fornecidos.n.toFixed(0)} kg/ha  |  P: ${opcao.nutrientes_fornecidos.p.toFixed(0)} kg/ha  |  K: ${opcao.nutrientes_fornecidos.k.toFixed(0)} kg/ha`,
+        PDF_MARGIN + 5,
+        yPos
+      );
+      yPos += 8;
+      doc.setTextColor(TEXT_DARK_HEX);
     });
   }
 
-  yPos += 5;
-
-  // --- DISCLAIMER ---
-  if (yPos > pageHeight - 50) {
-    doc.addPage();
-    yPos = margin;
-  }
+  // Disclaimer
+  if (yPos > pageH - 40) { doc.addPage(); yPos = PDF_MARGIN + 10; }
+  doc.setFont(FONT_FAMILY, 'italic');
   doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(TEXT_MUTED_HEX);
   const disclaimer =
     'Aviso: Este cálculo considera apenas os custos de aquisição dos fertilizantes. O produtor deve ' +
-    'considerar também os custos logísticos das operações agrícolas envolvidas — transporte, mão de obra ' +
-    'de aplicação, horas-máquina, combustível e demais insumos operacionais. Quanto menor o número de ' +
-    'fertilizantes utilizados, mais simples e barata tende a ser a operação de campo.\n\n' +
-    'Estas recomendações são indicativas e baseadas em otimização matemática. Consulte um agrônomo ' +
-    'qualificado para validar e implementar adequadamente.';
-  const disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - 2 * margin);
-  doc.text(disclaimerLines, margin, yPos);
+    'considerar também os custos logísticos — transporte, mão de obra, horas-máquina e combustível. ' +
+    'Recomendações indicativas. Consulte um agrônomo qualificado para implementação.';
+  doc.text(doc.splitTextToSize(disclaimer, pageW - PDF_MARGIN * 2), PDF_MARGIN, yPos);
 
-  // --- RODAPÉ ---
-  yPos = pageHeight - 15;
-  doc.setFontSize(8);
-  doc.setTextColor(128, 128, 128);
-  doc.text('Gerado por GestSilo - Plataforma de Gestão Agrícola', margin, yPos);
-
-  doc.save(`recomendacao_npk_${new Date().getTime()}.pdf`);
+  desenharRodape(doc);
+  doc.save(`recomendacao_npk_${Date.now()}.pdf`);
 }
 
-// ========== FUNÇÕES AUXILIARES ==========
+// ── Funções auxiliares ──────────────────────────────────────────────────────
 
 function nomeMetodo(metodo: string): string {
   const nomes: Record<string, string> = {
@@ -310,41 +396,30 @@ function nomeMetodo(metodo: string): string {
 
 function obterParametrosPorMetodo(input: CalagemInput, resultado: CalagemResult): [string, string][] {
   const params: [string, string][] = [];
-
   if (resultado.metodo === 'saturacao') {
-    params.push(['V% Atual (V1):', parseFloat(input.v1 || '0').toFixed(1) + '%']);
-    params.push(['V% Desejado (V2):', parseFloat(input.v2 || '0').toFixed(1) + '%']);
-    params.push(['CTC(T):', parseFloat(input.ctc || '0').toFixed(2) + ' cmolc/dm³']);
+    params.push(['V% Atual (V1):', `${parseFloat(input.v1 || '0').toFixed(1)}%`]);
+    params.push(['V% Desejado (V2):', `${parseFloat(input.v2 || '0').toFixed(1)}%`]);
+    params.push(['CTC(T):', `${parseFloat(input.ctc || '0').toFixed(2)} cmolc/dm³`]);
   } else if (resultado.metodo === 'al_ca_mg' || resultado.metodo === 'mg_manual') {
-    params.push(['Al³⁺:', parseFloat(input.al || '0').toFixed(2) + ' cmolc/dm³']);
-    params.push(['Ca²⁺:', parseFloat(input.ca || '0').toFixed(2) + ' cmolc/dm³']);
-    params.push(['Mg²⁺:', parseFloat(input.mg || '0').toFixed(2) + ' cmolc/dm³']);
+    params.push(['Al³⁺:', `${parseFloat(input.al || '0').toFixed(2)} cmolc/dm³`]);
+    params.push(['Ca²⁺:', `${parseFloat(input.ca || '0').toFixed(2)} cmolc/dm³`]);
+    params.push(['Mg²⁺:', `${parseFloat(input.mg || '0').toFixed(2)} cmolc/dm³`]);
   } else if (resultado.metodo === 'smp') {
-    params.push(['pH SMP:', parseFloat(input.ph_smp || '0').toFixed(1)]);
+    params.push(['pH SMP:', `${parseFloat(input.ph_smp || '0').toFixed(1)}`]);
     params.push(['Textura:', input.textura || '-']);
   } else if (resultado.metodo === 'ufla') {
-    params.push(['Ca² Atual:', parseFloat(input.ca || '0').toFixed(2) + ' cmolc/dm³']);
+    params.push(['Ca² Atual:', `${parseFloat(input.ca || '0').toFixed(2)} cmolc/dm³`]);
     params.push(['Cultura:', input.cultura || '-']);
   }
-
   return params;
 }
 
 function gerarRecomendacoesCalagem(resultado: CalagemResult): string[] {
-  const recomendacoes: string[] = [];
-
-  recomendacoes.push(`• Aplicar ${resultado.nc.toFixed(2)} t/ha de calcário com PRNT adequado.`);
-
-  if (resultado.nc > 3) {
-    recomendacoes.push('• Incorporar em profundidade (30-40 cm) para corrigir todo o perfil do solo.');
-  }
-
-  if (resultado.nc > 5) {
-    recomendacoes.push('• Para NC > 5 t/ha, considere parcelar a aplicação em 2 safras para melhor aproveitamento.');
-  }
-
-  recomendacoes.push('• Realizar a calagem pelo menos 60-90 dias antes do plantio para permitir a reação do calcário.');
-  recomendacoes.push('• Manter umidade adequada no solo para acelerar a reação do calcário.');
-
-  return recomendacoes;
+  const r: string[] = [];
+  r.push(`• Aplicar ${resultado.nc.toFixed(2)} t/ha de calcário com PRNT adequado.`);
+  if (resultado.nc > 3) r.push('• Incorporar em profundidade (30–40 cm) para corrigir todo o perfil do solo.');
+  if (resultado.nc > 5) r.push('• Para NC > 5 t/ha, considere parcelar em 2 safras para melhor aproveitamento.');
+  r.push('• Realizar a calagem pelo menos 60–90 dias antes do plantio para permitir a reação do calcário.');
+  r.push('• Manter umidade adequada no solo para acelerar a reação do calcário.');
+  return r;
 }

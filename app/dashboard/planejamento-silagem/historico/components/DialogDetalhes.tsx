@@ -41,7 +41,7 @@ export function DialogDetalhes({
   const handleExportPDF = async () => {
     setIsExportando(true);
     try {
-      gerarPdfPlanejamento(planejamento, nomeFazenda);
+      await gerarPdfPlanejamento(planejamento, nomeFazenda);
       toast.success('PDF gerado com sucesso!');
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);

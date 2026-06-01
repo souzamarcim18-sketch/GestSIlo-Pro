@@ -91,7 +91,9 @@
       "Bash(rm -f public/sw.js public/sw.js.map public/workbox-*.js public/workbox-*.js.map)",
       "Bash(ls public/*.js public/*.map)",
       "Bash(find . -name \"useOfflineSync.ts\" -not -path \"*/node_modules/*\" -not -path \"*/.next/*\")",
-      "Bash(ls hooks/)"
+      "Bash(ls hooks/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/export/preview-pdf)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/export/preview-excel)"
     ],
     "additionalDirectories": [
       "\\tmp"

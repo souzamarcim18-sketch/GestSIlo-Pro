@@ -381,8 +381,16 @@ lib/
 │   ├── mao-de-obra.ts               # colaboradorFormSchema, atividadeFormSchema (refine: max 1 vínculo)
 │   ├── rebanho-lote.ts              # dadosCompartilhadosPorTipo, dadosIndividuaisPorTipo (discriminated unions), superRefine opu, criarEventosLoteSchema
 │   └── README.md                    # Padrão B oficial (RHF + Zod + shadcn/ui); lista features com Padrão A pendentes de migração
+├── branding/
+│   └── tokens.ts                    # Paleta de impressão GestSilo — ÚNICA fonte de hex/ARGB para PDF e Excel (fundo claro, verde de marca)
 ├── calculadoras/
 ├── pdf/
+│   ├── gerarPdfIndicadoresRebanho.ts  # PDF Indicadores Zootécnicos — usa tokens.ts + cabeçalho padrão
+│   └── gerarPdfPlanejamento.ts        # PDF Planejamento de Silagem — 'use client', async (fetch logo via /logo_verde.png)
+├── relatorios/
+│   ├── pdf-builder.ts               # Template genérico PDF config-driven — usa tokens.ts
+│   ├── excel-builder.ts             # Template genérico Excel config-driven — usa tokens.ts; logo embutida via fs (server) ou logoBuffer
+│   └── rebanho-builder.ts           # Helpers construtor dinâmico de rebanho
 ├── constants/
 ├── utils.ts                         # formatBRL, formatDate, daysBetween, calcularCustoColaborador (hora↔dia, importável em Server Actions e Client Components)
 └── supabase.ts
@@ -1600,7 +1608,7 @@ Web Push / FCM: não implementado.
 
 **Testes**: 30+ cenários em `__tests__/calendario/`
 
-### 📊 Relatórios Exportáveis (100% implementado — 2026-05-26)
+### 📊 Relatórios Exportáveis (100% implementado — 2026-05-26, padrão visual unificado 2026-06-01)
 
 | Módulo | Formato | Biblioteca | Conteúdo |
 |---|---|---|---|
@@ -1623,9 +1631,98 @@ O módulo foi reestruturado em 5 seções principais na página:
 - Usa a view Postgres `vw_animais_completos` (criada com `security_invoker`)
 - Exporta para XLSX ou PDF conforme escolha do usuário
 
+---
+
+### Padrão de Identidade Visual GestSilo — Relatórios (implementado 2026-06-01)
+
+**Regra absoluta**: toda geração de PDF ou Excel DEVE usar `lib/branding/tokens.ts` como ÚNICA fonte de cores. Nenhum hex hardcoded nos arquivos de exportação.
+
+#### `lib/branding/tokens.ts` — tokens de impressão (fundo claro)
+
+| Token | Valor | Uso |
+|---|---|---|
+| `TABLE_HEADER_FILL_RGB/ARGB` | `#00843D` | Cabeçalho de tabela (fundo verde) |
+| `TABLE_HEADER_TEXT_*` | `#FFFFFF` | Texto do cabeçalho de tabela |
+| `ROW_ZEBRA_RGB/ARGB` | `#F2F7F4` | Linhas alternadas (zebra verde claríssimo) |
+| `REPORT_HEADER_FILL_RGB` | `#FFFFFF` | Fundo da faixa de cabeçalho do documento |
+| `REPORT_HEADER_ACCENT_RGB` | `#00843D` | Borda inferior da faixa de cabeçalho |
+| `REPORT_HEADER_TEXT_HEX` | `#023c1f` | Título do relatório (verde escuro) |
+| `REPORT_HEADER_SUBTEXT_HEX` | `#555555` | Fazenda, período, rodapé |
+| `BRAND_VIVID_RGB/HEX` | `#00A651` | Valores em destaque, NC de calagem |
+| `PDF_LOGO_WIDTH/HEIGHT` | `42mm / 10mm` | Proporção correta da logo (ratio 4.22:1) |
+| `EXCEL_LOGO_WIDTH/HEIGHT` | `135px / 32px` | Proporção correta da logo no Excel |
+
+#### Estrutura do cabeçalho (igual em todos os documentos)
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  [LOGO]  Título do Relatório (verde escuro)      Período: X – Y  │  ← fundo branco
+│          Fazenda: Nome da Fazenda                Gerado em: …    │
+└──────────────────────────────────────────────────────────────────┘  ← borda verde 1mm
+```
+
+- Logo: `public/logo_verde.png` — carregada via `fs` (server) ou `fetch('/logo_verde.png')` (browser)
+- Logo NUNCA da fazenda — sempre a logo GestSilo
+- Fundo SEMPRE branco (não replicar tema dark)
+
+#### Como criar um novo relatório PDF
+
+```typescript
+// Usar gerarPdf() de lib/relatorios/pdf-builder.ts
+import { gerarPdf } from '@/lib/relatorios/pdf-builder';
+
+gerarPdf({
+  fileName: 'meu-relatorio.pdf',
+  titulo: 'Título do Relatório',
+  metadata: { fazendaNome, nomeRelatorio, geradoEm: new Date() },
+  secoes: [
+    {
+      titulo: 'NOME DA SEÇÃO',
+      colunas: [{ key: 'campo', label: 'Rótulo', tipo: 'BRL', largura: 25 }],
+      linhas: dados,
+    },
+  ],
+});
+```
+
+#### Como criar um novo relatório Excel
+
+```typescript
+// Usar gerarExcel() de lib/relatorios/excel-builder.ts
+import { gerarExcel } from '@/lib/relatorios/excel-builder';
+
+await gerarExcel({
+  fileName: 'meu-relatorio.xlsx',
+  metadata: { fazendaNome, nomeRelatorio, geradoEm: new Date(), periodo },
+  sheets: [
+    {
+      nome: 'Aba 1',
+      colunas: [{ key: 'campo', label: 'Rótulo', tipo: 'BRL', largura: 20 }],
+      linhas: dados,
+    },
+  ],
+});
+```
+
+#### Rotas de preview (validação visual)
+
+- `GET /api/export/preview-pdf` — PDF de exemplo com dados fictícios
+- `GET /api/export/preview-excel` — Excel de exemplo com dados fictícios
+
+#### Regras invioláveis para relatórios
+
+- ❌ Nunca hardcodar hex (`#00A651`, `[0,166,81]`) fora de `tokens.ts`
+- ❌ Nunca fundo escuro (`#161616`) em relatórios — documentos são para impressão
+- ❌ Nunca usar logo da fazenda — sempre `public/logo_verde.png` (GestSilo)
+- ✅ Logo PDF: sempre `PDF_LOGO_WIDTH × PDF_LOGO_HEIGHT` dos tokens (proporção 4.22:1)
+- ✅ Rodapé em todas as páginas via `didDrawPage` — nunca `doc.text()` fixo após a última seção
+- ✅ `gerarPdfPlanejamento` é `async` (carrega logo via `fetch`) — sempre `await` nos callers
+
+---
+
 **Helpers e componentes reutilizáveis**:
 - `lib/relatorios/excel-builder.ts` — `gerarExcel(config)` async (ExcelJS) e tipos `AbaConfig`, `ColunaConfig`, `ExcelReportConfig`; sempre usar `await gerarExcel(...)` nos consumers
-- `lib/pdf/relatorio-helpers.ts` — `gerarPdf(titulo, colunas, dados, nomeArquivo)` genérico (jsPDF)
+- `lib/relatorios/pdf-builder.ts` — `gerarPdf(config)` (jsPDF + autoTable), config-driven
 - `lib/utils/date-range.ts` — `toUtcRangeFromLocal(dataInicio, dataFim)` para converter range local → UTC sem shift
 - `components/relatorios/PeriodoFilter.tsx` — seletor de período reutilizável (data início/fim)
 - `components/relatorios/RelatorioCard.tsx` — card padrão para cada relatório

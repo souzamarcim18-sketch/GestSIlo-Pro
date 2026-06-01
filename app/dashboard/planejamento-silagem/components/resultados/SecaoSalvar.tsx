@@ -46,7 +46,7 @@ export function SecaoSalvar({
 
     setIsExportando(true);
     try {
-      gerarPdfPlanejamento(planejamentoParaExportar, nomeFazenda);
+      await gerarPdfPlanejamento(planejamentoParaExportar, nomeFazenda);
       toast.success('PDF gerado com sucesso!');
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
