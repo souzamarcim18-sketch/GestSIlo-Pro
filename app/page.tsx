@@ -655,19 +655,19 @@ export default function LandingPage() {
                       {/* Ocupação */}
                       <div className="rounded-[8px] p-2.5 border border-white/10" style={{ background: '#1c1c1c' }}>
                         <p className="text-[7px] uppercase tracking-wider text-muted-foreground mb-1">Ocupação</p>
-                        <p className="text-sm font-extrabold text-foreground">99%</p>
-                        <p className="text-[7px] text-muted-foreground">944 / 953 ton</p>
+                        <p className="text-sm font-extrabold text-foreground">67%</p>
+                        <p className="text-[7px] text-muted-foreground">638 / 953 ton</p>
                       </div>
                       {/* Autonomia */}
                       <div className="rounded-[8px] p-2.5 border border-white/10" style={{ background: '#1c1c1c' }}>
                         <p className="text-[7px] uppercase tracking-wider text-muted-foreground mb-1">Autonomia</p>
-                        <p className="text-sm font-extrabold text-foreground leading-none">3.332</p>
+                        <p className="text-sm font-extrabold text-foreground leading-none">232</p>
                         <p className="text-[7px] text-muted-foreground">dias de estoque</p>
                       </div>
                       {/* Consumo */}
                       <div className="rounded-[8px] p-2.5 border border-white/10" style={{ background: '#1c1c1c' }}>
                         <p className="text-[7px] uppercase tracking-wider text-muted-foreground mb-1">Consumo/dia</p>
-                        <p className="text-sm font-extrabold text-foreground">283</p>
+                        <p className="text-sm font-extrabold text-foreground">1.283</p>
                         <p className="text-[7px] text-muted-foreground">kg/dia (30d)</p>
                       </div>
                     </div>
