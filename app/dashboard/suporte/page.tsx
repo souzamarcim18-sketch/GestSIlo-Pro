@@ -125,9 +125,9 @@ export default function SuportePage() {
         </div>
         <Card className="rounded-2xl shadow-sm">
           <CardContent className="px-5 py-2">
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion className="w-full">
               {faqItems.map((item, i) => (
-                <AccordionItem key={i} value={`item-${i}`}>
+                <AccordionItem key={i} value={i}>
                   <AccordionTrigger className="text-sm font-medium text-left">
                     {item.q}
                   </AccordionTrigger>

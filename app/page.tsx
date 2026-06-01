@@ -10,7 +10,6 @@ import {
   Tractor,
   Calculator,
   DollarSign,
-  FlaskConical,
   Package,
   NotebookPen,
   BarChart3,
@@ -22,6 +21,18 @@ import {
   MapPin,
   TrendingDown,
   Shield,
+  Beef,
+  Leaf,
+  Users,
+  ShoppingCart,
+  CalendarDays,
+  HandHelping,
+  Scale,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -208,32 +219,68 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Linha 1 — módulos core */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {[
-              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Tenha controle total das suas silagens em tempo real — acompanhe entradas, saídas, volumes armazenados e a qualidade de cada lote, evitando perdas e garantindo forragem de alto valor nutricional para o seu rebanho.', iconColor: '#BBF7D0' },
-              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Gerencie suas áreas, acompanhe suas operações agrícolas, tenha o histórico de cultivos e produtividade de suas lavouras.', iconColor: '#BFDBFE' },
-              { Icon: Tractor, title: 'Gestão de Máquinas e Implementos', desc: 'Controle as manutenções, os abastecimentos, as horas trabalhadas e os custos operacionais.', iconColor: '#FED7AA' },
-              { Icon: Calculator, title: 'Calculadoras', desc: 'Tenha nas suas mãos calculadoras que te ajudarão a tomar decisões em relação à compras de fertilizantes e calcário.', iconColor: '#E9D5FF' },
-              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'Acompanhe as receitas, as despesas, da sua propriedade com formatação em BRL e cálculos automáticos.', iconColor: '#FEF08A' },
-              { Icon: NotebookPen, title: 'Planejamento de silagens', desc: 'Planeje a necessidade de volume de silagens e de áreas de plantios, de acordo com seu sistema de produção e seu rebanho.', iconColor: '#FECACA' },
-              { Icon: Package, title: 'Gestão de Insumos', desc: 'Organize o estoque de fertilizantes, defensivos, sementes e outros itens, com controle de entradas, saídas e custos.', iconColor: '#A5F3FC' },
-              { Icon: BarChart3, title: 'Relatórios & Simulador', desc: 'Gere relatórios consolidados por período e simule cenários agrícolas para apoiar suas decisões estratégicas.', iconColor: '#DDD6FE' },
+              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Controle total das suas silagens — entradas, saídas, volumes, qualidade bromatológica e PSPS, evitando perdas e garantindo forragem de alto valor nutricional para o rebanho.', iconColor: '#BBF7D0', badge: 'Core' },
+              { Icon: Beef, title: 'Gestão de Rebanho', desc: 'Ficha completa de cada animal, controle por lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado em um único módulo.', iconColor: '#FED7AA', badge: 'Core' },
+              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Talhões mapeados, ciclos agrícolas, operações de campo, histórico de cultivos, produtividade por área e custo de produção por ciclo.', iconColor: '#BFDBFE', badge: 'Core' },
             ].map((item) => (
               <div
                 key={item.title}
                 className="bg-surface border border-border2 rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-8 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
               >
-                {/* Shimmer line */}
                 <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
-                <div className="mb-4">
-                  <item.Icon size={40} strokeWidth={1.8} color={item.iconColor} />
+                <div className="flex items-start justify-between mb-4">
+                  <item.Icon size={36} strokeWidth={1.8} color={item.iconColor} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-dim text-brand-primary border border-green-border">{item.badge}</span>
                 </div>
-                <h3 className="font-bold text-foreground text-lg mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {item.desc}
-                </p>
+                <h3 className="font-bold text-foreground text-lg mb-2">{item.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Linha 2 — módulos de gestão */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {[
+              { Icon: Tractor, title: 'Frota & Maquinário', desc: 'Plano de manutenção preventiva/corretiva, diário de bordo, abastecimentos e custo operacional por máquina.', iconColor: '#FED7AA' },
+              { Icon: Leaf, title: 'Gestão de Pastagens', desc: 'Controle de piquetes, ocupações de lotes, cálculo de UA/ha e histórico de eventos de manejo por área.', iconColor: '#BBF7D0' },
+              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'DRE, fluxo de caixa e lucratividade com integração automática de todos os módulos — insumos, mão de obra, vendas.', iconColor: '#FEF08A' },
+              { Icon: Users, title: 'Mão de Obra', desc: 'Registro de atividades rurais, custo por colaborador, vínculo com talhões e silos, e integração automática ao financeiro.', iconColor: '#E9D5FF' },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-surface border border-border2 rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+              >
+                <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
+                <div className="mb-3">
+                  <item.Icon size={32} strokeWidth={1.8} color={item.iconColor} />
+                </div>
+                <h3 className="font-bold text-foreground text-base mb-1.5">{item.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Linha 3 — módulos de suporte e análise */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { Icon: Package, title: 'Estoque de Insumos & Produtos', desc: 'Controle de estoque com níveis mínimos, alertas automáticos, integração financeira e planejamento de compras.', iconColor: '#A5F3FC' },
+              { Icon: Scale, title: 'Balanço Forrageiro', desc: 'Cruze consumo real dos silos, demanda projetada pelo rebanho e oferta das pastagens para calcular a autonomia líquida.', iconColor: '#D9F99D' },
+              { Icon: Calculator, title: 'Calculadoras Agronômicas', desc: 'Otimizador de adubação NPK e calagem — encontra a combinação de fertilizantes mais econômica para sua necessidade.', iconColor: '#E9D5FF' },
+              { Icon: BarChart3, title: 'Relatórios Exportáveis', desc: 'Mais de 15 relatórios em Excel e PDF cobrindo todos os módulos — rebanho, financeiro, talhões, frota e muito mais.', iconColor: '#DDD6FE' },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-surface border border-border2 rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+              >
+                <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
+                <div className="mb-3">
+                  <item.Icon size={32} strokeWidth={1.8} color={item.iconColor} />
+                </div>
+                <h3 className="font-bold text-foreground text-base mb-1.5">{item.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -270,36 +317,106 @@ export default function LandingPage() {
             </div>
           </div>
 
+          {/* Mockup do sistema */}
           <div className="relative">
-            <div
-              className="rounded-3xl p-8 shadow-2xl"
-              style={{ background: 'linear-gradient(145deg, #00A651, #00843D)' }}
-            >
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: 'Silos ativos', value: '12', unit: 'unidades' },
-                  { label: 'Estoque total', value: '8.400', unit: 'toneladas' },
-                  { label: 'Talhões mapeados', value: '47', unit: 'áreas' },
-                  { label: 'Economia gerada', value: 'R$ 120k', unit: 'este ano' },
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-white/15 rounded-2xl p-4 backdrop-blur-sm">
-                    <p className="text-white/80 text-sm font-medium mb-1">{stat.label}</p>
-                    <p className="text-white text-2xl font-extrabold">{stat.value}</p>
-                    <p className="text-white/70 text-sm">{stat.unit}</p>
-                  </div>
-                ))}
+            {/* Glow de fundo */}
+            <div className="absolute -inset-4 rounded-[32px] opacity-20 blur-2xl z-0" style={{ background: 'linear-gradient(135deg, #00A651, #135a36)' }} />
+
+            <div className="relative z-10 rounded-[18px] overflow-hidden border border-white/10 shadow-2xl" style={{ background: 'var(--surface)' }}>
+
+              {/* Barra de topo tipo browser/app */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/8" style={{ background: 'var(--sidebar)' }}>
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400/60" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
+                  <div className="w-3 h-3 rounded-full bg-green-400/60" />
+                </div>
+                <div className="flex-1 mx-3 bg-white/5 rounded-md px-3 py-1 text-xs text-muted-foreground border border-white/8">
+                  gestsilo.com.br/dashboard
+                </div>
               </div>
-              <div className="mt-6 bg-white/10 rounded-2xl p-4">
-                <p className="text-white/80 text-sm font-medium mb-2">Produtividade do mês</p>
-                <div className="flex items-end gap-1 h-12">
-                  {[40, 65, 55, 80, 70, 90, 85].map((h, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 rounded-t-md bg-white/40"
-                      style={{ height: `${h}%` }}
-                    />
+
+              {/* Conteúdo do app mockup */}
+              <div className="p-5 space-y-4">
+
+                {/* Header da página */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Bom dia, João</p>
+                    <h3 className="text-base font-bold text-foreground">Fazenda São Pedro</h3>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-dim border border-green-border text-brand-primary">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
+                    Online
+                  </div>
+                </div>
+
+                {/* KPIs */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Estoque de Silagem', value: '8.247 t', trend: '+3,2%', up: true, color: '#BBF7D0' },
+                    { label: 'Autonomia do Rebanho', value: '94 dias', trend: 'Seguro', up: true, color: '#A5F3FC' },
+                    { label: 'Receita do Mês', value: 'R$ 42.800', trend: '+8,5%', up: true, color: '#FEF08A' },
+                    { label: 'Alertas Críticos', value: '2 alertas', trend: 'Revisar', up: false, color: '#FCA5A5' },
+                  ].map((kpi) => (
+                    <div key={kpi.label} className="rounded-xl p-3 border border-white/8" style={{ background: 'var(--bg2)' }}>
+                      <p className="text-xs text-muted-foreground mb-1">{kpi.label}</p>
+                      <p className="text-sm font-bold text-foreground">{kpi.value}</p>
+                      <div className={`flex items-center gap-1 mt-1`}>
+                        {kpi.up
+                          ? <ArrowUp size={10} className="text-green-400" />
+                          : <AlertTriangle size={10} className="text-yellow-400" />
+                        }
+                        <span className={`text-[10px] font-semibold ${kpi.up ? 'text-green-400' : 'text-yellow-400'}`}>{kpi.trend}</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
+
+                {/* Silos em operação */}
+                <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'var(--bg2)' }}>
+                  <div className="px-3 py-2 border-b border-white/8 flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground">Silos em Operação</span>
+                    <span className="text-[10px] text-muted-foreground">5 silos</span>
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {[
+                      { nome: 'Silo 01 — Milho', pct: 78, status: 'Aberto', cor: '#00A651' },
+                      { nome: 'Silo 02 — Sorgo', pct: 45, status: 'Aberto', cor: '#00A651' },
+                      { nome: 'Silo 03 — Milho', pct: 91, status: 'Fechado', cor: '#6B7280' },
+                    ].map((s) => (
+                      <div key={s.nome} className="px-3 py-2 flex items-center gap-3">
+                        <Wheat size={12} color={s.cor} />
+                        <span className="text-xs text-foreground flex-1">{s.nome}</span>
+                        <div className="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: s.cor }} />
+                        </div>
+                        <span className="text-[10px] font-bold w-8 text-right" style={{ color: s.cor }}>{s.pct}%</span>
+                        <span className="text-[10px] text-muted-foreground w-12 text-right">{s.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Alertas */}
+                <div className="rounded-xl border border-yellow-500/20 overflow-hidden" style={{ background: 'rgba(234,179,8,0.05)' }}>
+                  <div className="px-3 py-2 border-b border-yellow-500/20 flex items-center gap-2">
+                    <AlertTriangle size={12} className="text-yellow-400" />
+                    <span className="text-xs font-bold text-yellow-400">Alertas do Sistema</span>
+                  </div>
+                  <div className="divide-y divide-yellow-500/10">
+                    {[
+                      { msg: 'Insumo: Ureia abaixo do mínimo (80 kg)', tipo: 'urgente' },
+                      { msg: 'Manutenção do Trator MF 275 vencida', tipo: 'critico' },
+                    ].map((a) => (
+                      <div key={a.msg} className="px-3 py-2 flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${a.tipo === 'critico' ? 'bg-red-400' : 'bg-yellow-400'}`} />
+                        <span className="text-[11px] text-muted-foreground">{a.msg}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
