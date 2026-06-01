@@ -64,7 +64,14 @@ export function calcularNPK(
  */
 export function otimizarNPK(
   data: NPKInput
-): { top5: FertilizanteCombinacao[]; melhorOpcao: FertilizanteCombinacao } | null {
+): {
+  top5: FertilizanteCombinacao[];
+  melhorOpcao: FertilizanteCombinacao;
+  topMaisBarata: FertilizanteCombinacao[];
+  topMaisSimples: FertilizanteCombinacao[];
+  maisBarata: FertilizanteCombinacao;
+  maisSimples: FertilizanteCombinacao;
+} | null {
   const n_nec = parseFloat(data.n_nec) || 0;
   const p_nec = parseFloat(data.p_nec) || 0;
   const k_nec = parseFloat(data.k_nec) || 0;
@@ -133,14 +140,34 @@ export function otimizarNPK(
     }
   }
 
-  // Ordenar por custo e retornar top 5
-  const top5 = opcoes
+  if (opcoes.length === 0) return null;
+
+  // Lista 1: ordenada pelo menor custo (top 5)
+  const topMaisBarata = [...opcoes]
     .sort((a, b) => a.custoTotal_r_ha - b.custoTotal_r_ha)
     .slice(0, 5);
 
-  if (top5.length === 0) return null;
+  // Lista 2: ordenada pelo menor número de fertilizantes, depois menor custo (top 5)
+  const topMaisSimples = [...opcoes]
+    .sort((a, b) => {
+      const nFertsA = a.fertilizantes.length;
+      const nFertsB = b.fertilizantes.length;
+      if (nFertsA !== nFertsB) return nFertsA - nFertsB;
+      return a.custoTotal_r_ha - b.custoTotal_r_ha;
+    })
+    .slice(0, 5);
 
-  return { top5, melhorOpcao: top5[0] };
+  // top5 compatível (mantido por retrocompatibilidade — igual topMaisBarata)
+  const top5 = topMaisBarata;
+
+  return {
+    top5,
+    melhorOpcao: topMaisBarata[0],
+    topMaisBarata,
+    topMaisSimples,
+    maisBarata: topMaisBarata[0],
+    maisSimples: topMaisSimples[0],
+  };
 }
 
 // ========== RESOLVEDORES DE SISTEMA LINEAR ==========

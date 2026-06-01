@@ -42,6 +42,7 @@ interface DashboardReprodutivoProps {
   eventos: EventoReprodutivo[];
   animais: Animal[];
   repetidoras: AnimalRepetidora[];
+  distribuicaoDetalhada: { key: string; label: string; value: number }[];
   indicadores: {
     taxaPrenhez: number;
     psmMedia: number | null;
@@ -71,22 +72,15 @@ interface KanbanCard {
   status?: string;
 }
 
+// Cores alinhadas com o design system (chart-1..5 + extras)
 const PIE_COLORS: Record<string, string> = {
-  vazia: 'hsl(0 72% 51%)',
-  inseminada: 'hsl(43 96% 56%)',
-  prenha: 'hsl(142 71% 45%)',
-  lactacao: 'hsl(217 91% 60%)',
-  seca: 'hsl(262 83% 58%)',
-  descartada: 'hsl(215 16% 47%)',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  vazia: 'Vazia',
-  inseminada: 'Inseminada',
-  prenha: 'Prenha',
-  lactacao: 'Lactando',
-  seca: 'Seca',
-  descartada: 'Descartada',
+  vazia_lactacao: '#e05454',   // chart-4 (vermelho)
+  vazia_seca:     '#f5d000',   // chart-2 (ouro)
+  prenha_lactacao: '#00c45a',  // chart-1 (verde primário)
+  prenha_seca:    '#4aaae6',   // chart-3 (azul)
+  novilha_prenha: '#688070',   // chart-5 (verde acinzentado)
+  novilha_vazia:  '#a78bfa',   // lilás suave
+  inseminada:     '#fb923c',   // laranja
 };
 
 const TOOLTIP_STYLE = {
@@ -113,6 +107,7 @@ export function DashboardReprodutivo({
   eventos,
   animais,
   repetidoras,
+  distribuicaoDetalhada,
   indicadores,
   parametros,
 }: DashboardReprodutivoProps) {
@@ -212,13 +207,10 @@ export function DashboardReprodutivo({
     ];
   }, [eventos, loteFilter, periodoInicio, periodoFim, animalMap]);
 
-  // --- Dados do gráfico de pizza ---
+  // Dados do gráfico de pizza — usa distribuição detalhada por categoria + status
   const pieData = useMemo(
-    () =>
-      Object.entries(indicadores.contagemPorStatus)
-        .map(([status, count]) => ({ name: STATUS_LABELS[status], value: count, status }))
-        .filter((item) => item.value > 0),
-    [indicadores.contagemPorStatus]
+    () => distribuicaoDetalhada.map((item) => ({ name: item.label, value: item.value, status: item.key })),
+    [distribuicaoDetalhada]
   );
 
   // Fêmeas em aberto: status vazia ou inseminada

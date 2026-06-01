@@ -858,6 +858,84 @@ export const queryIndicadoresReprodutivos = {
     return Math.round((totalCoberturas / femeAsAptas.length) * 100);
   },
 
+  /**
+   * Distribuição reprodutiva detalhada para o gráfico de pizza.
+   * Considera apenas fêmeas ativas, agrupadas pelas combinações relevantes:
+   * Vazia em Lactação, Vazia Seca, Prenha em Lactação, Prenha Seca,
+   * Novilha Prenha, Novilha Vazia, Inseminada.
+   */
+  async getDistribuicaoReprodutivaDetalhada(fazenda_id: string): Promise<
+    { label: string; key: string; value: number }[]
+  > {
+    const supabase = await createSupabaseServerClient();
+
+    const { data, error } = await supabase
+      .from('animais')
+      .select('status_reprodutivo, categoria')
+      .eq('fazenda_id', fazenda_id)
+      .eq('sexo', 'Fêmea')
+      .eq('status', 'Ativo')
+      .is('deleted_at', null)
+      .not('status_reprodutivo', 'is', null);
+
+    if (error) throw error;
+
+    const contagem: Record<string, number> = {
+      vazia_lactacao: 0,
+      vazia_seca: 0,
+      prenha_lactacao: 0,
+      prenha_seca: 0,
+      novilha_prenha: 0,
+      novilha_vazia: 0,
+      inseminada: 0,
+    };
+
+    type AnimalRow = { status_reprodutivo?: string | null; categoria?: string | null };
+    (data as AnimalRow[] || []).forEach((animal) => {
+      const sr = animal.status_reprodutivo ?? '';
+      const cat = (animal.categoria ?? '').toLowerCase().trim();
+      const isNovilha = cat.includes('novilh');
+      const isVacaSeca = cat.includes('seca') || cat === 'vaca prenha';
+
+      if (sr === 'inseminada') { contagem.inseminada++; return; }
+
+      if (isNovilha) {
+        if (sr === 'prenha') contagem.novilha_prenha++;
+        else if (sr === 'vazia' || sr === 'seca') contagem.novilha_vazia++;
+        return;
+      }
+
+      if (sr === 'prenha') {
+        if (isVacaSeca) contagem.prenha_seca++;
+        else contagem.prenha_lactacao++;
+        return;
+      }
+
+      if (sr === 'vazia' || sr === 'seca') {
+        if (isVacaSeca || sr === 'seca') contagem.vazia_seca++;
+        else contagem.vazia_lactacao++;
+        return;
+      }
+
+      // status_reprodutivo = 'lactacao' sem categoria de novilha → vazia em lactação
+      if (sr === 'lactacao') { contagem.vazia_lactacao++; }
+    });
+
+    const LABELS: Record<string, string> = {
+      vazia_lactacao: 'Vazia em Lactação',
+      vazia_seca: 'Vazia Seca',
+      prenha_lactacao: 'Prenha em Lactação',
+      prenha_seca: 'Prenha Seca',
+      novilha_prenha: 'Novilha Prenha',
+      novilha_vazia: 'Novilha Vazia',
+      inseminada: 'Inseminada',
+    };
+
+    return Object.entries(contagem)
+      .map(([key, value]) => ({ key, label: LABELS[key], value }))
+      .filter((item) => item.value > 0);
+  },
+
   /** Idade Primeira Parição — média de idade (em meses) das novilhas no primeiro parto */
   async getIdadePrimeiraPariçao(fazenda_id: string): Promise<number | null> {
     const supabase = await createSupabaseServerClient();

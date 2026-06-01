@@ -159,7 +159,8 @@ export function exportarLaudoCalagem(
 export function exportarRelatorioNPK(
   input: NPKInput,
   resultado: NPKResult,
-  options: PDFOptions = {}
+  options: PDFOptions = {},
+  faseAdubacao?: 'plantio' | 'cobertura'
 ): void {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
@@ -178,8 +179,12 @@ export function exportarRelatorioNPK(
   doc.text('GestSilo', margin, yPos);
   yPos += 6;
   doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos);
-  yPos += 8;
-
+  yPos += 6;
+  if (faseAdubacao) {
+    const faseLabel = faseAdubacao === 'plantio' ? 'Adubação de Base (Plantio)' : 'Adubação de Cobertura';
+    doc.text(`Fase: ${faseLabel}`, margin, yPos);
+    yPos += 6;
+  }
   yPos += 5;
 
   // Linha separadora
@@ -265,9 +270,19 @@ export function exportarRelatorioNPK(
   yPos += 5;
 
   // --- DISCLAIMER ---
+  if (yPos > pageHeight - 50) {
+    doc.addPage();
+    yPos = margin;
+  }
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
-  const disclaimer = 'Disclaimer: Estas recomendações são indicativas e baseadas em otimização matemática. Consulte um agrônomo qualificado para validar e implementar adequadamente.';
+  const disclaimer =
+    'Aviso: Este cálculo considera apenas os custos de aquisição dos fertilizantes. O produtor deve ' +
+    'considerar também os custos logísticos das operações agrícolas envolvidas — transporte, mão de obra ' +
+    'de aplicação, horas-máquina, combustível e demais insumos operacionais. Quanto menor o número de ' +
+    'fertilizantes utilizados, mais simples e barata tende a ser a operação de campo.\n\n' +
+    'Estas recomendações são indicativas e baseadas em otimização matemática. Consulte um agrônomo ' +
+    'qualificado para validar e implementar adequadamente.';
   const disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - 2 * margin);
   doc.text(disclaimerLines, margin, yPos);
 

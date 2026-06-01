@@ -15,12 +15,14 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { exportarLaudoCalagem, exportarRelatorioNPK, PDFOptions } from '@/lib/pdf-export';
 import { CalagemInput, CalagemResult, NPKInput, NPKResult } from '@/lib/calculadoras';
+import type { FaseAdubacao } from '../components/NPKCalculator';
 import { Loader2 } from 'lucide-react';
 
 interface ExportPDFDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   calculadora: 'calagem' | 'npk';
+  faseAdubacao?: FaseAdubacao;
   dadosCalagem?: { input: CalagemInput; resultado: CalagemResult };
   dadosNPK?: { input: NPKInput; resultado: NPKResult };
 }
@@ -29,6 +31,7 @@ export function ExportPDFDialog({
   open,
   onOpenChange,
   calculadora,
+  faseAdubacao,
   dadosCalagem,
   dadosNPK,
 }: ExportPDFDialogProps) {
@@ -52,7 +55,7 @@ export function ExportPDFDialog({
       if (calculadora === 'calagem' && dadosCalagem) {
         exportarLaudoCalagem(dadosCalagem.input, dadosCalagem.resultado, options);
       } else if (calculadora === 'npk' && dadosNPK) {
-        exportarRelatorioNPK(dadosNPK.input, dadosNPK.resultado, options);
+        exportarRelatorioNPK(dadosNPK.input, dadosNPK.resultado, options, faseAdubacao);
       }
 
       toast.success('PDF exportado com sucesso!');

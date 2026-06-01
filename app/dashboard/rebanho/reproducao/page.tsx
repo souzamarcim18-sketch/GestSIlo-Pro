@@ -26,6 +26,7 @@ export default async function ReproducaoPage() {
     repetidoras,
     taxaPrenhez,
     contagemPorStatus,
+    distribuicaoDetalhada,
     psmMedia,
     iepMedia,
     taxaConcepçaoIA,
@@ -43,6 +44,7 @@ export default async function ReproducaoPage() {
     queryRepetidoras.list(fazendaId),
     queryIndicadoresReprodutivos.getTaxaPrenhez(fazendaId),
     queryIndicadoresReprodutivos.getContagemPorStatus(fazendaId),
+    queryIndicadoresReprodutivos.getDistribuicaoReprodutivaDetalhada(fazendaId),
     queryIndicadoresReprodutivos.getPSMMedia(fazendaId),
     queryIndicadoresReprodutivos.getIEPMedia(fazendaId),
     queryIndicadoresReprodutivos.getTaxaConcepçãoIA(fazendaId),
@@ -57,6 +59,7 @@ export default async function ReproducaoPage() {
       eventos={eventos as EventoReprodutivo[]}
       animais={(animaisRes.data ?? []) as Animal[]}
       repetidoras={repetidoras}
+      distribuicaoDetalhada={distribuicaoDetalhada}
       indicadores={{
         taxaPrenhez,
         contagemPorStatus,
