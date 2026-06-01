@@ -33,84 +33,68 @@ import {
   MessageSquare,
   ExternalLink,
   BookOpen,
+  Handshake,
+  HandHeart,
 } from 'lucide-react';
 
 type ModalType = 'missao' | 'visao' | 'valores' | 'suporte' | 'privacidade' | 'termos' | null;
 
 const MODAL_CONTENT = {
   missao: {
-    title: 'Nossa Missão',
-    Icon: Target,
+    title: 'Missão',
+    Icon: Handshake,
     iconColor: '#BBF7D0',
     content: (
       <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
         <p>
-          O GestSilo nasceu de uma realidade vivida de perto: produtores rurais brasileiros que gerenciam
-          operações complexas com cadernos, planilhas desconexas e memória — e pagam caro por isso em
-          perdas, retrabalho e decisões tardias.
+          Nossa missão é democratizar a gestão agrícola profissional, levando-a de forma simples e acessível 
+          ao produtor rural brasileiro, para transformar rotina improvisada em decisões seguras, com dados reais, 
+          mesmo em ambientes de baixa conectividade.
         </p>
-        <p>
-          Nossa missão é <strong className="text-foreground">democratizar a gestão agrícola profissional</strong> para
-          pequenos e médios produtores brasileiros. Queremos que cada fazendeiro — independentemente do
-          tamanho da sua operação — tenha acesso às mesmas ferramentas de controle e inteligência que
-          grandes empresas do agronegócio utilizam.
-        </p>
-        <p>
-          Fazemos isso construindo uma plataforma integrada, acessível do celular, que funciona mesmo
-          sem internet, e que conversa a mesma língua do campo: objetiva, prática e confiável.
-        </p>
-      </div>
+       </div>
     ),
   },
   visao: {
-    title: 'Nossa Visão',
-    Icon: Eye,
+    title: 'Visão',
+    Icon: MapPin,
     iconColor: '#A5F3FC',
     content: (
       <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
         <p>
-          Enxergamos um futuro em que toda propriedade rural brasileira — da pequena fazenda familiar
-          ao médio produtor — tome decisões baseadas em dados reais, não em estimativas.
+          Nossa visão é ser a principal referência em gestão agropecuária para pequenos e médios produtores 
+          no Brasil, reconhecida pela profundidade técnica, pela simplicidade de uso e pela confiança nos dados 
+          que entrega, impulsionando um futuro em que toda propriedade rural tome decisões baseadas em dados reais,
+          não em estimativas.
         </p>
-        <p>
-          Nossa visão é ser a <strong className="text-foreground">plataforma de referência em gestão agropecuária
-          para o produtor brasileiro</strong>, reconhecida pela profundidade técnica dos módulos, pela
-          experiência de uso simples e pela confiabilidade dos dados.
-        </p>
-        <p>
-          Em cinco anos, queremos que o GestSilo seja sinônimo de controle e resultado no campo —
-          presente em milhares de propriedades, do silo ao pasto, da lavoura ao financeiro, do
-          registro de campo ao relatório gerencial.
-        </p>
-      </div>
+       </div>
     ),
   },
   valores: {
     title: 'Nossos Valores',
-    Icon: Heart,
+    Icon: HandHeart,
     iconColor: '#FCA5A5',
     content: (
       <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
         {[
           {
             title: 'Proximidade com o produtor',
-            desc: 'Construímos o GestSilo ouvindo quem trabalha no campo. Cada funcionalidade nasce de uma necessidade real, não de uma hipótese de escritório.',
+            desc: 'Cada funcionalidade nasce de uma necessidade real, a partir da realidade de uma operação, não de uma hipótese de escritório.',
           },
           {
             title: 'Precisão e confiabilidade',
-            desc: 'Dados errados custam caro na fazenda. Por isso, priorizamos a exatidão de cada cálculo, a integridade de cada registro e a consistência de cada relatório.',
+            desc: 'Dados errados custam caro na fazenda. Priorizamos a exatidão de cada cálculo, a integridade de cada registro e a consistência de cada relatório.',
           },
           {
             title: 'Simplicidade sem superficialidade',
-            desc: 'Ser fácil de usar não significa ser simplório. O GestSilo é intuitivo para o operador de campo e robusto para o administrador da fazenda — cada um no seu nível.',
+            desc: 'Fácil de usar, sem abrir mão da robustez técnica. Intuitivo para o operador de campo e robusto para o administrador da fazenda.',
           },
           {
             title: 'Compromisso com o campo brasileiro',
-            desc: 'Acreditamos que o agronegócio brasileiro é estratégico para o país. Nosso trabalho é fortalecer quem está na base dessa cadeia — o produtor familiar e o médio fazendeiro.',
+            desc: 'Acreditamos que o agronegócio brasileiro é estratégico para o país. Nosso trabalho é fortalecer quem está na base dessa cadeia — o produtor rural  .',
           },
           {
             title: 'Melhoria contínua',
-            desc: 'O campo evolui. Nossa plataforma acompanha essa evolução: novos módulos, novas integrações e novas funcionalidades chegam constantemente, com qualidade e sem atropelar o que já funciona.',
+            desc: 'O campo evolui. Em nossa plataforma inovamos sem atrapalhar a estabilidade do que já funciona.',
           },
         ].map((v) => (
           <div key={v.title} className="flex gap-3">
@@ -298,7 +282,7 @@ export default function LandingPage() {
 
               {openModal === 'termos' && (
                 <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
-                  <p>Última atualização: <span className="text-foreground font-medium">abril de 2026</span></p>
+                  <p>Última atualização: <span className="text-foreground font-medium">maio de 2026</span></p>
                   {[
                     { h: '1. Aceitação dos termos', p: 'Ao acessar ou utilizar o GestSilo, você declara que leu, entendeu e concorda com estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não utilize a plataforma.' },
                     { h: '2. Descrição do serviço', p: 'O GestSilo é uma plataforma SaaS de gestão agropecuária que permite o controle integrado de silos, talhões, rebanho, frota, insumos, pastagens, mão de obra e financeiro de propriedades rurais brasileiras.' },
@@ -475,9 +459,9 @@ export default function LandingPage() {
           {/* Linha 1 — módulos core */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {[
-              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Controle total das suas silagens — entradas, saídas, volumes, qualidade bromatológica e PSPS, evitando perdas e garantindo forragem de alto valor nutricional para o rebanho.', iconColor: '#BBF7D0' },
-              { Icon: Beef, title: 'Gestão de Rebanho', desc: 'Ficha completa de cada animal, controle por lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado em um único módulo.', iconColor: '#FED7AA' },
-              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Talhões mapeados, ciclos agrícolas, operações de campo, histórico de cultivos, produtividade por área e custo de produção por ciclo.', iconColor: '#BFDBFE' },
+              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Controle total das suas silagens — entradas, saídas, volumes, qualidade bromatológica e de tamanho de partículas, evitando perdas e garantindo forragem de alto valor nutricional para o rebanho.', iconColor: '#BBF7D0' },
+              { Icon: Beef, title: 'Gestão de Rebanho', desc: 'Seja para o rebanho leiteiro ou de corte. Ficha completa de cada animal, controle por lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado em um único módulo.', iconColor: '#FED7AA' },
+              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Para gerenciar seus talhões, ciclos agrícolas, operações de campo, histórico de cultivos, produtividade por área e custo de produção por ciclo.', iconColor: '#BFDBFE' },
             ].map((item) => (
               <div
                 key={item.title}
@@ -499,7 +483,7 @@ export default function LandingPage() {
             {[
               { Icon: Tractor, title: 'Frota & Maquinário', desc: 'Plano de manutenção preventiva/corretiva, diário de bordo, abastecimentos e custo operacional por máquina.', iconColor: '#FED7AA' },
               { Icon: Leaf, title: 'Gestão de Pastagens', desc: 'Controle de piquetes, ocupações de lotes, cálculo de UA/ha e histórico de eventos de manejo por área.', iconColor: '#BBF7D0' },
-              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'DRE, fluxo de caixa e lucratividade com integração automática de todos os módulos — insumos, mão de obra, vendas.', iconColor: '#FEF08A' },
+              { Icon: DollarSign, title: 'Gestão Financeira', desc: 'Despesas, receitas, fluxo de caixa e lucratividade com integração automática de todos os módulos — insumos, mão de obra, vendas.', iconColor: '#FEF08A' },
               { Icon: Users, title: 'Mão de Obra', desc: 'Registro de atividades rurais, custo por colaborador, vínculo com talhões e silos, e integração automática ao financeiro.', iconColor: '#E9D5FF' },
             ].map((item) => (
               <div
@@ -520,9 +504,9 @@ export default function LandingPage() {
           {/* Linha 3 — módulos de suporte e análise */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { Icon: Package, title: 'Estoque de Insumos & Produtos', desc: 'Controle de estoque com níveis mínimos, alertas automáticos, integração financeira e planejamento de compras.', iconColor: '#A5F3FC' },
-              { Icon: Scale, title: 'Balanço Forrageiro', desc: 'Cruze consumo real dos silos, demanda projetada pelo rebanho e oferta das pastagens para calcular a autonomia líquida.', iconColor: '#D9F99D' },
-              { Icon: Calculator, title: 'Calculadoras Agronômicas', desc: 'Otimizador de adubação NPK e calagem — encontra a combinação de fertilizantes mais econômica para sua necessidade.', iconColor: '#E9D5FF' },
+              { Icon: Package, title: 'Estoque de Insumos & Produtos', desc: 'Controle os estoques de insumos e de seus produtos, com níveis mínimos, alertas automáticos, integração financeira e planejamento de compras.', iconColor: '#A5F3FC' },
+              { Icon: Scale, title: 'Balanço Forrageiro', desc: 'Cruzamento do consumo real da silagem, da demanda projetada para o rebanho e da oferta das pastagens para calcular a autonomia líquida.', iconColor: '#D9F99D' },
+              { Icon: Calculator, title: 'Calculadoras Agronômicas', desc: 'Encontrae a combinação de fertilizantes mais econômica ou com melhor eficicência de manejo para sua necessidade. Calcule a necessidade de calcário a partir da sua análise de solo', iconColor: '#E9D5FF' },
               { Icon: BarChart3, title: 'Relatórios Exportáveis', desc: 'Mais de 15 relatórios em Excel e PDF cobrindo todos os módulos — rebanho, financeiro, talhões, frota e muito mais.', iconColor: '#DDD6FE' },
             ].map((item) => (
               <div
@@ -875,7 +859,7 @@ export default function LandingPage() {
                 className="object-contain"
               />
               <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] text-center sm:text-left">
-                Plataforma SaaS de gestão agropecuária para pequenos e médios produtores brasileiros.
+                Plataforma de gestão agropecuária para o produtor rural brasileiro  .
               </p>
             </div>
 
@@ -952,7 +936,7 @@ export default function LandingPage() {
             {/* COLUNA 4 — Legal */}
             <div className="flex flex-col items-center sm:items-start gap-3">
               <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
-                Legal
+                Política e Termos
               </h4>
               <button
                 onClick={() => setOpenModal('privacidade')}

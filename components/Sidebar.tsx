@@ -30,6 +30,7 @@ import {
   Beef,
   ShoppingCart,
   RefreshCw,
+  Tractor,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,22 +51,22 @@ type RouteItem = {
 
 const gerencialRoutes: RouteItem[] = [
   { label: 'Silos',              icon: Database,   href: '/dashboard/silos',                badge: null },
+  { label: 'Pastagens',          icon: Leaf,        href: '/dashboard/pastagens',            badge: null },
   { label: 'Balanço Forrageiro', icon: Scale,       href: '/dashboard/balanco-forrageiro',   badge: null },
   { label: 'Lavouras',           icon: Sprout,      href: '/dashboard/talhoes',              badge: null },
-  { label: 'Pastagens',   icon: Leaf,          href: '/dashboard/pastagens',                      badge: null },
-  { label: 'Rebanho',     icon: CowIcon,       href: '/dashboard/rebanho',                        badge: null },
-  { label: 'Insumos',     icon: Package,       href: '/dashboard/insumos',                        badge: null },
-  { label: 'Produtos',    icon: PackageOpen,   href: '/dashboard/produtos',                       badge: null },
-  { label: 'Mão de Obra', icon: Users,         href: '/dashboard/mao-de-obra',                    badge: null },
-  { label: 'Frota',       icon: Truck,         href: '/dashboard/frota',                          badge: null },
+  { label: 'Rebanho',            icon: CowIcon,     href: '/dashboard/rebanho',              badge: null },
+  { label: 'Insumos',            icon: Package,     href: '/dashboard/insumos',              badge: null },
+  { label: 'Produtos',           icon: PackageOpen, href: '/dashboard/produtos',             badge: null },
+  { label: 'Frota',              icon: Tractor,       href: '/dashboard/frota',                badge: null },
+  { label: 'Equipe',             icon: Users,       href: '/dashboard/mao-de-obra',          badge: null },
   { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro',                     badge: null },
   { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario',                     badge: null },
   { label: 'Relatórios',  icon: BarChart3,     href: '/dashboard/relatorios',                     badge: null },
 ];
 
 const ferramentasRoutes: RouteItem[] = [
-  { label: 'Planejmento de Silagem',          icon: NotebookPen,  href: '/dashboard/planejamento-silagem' },
-  { label: 'Calculadoras',           icon: Calculator,   href: '/dashboard/calculadoras'         },
+  { label: 'Calculadoras',              icon: Calculator,   href: '/dashboard/calculadoras'          },
+  { label: 'Planejamento de Silagem',   icon: NotebookPen,  href: '/dashboard/planejamento-silagem' },
   { label: 'Planejamento de Compras',          icon: ShoppingCart, href: '/dashboard/planejamento-compras' },
   { label: 'Assessoria agronômica',  icon: GraduationCap, href: '/dashboard/assessoria'          },
 ];

@@ -169,12 +169,6 @@ export function Header() {
                 onClick={() => router.push('/dashboard/configuracoes')}
                 className="rounded-xl p-3 cursor-pointer text-foreground hover:bg-white/5 focus:bg-white/5"
               >
-                Perfil do Usuário
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => router.push('/dashboard/configuracoes')}
-                className="rounded-xl p-3 cursor-pointer text-foreground hover:bg-white/5 focus:bg-white/5"
-              >
                 Configurações
               </DropdownMenuItem>
             </div>
