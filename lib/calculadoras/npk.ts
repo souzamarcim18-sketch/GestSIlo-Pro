@@ -215,14 +215,14 @@ function testarCombinacao1Fert(
   const margem_erro_k =
     k_nec > 0 ? ((k_fornecido - k_nec) / k_nec) * 100 : 0;
 
-  // Regra: 0% (exato) até +15% (máximo), nunca abaixo
+  // Regra: -10% a +10% — aceita leve déficit ou excesso dentro da margem agronômica
   const viavel =
-    margem_erro_n >= 0 &&
-    margem_erro_n <= 15 &&
-    margem_erro_p >= 0 &&
-    margem_erro_p <= 15 &&
-    margem_erro_k >= 0 &&
-    margem_erro_k <= 15;
+    margem_erro_n >= -10 &&
+    margem_erro_n <= 10 &&
+    margem_erro_p >= -10 &&
+    margem_erro_p <= 10 &&
+    margem_erro_k >= -10 &&
+    margem_erro_k <= 10;
 
   if (!viavel) return null;
 
@@ -331,7 +331,7 @@ function testarCombinacao2Ferts(
     const p_fornecido = p1 * x + p2 * y;
     const k_fornecido = k1 * x + k2 * y;
 
-    // Validar margem de erro: 0% a +15% para TODOS os nutrientes
+    // Validar margem de erro: -10% a +10% para TODOS os nutrientes
     const margem_erro_n =
       n_nec > 0 ? ((n_fornecido - n_nec) / n_nec) * 100 : 0;
     const margem_erro_p =
@@ -340,12 +340,12 @@ function testarCombinacao2Ferts(
       k_nec > 0 ? ((k_fornecido - k_nec) / k_nec) * 100 : 0;
 
     const viavel =
-      margem_erro_n >= 0 &&
-      margem_erro_n <= 15 &&
-      margem_erro_p >= 0 &&
-      margem_erro_p <= 15 &&
-      margem_erro_k >= 0 &&
-      margem_erro_k <= 15;
+      margem_erro_n >= -10 &&
+      margem_erro_n <= 10 &&
+      margem_erro_p >= -10 &&
+      margem_erro_p <= 10 &&
+      margem_erro_k >= -10 &&
+      margem_erro_k <= 10;
 
     if (!viavel) continue;
 
@@ -445,7 +445,7 @@ function testarCombinacao3Ferts(
   if (x < 0 || y < 0 || z < 0 || x > 2000 || y > 2000 || z > 2000)
     return null;
 
-  // Validar margem de erro: 0% a +15%
+  // Validar margem de erro: -10% a +10%
   const n_fornecido = n1 * x + n2 * y + n3 * z;
   const p_fornecido = p1 * x + p2 * y + p3 * z;
   const k_fornecido = k1 * x + k2 * y + k3 * z;
@@ -458,12 +458,12 @@ function testarCombinacao3Ferts(
     k_nec > 0 ? ((k_fornecido - k_nec) / k_nec) * 100 : 0;
 
   const viavel =
-    margem_erro_n >= 0 &&
-    margem_erro_n <= 15 &&
-    margem_erro_p >= 0 &&
-    margem_erro_p <= 15 &&
-    margem_erro_k >= 0 &&
-    margem_erro_k <= 15;
+    margem_erro_n >= -10 &&
+    margem_erro_n <= 10 &&
+    margem_erro_p >= -10 &&
+    margem_erro_p <= 10 &&
+    margem_erro_k >= -10 &&
+    margem_erro_k <= 10;
 
   if (!viavel) return null;
 

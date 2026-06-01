@@ -93,7 +93,8 @@
       "Bash(find . -name \"useOfflineSync.ts\" -not -path \"*/node_modules/*\" -not -path \"*/.next/*\")",
       "Bash(ls hooks/)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/export/preview-pdf)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/export/preview-excel)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/export/preview-excel)",
+      "Bash(npx shadcn@latest add accordion --yes)"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -318,52 +318,68 @@ export function exportarRelatorioNPK(
     doc.text(`Total para a área: ${resultado.total.toFixed(2)} t`, PDF_MARGIN + 4, yPos + 12);
     yPos += 26;
 
-  } else if (resultado.top5 && resultado.top5.length > 0) {
-    adicionarSecao(doc, 'TOP 5 OPÇÕES OTIMIZADAS (por custo)', yPos);
-    yPos += 8;
-
-    resultado.top5.forEach((opcao, idx) => {
-      if (yPos > pageH - 40) {
+  } else if (resultado.topMaisBarata && resultado.topMaisBarata.length > 0) {
+    const renderizarOpcoes = (
+      opcoes: typeof resultado.topMaisBarata,
+      tituloSecao: string
+    ): void => {
+      if (yPos > pageH - 50) {
         doc.addPage();
         desenharCabecalho(doc, 'Recomendação de Adubação NPK', subtitulo, geradoEm, logoBase64);
         yPos = PDF_FIRST_CONTENT_Y;
       }
 
-      // Título da opção
-      doc.setFont(FONT_FAMILY, 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(BRAND_VIVID_HEX);
-      doc.text(`${idx + 1}. ${opcao.fertilizantes.map((f) => f.fertilizante.nome).join(' + ')}`, PDF_MARGIN, yPos);
-      yPos += 6;
+      adicionarSecao(doc, tituloSecao, yPos);
+      yPos += 8;
 
-      // Doses por fertilizante
-      doc.setFont(FONT_FAMILY, 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(TEXT_DARK_HEX);
-      opcao.fertilizantes.forEach((f) => {
-        doc.text(`${f.fertilizante.nome}: ${f.dose_kg_ha.toFixed(0)} kg/ha (${f.sacos_por_ha} sacos/ha)`, PDF_MARGIN + 5, yPos);
+      opcoes.slice(0, 3).forEach((opcao, idx) => {
+        if (yPos > pageH - 40) {
+          doc.addPage();
+          desenharCabecalho(doc, 'Recomendação de Adubação NPK', subtitulo, geradoEm, logoBase64);
+          yPos = PDF_FIRST_CONTENT_Y;
+        }
+
+        doc.setFont(FONT_FAMILY, 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(BRAND_VIVID_HEX);
+        doc.text(`${idx + 1}. ${opcao.fertilizantes.map((f) => f.fertilizante.nome).join(' + ')}`, PDF_MARGIN, yPos);
+        yPos += 6;
+
+        doc.setFont(FONT_FAMILY, 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(TEXT_DARK_HEX);
+        opcao.fertilizantes.forEach((f) => {
+          doc.text(
+            `${f.fertilizante.nome}: ${f.dose_kg_ha.toFixed(0)} kg/ha (${f.sacos_por_ha} sacos/ha)`,
+            PDF_MARGIN + 5,
+            yPos
+          );
+          yPos += 5;
+        });
+
+        const totalSacos = opcao.fertilizantes.reduce((acc, f) => acc + f.total_sacos, 0);
+        doc.setTextColor(TEXT_MUTED_HEX);
+        doc.text(
+          `Custo: R$ ${opcao.custoTotal_r_ha.toFixed(2)}/ha  |  Total: R$ ${(opcao.custoTotal_r_ha * area).toFixed(2)}  |  ${totalSacos} sacos`,
+          PDF_MARGIN + 5,
+          yPos
+        );
         yPos += 5;
+
+        doc.text(
+          `N: ${opcao.nutrientes_fornecidos.n.toFixed(0)} kg/ha  |  P: ${opcao.nutrientes_fornecidos.p.toFixed(0)} kg/ha  |  K: ${opcao.nutrientes_fornecidos.k.toFixed(0)} kg/ha`,
+          PDF_MARGIN + 5,
+          yPos
+        );
+        yPos += 8;
+        doc.setTextColor(TEXT_DARK_HEX);
       });
 
-      // Custo
-      const totalSacos = opcao.fertilizantes.reduce((acc, f) => acc + f.total_sacos, 0);
-      doc.setTextColor(TEXT_MUTED_HEX);
-      doc.text(
-        `Custo: R$ ${opcao.custoTotal_r_ha.toFixed(2)}/ha  |  Total: R$ ${(opcao.custoTotal_r_ha * area).toFixed(2)}  |  ${totalSacos} sacos`,
-        PDF_MARGIN + 5,
-        yPos
-      );
-      yPos += 5;
+      yPos += 4;
+    };
 
-      // Nutrientes fornecidos
-      doc.text(
-        `N: ${opcao.nutrientes_fornecidos.n.toFixed(0)} kg/ha  |  P: ${opcao.nutrientes_fornecidos.p.toFixed(0)} kg/ha  |  K: ${opcao.nutrientes_fornecidos.k.toFixed(0)} kg/ha`,
-        PDF_MARGIN + 5,
-        yPos
-      );
-      yPos += 8;
-      doc.setTextColor(TEXT_DARK_HEX);
-    });
+    renderizarOpcoes(resultado.topMaisBarata ?? [], 'TOP 3 — MENOR CUSTO DE AQUISIÇÃO');
+    renderizarOpcoes(resultado.topMaisSimples ?? [], 'TOP 3 — MAIOR FACILIDADE DE OPERAÇÃO');
   }
 
   // Disclaimer

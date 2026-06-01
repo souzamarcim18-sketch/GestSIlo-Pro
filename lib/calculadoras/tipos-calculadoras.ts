@@ -96,6 +96,8 @@ export interface NPKResult {
   // Modo otimizado:
   top5?: FertilizanteCombinacao[];
   melhorOpcao?: FertilizanteCombinacao;
+  topMaisBarata?: FertilizanteCombinacao[];
+  topMaisSimples?: FertilizanteCombinacao[];
   custoPorHa?: number;  // R$/ha (modo otimizado)
   custoTotal?: number;  // R$ total para a área
 }
