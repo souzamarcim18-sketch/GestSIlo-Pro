@@ -192,7 +192,7 @@ export default function LandingPage() {
         >
           <div
             className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-[16px] border border-border2 shadow-2xl"
-            style={{ background: 'var(--surface)' }}
+            style={{ background: '#1c1c1c' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
@@ -475,18 +475,18 @@ export default function LandingPage() {
           {/* Linha 1 — módulos core */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {[
-              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Controle total das suas silagens — entradas, saídas, volumes, qualidade bromatológica e PSPS, evitando perdas e garantindo forragem de alto valor nutricional para o rebanho.', iconColor: '#BBF7D0', badge: 'Core' },
-              { Icon: Beef, title: 'Gestão de Rebanho', desc: 'Ficha completa de cada animal, controle por lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado em um único módulo.', iconColor: '#FED7AA', badge: 'Core' },
-              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Talhões mapeados, ciclos agrícolas, operações de campo, histórico de cultivos, produtividade por área e custo de produção por ciclo.', iconColor: '#BFDBFE', badge: 'Core' },
+              { Icon: Wheat, title: 'Gestão de Silagens', desc: 'Controle total das suas silagens — entradas, saídas, volumes, qualidade bromatológica e PSPS, evitando perdas e garantindo forragem de alto valor nutricional para o rebanho.', iconColor: '#BBF7D0' },
+              { Icon: Beef, title: 'Gestão de Rebanho', desc: 'Ficha completa de cada animal, controle por lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado em um único módulo.', iconColor: '#FED7AA' },
+              { Icon: Sprout, title: 'Gestão de Lavouras', desc: 'Talhões mapeados, ciclos agrícolas, operações de campo, histórico de cultivos, produtividade por área e custo de produção por ciclo.', iconColor: '#BFDBFE' },
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-surface border border-border2 rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-8 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+                className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-8 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+                style={{ border: '1px solid #00843D', outline: '1px solid rgba(255,255,255,0.12)', outlineOffset: '-2px' }}
               >
                 <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
-                <div className="flex items-start justify-between mb-4">
+                <div className="mb-4">
                   <item.Icon size={36} strokeWidth={1.8} color={item.iconColor} />
-                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-dim text-brand-primary border border-green-border">{item.badge}</span>
                 </div>
                 <h3 className="font-bold text-foreground text-lg mb-2">{item.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
@@ -504,7 +504,8 @@ export default function LandingPage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-surface border border-border2 rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+                className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+                style={{ border: '1px solid #00843D', outline: '1px solid rgba(255,255,255,0.12)', outlineOffset: '-2px' }}
               >
                 <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
                 <div className="mb-3">
@@ -526,7 +527,8 @@ export default function LandingPage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-surface border border-border2 rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+                className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
+                style={{ border: '1px solid #00843D', outline: '1px solid rgba(255,255,255,0.12)', outlineOffset: '-2px' }}
               >
                 <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
                 <div className="mb-3">
@@ -570,106 +572,141 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Mockup do sistema */}
+          {/* Mockup do sistema — fiel ao dashboard real */}
           <div className="relative">
-            {/* Glow de fundo */}
             <div className="absolute -inset-4 rounded-[32px] opacity-20 blur-2xl z-0" style={{ background: 'linear-gradient(135deg, #00A651, #135a36)' }} />
 
-            <div className="relative z-10 rounded-[18px] overflow-hidden border border-white/10 shadow-2xl" style={{ background: 'var(--surface)' }}>
+            {/* Shell tipo app com sidebar + conteúdo */}
+            <div className="relative z-10 rounded-[18px] overflow-hidden border border-white/10 shadow-2xl flex" style={{ background: '#161616', minHeight: 480 }}>
 
-              {/* Barra de topo tipo browser/app */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/8" style={{ background: 'var(--sidebar)' }}>
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-400/60" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
-                  <div className="w-3 h-3 rounded-full bg-green-400/60" />
+              {/* Sidebar */}
+              <div className="w-[120px] flex-shrink-0 border-r border-white/8 flex flex-col py-4 gap-1" style={{ background: '#111111' }}>
+                {/* Logo */}
+                <div className="px-3 mb-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded bg-brand-primary flex items-center justify-center">
+                      <Wheat size={11} className="text-white" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-foreground tracking-tight">GestSilo</span>
+                  </div>
                 </div>
-                <div className="flex-1 mx-3 bg-white/5 rounded-md px-3 py-1 text-xs text-muted-foreground border border-white/8">
-                  gestsilo.com.br/dashboard
+                {/* Item ativo */}
+                <div className="mx-2 px-2 py-1.5 rounded-[6px] flex items-center gap-1.5" style={{ background: 'rgba(0,166,81,0.15)', border: '1px solid rgba(0,166,81,0.25)' }}>
+                  <BarChart3 size={11} className="text-brand-primary flex-shrink-0" />
+                  <span className="text-[9px] font-bold text-brand-primary">Dashboard</span>
                 </div>
+                {[
+                  { Icon: Wheat, label: 'Silos' },
+                  { Icon: Sprout, label: 'Lavouras' },
+                  { Icon: Leaf, label: 'Pastagens' },
+                  { Icon: Beef, label: 'Rebanho' },
+                  { Icon: Package, label: 'Insumos' },
+                  { Icon: DollarSign, label: 'Financeiro' },
+                ].map((item) => (
+                  <div key={item.label} className="mx-2 px-2 py-1.5 rounded-[6px] flex items-center gap-1.5 hover:bg-white/5 cursor-default">
+                    <item.Icon size={11} className="text-muted-foreground flex-shrink-0" />
+                    <span className="text-[9px] text-muted-foreground">{item.label}</span>
+                  </div>
+                ))}
               </div>
 
-              {/* Conteúdo do app mockup */}
-              <div className="p-5 space-y-4">
-
-                {/* Header da página */}
-                <div className="flex items-center justify-between">
+              {/* Conteúdo do dashboard */}
+              <div className="flex-1 overflow-hidden flex flex-col">
+                {/* Topbar */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/8" style={{ background: '#1a1a1a' }}>
                   <div>
-                    <p className="text-xs text-muted-foreground">Bom dia, João</p>
-                    <h3 className="text-base font-bold text-foreground">Fazenda São Pedro</h3>
+                    <p className="text-[9px] text-muted-foreground">Boa tarde, Marcio!</p>
+                    <p className="text-[10px] font-semibold text-foreground">Visão geral da sua propriedade</p>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-dim border border-green-border text-brand-primary">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
-                    Online
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[8px] font-semibold" style={{ background: 'rgba(0,166,81,0.12)', border: '1px solid rgba(0,166,81,0.25)', color: '#00A651' }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
+                    MS
                   </div>
                 </div>
 
-                {/* KPIs */}
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { label: 'Estoque de Silagem', value: '8.247 t', trend: '+3,2%', up: true, color: '#BBF7D0' },
-                    { label: 'Autonomia do Rebanho', value: '94 dias', trend: 'Seguro', up: true, color: '#A5F3FC' },
-                    { label: 'Receita do Mês', value: 'R$ 42.800', trend: '+8,5%', up: true, color: '#FEF08A' },
-                    { label: 'Alertas Críticos', value: '2 alertas', trend: 'Revisar', up: false, color: '#FCA5A5' },
-                  ].map((kpi) => (
-                    <div key={kpi.label} className="rounded-xl p-3 border border-white/8" style={{ background: 'var(--bg2)' }}>
-                      <p className="text-xs text-muted-foreground mb-1">{kpi.label}</p>
-                      <p className="text-sm font-bold text-foreground">{kpi.value}</p>
-                      <div className={`flex items-center gap-1 mt-1`}>
-                        {kpi.up
-                          ? <ArrowUp size={10} className="text-green-400" />
-                          : <AlertTriangle size={10} className="text-yellow-400" />
-                        }
-                        <span className={`text-[10px] font-semibold ${kpi.up ? 'text-green-400' : 'text-yellow-400'}`}>{kpi.trend}</span>
+                <div className="flex-1 overflow-hidden p-3 space-y-3">
+
+                  {/* Alertas Críticos */}
+                  <div className="rounded-[8px] overflow-hidden border border-white/10" style={{ background: '#1c1c1c' }}>
+                    <div className="px-3 py-1.5 border-b border-white/8 flex items-center gap-1.5">
+                      <AlertTriangle size={10} className="text-red-400" />
+                      <span className="text-[9px] font-bold text-red-400 uppercase tracking-widest">Alertas Críticos</span>
+                    </div>
+                    <div className="divide-y divide-white/5">
+                      {[
+                        { msg: 'Sem consumo há 4 dias — Silo02', sub: 'Silo aberto sem registro de saída' },
+                        { msg: 'Silo aberto sem consumo — Silo 01', sub: 'Aberto há 3 dias sem saída de silagem' },
+                      ].map((a) => (
+                        <div key={a.msg} className="px-3 py-1.5 flex items-start gap-2">
+                          <AlertTriangle size={8} className="text-yellow-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-[9px] font-semibold text-foreground">{a.msg}</p>
+                            <p className="text-[8px] text-muted-foreground">{a.sub}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Seção SILAGEM */}
+                  <div>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Silagem</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {/* Ocupação */}
+                      <div className="rounded-[8px] p-2.5 border border-white/10" style={{ background: '#1c1c1c' }}>
+                        <p className="text-[7px] uppercase tracking-wider text-muted-foreground mb-1">Ocupação</p>
+                        <p className="text-sm font-extrabold text-foreground">99%</p>
+                        <p className="text-[7px] text-muted-foreground">944 / 953 ton</p>
+                      </div>
+                      {/* Autonomia */}
+                      <div className="rounded-[8px] p-2.5 border border-white/10" style={{ background: '#1c1c1c' }}>
+                        <p className="text-[7px] uppercase tracking-wider text-muted-foreground mb-1">Autonomia</p>
+                        <p className="text-sm font-extrabold text-foreground leading-none">3.332</p>
+                        <p className="text-[7px] text-muted-foreground">dias de estoque</p>
+                      </div>
+                      {/* Consumo */}
+                      <div className="rounded-[8px] p-2.5 border border-white/10" style={{ background: '#1c1c1c' }}>
+                        <p className="text-[7px] uppercase tracking-wider text-muted-foreground mb-1">Consumo/dia</p>
+                        <p className="text-sm font-extrabold text-foreground">283</p>
+                        <p className="text-[7px] text-muted-foreground">kg/dia (30d)</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                {/* Silos em operação */}
-                <div className="rounded-xl border border-white/8 overflow-hidden" style={{ background: 'var(--bg2)' }}>
-                  <div className="px-3 py-2 border-b border-white/8 flex items-center justify-between">
-                    <span className="text-xs font-bold text-foreground">Silos em Operação</span>
-                    <span className="text-[10px] text-muted-foreground">5 silos</span>
-                  </div>
-                  <div className="divide-y divide-white/5">
-                    {[
-                      { nome: 'Silo 01 — Milho', pct: 78, status: 'Aberto', cor: '#00A651' },
-                      { nome: 'Silo 02 — Sorgo', pct: 45, status: 'Aberto', cor: '#00A651' },
-                      { nome: 'Silo 03 — Milho', pct: 91, status: 'Fechado', cor: '#6B7280' },
-                    ].map((s) => (
-                      <div key={s.nome} className="px-3 py-2 flex items-center gap-3">
-                        <Wheat size={12} color={s.cor} />
-                        <span className="text-xs text-foreground flex-1">{s.nome}</span>
-                        <div className="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: s.cor }} />
+                    {/* Silos list */}
+                    <div className="mt-1.5 rounded-[8px] border border-white/10 overflow-hidden" style={{ background: '#1c1c1c' }}>
+                      {[
+                        { nome: 'Silo02 — Milho', pct: 99, cor: '#00A651' },
+                        { nome: 'Silo 04 — Sorgo', pct: 99, cor: '#EAB308' },
+                        { nome: 'Silo 01 — Milho', pct: 99, cor: '#3B82F6' },
+                      ].map((s) => (
+                        <div key={s.nome} className="px-2.5 py-1.5 flex items-center gap-2 border-b border-white/5 last:border-0">
+                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.cor }} />
+                          <span className="text-[8px] text-foreground flex-1">{s.nome}</span>
+                          <div className="w-12 h-1 rounded-full bg-white/10 overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: s.cor }} />
+                          </div>
+                          <span className="text-[8px] font-bold" style={{ color: s.cor }}>{s.pct}%</span>
                         </div>
-                        <span className="text-[10px] font-bold w-8 text-right" style={{ color: s.cor }}>{s.pct}%</span>
-                        <span className="text-[10px] text-muted-foreground w-12 text-right">{s.status}</span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Alertas */}
-                <div className="rounded-xl border border-yellow-500/20 overflow-hidden" style={{ background: 'rgba(234,179,8,0.05)' }}>
-                  <div className="px-3 py-2 border-b border-yellow-500/20 flex items-center gap-2">
-                    <AlertTriangle size={12} className="text-yellow-400" />
-                    <span className="text-xs font-bold text-yellow-400">Alertas do Sistema</span>
+                  {/* Seção CAMPO — Financeiro */}
+                  <div>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Financeiro</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { label: 'Receita do Mês', value: 'R$ 0,00', color: '#4ADE80' },
+                        { label: 'Despesa do Mês', value: 'R$ 0,00', color: '#F87171' },
+                      ].map((f) => (
+                        <div key={f.label} className="rounded-[8px] p-2.5 border border-white/10" style={{ background: '#1c1c1c' }}>
+                          <p className="text-[7px] uppercase tracking-wider text-muted-foreground mb-1">{f.label}</p>
+                          <p className="text-xs font-bold" style={{ color: f.color }}>{f.value}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="divide-y divide-yellow-500/10">
-                    {[
-                      { msg: 'Insumo: Ureia abaixo do mínimo (80 kg)', tipo: 'urgente' },
-                      { msg: 'Manutenção do Trator MF 275 vencida', tipo: 'critico' },
-                    ].map((a) => (
-                      <div key={a.msg} className="px-3 py-2 flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${a.tipo === 'critico' ? 'bg-red-400' : 'bg-yellow-400'}`} />
-                        <span className="text-[11px] text-muted-foreground">{a.msg}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
+                </div>
               </div>
             </div>
           </div>
