@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
@@ -11,7 +11,6 @@ import {
   Calculator,
   DollarSign,
   Package,
-  NotebookPen,
   BarChart3,
   Phone,
   Instagram,
@@ -24,20 +23,133 @@ import {
   Beef,
   Leaf,
   Users,
-  ShoppingCart,
-  CalendarDays,
-  HandHelping,
   Scale,
-  TrendingUp,
   AlertTriangle,
-  CheckCircle2,
-  ArrowDown,
   ArrowUp,
+  X,
+  Target,
+  Eye,
+  Heart,
+  MessageSquare,
+  ExternalLink,
+  BookOpen,
 } from 'lucide-react';
+
+type ModalType = 'missao' | 'visao' | 'valores' | 'suporte' | 'privacidade' | 'termos' | null;
+
+const MODAL_CONTENT = {
+  missao: {
+    title: 'Nossa Missão',
+    Icon: Target,
+    iconColor: '#BBF7D0',
+    content: (
+      <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+        <p>
+          O GestSilo nasceu de uma realidade vivida de perto: produtores rurais brasileiros que gerenciam
+          operações complexas com cadernos, planilhas desconexas e memória — e pagam caro por isso em
+          perdas, retrabalho e decisões tardias.
+        </p>
+        <p>
+          Nossa missão é <strong className="text-foreground">democratizar a gestão agrícola profissional</strong> para
+          pequenos e médios produtores brasileiros. Queremos que cada fazendeiro — independentemente do
+          tamanho da sua operação — tenha acesso às mesmas ferramentas de controle e inteligência que
+          grandes empresas do agronegócio utilizam.
+        </p>
+        <p>
+          Fazemos isso construindo uma plataforma integrada, acessível do celular, que funciona mesmo
+          sem internet, e que conversa a mesma língua do campo: objetiva, prática e confiável.
+        </p>
+      </div>
+    ),
+  },
+  visao: {
+    title: 'Nossa Visão',
+    Icon: Eye,
+    iconColor: '#A5F3FC',
+    content: (
+      <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+        <p>
+          Enxergamos um futuro em que toda propriedade rural brasileira — da pequena fazenda familiar
+          ao médio produtor — tome decisões baseadas em dados reais, não em estimativas.
+        </p>
+        <p>
+          Nossa visão é ser a <strong className="text-foreground">plataforma de referência em gestão agropecuária
+          para o produtor brasileiro</strong>, reconhecida pela profundidade técnica dos módulos, pela
+          experiência de uso simples e pela confiabilidade dos dados.
+        </p>
+        <p>
+          Em cinco anos, queremos que o GestSilo seja sinônimo de controle e resultado no campo —
+          presente em milhares de propriedades, do silo ao pasto, da lavoura ao financeiro, do
+          registro de campo ao relatório gerencial.
+        </p>
+      </div>
+    ),
+  },
+  valores: {
+    title: 'Nossos Valores',
+    Icon: Heart,
+    iconColor: '#FCA5A5',
+    content: (
+      <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
+        {[
+          {
+            title: 'Proximidade com o produtor',
+            desc: 'Construímos o GestSilo ouvindo quem trabalha no campo. Cada funcionalidade nasce de uma necessidade real, não de uma hipótese de escritório.',
+          },
+          {
+            title: 'Precisão e confiabilidade',
+            desc: 'Dados errados custam caro na fazenda. Por isso, priorizamos a exatidão de cada cálculo, a integridade de cada registro e a consistência de cada relatório.',
+          },
+          {
+            title: 'Simplicidade sem superficialidade',
+            desc: 'Ser fácil de usar não significa ser simplório. O GestSilo é intuitivo para o operador de campo e robusto para o administrador da fazenda — cada um no seu nível.',
+          },
+          {
+            title: 'Compromisso com o campo brasileiro',
+            desc: 'Acreditamos que o agronegócio brasileiro é estratégico para o país. Nosso trabalho é fortalecer quem está na base dessa cadeia — o produtor familiar e o médio fazendeiro.',
+          },
+          {
+            title: 'Melhoria contínua',
+            desc: 'O campo evolui. Nossa plataforma acompanha essa evolução: novos módulos, novas integrações e novas funcionalidades chegam constantemente, com qualidade e sem atropelar o que já funciona.',
+          },
+        ].map((v) => (
+          <div key={v.title} className="flex gap-3">
+            <div className="mt-0.5 w-5 h-5 rounded-full bg-green-dim border border-green-border flex items-center justify-center flex-shrink-0">
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground mb-0.5">{v.title}</p>
+              <p>{v.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  suporte: {
+    title: 'Suporte',
+    Icon: MessageSquare,
+    iconColor: '#E9D5FF',
+    content: null,
+  },
+  privacidade: {
+    title: 'Política de Privacidade',
+    Icon: Shield,
+    iconColor: '#BBF7D0',
+    content: null,
+  },
+  termos: {
+    title: 'Termos de Uso',
+    Icon: BookOpen,
+    iconColor: '#FEF08A',
+    content: null,
+  },
+};
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [openModal, setOpenModal] = useState<ModalType>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -70,6 +182,147 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+
+      {/* ===== MODAL INSTITUCIONAL ===== */}
+      {openModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setOpenModal(null)}
+        >
+          <div
+            className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-[16px] border border-border2 shadow-2xl"
+            style={{ background: 'var(--surface)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
+
+            {/* Header do modal */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              {(() => {
+                const modal = MODAL_CONTENT[openModal];
+                const IconComp = modal.Icon;
+                return (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-green-dim border border-green-border">
+                      <IconComp size={20} color={modal.iconColor} />
+                    </div>
+                    <h2 className="text-lg font-bold text-foreground">{modal.title}</h2>
+                  </div>
+                );
+              })()}
+              <button
+                onClick={() => setOpenModal(null)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+                aria-label="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Conteúdo do modal */}
+            <div className="p-6">
+              {openModal === 'suporte' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-3">
+                    {[
+                      { Icon: Mail, title: 'E-mail', desc: 'Para dúvidas gerais, bugs e solicitações.', contact: 'gestsilo.app@gmail.com', href: 'mailto:gestsilo.app@gmail.com', label: 'Enviar e-mail', badge: 'Resposta em até 24h' },
+                      { Icon: MessageSquare, title: 'WhatsApp', desc: 'Atendimento rápido para problemas urgentes.', contact: '+55 (31) 99087-5346', href: 'https://wa.me/5531990875346', label: 'Abrir WhatsApp', badge: 'Seg–Sex, 8h–18h' },
+                      { Icon: Phone, title: 'Telefone', desc: 'Suporte por voz para situações críticas.', contact: '+55 (31) 99087-5346', href: 'tel:+5531990875346', label: 'Ligar agora', badge: 'Seg–Sex, 8h–18h' },
+                    ].map((opt) => (
+                      <div key={opt.title} className="flex items-start gap-4 p-4 rounded-[10px] border border-border2 bg-bg2">
+                        <div className="w-9 h-9 rounded-lg bg-green-dim border border-green-border flex items-center justify-center flex-shrink-0">
+                          <opt.Icon size={16} className="text-brand-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-0.5">
+                            <p className="text-sm font-semibold text-foreground">{opt.title}</p>
+                            <span className="text-[10px] font-semibold text-muted-foreground bg-white/5 border border-border px-2 py-0.5 rounded-full whitespace-nowrap">{opt.badge}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1">{opt.desc}</p>
+                          <p className="text-xs font-medium text-foreground">{opt.contact}</p>
+                        </div>
+                        <a
+                          href={opt.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs font-semibold text-brand-primary hover:opacity-80 transition-opacity whitespace-nowrap flex-shrink-0 mt-1"
+                        >
+                          {opt.label}
+                          <ExternalLink size={11} />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="rounded-[10px] border border-border2 bg-bg2 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <BookOpen size={15} className="text-muted-foreground" />
+                      <p className="text-sm font-semibold text-foreground">Perguntas Frequentes</p>
+                    </div>
+                    <div className="space-y-3">
+                      {[
+                        { q: 'O aplicativo funciona sem internet?', a: 'Sim. O GestSilo é um PWA com suporte offline. Operações são salvas localmente e sincronizadas ao reconectar.' },
+                        { q: 'Como adicionar um operador ou visualizador?', a: 'Em Configurações → Usuários e Acessos, clique em "Convidar Usuário" e informe o e-mail e o perfil desejado.' },
+                        { q: 'Os meus dados estão seguros?', a: 'Sim. Usamos criptografia em trânsito e em repouso, isolamento total entre fazendas via RLS e backups automáticos semanais.' },
+                      ].map((item, i) => (
+                        <div key={i} className="border-t border-border pt-3 first:border-0 first:pt-0">
+                          <p className="text-xs font-semibold text-foreground mb-1">{item.q}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{item.a}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">GestSilo · Suporte disponível seg–sex, das 8h às 18h</p>
+                </div>
+              )}
+
+              {openModal === 'privacidade' && (
+                <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
+                  <p>Última atualização: <span className="text-foreground font-medium">abril de 2026</span></p>
+                  {[
+                    { h: '1. Coleta de dados', p: 'O GestSilo coleta apenas os dados necessários para a prestação do serviço: nome, e-mail, dados da fazenda e informações operacionais inseridas pelo usuário (silos, insumos, financeiro, rebanho, etc.). Não coletamos dados de localização em segundo plano nem monitoramos comportamento fora da plataforma.' },
+                    { h: '2. Uso dos dados', p: 'Os dados coletados são utilizados exclusivamente para fornecer as funcionalidades da plataforma e melhorar a experiência do usuário. Não compartilhamos informações pessoais com terceiros sem consentimento explícito, exceto quando exigido por lei ou por ordem judicial.' },
+                    { h: '3. Armazenamento e segurança', p: 'Todos os dados são armazenados em servidores seguros com criptografia em trânsito (HTTPS/TLS) e em repouso. Utilizamos o Supabase como provedor de banco de dados, que segue padrões SOC 2 Type II. Backups automáticos são realizados semanalmente e armazenados de forma segura na nuvem.' },
+                    { h: '4. Isolamento entre fazendas', p: 'Cada fazenda opera em um ambiente totalmente isolado das demais. As políticas de segurança em nível de linha (RLS) garantem que nenhum usuário acesse dados de outra propriedade, mesmo que pertençam à mesma conta de e-mail.' },
+                    { h: '5. Direitos do usuário (LGPD)', p: 'Em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018), você pode a qualquer momento: acessar os dados que temos sobre você, solicitar a correção de informações incorretas, pedir a exclusão completa da sua conta e dados, ou revogar o consentimento de uso. Para exercer esses direitos, entre em contato pelo e-mail gestsilo.app@gmail.com.' },
+                    { h: '6. Cookies', p: 'Utilizamos apenas cookies de sessão estritamente necessários para manter você autenticado na plataforma. Não utilizamos cookies de rastreamento, publicidade ou análise comportamental de terceiros.' },
+                    { h: '7. Contato', p: 'Dúvidas sobre esta política? Entre em contato pelo e-mail gestsilo.app@gmail.com ou pelo WhatsApp (31) 99087-5346.' },
+                  ].map((sec) => (
+                    <div key={sec.h}>
+                      <h3 className="text-sm font-bold text-foreground mb-1.5">{sec.h}</h3>
+                      <p>{sec.p}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {openModal === 'termos' && (
+                <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
+                  <p>Última atualização: <span className="text-foreground font-medium">abril de 2026</span></p>
+                  {[
+                    { h: '1. Aceitação dos termos', p: 'Ao acessar ou utilizar o GestSilo, você declara que leu, entendeu e concorda com estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não utilize a plataforma.' },
+                    { h: '2. Descrição do serviço', p: 'O GestSilo é uma plataforma SaaS de gestão agropecuária que permite o controle integrado de silos, talhões, rebanho, frota, insumos, pastagens, mão de obra e financeiro de propriedades rurais brasileiras.' },
+                    { h: '3. Conta de usuário', p: 'Você é responsável por manter a confidencialidade de suas credenciais de acesso e por todas as atividades realizadas em sua conta. Notifique imediatamente qualquer uso não autorizado pelo e-mail gestsilo.app@gmail.com.' },
+                    { h: '4. Uso aceitável', p: 'É vedado o uso da plataforma para fins ilegais, fraude, engenharia reversa, disseminação de conteúdo malicioso, tentativas de acesso a dados de outras fazendas ou qualquer atividade que prejudique outros usuários ou a integridade do serviço.' },
+                    { h: '5. Propriedade intelectual', p: 'Todo o conteúdo, código, design e marca da plataforma são de propriedade exclusiva do GestSilo. Os dados operacionais inseridos pelo usuário permanecem de sua propriedade e podem ser exportados a qualquer momento.' },
+                    { h: '6. Disponibilidade do serviço', p: 'Buscamos manter o serviço disponível 24/7, mas não garantimos disponibilidade ininterrupta. Manutenções programadas são comunicadas com antecedência. O serviço é oferecido sem garantia de resultados econômicos específicos.' },
+                    { h: '7. Cancelamento e dados', p: 'Você pode cancelar sua conta a qualquer momento. Após o cancelamento, seus dados ficam disponíveis para exportação por 30 dias, após os quais são permanentemente excluídos dos nossos servidores.' },
+                    { h: '8. Alterações nos termos', p: 'Reservamo-nos o direito de alterar estes termos a qualquer momento. Alterações significativas serão comunicadas por e-mail com antecedência mínima de 30 dias. O uso continuado da plataforma após o aviso implica aceitação dos novos termos.' },
+                    { h: '9. Foro e lei aplicável', p: 'Estes termos são regidos pela legislação brasileira. Fica eleito o foro da comarca de Belo Horizonte/MG para dirimir quaisquer controvérsias decorrentes deste instrumento.' },
+                  ].map((sec) => (
+                    <div key={sec.h}>
+                      <h3 className="text-sm font-bold text-foreground mb-1.5">{sec.h}</h3>
+                      <p>{sec.p}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {openModal !== 'suporte' && openModal !== 'privacidade' && openModal !== 'termos' && MODAL_CONTENT[openModal]?.content}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===== NAVBAR ===== */}
       <header
@@ -569,77 +822,131 @@ export default function LandingPage() {
 
       {/* ===== FOOTER ===== */}
       <footer
-        className="py-12 px-6 border-t border-border"
+        className="py-14 px-6 border-t border-border"
         style={{ background: 'var(--sidebar)' }}
       >
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 items-start mb-10">
 
-          {/* COLUNA 1 — Logo + copyright */}
-          <div className="flex flex-col items-center md:items-start gap-3">
-            <Image
-              src="/logo_verde.png"
-              alt="GestSilo"
-              width={200}
-              height={50}
-              className="object-contain"
-            />
-            <span className="text-sm font-medium text-muted-foreground">
-              © 2026 · Todos os direitos reservados
+            {/* COLUNA 1 — Logo + descrição */}
+            <div className="flex flex-col items-center sm:items-start gap-3 sm:col-span-2 lg:col-span-1">
+              <Image
+                src="/logo_verde.png"
+                alt="GestSilo"
+                width={200}
+                height={50}
+                className="object-contain"
+              />
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] text-center sm:text-left">
+                Plataforma SaaS de gestão agropecuária para pequenos e médios produtores brasileiros.
+              </p>
+            </div>
+
+            {/* COLUNA 2 — Contatos */}
+            <div className="flex flex-col items-center sm:items-start gap-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
+                Contatos
+              </h4>
+              <a
+                href="https://wa.me/5531990875346"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+                aria-label="WhatsApp"
+              >
+                <Phone size={15} />
+                <span>(31) 99087-5346</span>
+              </a>
+              <a
+                href="https://instagram.com/gestsilo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram size={15} />
+                <span>@gestsilo</span>
+              </a>
+              <a
+                href="mailto:gestsilo.app@gmail.com"
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+                aria-label="E-mail"
+              >
+                <Mail size={15} />
+                <span>gestsilo.app@gmail.com</span>
+              </a>
+              <button
+                onClick={() => setOpenModal('suporte')}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+              >
+                <MessageSquare size={15} />
+                <span>Suporte técnico</span>
+              </button>
+            </div>
+
+            {/* COLUNA 3 — Institucional */}
+            <div className="flex flex-col items-center sm:items-start gap-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
+                Institucional
+              </h4>
+              <button
+                onClick={() => setOpenModal('missao')}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+              >
+                <Target size={15} />
+                <span>Missão</span>
+              </button>
+              <button
+                onClick={() => setOpenModal('visao')}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+              >
+                <Eye size={15} />
+                <span>Visão</span>
+              </button>
+              <button
+                onClick={() => setOpenModal('valores')}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+              >
+                <Heart size={15} />
+                <span>Valores</span>
+              </button>
+            </div>
+
+            {/* COLUNA 4 — Legal */}
+            <div className="flex flex-col items-center sm:items-start gap-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
+                Legal
+              </h4>
+              <button
+                onClick={() => setOpenModal('privacidade')}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+              >
+                <Shield size={15} />
+                <span>Política de Privacidade</span>
+              </button>
+              <button
+                onClick={() => setOpenModal('termos')}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
+              >
+                <BookOpen size={15} />
+                <span>Termos de Uso</span>
+              </button>
+              <p className="text-xs text-muted-foreground mt-1">
+                Em conformidade com a LGPD
+              </p>
+            </div>
+
+          </div>
+
+          {/* Linha final */}
+          <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">
+              © 2026 GestSilo · Todos os direitos reservados
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Feito com dedicação para o produtor brasileiro 🌾
             </span>
           </div>
-
-          {/* COLUNA 2 — Contatos */}
-          <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-border md:pl-8">
-            <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
-              Contatos
-            </h4>
-
-            <a
-              href="https://wa.me/5531990875346"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
-              aria-label="WhatsApp"
-            >
-              <Phone size={16} />
-              <span>(31) 99087-5346</span>
-            </a>
-
-            <a
-              href="https://instagram.com/gestsilo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
-              aria-label="Instagram"
-            >
-              <Instagram size={16} />
-              <span>@gestsilo</span>
-            </a>
-
-            <a
-              href="mailto:gestsilo.app@gmail.com"
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
-              aria-label="E-mail"
-            >
-              <Mail size={16} />
-              <span>gestsilo.app@gmail.com</span>
-            </a>
-          </div>
-
-          {/* COLUNA 3 — Links institucionais */}
-          <div className="flex flex-col items-center md:items-start gap-3 md:border-l md:border-border md:pl-8">
-            <h4 className="text-xs font-bold uppercase tracking-widest mb-1 text-foreground">
-              Institucional
-            </h4>
-
-            <a href="/privacidade" className="text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors">
-              Privacidade
-            </a>
-            <a href="/termos" className="text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors">
-              Termos de uso
-            </a>
-          </div>
-
         </div>
       </footer>
 
