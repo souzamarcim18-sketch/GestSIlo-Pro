@@ -134,6 +134,7 @@ export default function LandingPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [openModal, setOpenModal] = useState<ModalType>(null);
+  const [planoAnual, setPlanoAnual] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -262,15 +263,15 @@ export default function LandingPage() {
 
               {openModal === 'privacidade' && (
                 <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
-                  <p>Última atualização: <span className="text-foreground font-medium">abril de 2026</span></p>
+                  <p>Última atualização: <span className="text-foreground font-medium">maio de 2026</span></p>
                   {[
-                    { h: '1. Coleta de dados', p: 'O GestSilo coleta apenas os dados necessários para a prestação do serviço: nome, e-mail, dados da fazenda e informações operacionais inseridas pelo usuário (silos, insumos, financeiro, rebanho, etc.). Não coletamos dados de localização em segundo plano nem monitoramos comportamento fora da plataforma.' },
-                    { h: '2. Uso dos dados', p: 'Os dados coletados são utilizados exclusivamente para fornecer as funcionalidades da plataforma e melhorar a experiência do usuário. Não compartilhamos informações pessoais com terceiros sem consentimento explícito, exceto quando exigido por lei ou por ordem judicial.' },
-                    { h: '3. Armazenamento e segurança', p: 'Todos os dados são armazenados em servidores seguros com criptografia em trânsito (HTTPS/TLS) e em repouso. Utilizamos o Supabase como provedor de banco de dados, que segue padrões SOC 2 Type II. Backups automáticos são realizados semanalmente e armazenados de forma segura na nuvem.' },
-                    { h: '4. Isolamento entre fazendas', p: 'Cada fazenda opera em um ambiente totalmente isolado das demais. As políticas de segurança em nível de linha (RLS) garantem que nenhum usuário acesse dados de outra propriedade, mesmo que pertençam à mesma conta de e-mail.' },
-                    { h: '5. Direitos do usuário (LGPD)', p: 'Em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018), você pode a qualquer momento: acessar os dados que temos sobre você, solicitar a correção de informações incorretas, pedir a exclusão completa da sua conta e dados, ou revogar o consentimento de uso. Para exercer esses direitos, entre em contato pelo e-mail gestsilo.app@gmail.com.' },
-                    { h: '6. Cookies', p: 'Utilizamos apenas cookies de sessão estritamente necessários para manter você autenticado na plataforma. Não utilizamos cookies de rastreamento, publicidade ou análise comportamental de terceiros.' },
-                    { h: '7. Contato', p: 'Dúvidas sobre esta política? Entre em contato pelo e-mail gestsilo.app@gmail.com ou pelo WhatsApp (31) 99087-5346.' },
+                    { h: '1. Coleta de dados', p: 'O GestSilo coleta apenas os dados necessários para a prestação do serviço, como nome, e-mail, dados da fazenda e informações operacionais inseridas pelo usuário, incluindo registros de silos, insumos, financeiro, rebanho, pastagens, talhões e demais módulos da plataforma. Não realizamos monitoramento de comportamento fora do ambiente da plataforma nem coleta de localização em segundo plano.' },
+                    { h: '2. Uso dos dados', p: 'Os dados coletados são utilizados exclusivamente para viabilizar o funcionamento da plataforma, prestar suporte ao usuário, melhorar a experiência de uso e cumprir obrigações legais. Não compartilhamos informações pessoais com terceiros sem base legal adequada ou consentimento do titular, exceto quando necessário para cumprimento de obrigação legal, regulatória ou ordem judicial.' },
+                    { h: '3. Armazenamento e segurança', p: 'Adotamos medidas técnicas e administrativas razoáveis para proteger os dados contra acesso não autorizado, perda, alteração, divulgação ou destruição. As informações trafegam por conexão segura e são armazenadas em infraestrutura de terceiros contratados para hospedagem e banco de dados, com controles de segurança compatíveis com boas práticas de mercado.' },
+                    { h: '4. Isolamento entre fazendas', p: 'Os dados de cada fazenda são tratados de forma segregada, com controles de acesso que impedem a visualização indevida de informações de outras propriedades. O acesso aos dados é limitado conforme o perfil do usuário e as permissões associadas à sua conta.' },
+                    { h: '5. Direitos do usuário (LGPD)', p: 'Em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018), você pode solicitar, a qualquer momento, acesso aos seus dados, correção de informações incorretas, exclusão da conta e dos dados pessoais quando aplicável, revogação do consentimento e demais direitos previstos em lei. Para exercer seus direitos, entre em contato pelo e-mail gestsilo.app@gmail.com.' },
+                    { h: '6. Cookies', p: 'Utilizamos apenas cookies estritamente necessários para autenticação, manutenção de sessão e funcionamento da plataforma. Não utilizamos cookies de publicidade, rastreamento comportamental ou análise de terceiros.' },
+                    { h: '7. Contato', p: 'Se tiver dúvidas sobre esta Política de Privacidade, entre em contato pelo e-mail gestsilo.app@gmail.com ou pelo WhatsApp (31) 99087-5346.' },
                   ].map((sec) => (
                     <div key={sec.h}>
                       <h3 className="text-sm font-bold text-foreground mb-1.5">{sec.h}</h3>
@@ -284,15 +285,15 @@ export default function LandingPage() {
                 <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
                   <p>Última atualização: <span className="text-foreground font-medium">maio de 2026</span></p>
                   {[
-                    { h: '1. Aceitação dos termos', p: 'Ao acessar ou utilizar o GestSilo, você declara que leu, entendeu e concorda com estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não utilize a plataforma.' },
-                    { h: '2. Descrição do serviço', p: 'O GestSilo é uma plataforma SaaS de gestão agropecuária que permite o controle integrado de silos, talhões, rebanho, frota, insumos, pastagens, mão de obra e financeiro de propriedades rurais brasileiras.' },
-                    { h: '3. Conta de usuário', p: 'Você é responsável por manter a confidencialidade de suas credenciais de acesso e por todas as atividades realizadas em sua conta. Notifique imediatamente qualquer uso não autorizado pelo e-mail gestsilo.app@gmail.com.' },
-                    { h: '4. Uso aceitável', p: 'É vedado o uso da plataforma para fins ilegais, fraude, engenharia reversa, disseminação de conteúdo malicioso, tentativas de acesso a dados de outras fazendas ou qualquer atividade que prejudique outros usuários ou a integridade do serviço.' },
-                    { h: '5. Propriedade intelectual', p: 'Todo o conteúdo, código, design e marca da plataforma são de propriedade exclusiva do GestSilo. Os dados operacionais inseridos pelo usuário permanecem de sua propriedade e podem ser exportados a qualquer momento.' },
-                    { h: '6. Disponibilidade do serviço', p: 'Buscamos manter o serviço disponível 24/7, mas não garantimos disponibilidade ininterrupta. Manutenções programadas são comunicadas com antecedência. O serviço é oferecido sem garantia de resultados econômicos específicos.' },
-                    { h: '7. Cancelamento e dados', p: 'Você pode cancelar sua conta a qualquer momento. Após o cancelamento, seus dados ficam disponíveis para exportação por 30 dias, após os quais são permanentemente excluídos dos nossos servidores.' },
-                    { h: '8. Alterações nos termos', p: 'Reservamo-nos o direito de alterar estes termos a qualquer momento. Alterações significativas serão comunicadas por e-mail com antecedência mínima de 30 dias. O uso continuado da plataforma após o aviso implica aceitação dos novos termos.' },
-                    { h: '9. Foro e lei aplicável', p: 'Estes termos são regidos pela legislação brasileira. Fica eleito o foro da comarca de Belo Horizonte/MG para dirimir quaisquer controvérsias decorrentes deste instrumento.' },
+                    { h: '1. Aceitação dos termos', p: 'Ao acessar ou utilizar o GestSilo, você declara que leu, compreendeu e concorda com estes Termos de Uso. Caso não concorde com qualquer disposição, não utilize a plataforma.' },
+                    { h: '2. Descrição do serviço', p: 'O GestSilo é uma plataforma SaaS de gestão agropecuária desenvolvida para auxiliar produtores rurais na organização e no controle de informações operacionais, incluindo silos, talhões, rebanho, pastagens, insumos, mão de obra, frota, financeiro e outros módulos relacionados à gestão da propriedade.' },
+                    { h: '3. Conta de usuário', p: 'O usuário é responsável pela guarda, sigilo e uso adequado de suas credenciais de acesso, bem como por todas as atividades realizadas em sua conta. Em caso de uso não autorizado ou suspeita de violação de segurança, o usuário deve comunicar o GestSilo imediatamente pelo e-mail gestsilo.app@gmail.com.' },
+                    { h: '4. Uso aceitável', p: 'É proibido utilizar a plataforma para fins ilegais, fraudulentos ou abusivos, incluindo tentativas de acesso indevido a dados de terceiros, engenharia reversa, disseminação de conteúdo malicioso, violação de segurança, inserção de dados falsos de forma intencional ou qualquer atividade que comprometa a integridade do serviço ou de outros usuários.' },
+                    { h: '5. Propriedade intelectual', p: 'Todo o conteúdo, código, design, identidade visual, marca e elementos proprietários da plataforma são de titularidade exclusiva do GestSilo ou de seus licenciantes.Os dados inseridos pelo usuário permanecem vinculados à sua conta e à sua operação, e o GestSilo poderá tratá-los apenas na medida necessária para prestação do serviço, suporte técnico, segurança, cumprimento legal e funcionalidades contratadas.' },
+                    { h: '6. Disponibilidade do serviço', p: 'O GestSilo busca manter a plataforma disponível de forma contínua, mas não garante funcionamento ininterrupto. Poderão ocorrer indisponibilidades temporárias por manutenções, atualizações, falhas de terceiros, caso fortuito, força maior ou eventos fora do controle razoável do GestSilo. O serviço é fornecido sem garantia de resultado econômico específico.' },
+                    { h: '7. Assinaturas, planos pagos, cancelamento e exclusão de dados', p: 'O acesso a determinadas funcionalidades do GestSilo poderá depender da contratação de planos pagos ou assinaturas, com cobrança mensal e renovação automática, conforme a modalidade escolhida no momento da contratação. O usuário será informado de forma clara sobre valores, periodicidade, forma de pagamento, renovação automática e demais condições aplicáveis. O cancelamento da assinatura poderá ser solicitado a qualquer momento. Quando ocorrer durante um ciclo já pago, o acesso às funcionalidades contratadas permanecerá válido até o fim do período mensal vigente, sem novas cobranças após a data do cancelamento, salvo disposição expressa em contrário. Nos casos aplicáveis por lei, o usuário poderá exercer o direito de arrependimento em até 7 (sete) dias corridos contados da contratação, com reembolso integral dos valores pagos, observadas as regras legais e o meio de contratação utilizado. Após o período de 7 dias, valores já pagos referentes ao ciclo mensal em andamento não serão reembolsados em cancelamentos voluntários fora das hipóteses legais ou de previsão expressa em oferta, contrato específico ou exigência legal aplicável. Após o encerramento da conta ou da assinatura, os dados poderão permanecer disponíveis por um período razoável para exportação, quando aplicável, e serão eliminados, anonimizados ou mantidos apenas pelo tempo necessário para cumprimento de obrigações legais, regulatórias, de segurança, auditoria e prevenção a fraudes. Em caso de inadimplência ou falha no pagamento, o GestSilo poderá suspender ou limitar o acesso às funcionalidades pagas até a regularização da cobrança.' },
+                    { h: '8. Alterações nos termos', p: 'O GestSilo poderá alterar estes Termos de Uso a qualquer momento para refletir mudanças legais, técnicas ou operacionais. Quando houver alteração relevante, o usuário será comunicado por meio adequado. O uso contínuo da plataforma após a publicação da nova versão será interpretado como aceite dos termos atualizados.' },
+                    { h: '9. Foro e lei aplicável', p: 'Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da comarca de Belo Horizonte/MG, com renúncia a qualquer outro, por mais privilegiado que seja, para dirimir eventuais controvérsias decorrentes destes termos, salvo disposição legal em sentido diverso.' },
                   ].map((sec) => (
                     <div key={sec.h}>
                       <h3 className="text-sm font-bold text-foreground mb-1.5">{sec.h}</h3>
@@ -699,8 +700,8 @@ export default function LandingPage() {
 
       {/* ===== PLANOS ===== */}
       <section id="planos" className="bg-bg2 py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
               O plano certo para cada fazenda!
             </h2>
@@ -709,40 +710,82 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Toggle mensal / anual */}
+          <div className="flex items-center justify-center gap-4 mb-12">
+            <span className={`text-sm font-semibold transition-colors ${!planoAnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Mensal
+            </span>
+            <button
+              onClick={() => setPlanoAnual((v) => !v)}
+              className="relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none"
+              style={{ background: planoAnual ? '#00843D' : 'rgba(255,255,255,0.12)' }}
+              aria-label="Alternar plano anual"
+            >
+              <span
+                className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200"
+                style={{ transform: planoAnual ? 'translateX(24px)' : 'translateX(0)' }}
+              />
+            </button>
+            <span className={`text-sm font-semibold transition-colors ${planoAnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Anual
+            </span>
+            {planoAnual && (
+              <span
+                className="text-xs font-bold px-3 py-1 rounded-full"
+                style={{ background: 'rgba(0,166,81,0.15)', color: '#00A651', border: '1px solid rgba(0,166,81,0.3)' }}
+              >
+                2 meses grátis
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                name: 'Start',
-                price: 'Grátis',
-                period: '',
+                name: 'Free',
+                priceMonthly: null,
+                priceAnnually: null,
                 desc: 'Para produtores que querem iniciar e conhecer',
-                features: ['1 silo', 'Até 3 talhões', 'Suporte por e-mail'],
+                features: ['Até 2 silos', '1 simulação de planejamento salva', 'Alertas críticos do dashboard', 'Suporte por e-mail'],
                 cta: 'Começar grátis',
                 highlight: false,
+                freeForever: true,
+              },
+              {
+                name: 'Starter',
+                priceMonthly: 49,
+                priceAnnually: 490,
+                desc: 'Para quem gerencia rebanho e silagem',
+                features: ['Silos ilimitados', 'Rebanho completo', 'Balanço Forrageiro', 'Pastagens e Piquetes', 'Insumos com alertas de estoque', 'Calculadoras Agronômicas', 'Relatórios de silos e rebanho', 'Suporte prioritário'],
+                cta: 'Assinar Campo',
+                highlight: false,
+                freeForever: false,
               },
               {
                 name: 'Pro',
-                price: 'R$ 49',
-                period: '/mês',
-                desc: 'Para gestão profissional da propriedade',
-                features: ['Silos ilimitados', 'Talhões ilimitados', 'Planejador de silagem', 'Módulo financeiro', 'Gestão de Frotas', 'Calculadoras de Calcário e de Fertilizantes', 'Relatórios avançados', 'Suporte prioritário'],
+                priceMonthly: 74,
+                priceAnnually: 740,
+                desc: 'Para gestão completa da propriedade',
+                features: ['Tudo do Starter', 'Talhões ilimitados', 'Frota e Maquinário', 'Financeiro', 'Estoque de produtos', 'Planejamento de Compras', 'Calendário de Atividades', 'Todos os relatórios exportáveis (XLSX e PDF)'],
                 cta: 'Assinar Pro',
                 highlight: true,
+                freeForever: false,
               },
               {
                 name: 'Max',
-                price: 'R$ 119',
-                period: '/mês',
-                desc: 'Para grandes operações',
-                features: ['Tudo do Pro', 'Multi-fazendas', 'Assessoria agronômica exclusiva'],
+                priceMonthly: 119,
+                priceAnnually: 1190,
+                desc: 'Para quem quer suporte técnico da equipe GestSilo',
+                features: ['Tudo do Pro', '1 reunião online a cada 2 meses com equipe GestSilo', 'Histórico de assessoria no sistema', 'Resposta em até 4h úteis', 'Acesso antecipado a novas funcionalidades'],
                 cta: 'Falar com vendas',
                 highlight: false,
+                freeForever: false,
               },
             ].map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-[13px] p-8 border relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
-                  plan.highlight ? 'shadow-2xl scale-105' : 'bg-surface border-border2'
+                className={`rounded-[13px] p-7 border relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+                  plan.highlight ? 'shadow-2xl' : 'bg-surface border-border2'
                 }`}
                 style={
                   plan.highlight
@@ -765,20 +808,35 @@ export default function LandingPage() {
                   {plan.desc}
                 </p>
                 <div className="mb-6">
-                  <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-foreground'}`}>
-                    {plan.price}
-                  </span>
-                  {plan.period && (
-                    <span className={`text-sm ml-1 ${plan.highlight ? 'text-white/85' : 'text-muted-foreground'}`}>
-                      {plan.period}
+                  {plan.freeForever ? (
+                    <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-foreground'}`}>
+                      Grátis
                     </span>
+                  ) : planoAnual ? (
+                    <>
+                      <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-foreground'}`}>
+                        R$ {plan.priceAnnually?.toLocaleString('pt-BR')}
+                      </span>
+                      <span className={`text-sm ml-1 ${plan.highlight ? 'text-white/85' : 'text-muted-foreground'}`}>
+                        /ano
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-foreground'}`}>
+                        R$ {plan.priceMonthly}
+                      </span>
+                      <span className={`text-sm ml-1 ${plan.highlight ? 'text-white/85' : 'text-muted-foreground'}`}>
+                        /mês
+                      </span>
+                    </>
                   )}
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm">
+                    <li key={f} className="flex items-start gap-2 text-sm">
                       <svg
-                        className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-white' : 'text-brand-primary'}`}
+                        className={`w-4 h-4 flex-shrink-0 mt-0.5 ${plan.highlight ? 'text-white' : 'text-brand-primary'}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -914,21 +972,21 @@ export default function LandingPage() {
                 onClick={() => setOpenModal('missao')}
                 className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
               >
-                <Target size={15} />
+                <Handshake size={15} />
                 <span>Missão</span>
               </button>
               <button
                 onClick={() => setOpenModal('visao')}
                 className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
               >
-                <Eye size={15} />
+                <MapPin size={15} />
                 <span>Visão</span>
               </button>
               <button
                 onClick={() => setOpenModal('valores')}
                 className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand-primary transition-colors"
               >
-                <Heart size={15} />
+                <HandHeart size={15} />
                 <span>Valores</span>
               </button>
             </div>
