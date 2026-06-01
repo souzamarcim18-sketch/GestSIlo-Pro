@@ -24,7 +24,7 @@ export default async function ConfiguracoesPage() {
   const fazendaId = profileRes.data.fazenda_id;
   if (!fazendaId) redirect('/dashboard/onboarding');
 
-  const [fazendaRes, usersRes] = await Promise.all([
+  const [fazendaRes, usersRes, configRes] = await Promise.all([
     supabase
       .from('fazendas')
       .select('id, nome, localizacao, area_total, latitude, longitude, created_at')
@@ -35,6 +35,11 @@ export default async function ConfiguracoesPage() {
       .select('id, nome, email, perfil, fazenda_id, created_at')
       .eq('fazenda_id', fazendaId)
       .order('nome'),
+    supabase
+      .from('configuracoes_fazenda')
+      .select('id, fazenda_id, peso_concha_ton, peso_vagao_ton')
+      .eq('fazenda_id', fazendaId)
+      .maybeSingle(),
   ]);
 
   if (!fazendaRes.data) redirect('/login');
@@ -52,6 +57,7 @@ export default async function ConfiguracoesPage() {
       isAdmin={isAdmin}
       userId={user.id}
       fazendaId={fazendaId}
+      initialConfiguracoes={configRes.data ?? null}
     />
   );
 }

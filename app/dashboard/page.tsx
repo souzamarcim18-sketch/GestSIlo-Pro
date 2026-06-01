@@ -92,6 +92,7 @@ export default async function DashboardPage() {
     produtosAlertaRes,
     piquetesAlertaRes,
     atividadesRecentesRes,
+    finAcumuladoRes,
   ] = await Promise.all([
     supabase
       .from('silos')
@@ -192,6 +193,11 @@ export default async function DashboardPage() {
       .eq('pastagens.ativo', true)
       .eq('fazenda_id', fazendaId),
     getAtividadesRecentes(supabase),
+    supabase
+      .from('financeiro')
+      .select('tipo, valor')
+      .eq('fazenda_id', fazendaId)
+      .lt('data', mesInicio),
   ]);
 
   // --- Silagem ---
@@ -295,8 +301,13 @@ export default async function DashboardPage() {
   const finData = finRes.data ?? [];
   const receitaMesNum = finData.filter((l) => l.tipo === 'Receita').reduce((acc, l) => acc + l.valor, 0);
   const despesaMesNum = finData.filter((l) => l.tipo === 'Despesa').reduce((acc, l) => acc + l.valor, 0);
-  const receitaMes = finData.length > 0 ? formatBRL(receitaMesNum) : '—';
-  const despesaMes = finData.length > 0 ? formatBRL(despesaMesNum) : '—';
+  const receitaMes = formatBRL(receitaMesNum);
+  const despesaMes = formatBRL(despesaMesNum);
+
+  const finAcumulado = finAcumuladoRes.data ?? [];
+  const receitaAcumulada = finAcumulado.filter((l) => l.tipo === 'Receita').reduce((acc, l) => acc + l.valor, 0);
+  const despesaAcumulada = finAcumulado.filter((l) => l.tipo === 'Despesa').reduce((acc, l) => acc + l.valor, 0);
+  const saldoAcumuladoNum = receitaAcumulada - despesaAcumulada;
 
   // --- Frota ---
   const totalMaquinas = maquinasRes.count ?? 0;
@@ -525,6 +536,7 @@ export default async function DashboardPage() {
     despesaMes,
     receitaMesNum,
     despesaMesNum,
+    saldoAcumuladoNum,
     maquinasTotal,
     maquinasDetalhe,
     totalAnimais,

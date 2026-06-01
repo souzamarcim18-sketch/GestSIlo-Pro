@@ -1137,6 +1137,41 @@ export type Database = {
           },
         ]
       }
+      configuracoes_fazenda: {
+        Row: {
+          created_at: string
+          fazenda_id: string
+          id: string
+          peso_concha_ton: number | null
+          peso_vagao_ton: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fazenda_id: string
+          id?: string
+          peso_concha_ton?: number | null
+          peso_vagao_ton?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fazenda_id?: string
+          id?: string
+          peso_concha_ton?: number | null
+          peso_vagao_ton?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_fazenda_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: true
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos_dap: {
         Row: {
           atividade_campo_id: string | null

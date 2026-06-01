@@ -59,6 +59,7 @@ export interface DashboardData {
   despesaMes: string;
   receitaMesNum: number;
   despesaMesNum: number;
+  saldoAcumuladoNum: number;
   // Frota
   maquinasTotal: string;
   maquinasDetalhe: string;

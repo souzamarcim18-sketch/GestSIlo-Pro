@@ -90,11 +90,13 @@ function FinanceiroCard({
   value,
   variante,
   href,
+  subtitle = 'Mês corrente',
 }: {
   title: string;
   value: string;
   variante: 'receita' | 'despesa' | 'saldo_positivo' | 'saldo_negativo';
   href: string;
+  subtitle?: string;
 }) {
   const router = useRouter();
   const valueColor =
@@ -114,7 +116,7 @@ function FinanceiroCard({
         <div className="space-y-1.5">
           <p className="uppercase tracking-[0.13em] font-bold text-xs text-[#688070]">{title}</p>
           <p className={cn('text-xl md:text-2xl font-black tracking-tight truncate', valueColor)}>{value}</p>
-          <p className="text-xs text-[#688070]">Mês corrente</p>
+          <p className="text-xs text-[#688070]">{subtitle}</p>
         </div>
       </Card>
     </button>
@@ -423,14 +425,21 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       {/* Financeiro */}
       <section aria-label="Financeiro">
         <SectionLabel>Financeiro</SectionLabel>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <FinanceiroCard title="RECEITA DO MÊS" value={data.receitaMes} variante="receita" href="/dashboard/financeiro" />
           <FinanceiroCard title="DESPESA DO MÊS" value={data.despesaMes} variante="despesa" href="/dashboard/financeiro" />
           <FinanceiroCard
             title="SALDO LÍQUIDO"
-            value={data.receitaMesNum === 0 && data.despesaMesNum === 0 ? '—' : formatBRL(data.receitaMesNum - data.despesaMesNum)}
+            value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
             variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
             href="/dashboard/financeiro"
+          />
+          <FinanceiroCard
+            title="SALDO ACUMULADO"
+            value={formatBRL(data.saldoAcumuladoNum)}
+            variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+            href="/dashboard/financeiro"
+            subtitle="Meses anteriores"
           />
         </div>
       </section>

@@ -13,11 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2, Scale } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Profile, Fazenda } from '@/lib/supabase';
 import { CityAutocomplete } from '@/components/CityAutocomplete';
-import { updateProfile, updateFazenda } from '@/lib/supabase/configuracoes';
+import { updateProfile, updateFazenda, type ConfiguracoesFazenda } from '@/lib/supabase/configuracoes';
+import { salvarConfiguracoesPesosAction } from './actions';
 import type { CityOption } from '@/hooks/useGeocoding';
 
 interface Props {
@@ -27,6 +28,7 @@ interface Props {
   isAdmin: boolean;
   userId: string;
   fazendaId: string;
+  initialConfiguracoes: ConfiguracoesFazenda | null;
 }
 
 export function ConfiguracoesClient({
@@ -36,15 +38,23 @@ export function ConfiguracoesClient({
   isAdmin,
   userId,
   fazendaId,
+  initialConfiguracoes,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<'perfil' | 'fazenda' | 'usuarios'>('perfil');
+  const [activeTab, setActiveTab] = useState<'perfil' | 'fazenda' | 'usuarios' | 'unidades'>('perfil');
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [fazenda, setFazenda] = useState<Fazenda>(initialFazenda);
   const [users] = useState<Profile[]>(initialUsers);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingFazenda, setSavingFazenda] = useState(false);
+  const [savingUnidades, setSavingUnidades] = useState(false);
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [pesoConcha, setPesoConcha] = useState(
+    initialConfiguracoes?.peso_concha_ton != null ? String(initialConfiguracoes.peso_concha_ton) : ''
+  );
+  const [pesoVagao, setPesoVagao] = useState(
+    initialConfiguracoes?.peso_vagao_ton != null ? String(initialConfiguracoes.peso_vagao_ton) : ''
+  );
 
   const profileNomeRef = useRef<HTMLInputElement>(null);
   const profileSenhaRef = useRef<HTMLInputElement>(null);
@@ -86,6 +96,26 @@ export function ConfiguracoesClient({
     }
   };
 
+  const handleSaveUnidades = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingUnidades(true);
+    try {
+      const result = await salvarConfiguracoesPesosAction({
+        peso_concha_ton: pesoConcha.trim() || null,
+        peso_vagao_ton: pesoVagao.trim() || null,
+      });
+      if (!result.success) {
+        toast.error(result.error ?? 'Erro ao salvar');
+        return;
+      }
+      toast.success('Unidades de medida salvas!');
+    } catch {
+      toast.error('Erro ao salvar configurações');
+    } finally {
+      setSavingUnidades(false);
+    }
+  };
+
   const handleSaveFazenda = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingFazenda(true);
@@ -117,11 +147,12 @@ export function ConfiguracoesClient({
       </div>
 
       <div className="w-full space-y-6">
-        <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] lg:w-[500px]">
+        <div className="grid grid-cols-4 gap-2 rounded-xl bg-muted/50 border border-border p-[3px] lg:w-[680px]">
           {([
             { value: 'perfil',   label: 'Meu Perfil' },
             { value: 'fazenda',  label: 'Dados da Fazenda' },
             { value: 'usuarios', label: 'Usuários e Acessos' },
+            { value: 'unidades', label: 'Unidades de Medida' },
           ] as const).map(({ value, label }) => (
             <button
               key={value}
@@ -294,6 +325,77 @@ export function ConfiguracoesClient({
             </Card>
           </div>
         )}
+
+        {/* Aba: Unidades de Medida */}
+        {activeTab === 'unidades' && (
+          <div className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <h2 className="text-xl font-semibold leading-none tracking-tight flex items-center gap-2">
+                    <Scale className="h-5 w-5 text-primary" aria-hidden="true" />
+                    Unidades de Medida para Operador
+                  </h2>
+                </CardTitle>
+                <CardDescription>
+                  Configure os pesos das unidades usadas pelo operador ao registrar saídas de silagem.
+                  Apenas as unidades configuradas ficam disponíveis para o operador.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!isAdmin ? (
+                  <p className="text-sm text-muted-foreground">
+                    Apenas administradores podem alterar estas configurações.
+                  </p>
+                ) : (
+                  <form onSubmit={handleSaveUnidades} className="space-y-6" noValidate>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="peso-concha" className="text-sm font-medium">
+                          Peso por concha do trator (toneladas)
+                        </Label>
+                        <Input
+                          id="peso-concha"
+                          type="number"
+                          step="0.0001"
+                          min="0.0001"
+                          placeholder="Ex: 0.8"
+                          value={pesoConcha}
+                          onChange={(e) => setPesoConcha(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Deixe em branco para não oferecer essa opção ao operador.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="peso-vagao" className="text-sm font-medium">
+                          Peso por vagão (toneladas)
+                        </Label>
+                        <Input
+                          id="peso-vagao"
+                          type="number"
+                          step="0.0001"
+                          min="0.0001"
+                          placeholder="Ex: 3.5"
+                          value={pesoVagao}
+                          onChange={(e) => setPesoVagao(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Deixe em branco para não oferecer essa opção ao operador.
+                        </p>
+                      </div>
+                    </div>
+                    <Button type="submit" disabled={savingUnidades}>
+                      <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+                      {savingUnidades ? 'Salvando...' : 'Salvar Configurações'}
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
       </div>
 
       <InviteUserModal open={inviteModalOpen} onOpenChange={setInviteModalOpen} />

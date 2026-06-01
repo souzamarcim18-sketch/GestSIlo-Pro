@@ -1,4 +1,35 @@
+import { createSupabaseServerClient } from '../supabase/server';
 import { supabase, Profile, Fazenda } from '../supabase';
+
+// ── Tipos ────────────────────────────────────────────────────────────────────
+
+export interface ConfiguracoesFazenda {
+  id: string;
+  fazenda_id: string;
+  peso_concha_ton: number | null;
+  peso_vagao_ton: number | null;
+}
+
+// ── Queries (client-side) ────────────────────────────────────────────────────
+
+export async function getConfiguracoesFazenda(): Promise<ConfiguracoesFazenda | null> {
+  const { data } = await supabase
+    .from('configuracoes_fazenda')
+    .select('id, fazenda_id, peso_concha_ton, peso_vagao_ton')
+    .maybeSingle();
+  return data ?? null;
+}
+
+// ── Queries (server-side) ────────────────────────────────────────────────────
+
+export async function getConfiguracoesFazendaServer(): Promise<ConfiguracoesFazenda | null> {
+  const client = await createSupabaseServerClient();
+  const { data } = await client
+    .from('configuracoes_fazenda')
+    .select('id, fazenda_id, peso_concha_ton, peso_vagao_ton')
+    .maybeSingle();
+  return data ?? null;
+}
 
 export async function getProfile(userId: string): Promise<Profile> {
   const { data, error } = await supabase

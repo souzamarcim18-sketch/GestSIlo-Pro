@@ -10,6 +10,7 @@ import {
   listLotesCliente,
   type LoteSimples,
 } from '@/lib/supabase/operador';
+import { getConfiguracoesFazenda, type ConfiguracoesFazenda } from '@/lib/supabase/configuracoes';
 import { enqueue } from '@/lib/db/syncQueue';
 import { getDb } from '@/lib/db/localDb';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
@@ -42,6 +43,7 @@ import type { Silo } from '@/lib/supabase';
 // ── Tipos locais ──────────────────────────────────────────────────────────────
 
 type Etapa = 'silo' | 'acao' | 'retirada' | 'descarte';
+type UnidadeMedida = 'toneladas' | 'conchas' | 'vagoes';
 
 const TIPOS_PERDA = [
   { value: 'Aeróbica', label: 'Aeróbica (Aquecimento)' },
@@ -90,6 +92,15 @@ export default function ModoOperadorPage() {
   const [obsDescarte, setObsDescarte] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
+  const [configuracoes, setConfiguracoes] = useState<ConfiguracoesFazenda | null>(null);
+
+  // unidade de medida — retirada
+  const [unidadeRetirada, setUnidadeRetirada] = useState<UnidadeMedida>('toneladas');
+  const [qtdUnidadeRetirada, setQtdUnidadeRetirada] = useState('');
+
+  // unidade de medida — descarte
+  const [unidadeDescarte, setUnidadeDescarte] = useState<UnidadeMedida>('toneladas');
+  const [qtdUnidadeDescarte, setQtdUnidadeDescarte] = useState('');
 
   // ── Carregar dados ──────────────────────────────────────────────────────────
 
@@ -115,10 +126,12 @@ export default function ModoOperadorPage() {
 
       setProfile(profileData as unknown as Profile);
 
-      const [silosData, lotesData] = await Promise.all([
+      const [silosData, lotesData, configData] = await Promise.all([
         q.silos.list(),
         listLotesCliente(),
+        getConfiguracoesFazenda(),
       ]);
+      setConfiguracoes(configData);
       setSilos(silosData);
       setLotes(lotesData);
 
@@ -172,12 +185,31 @@ export default function ModoOperadorPage() {
     setEtapa('acao');
   }
 
+  // ── Conversão de unidades ────────────────────────────────────────────────────
+
+  function converterParaToneladas(qtd: string, unidade: UnidadeMedida): number | null {
+    const n = parseFloat(qtd);
+    if (isNaN(n) || n <= 0) return null;
+    if (unidade === 'toneladas') return n;
+    if (unidade === 'conchas' && configuracoes?.peso_concha_ton) return n * configuracoes.peso_concha_ton;
+    if (unidade === 'vagoes' && configuracoes?.peso_vagao_ton) return n * configuracoes.peso_vagao_ton;
+    return null;
+  }
+
+  function labelUnidade(unidade: UnidadeMedida): string {
+    if (unidade === 'conchas') return 'conchas';
+    if (unidade === 'vagoes') return 'vagões';
+    return 'toneladas';
+  }
+
   // ── Reset ───────────────────────────────────────────────────────────────────
 
   function resetRetirada() {
     setLoteId('');
     setLoteNome('');
     setQtdRetirada('');
+    setQtdUnidadeRetirada('');
+    setUnidadeRetirada('toneladas');
     setDataRetirada(todayISO());
     setObsRetirada('');
   }
@@ -186,6 +218,8 @@ export default function ModoOperadorPage() {
     setTipoPerda('');
     setMotivoDescarte('');
     setQtdDescarte('');
+    setQtdUnidadeDescarte('');
+    setUnidadeDescarte('toneladas');
     setDataDescarte(todayISO());
     setObsDescarte('');
   }
@@ -206,7 +240,18 @@ export default function ModoOperadorPage() {
 
   async function handleRetirada(e: React.FormEvent) {
     e.preventDefault();
-    if (!siloSelecionado || !qtdRetirada || !profile) return;
+    if (!siloSelecionado || !profile) return;
+
+    const qtdFinal = unidadeRetirada === 'toneladas'
+      ? qtdRetirada
+      : qtdUnidadeRetirada;
+
+    const quantidadeTon = converterParaToneladas(qtdFinal, unidadeRetirada);
+    if (!quantidadeTon) {
+      toast.error('Informe uma quantidade válida');
+      return;
+    }
+
     setSubmitting(true);
 
     const loteNomeFinal = loteId
@@ -217,7 +262,7 @@ export default function ModoOperadorPage() {
       if (isOnline) {
         await registrarRetiradaSilo({
           siloId: siloSelecionado.id,
-          quantidade: Number(qtdRetirada),
+          quantidade: quantidadeTon,
           responsavel: profile.nome,
           loteNome: loteNomeFinal || undefined,
           data: dataRetirada,
@@ -227,13 +272,14 @@ export default function ModoOperadorPage() {
       } else {
         const obsPartes = ['Retirada via Modo Operador (Offline)'];
         if (loteNomeFinal) obsPartes.push(`Lote: ${loteNomeFinal}`);
+        if (unidadeRetirada !== 'toneladas') obsPartes.push(`${qtdFinal} ${labelUnidade(unidadeRetirada)} = ${quantidadeTon.toFixed(3)} t`);
         if (obsRetirada) obsPartes.push(obsRetirada);
         await enqueue('movimentacoes_silo', 'INSERT', {
           id: crypto.randomUUID(),
           silo_id: siloSelecionado.id,
           tipo: 'Saída',
           subtipo: 'Uso na alimentação',
-          quantidade: Number(qtdRetirada),
+          quantidade: quantidadeTon,
           data: dataRetirada,
           responsavel: profile.nome,
           observacao: obsPartes.join(' | '),
@@ -254,14 +300,25 @@ export default function ModoOperadorPage() {
 
   async function handleDescarte(e: React.FormEvent) {
     e.preventDefault();
-    if (!siloSelecionado || !qtdDescarte || !tipoPerda || !profile) return;
+    if (!siloSelecionado || !tipoPerda || !profile) return;
+
+    const qtdFinalDescarte = unidadeDescarte === 'toneladas'
+      ? qtdDescarte
+      : qtdUnidadeDescarte;
+
+    const quantidadeDescarteTon = converterParaToneladas(qtdFinalDescarte, unidadeDescarte);
+    if (!quantidadeDescarteTon) {
+      toast.error('Informe uma quantidade válida');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       if (isOnline) {
         await registrarPerdaSilo({
           siloId: siloSelecionado.id,
-          quantidade: Number(qtdDescarte),
+          quantidade: quantidadeDescarteTon,
           responsavel: profile.nome,
           tipoPerda,
           motivo: motivoDescarte || undefined,
@@ -272,13 +329,14 @@ export default function ModoOperadorPage() {
       } else {
         const obsPartes = [`Descarte: ${tipoPerda} (Offline)`];
         if (motivoDescarte) obsPartes.push(`Motivo: ${motivoDescarte}`);
+        if (unidadeDescarte !== 'toneladas') obsPartes.push(`${qtdFinalDescarte} ${labelUnidade(unidadeDescarte)} = ${quantidadeDescarteTon.toFixed(3)} t`);
         if (obsDescarte) obsPartes.push(obsDescarte);
         await enqueue('movimentacoes_silo', 'INSERT', {
           id: crypto.randomUUID(),
           silo_id: siloSelecionado.id,
           tipo: 'Saída',
           subtipo: 'Descarte',
-          quantidade: Number(qtdDescarte),
+          quantidade: quantidadeDescarteTon,
           data: dataDescarte,
           responsavel: profile.nome,
           observacao: obsPartes.join(' | '),
@@ -530,23 +588,72 @@ export default function ModoOperadorPage() {
               </div>
 
               {/* Quantidade */}
-              <div className="space-y-2">
-                <Label htmlFor="qtd-retirada" className="text-sm font-semibold text-zinc-200">
-                  Quantidade (toneladas) <span className="text-red-400">*</span>
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-zinc-200">
+                  Quantidade <span className="text-red-400">*</span>
                 </Label>
-                <Input
-                  id="qtd-retirada"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  className="h-16 bg-zinc-800 border-zinc-700 text-3xl rounded-2xl text-center font-bold"
-                  value={qtdRetirada}
-                  onChange={(e) => setQtdRetirada(e.target.value)}
-                  required
-                  autoFocus
-                />
+
+                {/* Seletor de unidade */}
+                {(configuracoes?.peso_concha_ton || configuracoes?.peso_vagao_ton) && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['toneladas', 'conchas', 'vagoes'] as UnidadeMedida[])
+                      .filter((u) => {
+                        if (u === 'toneladas') return true;
+                        if (u === 'conchas') return !!configuracoes?.peso_concha_ton;
+                        if (u === 'vagoes') return !!configuracoes?.peso_vagao_ton;
+                        return false;
+                      })
+                      .map((u) => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() => { setUnidadeRetirada(u); setQtdUnidadeRetirada(''); setQtdRetirada(''); }}
+                          className={`py-2 px-3 rounded-xl border text-sm font-semibold transition-all capitalize ${
+                            unidadeRetirada === u
+                              ? 'border-primary/60 bg-primary/10 text-primary'
+                              : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                          }`}
+                        >
+                          {u === 'toneladas' ? 'Toneladas' : u === 'conchas' ? 'Conchas' : 'Vagões'}
+                        </button>
+                      ))}
+                  </div>
+                )}
+
+                {unidadeRetirada === 'toneladas' ? (
+                  <Input
+                    id="qtd-retirada"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    className="h-16 bg-zinc-800 border-zinc-700 text-3xl rounded-2xl text-center font-bold"
+                    value={qtdRetirada}
+                    onChange={(e) => setQtdRetirada(e.target.value)}
+                    autoFocus
+                  />
+                ) : (
+                  <div className="space-y-1">
+                    <Input
+                      type="number"
+                      step="1"
+                      min="1"
+                      inputMode="numeric"
+                      placeholder="0"
+                      className="h-16 bg-zinc-800 border-zinc-700 text-3xl rounded-2xl text-center font-bold"
+                      value={qtdUnidadeRetirada}
+                      onChange={(e) => setQtdUnidadeRetirada(e.target.value)}
+                      autoFocus
+                    />
+                    {qtdUnidadeRetirada && parseFloat(qtdUnidadeRetirada) > 0 && (
+                      <p className="text-xs text-primary text-center font-medium">
+                        ≈ {(parseFloat(qtdUnidadeRetirada) * (unidadeRetirada === 'conchas' ? (configuracoes?.peso_concha_ton ?? 0) : (configuracoes?.peso_vagao_ton ?? 0))).toFixed(3)} t
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {siloSelecionado?.volume_ensilado_ton_mv && (
                   <p className="text-xs text-zinc-500 text-center">
                     Volume ensilado: {siloSelecionado.volume_ensilado_ton_mv.toFixed(1)} t
@@ -587,7 +694,7 @@ export default function ModoOperadorPage() {
               <div className="space-y-3 pt-2">
                 <Button
                   type="submit"
-                  disabled={submitting || !qtdRetirada}
+                  disabled={submitting || !(unidadeRetirada === 'toneladas' ? qtdRetirada : qtdUnidadeRetirada)}
                   className="w-full h-14 bg-primary hover:bg-primary/90 text-lg font-black rounded-2xl"
                 >
                   {submitting ? 'Registrando...' : (
@@ -651,22 +758,69 @@ export default function ModoOperadorPage() {
               </div>
 
               {/* Quantidade */}
-              <div className="space-y-2">
-                <Label htmlFor="qtd-descarte" className="text-sm font-semibold text-zinc-200">
-                  Quantidade (toneladas) <span className="text-red-400">*</span>
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-zinc-200">
+                  Quantidade <span className="text-red-400">*</span>
                 </Label>
-                <Input
-                  id="qtd-descarte"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  className="h-16 bg-zinc-800 border-zinc-700 text-3xl rounded-2xl text-center font-bold"
-                  value={qtdDescarte}
-                  onChange={(e) => setQtdDescarte(e.target.value)}
-                  required
-                />
+
+                {/* Seletor de unidade */}
+                {(configuracoes?.peso_concha_ton || configuracoes?.peso_vagao_ton) && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['toneladas', 'conchas', 'vagoes'] as UnidadeMedida[])
+                      .filter((u) => {
+                        if (u === 'toneladas') return true;
+                        if (u === 'conchas') return !!configuracoes?.peso_concha_ton;
+                        if (u === 'vagoes') return !!configuracoes?.peso_vagao_ton;
+                        return false;
+                      })
+                      .map((u) => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() => { setUnidadeDescarte(u); setQtdUnidadeDescarte(''); setQtdDescarte(''); }}
+                          className={`py-2 px-3 rounded-xl border text-sm font-semibold transition-all capitalize ${
+                            unidadeDescarte === u
+                              ? 'border-red-500/60 bg-red-950/40 text-red-300'
+                              : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                          }`}
+                        >
+                          {u === 'toneladas' ? 'Toneladas' : u === 'conchas' ? 'Conchas' : 'Vagões'}
+                        </button>
+                      ))}
+                  </div>
+                )}
+
+                {unidadeDescarte === 'toneladas' ? (
+                  <Input
+                    id="qtd-descarte"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    className="h-16 bg-zinc-800 border-zinc-700 text-3xl rounded-2xl text-center font-bold"
+                    value={qtdDescarte}
+                    onChange={(e) => setQtdDescarte(e.target.value)}
+                  />
+                ) : (
+                  <div className="space-y-1">
+                    <Input
+                      type="number"
+                      step="1"
+                      min="1"
+                      inputMode="numeric"
+                      placeholder="0"
+                      className="h-16 bg-zinc-800 border-zinc-700 text-3xl rounded-2xl text-center font-bold"
+                      value={qtdUnidadeDescarte}
+                      onChange={(e) => setQtdUnidadeDescarte(e.target.value)}
+                    />
+                    {qtdUnidadeDescarte && parseFloat(qtdUnidadeDescarte) > 0 && (
+                      <p className="text-xs text-red-400 text-center font-medium">
+                        ≈ {(parseFloat(qtdUnidadeDescarte) * (unidadeDescarte === 'conchas' ? (configuracoes?.peso_concha_ton ?? 0) : (configuracoes?.peso_vagao_ton ?? 0))).toFixed(3)} t
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Data */}
@@ -702,7 +856,7 @@ export default function ModoOperadorPage() {
               <div className="space-y-3 pt-2">
                 <Button
                   type="submit"
-                  disabled={submitting || !qtdDescarte || !tipoPerda}
+                  disabled={submitting || !(unidadeDescarte === 'toneladas' ? qtdDescarte : qtdUnidadeDescarte) || !tipoPerda}
                   className="w-full h-14 bg-red-900/80 hover:bg-red-800 text-lg font-black rounded-2xl text-red-100"
                 >
                   {submitting ? 'Registrando...' : (

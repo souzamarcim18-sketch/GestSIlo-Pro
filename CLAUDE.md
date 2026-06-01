@@ -141,7 +141,7 @@ sou_gerente_ou_admin() → boolean
 ```
 
 ### Tabelas Principais
-`silos`, `talhoes`, `maquinas`, `financeiro`, `profiles`, `fazendas`,
+`silos`, `talhoes`, `maquinas`, `financeiro`, `profiles`, `fazendas`, `configuracoes_fazenda`,
 `insumos`, `movimentacoes_insumo`, `ciclos_agricolas`, `atividades_campo`,
 `planejamentos_silagem`, `planos_manutencao`, `manutencoes`,
 `abastecimentos`, `uso_maquinas`,
@@ -1147,8 +1147,44 @@ E atualizar `AtividadeForm.tsx` (4ª opção no RadioGroup de vínculo) e o `ref
 - Wizard em 4 etapas: sistema, rebanho, parâmetros, resultados
 - Export PDF, histórico de simulações
 
-### 🧮 Calculadoras Agronômicas
-- Calagem, adubação NPK, fertilizantes
+### 🧮 Calculadoras Agronômicas (atualizado 2026-06-01)
+
+**Módulos**: Calagem e Adubação NPK (otimizador combinatório).
+
+#### Calculadora NPK — Viabilidade de Fertilizantes
+
+**Arquivos principais**:
+- `lib/calculadoras/npk.ts` — motor de otimização; retorna dois rankings independentes
+- `lib/calculadoras/fertilizantes.ts` — banco de 14 fertilizantes padrão + customizados via localStorage
+- `app/dashboard/calculadoras/components/NPKCalculator.tsx` — componente principal + `OpcaoPainelCard` interno
+- `app/dashboard/calculadoras/components/FertilizantesManager.tsx` — tabela de seleção e edição de preços
+- `app/dashboard/calculadoras/dialogs/ExportPDFDialog.tsx` — dialog de exportação; recebe `faseAdubacao`
+- `lib/pdf-export.ts` — `exportarRelatorioNPK(input, resultado, options, faseAdubacao?)`
+
+**Seleção de fase** (`FaseAdubacao = 'plantio' | 'cobertura'`):
+- Card de seleção visual obrigatório antes do cálculo
+- Fase aparece no badge do resultado e no cabeçalho do PDF exportado
+
+**Motor de otimização** (`otimizarNPK`):
+- Testa combinações de 1, 2 e 3 fertilizantes via sistemas lineares (Cramer para 3×3)
+- Margem nutricional válida: 0% a +15% para N, P₂O₅ e K₂O
+- Retorna **dois rankings independentes** (não um único `top5`):
+  - `topMaisBarata` / `maisBarata` — ordenado por menor custo R$/ha
+  - `topMaisSimples` / `maisSimples` — ordenado por menor nº de fertilizantes, depois menor custo
+  - `top5` mantido por retrocompatibilidade (igual a `topMaisBarata`)
+
+**UI de resultados — dois painéis**:
+- Painel **Opção Mais Econômica** (borda verde): menor custo de aquisição
+- Painel **Opção Mais Simples** (borda azul): menor número de fertilizantes
+- Ambos exibem: KPIs (custo/ha, total área, nº adubos), composição por fertilizante (dose, sacos/ha, custo/ha), margens N/P/K, e lista de alternativas da mesma categoria
+- Layout: `xl:grid-cols-2` — lado a lado em desktop, empilhado em mobile
+
+**Fertilizantes padrão** (14 no total — atualizado 2026-06-01):
+- Removidos: `NPK 05-25-25`, `NPK 10-10-10`, `Nitrato de Cálcio 15.5-0-0`
+- Adicionados: `NPK 30-00-20`, `NPK 20-00-20`
+- Customizados: salvos no localStorage (`gestsilo_fertilizantes_custom`); preços editáveis em `gestsilo_precos_editados`
+
+**Disclaimer**: aviso de que o cálculo cobre apenas custos de aquisição — custos logísticos (transporte, mão de obra, horas-máquina, combustível) devem ser considerados à parte pelo produtor.
 
 ### 🌽 Produtos (100% implementado — 2026-05-19)
 
@@ -1482,16 +1518,26 @@ NEXT_PUBLIC_CONSULTOR_EMAIL=gestsilo.app@gmail.com
 RESEND_API_KEY=<chave-resend>
 ```
 
-### ⚙️ Configurações (bem implementado — 2026-05-22)
+### ⚙️ Configurações (atualizado 2026-06-01)
 
 Arquivo: `app/dashboard/configuracoes/` (page.tsx + ConfiguracoesClient.tsx)
 
-**3 abas**:
+**4 abas**:
 - **Meu Perfil** — editar nome, email, senha. ✅ Completo.
 - **Dados da Fazenda** — editar nome, cidade (geocoding), área e coordenadas. ✅ Completo.
 - **Usuários e Acessos** — tabela de usuários com nome/email/perfil/status. ✅ Completo para visualização.
+- **Unidades de Medida** — pesos de concha e vagão em toneladas (por fazenda). ✅ Completo (2026-06-01).
 
 **Convite de usuário**: ✅ Implementado via `components/InviteUserModal.tsx` + `app/api/auth/invite/route.ts`. Admin escolhe email e perfil (Operador ou Visualizador); sistema envia email com senha temporária via Resend.
+
+**Unidades de Medida para Operador** (implementado 2026-06-01):
+- Tabela `configuracoes_fazenda` (1 row por fazenda, `UNIQUE(fazenda_id)`) armazena `peso_concha_ton` e `peso_vagao_ton`
+- Admin configura via aba "Unidades de Medida" em Configurações → Server Action `salvarConfiguracoesPesosAction` (upsert)
+- Operador vê seletor de unidade (Toneladas / Conchas / Vagões) nos formulários de Fornecimento e Descarte — apenas as unidades configuradas aparecem
+- Conversão feita no cliente antes do submit; valor persistido sempre em toneladas; preview "≈ X.XXX t" exibido em tempo real
+- Offline: a conversão acontece no cliente antes de enfileirar no IndexedDB — nenhuma mudança no `syncQueue`
+- Queries: `getConfiguracoesFazenda()` (client-side) e `getConfiguracoesFazendaServer()` (server-side) em `lib/supabase/configuracoes.ts`
+- RLS: SELECT para qualquer perfil autenticado da fazenda; INSERT/UPDATE apenas Admin
 
 **Lacunas conhecidas**:
 - Remoção de usuário: exibe toast "em breve" — não implementado.
