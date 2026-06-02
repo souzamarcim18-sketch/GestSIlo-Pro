@@ -74,6 +74,80 @@ const tooltipFormatter = (
   return [formatted, (name ?? '') as NameType];
 };
 
+function LancamentoRow({
+  l,
+  isAdmin,
+  onEdit,
+  onDelete,
+}: {
+  l: Financeiro;
+  isAdmin: boolean;
+  onEdit: (l: Financeiro) => void;
+  onDelete: (l: Financeiro) => void;
+}) {
+  return (
+    <TableRow>
+      <TableCell className="whitespace-nowrap">
+        {format(new Date(l.data + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}
+      </TableCell>
+      <TableCell className="font-medium max-w-[200px] truncate">{l.descricao}</TableCell>
+      <TableCell><Badge variant="outline">{l.categoria}</Badge></TableCell>
+      <TableCell>
+        {l.natureza === 'fixo' && <Badge variant="secondary" className="text-xs">Fixo</Badge>}
+        {l.natureza === 'variavel' && <Badge variant="outline" className="text-xs">Variável</Badge>}
+        {!l.natureza && <span className="text-muted-foreground" aria-hidden="true">—</span>}
+      </TableCell>
+      <TableCell>
+        {l.referencia_tipo
+          ? <span className="text-sm text-muted-foreground">{l.referencia_tipo}</span>
+          : <span className="text-muted-foreground" aria-hidden="true">—</span>}
+      </TableCell>
+      <TableCell
+        className={`font-bold tabular-nums ${l.tipo === 'Receita' ? 'text-primary dark:text-primary' : 'text-destructive'}`}
+        aria-label={`${l.tipo === 'Receita' ? 'Receita' : 'Despesa'} de ${brl(l.valor)}`}
+      >
+        {l.tipo === 'Receita' ? '+' : '−'} {brl(l.valor)}
+      </TableCell>
+      <TableCell className="text-muted-foreground text-sm">
+        {l.forma_pagamento ?? <span aria-hidden="true">—</span>}
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onEdit(l)}
+            aria-label={`Editar lançamento: ${l.descricao}`}
+          >
+            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+          </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDelete(l)}
+              aria-label={`Excluir lançamento: ${l.descricao}`}
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function TabelaVazia() {
+  return (
+    <TableRow>
+      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground" role="status" aria-live="polite">
+        Nenhum lançamento encontrado.
+      </TableCell>
+    </TableRow>
+  );
+}
+
 interface Props {
   initialLancamentos: Financeiro[];
   initialCategorias: string[];
@@ -447,66 +521,6 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
     </form>
   );
 
-  const LancamentoRow = ({ l }: { l: Financeiro }) => (
-    <TableRow>
-      <TableCell className="whitespace-nowrap">
-        {format(new Date(l.data + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}
-      </TableCell>
-      <TableCell className="font-medium max-w-[200px] truncate">{l.descricao}</TableCell>
-      <TableCell><Badge variant="outline">{l.categoria}</Badge></TableCell>
-      <TableCell>
-        {l.natureza === 'fixo' && <Badge variant="secondary" className="text-xs">Fixo</Badge>}
-        {l.natureza === 'variavel' && <Badge variant="outline" className="text-xs">Variável</Badge>}
-        {!l.natureza && <span className="text-muted-foreground" aria-hidden="true">—</span>}
-      </TableCell>
-      <TableCell>
-        {l.referencia_tipo
-          ? <span className="text-sm text-muted-foreground">{l.referencia_tipo}</span>
-          : <span className="text-muted-foreground" aria-hidden="true">—</span>}
-      </TableCell>
-      <TableCell
-        className={`font-bold tabular-nums ${l.tipo === 'Receita' ? 'text-primary dark:text-primary' : 'text-destructive'}`}
-        aria-label={`${l.tipo === 'Receita' ? 'Receita' : 'Despesa'} de ${brl(l.valor)}`}
-      >
-        {l.tipo === 'Receita' ? '+' : '−'} {brl(l.valor)}
-      </TableCell>
-      <TableCell className="text-muted-foreground text-sm">
-        {l.forma_pagamento ?? <span aria-hidden="true">—</span>}
-      </TableCell>
-      <TableCell>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => handleOpenEdit(l)}
-            aria-label={`Editar lançamento: ${l.descricao}`}
-          >
-            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-          </Button>
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => setDeletingLancamento(l)}
-              aria-label={`Excluir lançamento: ${l.descricao}`}
-            >
-              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-            </Button>
-          )}
-        </div>
-      </TableCell>
-    </TableRow>
-  );
-
-  const TabelaVazia = () => (
-    <TableRow>
-      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground" role="status" aria-live="polite">
-        Nenhum lançamento encontrado.
-      </TableCell>
-    </TableRow>
-  );
-
   const listaAtiva = abaLancamentos === 'todos' ? lancamentosFiltrados : abaLancamentos === 'receitas' ? receitas : despesas;
 
   return (
@@ -763,7 +777,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
                 <TableBody>
                   {listaAtiva.length === 0
                     ? <TabelaVazia />
-                    : listaAtiva.map((l) => <LancamentoRow key={l.id} l={l} />)
+                    : listaAtiva.map((l) => <LancamentoRow key={l.id} l={l} isAdmin={isAdmin} onEdit={handleOpenEdit} onDelete={setDeletingLancamento} />)
                   }
                 </TableBody>
               </Table>

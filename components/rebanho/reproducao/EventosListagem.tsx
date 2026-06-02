@@ -28,6 +28,26 @@ import { deletarEventoReprodutivo } from '@/app/dashboard/rebanho/reproducao/act
 import { getAllEventosLocais } from '@/lib/db/eventosRebanho';
 import { useSyncContext } from './ReproducaoSyncProvider';
 import type { EventoReprodutivo } from '@/lib/types/rebanho-reproducao';
+
+function SyncBadgeInline({ status, errorMessage }: { status: string | undefined; errorMessage?: string }) {
+  if (status === 'pending') {
+    return (
+      <Badge variant="outline" className="ml-2 flex items-center gap-1 bg-amber-100 text-amber-800 text-xs">
+        <Clock className="h-3 w-3" />
+        Pendente
+      </Badge>
+    );
+  }
+  if (status === 'error') {
+    return (
+      <Badge variant="destructive" className="ml-2 flex items-center gap-1 text-xs" title={errorMessage}>
+        <AlertCircle className="h-3 w-3" />
+        Erro
+      </Badge>
+    );
+  }
+  return null;
+}
 import type { EventoReprodutivoLocal } from '@/lib/db/eventosRebanho';
 
 interface EventosListagemProps {
@@ -149,26 +169,6 @@ export function EventosListagem({ eventos, isAdmin }: EventosListagemProps) {
     } finally {
       setIsDeleting(null);
     }
-  };
-
-  const SyncBadgeInline = ({ status, errorMessage }: { status: string | undefined; errorMessage?: string }) => {
-    if (status === 'pending') {
-      return (
-        <Badge variant="outline" className="ml-2 flex items-center gap-1 bg-amber-100 text-amber-800 text-xs">
-          <Clock className="h-3 w-3" />
-          Pendente
-        </Badge>
-      );
-    }
-    if (status === 'error') {
-      return (
-        <Badge variant="destructive" className="ml-2 flex items-center gap-1 text-xs" title={errorMessage}>
-          <AlertCircle className="h-3 w-3" />
-          Erro
-        </Badge>
-      );
-    }
-    return null;
   };
 
   const resumoPayload = (evento: EventoReprodutivo | EventoLocalUi) => {
