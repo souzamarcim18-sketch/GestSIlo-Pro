@@ -323,37 +323,57 @@ export function NPKCalculator({ fertilizantes: initialFerts }: NPKCalculatorProp
           </div>
 
           {/* DOIS PAINÉIS LADO A LADO */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* PAINEL 1 — MAIS BARATA */}
-            <OpcaoPainelCard
-              titulo="Opção Mais Econômica"
-              descricao="Menor custo de aquisição por hectare"
-              acento="green"
-              icone={<Zap className="h-4 w-4" />}
-              opcaoPrincipal={resultado.maisBarata}
-              demaisOpcoes={resultado.topMaisBarata.slice(1)}
-              area={parseFloat(formData.area || '0')}
-              nNec={formData.n_nec}
-            />
+          {(() => {
+            const mesmaCombinacao =
+              resultado.maisBarata.fertilizantes.length === resultado.maisSimples.fertilizantes.length &&
+              resultado.maisBarata.fertilizantes.every(
+                (f, i) => f.fertilizante.id === resultado.maisSimples.fertilizantes[i]?.fertilizante.id
+              );
+            return (
+              <>
+                {mesmaCombinacao && (
+                  <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <AlertDescription className="text-blue-800 dark:text-blue-200 text-xs">
+                      Com os fertilizantes e metas informados, a combinação mais econômica também é a mais simples.
+                      As opções alternativas abaixo de cada painel diferem em custo e número de adubos.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {/* PAINEL 1 — MAIS BARATA */}
+                  <OpcaoPainelCard
+                    titulo="Opção Mais Econômica"
+                    descricao="Menor custo de aquisição por hectare"
+                    acento="green"
+                    icone={<Zap className="h-4 w-4" />}
+                    opcaoPrincipal={resultado.maisBarata}
+                    demaisOpcoes={resultado.topMaisBarata.slice(1)}
+                    area={parseFloat(formData.area || '0')}
+                    nNec={formData.n_nec}
+                  />
 
-            {/* PAINEL 2 — MAIS SIMPLES */}
-            <OpcaoPainelCard
-              titulo="Opção Mais Simples"
-              descricao="Menor número de fertilizantes — operação de campo mais fácil"
-              acento="blue"
-              icone={<Leaf className="h-4 w-4" />}
-              opcaoPrincipal={resultado.maisSimples}
-              demaisOpcoes={resultado.topMaisSimples.slice(1)}
-              area={parseFloat(formData.area || '0')}
-              nNec={formData.n_nec}
-            />
-          </div>
+                  {/* PAINEL 2 — MAIS SIMPLES */}
+                  <OpcaoPainelCard
+                    titulo="Opção Mais Simples"
+                    descricao="Menor número de fertilizantes — operação de campo mais fácil"
+                    acento="blue"
+                    icone={<Leaf className="h-4 w-4" />}
+                    opcaoPrincipal={resultado.maisSimples}
+                    demaisOpcoes={resultado.topMaisSimples.slice(1)}
+                    area={parseFloat(formData.area || '0')}
+                    nNec={formData.n_nec}
+                  />
+                </div>
+              </>
+            );
+          })()}
 
           {/* INFO */}
           <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
             <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             <AlertDescription className="text-blue-800 dark:text-blue-200 text-xs">
-              Margem nutricional aceita: 0% a +15% em relação à meta. As duas opções apresentadas
+              Margem nutricional aceita: -10% a +10% em relação à meta. As duas opções apresentadas
               atendem os requisitos nutricionais — escolha considerando custo de aquisição e
               complexidade da operação de campo. Consulte um agrônomo para validar.
             </AlertDescription>
@@ -530,7 +550,7 @@ function OpcaoPainelCard({
                 <p className="font-bold text-sm">{valor.toFixed(0)}<span className="text-xs font-normal"> kg/ha</span></p>
                 <Badge
                   variant="outline"
-                  className={`mt-1 text-xs ${margem >= 0 && margem <= 15 ? margemOkClass : margemWarnClass}`}
+                  className={`mt-1 text-xs ${margem >= -10 && margem <= 10 ? margemOkClass : margemWarnClass}`}
                 >
                   {margem > 0 ? '+' : ''}{margem.toFixed(0)}%
                 </Badge>
