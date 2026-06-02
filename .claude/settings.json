@@ -107,7 +107,8 @@
       "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); vulns=data.get\\('vulnerabilities',{}\\); excel=[{k:v} for k,v in vulns.items\\(\\) if 'excel' in k.lower\\(\\)]; print\\(json.dumps\\(excel, indent=2\\)\\) if excel else print\\('Sem CVE para exceljs'\\)\")",
       "Bash(Remove-Item -Recurse -Force node_modules)",
       "Bash(Remove-Item -Force package-lock.json)",
-      "Bash(Write-Host \"Limpeza concluída\")"
+      "Bash(Write-Host \"Limpeza concluída\")",
+      "Bash(grep -E \"^\\(Failed|Error:|\\\\.\\\\/\\)\")"
     ],
     "additionalDirectories": [
       "\\tmp"
