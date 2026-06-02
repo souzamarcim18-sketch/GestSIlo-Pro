@@ -154,7 +154,8 @@ describe('projetarRebanho()', () => {
   // ── 4. Rebanho com múltiplas vacas calcula categorias corretamente ─────────
 
   it('4. Rebanho com 5 vacas → 5 cabeças com categorias corretas', async () => {
-    const dataAlvo = new Date('2026-06-01');
+    const dataAlvo = new Date();
+    dataAlvo.setMonth(dataAlvo.getMonth() + 1);
 
     const vacas: Animal[] = Array.from({ length: 5 }, (_, i) =>
       makeAnimal({
@@ -187,7 +188,8 @@ describe('projetarRebanho()', () => {
   // ── 5. Rebanho sem partos previstos mantém contagem base ─────────────────────
 
   it('5. Rebanho sem partos previstos mantém contagem base', async () => {
-    const dataAlvo = new Date('2026-06-01');
+    const dataAlvo = new Date();
+    dataAlvo.setMonth(dataAlvo.getMonth() + 1);
 
     const vaca = makeAnimal({
       id: 'vaca-1',
@@ -217,19 +219,27 @@ describe('projetarRebanho()', () => {
   // ── 6. Cobertura que JÁ tem parto → NÃO adiciona bezerro ──────────────────
 
   it('6. Cobertura que já tem parto registrado → NÃO adiciona bezerro', async () => {
-    const dataAlvo = new Date('2026-06-01');
+    // dataAlvo = hoje + 30 dias (futuro garantido)
+    const dataAlvo = new Date();
+    dataAlvo.setDate(dataAlvo.getDate() + 30);
+
+    // Cobertura ~315 dias atrás → parto previsto ~30 dias atrás (já ocorreu)
+    const coberturaDate = new Date();
+    coberturaDate.setDate(coberturaDate.getDate() - 315);
+    const partoDate = new Date();
+    partoDate.setDate(partoDate.getDate() - 15);
 
     const vaca = makeAnimal({ id: 'vaca-1' });
 
-    // Cobertura em 2025-09 → parto previsto em 2026-05
+    // Cobertura ~315 dias atrás → parto previsto ~30 dias atrás
     const cobertura = {
       animal_id: 'vaca-1',
-      data_evento: '2025-09-01',
+      data_evento: coberturaDate.toISOString().split('T')[0],
       gemelar: false,
     };
 
     // Parto já registrado (evita contar como previsto)
-    const parto = { animal_id: 'vaca-1', data_evento: '2026-05-20' };
+    const parto = { animal_id: 'vaca-1', data_evento: partoDate.toISOString().split('T')[0] };
 
     let eventoQueryCount = 0;
     const mockClient = {
@@ -288,7 +298,8 @@ describe('projetarRebanho()', () => {
   // ── 8. Verificar versao_algoritmo ──────────────────────────────────────────
 
   it('8. versao_algoritmo presente na snapshot', async () => {
-    const dataAlvo = new Date('2026-06-01');
+    const dataAlvo = new Date();
+    dataAlvo.setMonth(dataAlvo.getMonth() + 1);
 
     const vaca = makeAnimal({ id: 'vaca-1' });
 
