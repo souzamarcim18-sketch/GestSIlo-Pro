@@ -7,13 +7,10 @@ import { inviteSchema } from '@/lib/validations/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 
+import { randomBytes } from 'crypto';
+
 function gerarSenhaTemporaria(): string {
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let senha = '';
-  for (let i = 0; i < 10; i++) {
-    senha += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return senha;
+  return randomBytes(12).toString('base64url').slice(0, 16);
 }
 
 export async function POST(request: NextRequest) {
