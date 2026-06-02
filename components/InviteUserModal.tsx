@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Copy, Check, Mail, UserPlus } from 'lucide-react';
+import { Mail, UserPlus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -30,14 +30,12 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
   const [email, setEmail] = useState('');
   const [perfil, setPerfil] = useState<'Operador' | 'Visualizador'>('Operador');
   const [loading, setLoading] = useState(false);
-  const [senhaTemporaria, setSenhaTemporaria] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [enviado, setEnviado] = useState(false);
 
   const handleClose = () => {
     setEmail('');
     setPerfil('Operador');
-    setSenhaTemporaria(null);
-    setCopied(false);
+    setEnviado(false);
     onOpenChange(false);
   };
 
@@ -61,20 +59,12 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
       }
 
       toast.success(`Convite enviado para ${email.trim()}!`);
-      setSenhaTemporaria(data.senhaTemporaria ?? null);
+      setEnviado(true);
     } catch {
       toast.error('Erro de conexão. Tente novamente.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCopy = async () => {
-    if (!senhaTemporaria) return;
-    await navigator.clipboard.writeText(senhaTemporaria);
-    setCopied(true);
-    toast.success('Senha copiada!');
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -86,11 +76,11 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
             Convidar Usuário
           </DialogTitle>
           <DialogDescription className="text-sm">
-            O convidado receberá um e-mail com link para criar a senha e acessar o sistema.
+            O convidado receberá um e-mail com as credenciais para acessar o sistema.
           </DialogDescription>
         </DialogHeader>
 
-        {!senhaTemporaria ? (
+        {!enviado ? (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label htmlFor="invite-email" className="text-sm">E-mail do convidado</Label>
@@ -149,41 +139,15 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
               <p className="text-sm font-medium">Convite enviado!</p>
               <p className="text-sm text-muted-foreground">
                 As credenciais de acesso foram enviadas para <strong>{email}</strong>.
+                O usuário deve verificar a caixa de entrada (e spam) para obter a senha temporária.
               </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm">Senha temporária (backup)</Label>
-              <p className="text-xs text-muted-foreground">
-                Caso o email demore, compartilhe a senha abaixo diretamente com o usuário.
-              </p>
-              <div className="flex gap-2">
-                <Input
-                  value={senhaTemporaria ?? ''}
-                  readOnly
-                  className="text-sm font-mono bg-muted tracking-widest"
-                  aria-label="Senha temporária gerada"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopy}
-                  aria-label="Copiar senha"
-                >
-                  {copied
-                    ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
-                    : <Copy className="h-4 w-4" aria-hidden="true" />
-                  }
-                </Button>
-              </div>
             </div>
 
             <div className="flex justify-between pt-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => { setSenhaTemporaria(null); setEmail(''); }}
+                onClick={() => { setEnviado(false); setEmail(''); }}
               >
                 Novo convite
               </Button>

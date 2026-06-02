@@ -163,8 +163,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Convite enviado para ${emailNorm}`,
-      // Retorna senha temporária para o admin copiar como backup
-      senhaTemporaria,
     });
 
   } catch (error) {
