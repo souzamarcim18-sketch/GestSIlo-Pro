@@ -6,18 +6,11 @@ import {
   queryAnotacoes,
   queryAgendamentos,
   queryHistoricoAtendimentos,
-  queryHorarios,
 } from '@/lib/supabase/assessoria';
 import {
   anotacaoFormSchema,
-  criarAgendamentoSchema,
-  atualizarStatusAgendamentoSchema,
   historicoAtendimentoSchema,
 } from '@/lib/validations/assessoria';
-import {
-  enviarEmailSolicitacaoAgendamento,
-  enviarEmailConfirmacaoAgendamento,
-} from '@/lib/services/email';
 
 async function getMeuFazendaId(): Promise<string> {
   const cookieStore = await cookies();
@@ -43,30 +36,6 @@ async function getMeuFazendaId(): Promise<string> {
   return data as string;
 }
 
-async function getMeuId(): Promise<string> {
-  const cookieStore = await cookies();
-  const client = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {}
-        },
-      },
-    }
-  );
-  const { data: { user } } = await client.auth.getUser();
-  return user?.id || '';
-}
-
 // ============================================================
 // ANOTAÇÕES
 // ============================================================
@@ -83,8 +52,23 @@ export async function criarAnotacaoAction(payload: unknown) {
   }
 }
 
+async function verificarOwnershipAnotacao(id: string): Promise<{ ok: true } | { ok: false; message: string }> {
+  const fazendaId = await getMeuFazendaId();
+  if (!fazendaId) return { ok: false, message: 'Não autorizado' };
+  try {
+    const anotacao = await queryAnotacoes.getById(id);
+    if (anotacao.fazenda_id !== fazendaId) return { ok: false, message: 'Não autorizado' };
+    return { ok: true };
+  } catch {
+    // Não vazar se o registro existe ou não
+    return { ok: false, message: 'Não autorizado' };
+  }
+}
+
 export async function atualizarAnotacaoAction(id: string, payload: unknown) {
   try {
+    const ownership = await verificarOwnershipAnotacao(id);
+    if (!ownership.ok) return { success: false, message: ownership.message };
     const validated = anotacaoFormSchema.parse(payload);
     const anotacao = await queryAnotacoes.update(id, validated);
     return { success: true, data: anotacao, message: 'Anotação atualizada' };
@@ -96,29 +80,20 @@ export async function atualizarAnotacaoAction(id: string, payload: unknown) {
 
 export async function deletarAnotacaoAction(id: string) {
   try {
-    console.log('[deletarAnotacaoAction] Iniciando deleção de:', id);
+    const ownership = await verificarOwnershipAnotacao(id);
+    if (!ownership.ok) return { success: false, message: ownership.message };
     await queryAnotacoes.delete(id);
-    console.log('[deletarAnotacaoAction] Deleção bem-sucedida');
     return { success: true, message: 'Anotação deletada com sucesso' };
   } catch (error) {
-    console.error('[deletarAnotacaoAction] Erro completo:', error);
-    console.error('[deletarAnotacaoAction] Tipo de erro:', typeof error);
-    console.error('[deletarAnotacaoAction] Stack:', error instanceof Error ? error.stack : undefined);
-
-    let errorMsg = 'Erro desconhecido';
-    if (error instanceof Error) {
-      errorMsg = error.message;
-    } else if (typeof error === 'object' && error !== null) {
-      errorMsg = JSON.stringify(error);
-    }
-
-    console.error('[deletarAnotacaoAction] Mensagem final:', errorMsg);
-    return { success: false, message: `Erro ao deletar: ${errorMsg}` };
+    console.error('[deletarAnotacaoAction]', error instanceof Error ? error.message : 'Erro desconhecido');
+    return { success: false, message: error instanceof Error ? error.message : 'Erro ao deletar anotação' };
   }
 }
 
 export async function marcarAnotacaoResolvidaAction(id: string, payload: { resolvida: boolean; assessor_resposta?: string }) {
   try {
+    const ownership = await verificarOwnershipAnotacao(id);
+    if (!ownership.ok) return { success: false, message: ownership.message };
     const anotacao = await queryAnotacoes.marcarResolvida(id, payload);
     return { success: true, data: anotacao, message: 'Status atualizado' };
   } catch (error) {
@@ -131,90 +106,9 @@ export async function marcarAnotacaoResolvidaAction(id: string, payload: { resol
 // AGENDAMENTOS
 // ============================================================
 
-export async function criarAgendamentoAction(payload: unknown) {
-  try {
-    const validated = criarAgendamentoSchema.parse(payload);
-    const fazendaId = await getMeuFazendaId();
-
-    const agendamento = await queryAgendamentos.create(fazendaId, validated.consultor_id, validated);
-
-    // Buscar dados da fazenda e usuário para email
-    const cookieStore = await cookies();
-    const client = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch {}
-          },
-        },
-      }
-    );
-
-    const { data: fazenda } = await client
-      .from('fazendas')
-      .select('nome')
-      .eq('id', fazendaId)
-      .single();
-    const { data: { user } } = await client.auth.getUser();
-
-    // Enviar email com link mágico
-    await enviarEmailSolicitacaoAgendamento(
-      agendamento as unknown as Record<string, unknown>,
-      fazenda || { nome: 'Fazenda' },
-      { nome: user?.user_metadata?.nome || 'Usuário' }
-    );
-
-    return {
-      success: true,
-      data: agendamento,
-      message: 'Agendamento solicitado! Email enviado para o consultor.',
-    };
-  } catch (error) {
-    console.error('[criarAgendamentoAction]', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Erro ao criar agendamento',
-    };
-  }
-}
-
-export async function atualizarStatusAgendamentoAction(id: string, payload: unknown) {
-  try {
-    const validated = atualizarStatusAgendamentoSchema.parse(payload);
-    const agendamento = await queryAgendamentos.atualizarStatus(id, validated);
-
-    // Se confirmado, marcar horário como indisponível
-    if (validated.status === 'confirmado') {
-      await queryHorarios.marcarIndisponivel(agendamento.horario_disponivel_id);
-    }
-
-    // Se recusado ou remarcado, liberar horário
-    if (validated.status === 'recusado' || validated.status === 'remarcado') {
-      await queryHorarios.marcarDisponivel(agendamento.horario_disponivel_id);
-    }
-
-    // Enviar email de confirmação/recusa/remarcação
-    await enviarEmailConfirmacaoAgendamento(agendamento as unknown as Record<string, unknown>, {}, validated.status);
-
-    return { success: true, data: agendamento, message: 'Status atualizado com sucesso' };
-  } catch (error) {
-    console.error('[atualizarStatusAgendamentoAction]', error);
-    return { success: false, message: error instanceof Error ? error.message : 'Erro' };
-  }
-}
-
 export async function cancelarAgendamentoAction(id: string) {
   try {
-    const agendamento = await queryAgendamentos.atualizarStatus(id, {
+    await queryAgendamentos.atualizarStatus(id, {
       status: 'cancelado',
     });
     return { success: true, message: 'Agendamento cancelado' };
