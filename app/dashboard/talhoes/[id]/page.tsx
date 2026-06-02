@@ -43,34 +43,23 @@ export default function TalhaoDetailPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('📍 Carregando talhão:', talhaoId);
-
       let talhaoData, ciclosData, atividadesData;
 
       try {
-        console.log('🔄 Buscando detalhes do talhão...');
         talhaoData = await q.talhoes.getById(talhaoId);
-        console.log('✅ Talhão carregado:', talhaoData);
       } catch (e) {
-        console.error('❌ Erro ao carregar talhão:', e);
         throw new Error(`Falha ao buscar talhão: ${e instanceof Error ? e.message : 'erro desconhecido'}`);
       }
 
       try {
-        console.log('🔄 Buscando ciclos agrícolas...');
         ciclosData = await q.ciclosAgricolas.listByTalhoes([talhaoId]);
-        console.log('✅ Ciclos carregados:', ciclosData?.length || 0);
       } catch (e) {
-        console.error('❌ Erro ao carregar ciclos:', e);
         throw new Error(`Falha ao buscar ciclos: ${e instanceof Error ? e.message : 'erro desconhecido'}`);
       }
 
       try {
-        console.log('🔄 Buscando atividades de campo...');
         atividadesData = await q.atividadesCampo.listByTalhao(talhaoId);
-        console.log('✅ Atividades carregadas:', atividadesData?.length || 0);
       } catch (e) {
-        console.error('❌ Erro ao carregar atividades:', e);
         throw new Error(`Falha ao buscar atividades: ${e instanceof Error ? e.message : 'erro desconhecido'}`);
       }
 

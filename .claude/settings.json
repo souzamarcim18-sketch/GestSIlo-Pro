@@ -97,7 +97,13 @@
       "Bash(npx shadcn@latest add accordion --yes)",
       "Bash(Select-String -Pattern \"suporte\")",
       "Bash(Remove-Item -Recurse -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\termos\")",
-      "Bash(Remove-Item -Recurse -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\privacidade\")"
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\privacidade\")",
+      "Bash(npm audit *)",
+      "Bash(Remove-Item -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\assessor\\\\confirmar\\\\page.tsx\" -Force)",
+      "Bash(Remove-Item -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\assessor\\\\confirmar\\\\layout.tsx\" -Force)",
+      "Bash(Remove-Item -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\assessoria\\\\components\\\\AgendamentoForm.tsx\" -Force)",
+      "Bash(Remove-Item -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\assessoria\\\\components\\\\CalendarioAgendamento.tsx\" -Force)",
+      "Bash(npm show *)"
     ],
     "additionalDirectories": [
       "\\tmp"

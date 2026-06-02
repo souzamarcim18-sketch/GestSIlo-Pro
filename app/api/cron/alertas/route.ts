@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { timingSafeEqual } from 'crypto'
 import { Resend } from 'resend'
 import { Database } from '@/types/supabase'
 import { verificarAlertasFazenda, ResumoCronJob } from '@/lib/services/alertas-email'
@@ -11,7 +12,21 @@ export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('Authorization')
   const cronSecret = process.env.CRON_SECRET
 
-  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const expected = `Bearer ${cronSecret}`
+  let authorized = false
+  try {
+    const a = Buffer.from(authHeader ?? '', 'utf8')
+    const b = Buffer.from(expected, 'utf8')
+    authorized = a.length === b.length && timingSafeEqual(a, b)
+  } catch {
+    authorized = false
+  }
+
+  if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
