@@ -103,7 +103,11 @@
       "Bash(Remove-Item -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\assessor\\\\confirmar\\\\layout.tsx\" -Force)",
       "Bash(Remove-Item -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\assessoria\\\\components\\\\AgendamentoForm.tsx\" -Force)",
       "Bash(Remove-Item -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\dashboard\\\\assessoria\\\\components\\\\CalendarioAgendamento.tsx\" -Force)",
-      "Bash(npm show *)"
+      "Bash(npm show *)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); vulns=data.get\\('vulnerabilities',{}\\); excel=[{k:v} for k,v in vulns.items\\(\\) if 'excel' in k.lower\\(\\)]; print\\(json.dumps\\(excel, indent=2\\)\\) if excel else print\\('Sem CVE para exceljs'\\)\")",
+      "Bash(Remove-Item -Recurse -Force node_modules)",
+      "Bash(Remove-Item -Force package-lock.json)",
+      "Bash(Write-Host \"Limpeza concluída\")"
     ],
     "additionalDirectories": [
       "\\tmp"
