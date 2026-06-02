@@ -757,7 +757,7 @@ export default function LandingPage() {
                 priceAnnually: 490,
                 desc: 'Para quem gerencia rebanho e silagem',
                 features: ['Silos ilimitados', 'Rebanho completo', 'Balanço Forrageiro', 'Pastagens e Piquetes', 'Insumos com alertas de estoque', 'Calculadoras Agronômicas', 'Relatórios de silos e rebanho', 'Suporte prioritário'],
-                cta: 'Assinar Campo',
+                cta: 'Assinar Starter',
                 highlight: false,
                 freeForever: false,
               },

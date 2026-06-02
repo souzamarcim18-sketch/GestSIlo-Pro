@@ -5,6 +5,69 @@
 
 ---
 
+## Identidade da Empresa
+
+### Missão
+Democratizar a gestão agrícola profissional, levando-a de forma simples e acessível ao produtor rural brasileiro, para transformar rotina improvisada em decisões seguras, com dados reais, mesmo em ambientes de baixa conectividade.
+
+### Visão
+Ser a principal referência em gestão agropecuária para pequenos e médios produtores no Brasil, reconhecida pela profundidade técnica, pela simplicidade de uso e pela confiança nos dados que entrega, impulsionando um futuro em que toda propriedade rural tome decisões baseadas em dados reais, não em estimativas.
+
+### Valores
+- **Proximidade com o produtor** — Cada funcionalidade nasce de uma necessidade real, a partir da realidade de uma operação, não de uma hipótese de escritório.
+- **Precisão e confiabilidade** — Dados errados custam caro na fazenda. Priorizamos a exatidão de cada cálculo, a integridade de cada registro e a consistência de cada relatório.
+- **Simplicidade sem superficialidade** — Fácil de usar, sem abrir mão da robustez técnica. Intuitivo para o operador de campo e robusto para o administrador da fazenda.
+- **Compromisso com o campo brasileiro** — Acreditamos que o agronegócio brasileiro é estratégico para o país. Nosso trabalho é fortalecer quem está na base dessa cadeia — o produtor rural.
+- **Melhoria contínua** — O campo evolui. Em nossa plataforma inovamos sem atrapalhar a estabilidade do que já funciona.
+
+---
+
+## Planos de Assinatura
+
+A seção `#planos` da landing page (`app/page.tsx`) exibe 4 planos com toggle mensal/anual. Estado controlado por `planoAnual` (useState). Preços anuais = preço mensal × 10.
+
+| Plano | Mensal | Anual | Destaque |
+|---|---|---|---|
+| **Free** | Grátis | Grátis | — |
+| **Starter** | R$ 49/mês | R$ 490/ano | — |
+| **Pro** | R$ 74/mês | R$ 740/ano | ✅ Mais popular |
+| **Max** | R$ 119/mês | R$ 1.190/ano | — |
+
+### Detalhes por plano
+
+**Free** — Grátis para sempre
+- Até 2 silos
+- 1 simulação de planejamento salva
+- Alertas críticos do dashboard
+- Suporte por e-mail
+- CTA: "Começar grátis"
+
+**Starter** — R$ 49/mês | R$ 490/ano
+- Silos ilimitados, Rebanho completo, Balanço Forrageiro, Pastagens e Piquetes
+- Insumos com alertas de estoque, Calculadoras Agronômicas
+- Relatórios de silos e rebanho, Suporte prioritário
+- CTA: "Assinar Campo"
+
+**Pro** — R$ 74/mês | R$ 740/ano *(card destacado — gradiente verde)*
+- Tudo do Starter + Talhões ilimitados, Frota e Maquinário, Financeiro
+- Estoque de produtos, Planejamento de Compras, Calendário de Atividades
+- Todos os relatórios exportáveis (XLSX e PDF)
+- CTA: "Assinar Pro"
+
+**Max** — R$ 119/mês | R$ 1.190/ano
+- Tudo do Pro + 1 reunião online a cada 2 meses com equipe GestSilo
+- Histórico de assessoria no sistema, Resposta em até 4h úteis
+- Acesso antecipado a novas funcionalidades
+- CTA: "Falar com vendas"
+
+### Notas de implementação
+- Grid: `grid-cols-1 md:grid-cols-2 lg:grid-cols-4`
+- Card Pro: sem `scale-105` — destaque apenas por gradiente verde e sombra
+- Free: campo `freeForever: true` — nunca exibe preço anual, ignora o toggle
+- Toggle anual exibe badge "2 meses grátis" quando ativo
+
+---
+
 ## Stack Técnico
 
 ### Core
