@@ -357,8 +357,7 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
     }
 
     if (parsed.custo_estimado) {
-      const { data: userRes } = await supabase.auth.getUser();
-      const fazenda_id = userRes.user?.user_metadata?.fazenda_id as string | undefined;
+      const { data: fazenda_id } = await supabase.rpc('get_minha_fazenda_id');
 
       const descricao = `Manejo de pastagem — ${parsed.tipo}${parsed.observacoes ? `: ${parsed.observacoes}` : ''}`;
 
