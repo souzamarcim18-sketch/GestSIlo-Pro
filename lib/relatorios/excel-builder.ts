@@ -196,11 +196,19 @@ export function buildWorkbook(config: ExcelReportConfig): ExcelJS.Workbook {
     ws.views = [{ state: 'frozen', xSplit: 0, ySplit: 4 }];
 
     // ── Highlight das colunas de valor (BRL / number / percent) ──────────────
+    // Aplica alinhamento e cor apenas nas células de dados (linha 5 em diante)
+    // para não sobrescrever o estilo de células especiais (empty state mergeado).
     sheet.colunas.forEach((col, colIdx) => {
       if (col.tipo === 'BRL' || col.tipo === 'number' || col.tipo === 'percent') {
-        const colLetter = ws.getColumn(colIdx + 1);
-        colLetter.alignment = { horizontal: 'right' };
-        colLetter.font = { color: { argb: BRAND_PRIMARY_ARGB } };
+        const dataStartRow = 5;
+        const dataEndRow = sheet.linhas.length > 0 ? dataStartRow + sheet.linhas.length - 1 : dataStartRow;
+        for (let r = dataStartRow; r <= dataEndRow; r++) {
+          const cell = ws.getCell(r, colIdx + 1);
+          cell.alignment = { ...(cell.alignment ?? {}), horizontal: 'right' };
+          if (!cell.font?.italic) {
+            cell.font = { ...(cell.font ?? {}), color: { argb: BRAND_PRIMARY_ARGB } };
+          }
+        }
       }
     });
   }

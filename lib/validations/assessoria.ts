@@ -22,27 +22,6 @@ export const marcarAnotacaoResolvidaSchema = z.object({
 
 export type MarcarAnotacaoResolvidaInput = z.infer<typeof marcarAnotacaoResolvidaSchema>;
 
-// Criar Agendamento (usuário solicita consulta via formulário)
-export const criarAgendamentoSchema = z.object({
-  consultor_id: z.string().uuid('ID do consultor inválido'),
-  tipo: z.enum(['reuniao_video', 'chamada_telefone', 'visita_presencial']),
-  observacoes: z.string().min(10, 'Mínimo 10 caracteres').max(2000),
-  horario_disponivel_id: z.string().uuid().optional(),
-  link_reuniao: z.string().url().optional(),
-});
-
-export type CriarAgendamentoInput = z.infer<typeof criarAgendamentoSchema>;
-
-// Atualizar Status de Agendamento (consultor confirma/recusa)
-export const atualizarStatusAgendamentoSchema = z.object({
-  status: z.enum(['confirmado', 'recusado', 'remarcado', 'cancelado', 'concluido']),
-  motivo_recusa: z.string().optional(),
-  sugestao_nova_data: z.coerce.date().optional(),
-  link_reuniao: z.string().url().optional(),
-});
-
-export type AtualizarStatusAgendamentoInput = z.infer<typeof atualizarStatusAgendamentoSchema>;
-
 // Histórico
 export const historicoAtendimentoSchema = z.object({
   titulo: z.string().min(5).max(255),

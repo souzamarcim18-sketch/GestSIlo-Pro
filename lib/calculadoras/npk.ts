@@ -246,9 +246,9 @@ function testarCombinacao1Fert(
       k: k_fornecido,
     },
     margemErro: {
-      n_percent: margem_erro_n,
-      p_percent: margem_erro_p,
-      k_percent: margem_erro_k,
+      n_percent: Math.max(0, margem_erro_n),
+      p_percent: Math.max(0, margem_erro_p),
+      k_percent: Math.max(0, margem_erro_k),
     },
     viavel: true,
   };
@@ -372,9 +372,9 @@ function testarCombinacao2Ferts(
       custoTotal_r_ha,
       nutrientes_fornecidos: { n: n_fornecido, p: p_fornecido, k: k_fornecido },
       margemErro: {
-        n_percent: margem_erro_n,
-        p_percent: margem_erro_p,
-        k_percent: margem_erro_k,
+        n_percent: Math.max(0, margem_erro_n),
+        p_percent: Math.max(0, margem_erro_p),
+        k_percent: Math.max(0, margem_erro_k),
       },
       viavel: true,
     });
@@ -501,9 +501,9 @@ function testarCombinacao3Ferts(
     custoTotal_r_ha,
     nutrientes_fornecidos: { n: n_fornecido, p: p_fornecido, k: k_fornecido },
     margemErro: {
-      n_percent: margem_erro_n,
-      p_percent: margem_erro_p,
-      k_percent: margem_erro_k,
+      n_percent: Math.max(0, margem_erro_n),
+      p_percent: Math.max(0, margem_erro_p),
+      k_percent: Math.max(0, margem_erro_k),
     },
     viavel: true,
   };

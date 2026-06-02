@@ -80,7 +80,8 @@ A seção `#planos` da landing page (`app/page.tsx`) exibe 4 planos com toggle m
 
 ### Segurança & Infraestrutura
 - **Rate Limiting**: Upstash Redis (`@upstash/ratelimit`) — rotas de auth protegidas
-- **Headers HTTP**: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
+- **CSP (nonce-based)**: gerada por request em `middleware.ts` — `script-src` usa nonce + `strict-dynamic`, sem `unsafe-inline`. `style-src` mantém `unsafe-inline` (limitação Next.js/Tailwind). Nonce exposto via header `x-nonce`, lido em `app/layout.tsx` e repassado ao Sentry.
+- **Headers HTTP**: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
 - **Testes**: Vitest — 900+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 2 falhos pré-existentes documentados)
@@ -89,7 +90,7 @@ A seção `#planos` da landing page (`app/page.tsx`) exibe 4 planos com toggle m
 - **TypeScript target**: `ES2020` em `tsconfig.json` — habilita `Promise.allSettled`, `BigInt`, `globalThis` nativos sem polyfill
 - **ESLint**: regra `@typescript-eslint/no-explicit-any: "error"` ativa em `eslint.config.mjs` — zero ocorrências de `any` no codebase
 - **Dependências**: `shadcn` movido para `devDependencies` (sem import runtime); `@types/jspdf` removido (jsPDF 2.x expõe seus próprios tipos); `@testing-library/react` e `@testing-library/jest-dom` removidos (sem uso nos testes); `use-debounce` removido — hook debounce implementado localmente em `lib/hooks/useInsumos.ts`
-- **CSP `unsafe-eval`**: remoção condicional (prod vs dev) pendente de aprovação — aguardar instrução explícita antes de alterar `next.config.ts`
+- **CSP `unsafe-eval`**: removido de `script-src` em produção (2026-06-02, S-16). Em dev permanece ativo via `isDev` condicional no middleware. A CSP foi movida do `next.config.ts` para `middleware.ts` — ver seção Segurança para regras de manutenção.
 - **PWA — migração Serwist (2026-05-29)**: `next-pwa` v5.6.0 (abandonado, sem suporte ao App Router) substituído por `@serwist/next` + `serwist` v9.5.x. Service Worker em `app/sw.ts` com 14 estratégias de cache. `tsconfig.json` recebeu `"webworker"` em `lib` e `public/sw.js` em `exclude`. `next.config.ts` usa `withSerwistInit` (wrapping externo, antes do `withSentryConfig`). SW desabilitado em `development`. Arquivos `workbox-*.js` removidos do `public/`.
 - **Offline-Sync — épico T-OS (2026-05-29)**: sistema offline expandido com renovação de JWT antes de `syncAll`, `useSyncOnReconnect` ativado como fallback com backoff exponencial em `/operador`, `hydrateEventosFromServer` chamado na inicialização (RebanhoClient + operador), UX de conflitos com `ConflictResolutionModal` e badge no `SyncStatusBar`, prefetch proativo de dados críticos via `lib/db/prefetch.ts`, hook `useDadosOffline`, e badge offline no DashboardClient. Rota legada `/operador/silos` substituída por redirect para `/operador`.
 
@@ -626,6 +627,35 @@ Não modifique sem instrução explícita:
 10. **Playwright baseURL** aponta para `process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'` — nunca para produção
 11. **API routes autenticadas** devem chamar `client.auth.getUser()` antes de qualquer query ao banco, retornando `401` se sem sessão válida — padrão implementado em `/api/assessoria/agendamentos` e `/api/assessoria/anotacoes`
 
+### Auditoria de Segurança — Fase 4 (concluída 2026-06-02)
+
+#### Content Security Policy (S-16)
+
+- CSP definida em `middleware.ts` (por request, nonce único), **não** em `next.config.ts`. Nunca mover de volta — quebra o nonce.
+- `script-src` e `script-src-elem`: `nonce-${nonce}` + `strict-dynamic`. Em dev adiciona `unsafe-eval` (Next.js HMR). Em prod: sem `unsafe-eval`, sem `unsafe-inline`.
+- `style-src`: mantém `unsafe-inline` — Next.js/Tailwind injeta `<style>` no SSR sem propagação de nonce. Trade-off consciente; risco residual é CSS injection (baixo — app sem CSS de input externo). Revisitar se trocar UI lib ou o Next resolver propagação de nonce em style.
+- Nonce: `Buffer.from(crypto.randomUUID()).toString('base64')` por request → header `x-nonce` → lido em `app/layout.tsx` com `headers()` → meta tag `csp-nonce` para Sentry client-side.
+
+#### Dependências (S-18)
+
+- `package.json` tem campo `"overrides"` com `exceljs > uuid: "^11.1.1"` para cobrir CVE transitivo do ExcelJS. Manter até a dep transitiva atualizar upstream.
+
+#### Status dos itens da auditoria
+
+| Item | Descrição | Status |
+|---|---|---|
+| S-04, S-07, S-09, S-10 | Médios (auth, RLS, validações) | ✅ Fechado |
+| S-16 | CSP nonce-based, sem `unsafe-inline` em script | ✅ Fechado |
+| S-18 | Override uuid (CVE transitivo ExcelJS) | ✅ Fechado |
+| S-19 | Senha temporária via `crypto.randomBytes` | ✅ Fechado |
+| S-21 | Remoção de senha do JSON de invite | ✅ Fechado |
+| S-20 | Re-submissão de formulários em rotas auth — redirect é client-side (race condition com AuthProvider, deliberado) | ⏸ Won't fix |
+| S-22 | Sentry warning de uuid em build-time (não runtime) | 🗂 Backlog — não-bloqueante |
+
+#### Pendências de Validação
+
+- **Teste manual dos PDFs (Fase 2)**: identidade visual unificada (tokens.ts) ainda não validada manualmente em navegador. Prioridade alta — validar antes do próximo deploy de relatórios.
+
 ---
 
 ## Integrações Cross-Módulo
@@ -849,6 +879,8 @@ npm run db:types     # Gerar tipos TypeScript do Supabase (requer SUPABASE_PROJE
 - ❌ Remova o `withSentryConfig()` do `next.config.ts`
 - ❌ Edite manualmente `types/supabase.ts` (gerado automaticamente)
 - ❌ Altere policies RLS sem validar com `database-snapshot.md`
+- ❌ Reintroduza `unsafe-inline` em `script-src` ou `script-src-elem` — qualquer terceiro que injete script inline deve receber o nonce, não relaxar a CSP
+- ❌ Mova a CSP de volta para `next.config.ts` — a CSP está em `middleware.ts` para suporte a nonce por request
 
 ### Nota sobre perfil Gerente
 Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais de DELETE em:

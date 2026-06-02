@@ -292,8 +292,8 @@ describe('otimizarNPK - Combinações 1, 2 e 3 Fertilizantes', () => {
   });
 
   describe('Fertilizantes Padrão', () => {
-    it('inclui 16 fertilizantes padrão', () => {
-      expect(FERTILIZANTES_PADRAO.length).toBe(16);
+    it('inclui 15 fertilizantes padrão', () => {
+      expect(FERTILIZANTES_PADRAO.length).toBe(15);
     });
 
     it('todos os fertilizantes têm id, nome e preço', () => {

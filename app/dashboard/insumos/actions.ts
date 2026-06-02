@@ -22,7 +22,6 @@ export async function criarInsumoAction(formData: unknown) {
     }
 
     // Criar insumo
-    console.log('[criarInsumoAction] Criando insumo...');
     const insumo = await qServer.insumos.create({
       nome: parsed.nome,
       categoria_id: parsed.categoria_id,
@@ -215,9 +214,7 @@ export async function criarSaidaAction(formData: unknown) {
  */
 export async function criarAjusteAction(formData: unknown) {
   try {
-    console.log('[criarAjusteAction] Iniciando com dados:', formData);
     const parsed = ajusteInventarioSchema.parse(formData);
-    console.log('[criarAjusteAction] Validação OK:', { insumo_id: parsed.insumo_id, estoque_real: parsed.estoque_real });
 
     // Validar que estoque_real seja um número válido
     if (typeof parsed.estoque_real !== 'number' || isNaN(parsed.estoque_real)) {
@@ -234,7 +231,6 @@ export async function criarAjusteAction(formData: unknown) {
       parsed.motivo
     );
 
-    console.log('[criarAjusteAction] Ajuste criado:', resultado.id);
     revalidatePath('/dashboard/insumos');
     return { success: true };
   } catch (error) {

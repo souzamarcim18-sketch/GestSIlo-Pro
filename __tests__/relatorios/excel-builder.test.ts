@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 
 // Mock do formatBRL antes de importar o módulo
@@ -87,9 +88,9 @@ describe('buildWorkbook / gerarExcel', () => {
   it('largura de coluna segue ColunaConfig.largura', () => {
     const wb = buildWorkbook(buildConfig());
     const ws = wb.getWorksheet('Aba1')!;
-    // coluna 5 = largura 10, coluna 1 = padrão 20
+    // coluna 5 = largura 10, coluna 1 = padrão (fallback = 22)
     expect(ws.getColumn(5).width).toBe(10);
-    expect(ws.getColumn(1).width).toBe(20);
+    expect(ws.getColumn(1).width).toBe(22);
   });
 
   it('aba vazia gera linha 5 com texto de empty state em itálico', () => {
@@ -97,9 +98,10 @@ describe('buildWorkbook / gerarExcel', () => {
     config.sheets[0].linhas = [];
     const wb = buildWorkbook(config);
     const ws = wb.getWorksheet('Aba1')!;
-    const emptyCell = ws.getCell(5, 1);
-    expect(String(emptyCell.value)).toContain('Nenhum registro encontrado');
-    expect(emptyCell.font?.italic).toBe(true);
+    // Acessar via endereço string para obter o objeto master da merge com estilo intacto
+    const emptyCell = ws.getCell('A5');
+    expect(String(emptyCell.value)).toContain('Nenhum registro encontrado no período selecionado');
+expect(emptyCell.font?.italic).toBe(true);
   });
 
   it('aba vazia permanece presente no workbook', () => {

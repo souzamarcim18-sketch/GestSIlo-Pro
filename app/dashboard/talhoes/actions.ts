@@ -43,7 +43,7 @@ export async function criarAtividadeCampoAction(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Sessão inválida.' };
 
-    const fazenda_id = user.user_metadata?.fazenda_id as string | undefined;
+    const { data: fazenda_id } = await supabase.rpc('get_minha_fazenda_id');
 
     // Calcular custo_total da atividade
     let custo_total = parsed.custo_manual ?? 0;

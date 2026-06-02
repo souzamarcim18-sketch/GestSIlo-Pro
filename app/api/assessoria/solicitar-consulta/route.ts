@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
     }
     const { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario } = parsed.data;
 
-    console.log('[solicitar-consulta] Dados recebidos:', { nome, fazenda, localizacao, telefone, email, sugestao_dia, sugestao_horario });
 
     // Buscar fazenda_id do usuário
     const { data: minha_fazenda_id } = await client.rpc('get_minha_fazenda_id');
@@ -92,7 +91,7 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       });
-      console.log('[solicitar-consulta] Email enviado com sucesso:', emailResult);
+      console.log('[solicitar-consulta] Email enviado. ID:', emailResult.data?.id ?? 'n/a');
     } catch (emailError) {
       console.error('[solicitar-consulta] Erro ao enviar email:', emailError);
     }
@@ -101,15 +100,6 @@ export async function POST(request: NextRequest) {
     const dataAgendada = new Date(sugestao_dia + 'T' + sugestao_horario).toISOString();
 
     const observacoes = `Solicitação de consulta - ${nome} | Tel: ${telefone} | Email: ${email}`;
-
-    console.log('[solicitar-consulta] Tentando inserir:', {
-      fazenda_id: minha_fazenda_id || user.id,
-      horario_disponivel_id: null,
-      tipo: 'reuniao_video',
-      data_agendada: dataAgendada,
-      observacoes,
-      status: 'solicitado',
-    });
 
     const { data: agendamento, error } = await client
       .from('agendamentos_usuario')
@@ -126,7 +116,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Erro ao criar agendamento:', error);
+      console.error('[solicitar-consulta] Erro ao criar registro:', error instanceof Error ? error.message : 'desconhecido');
       throw new Error(`Erro ao registrar solicitação: ${error.message}`);
     }
 

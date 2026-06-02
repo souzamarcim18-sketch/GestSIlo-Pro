@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { headers } from 'next/headers';
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
@@ -39,9 +40,16 @@ export const viewport: Viewport = {
   themeColor: '#00843D',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Lê o nonce gerado pelo middleware para repassar ao Next.js internals e Sentry
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+
   return (
     <html lang="pt-BR" className={cn("font-sans h-full scroll-smooth", satoshi.variable)}>
+      <head>
+        {/* Expõe o nonce como meta para que o @sentry/nextjs o leia na inicialização client-side */}
+        {nonce && <meta name="csp-nonce" content={nonce} />}
+      </head>
       <body className="h-full bg-background text-foreground">
         <AuthProvider>
           <Providers>

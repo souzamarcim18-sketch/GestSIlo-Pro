@@ -8,10 +8,23 @@ import {
 } from '@/lib/types/assessoria';
 import {
   AnotacaoFormInput,
-  CriarAgendamentoInput,
-  AtualizarStatusAgendamentoInput,
   HistoricoAtendimentoInput,
 } from '@/lib/validations/assessoria';
+
+type CriarAgendamentoInput = {
+  consultor_id: string;
+  tipo: 'reuniao_video' | 'chamada_telefone' | 'visita_presencial';
+  observacoes: string;
+  horario_disponivel_id?: string;
+  link_reuniao?: string;
+};
+
+type AtualizarStatusAgendamentoInput = {
+  status: 'confirmado' | 'recusado' | 'remarcado' | 'cancelado' | 'concluido';
+  motivo_recusa?: string;
+  sugestao_nova_data?: Date;
+  link_reuniao?: string;
+};
 
 const getClient = async () => {
   const cookieStore = await cookies();
