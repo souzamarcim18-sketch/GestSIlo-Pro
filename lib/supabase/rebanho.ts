@@ -207,7 +207,7 @@ const queryEventos = {
 
     const { data, error } = await supabase
       .from('eventos_rebanho')
-      .insert(payload)
+      .insert(payload as unknown as Record<string, unknown>)
       .select(
         'id, fazenda_id, animal_id, tipo, data_evento, peso_kg, lote_id_destino, comprador, valor_venda, observacoes, usuario_id, deleted_at, created_at, updated_at'
       )
