@@ -15,6 +15,13 @@ import { solicitarAcessoAction } from './actions';
 const PLANOS = ['Free', 'Starter', 'Pro', 'Max'] as const;
 type Plano = (typeof PLANOS)[number];
 
+const PLANO_VALOR: Record<Plano, string> = {
+  Free: 'free',
+  Starter: 'starter',
+  Pro: 'pro',
+  Max: 'max',
+};
+
 const PLANO_DESC: Record<Plano, string> = {
   Free: 'Grátis para sempre · Até 2 silos',
   Starter: 'R$ 49/mês · Silos, rebanho e balanço',
@@ -32,10 +39,11 @@ function maskWhatsapp(value: string): string {
 function SolicitarAcessoForm() {
   const searchParams = useSearchParams();
   const planoParam = searchParams.get('plano');
+  const planoRaw = planoParam?.toLowerCase();
   const initialPlano: Plano =
-    planoParam && PLANOS.includes(planoParam as Plano)
-      ? (planoParam as Plano)
-      : 'Free';
+    planoRaw === 'starter' ? 'Starter' :
+    planoRaw === 'pro' ? 'Pro' :
+    planoRaw === 'max' ? 'Max' : 'Free';
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -49,7 +57,7 @@ function SolicitarAcessoForm() {
     e.preventDefault();
     setLoading(true);
 
-    const result = await solicitarAcessoAction({ nome, email, fazenda, whatsapp, plano });
+    const result = await solicitarAcessoAction({ nome, email, fazenda, whatsapp, plano: PLANO_VALOR[plano] });
 
     setLoading(false);
 

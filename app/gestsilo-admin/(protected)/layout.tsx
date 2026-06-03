@@ -89,7 +89,7 @@ export default async function AdminLayout({
         {/* Nav */}
         <nav style={{ flex: 1, padding: '0 12px' }}>
           <a
-            href="/gestsilo-admin"
+            href="/gestsilo-admin/solicitacoes"
             style={{
               display: 'flex',
               alignItems: 'center',

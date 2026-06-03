@@ -117,7 +117,13 @@
       "Bash(grep -v \"//\\\\|node_modules\\\\|import\\\\|export const [A-Z]\")",
       "Bash(Select-String \"webhook\")",
       "Bash(grep -v \"//\\\\|cancel_at\\\\|trial\\\\|Created\\\\|pause\\\\|phase\\\\|proration\\\\|prorate\\\\|resum\")",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(New-Item -ItemType Directory -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\" -Force)",
+      "Bash(New-Item -ItemType Directory -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\\\\solicitacoes\" -Force)",
+      "Bash(Write-Host \"Diretorios criados\")",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\\\\solicitacoes\" -Force)",
+      "PowerShell(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\solicitacoes\\\\SolicitacoesClient.tsx\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\\\\solicitacoes\\\\SolicitacoesClient.tsx\")"
     ],
     "additionalDirectories": [
       "\\tmp"
