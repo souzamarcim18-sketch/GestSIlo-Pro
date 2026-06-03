@@ -8,7 +8,7 @@ export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Checa erro em query params (Supabase às vezes manda assim)
+    // Checa erro em query params
     const searchParams = new URLSearchParams(window.location.search);
     const qError = searchParams.get('error');
     const qErrorCode = searchParams.get('error_code');
@@ -23,40 +23,57 @@ export default function AuthCallbackPage() {
     const hasError = qError || hError;
 
     if (hasError) {
-      if (errorCode === 'otp_expired') {
-        router.replace('/login?error=link_expirado');
-      } else {
-        router.replace('/login?error=link_invalido');
-      }
+      router.replace(errorCode === 'otp_expired' ? '/login?error=link_expirado' : '/login?error=link_invalido');
       return;
     }
 
     const supabase = getSupabaseClient();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-        const isConvidado = !!session.user.app_metadata?.convidado_por;
-        if (isConvidado) {
-          router.replace('/auth/set-password');
-          return;
-        }
-        const fazendaId = session.user.user_metadata?.fazenda_id || session.user.app_metadata?.fazenda_id;
-        router.replace(fazendaId ? '/dashboard' : '/dashboard/onboarding');
-      }
-
-      if (event === 'PASSWORD_RECOVERY') {
-        router.replace('/auth/set-password');
-      }
-    });
-
-    const timeout = setTimeout(() => {
-      router.replace('/login?error=link_invalido');
-    }, 5000);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
+    const redirect = (user: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> }) => {
+      const isConvidado = !!user.app_metadata?.convidado_por;
+      if (isConvidado) { router.replace('/auth/set-password'); return; }
+      const fazendaId = user.user_metadata?.fazenda_id || user.app_metadata?.fazenda_id;
+      router.replace(fazendaId ? '/dashboard' : '/dashboard/onboarding');
     };
+
+    // Tenta buscar sessão ativa imediatamente (Supabase já processou o token e setou cookie)
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        redirect(session.user);
+        return true;
+      }
+      return false;
+    };
+
+    let resolved = false;
+
+    checkSession().then(found => {
+      if (found) { resolved = true; return; }
+
+      // Fallback: escuta evento caso getSession ainda não tenha os cookies
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (resolved) return;
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+          resolved = true;
+          subscription.unsubscribe();
+          redirect(session.user);
+        }
+      });
+
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          subscription.unsubscribe();
+          router.replace('/login?error=link_invalido');
+        }
+      }, 5000);
+
+      return () => {
+        clearTimeout(timeout);
+        subscription.unsubscribe();
+      };
+    });
   }, [router]);
 
   return (
