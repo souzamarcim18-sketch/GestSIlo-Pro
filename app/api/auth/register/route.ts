@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
           nome,
           perfil: perfil || 'Administrador',
         },
-        emailRedirectTo: `${siteUrl}/auth/confirm`,
+        emailRedirectTo: `${siteUrl}/auth/callback`,
       },
     });
 

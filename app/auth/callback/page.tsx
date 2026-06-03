@@ -12,10 +12,14 @@ export default function AuthCallbackPage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Usuário convidado não tem senha — detecta pela ausência de last_sign_in_at
-        // ou pela presença de convidado_por no app_metadata
         const isConvidado = !!session.user.app_metadata?.convidado_por;
-        router.replace(isConvidado ? '/auth/set-password' : '/dashboard');
+        if (isConvidado) {
+          router.replace('/auth/set-password');
+          return;
+        }
+        // Novo usuário sem fazenda → onboarding; usuário existente → dashboard
+        const fazendaId = session.user.user_metadata?.fazenda_id || session.user.app_metadata?.fazenda_id;
+        router.replace(fazendaId ? '/dashboard' : '/dashboard/onboarding');
       }
 
       if (event === 'PASSWORD_RECOVERY') {
