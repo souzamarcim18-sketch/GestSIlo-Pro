@@ -360,6 +360,56 @@ export type Database = {
           },
         ]
       }
+      assinaturas: {
+        Row: {
+          cancelada_em: string | null
+          created_at: string
+          fazenda_id: string
+          id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          plano: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancelada_em?: string | null
+          created_at?: string
+          fazenda_id: string
+          id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          plano?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancelada_em?: string | null
+          created_at?: string
+          fazenda_id?: string
+          id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          plano?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assinaturas_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atividades_campo: {
         Row: {
           al_mmolc_dm3: number | null
@@ -1684,6 +1734,7 @@ export type Database = {
           longitude: number | null
           nome: string
           owner_id: string
+          plano_atual: string
           tipo_exploracao: string | null
         }
         Insert: {
@@ -1695,6 +1746,7 @@ export type Database = {
           longitude?: number | null
           nome: string
           owner_id?: string
+          plano_atual?: string
           tipo_exploracao?: string | null
         }
         Update: {
@@ -1706,6 +1758,7 @@ export type Database = {
           longitude?: number | null
           nome?: string
           owner_id?: string
+          plano_atual?: string
           tipo_exploracao?: string | null
         }
         Relationships: []
@@ -1762,6 +1815,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gestsilo_admins: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          senha_hash: string
+          ultimo_login: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          senha_hash: string
+          ultimo_login?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          senha_hash?: string
+          ultimo_login?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       historico_atendimentos: {
         Row: {
@@ -3190,6 +3276,53 @@ export type Database = {
           },
         ]
       }
+      recursos_arquivados_downgrade: {
+        Row: {
+          created_at: string
+          dados_snapshot: Json
+          fazenda_id: string
+          id: string
+          motivo: string
+          plano_anterior: string
+          plano_novo: string
+          recurso_id: string
+          restaurado_em: string | null
+          tipo_recurso: string
+        }
+        Insert: {
+          created_at?: string
+          dados_snapshot: Json
+          fazenda_id: string
+          id?: string
+          motivo?: string
+          plano_anterior: string
+          plano_novo: string
+          recurso_id: string
+          restaurado_em?: string | null
+          tipo_recurso: string
+        }
+        Update: {
+          created_at?: string
+          dados_snapshot?: Json
+          fazenda_id?: string
+          id?: string
+          motivo?: string
+          plano_anterior?: string
+          plano_novo?: string
+          recurso_id?: string
+          restaurado_em?: string | null
+          tipo_recurso?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recursos_arquivados_downgrade_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registros_colaborador: {
         Row: {
           colaborador_id: string
@@ -3395,6 +3528,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      solicitacoes_acesso: {
+        Row: {
+          aprovado_em: string | null
+          created_at: string
+          email: string
+          id: string
+          invite_enviado_em: string | null
+          nome: string
+          nome_fazenda: string
+          observacoes: string | null
+          plano_solicitado: string
+          rejeitado_em: string | null
+          status: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          aprovado_em?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invite_enviado_em?: string | null
+          nome: string
+          nome_fazenda: string
+          observacoes?: string | null
+          plano_solicitado?: string
+          rejeitado_em?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invite_enviado_em?: string | null
+          nome?: string
+          nome_fazenda?: string
+          observacoes?: string | null
+          plano_solicitado?: string
+          rejeitado_em?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
       }
       talhoes: {
         Row: {
@@ -3621,6 +3802,7 @@ export type Database = {
           longitude: number | null
           nome: string
           owner_id: string
+          plano_atual: string
           tipo_exploracao: string | null
         }
         SetofOptions: {
@@ -3665,6 +3847,7 @@ export type Database = {
       }
       get_minha_fazenda_id: { Args: never; Returns: string }
       get_my_fazenda_id_jwt: { Args: never; Returns: string }
+      get_plano_fazenda: { Args: never; Returns: string }
       posso_criar_fazenda: { Args: never; Returns: boolean }
       registrar_evento_com_status: {
         Args: { p_animal_id: string; p_payload: Json }

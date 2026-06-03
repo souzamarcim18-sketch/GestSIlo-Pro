@@ -1,7 +1,24 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { verificarToken } from '@/lib/admin-auth';
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // ── Painel admin GestSilo (/gestsilo-admin) ──────────────────────────────
+  // Sistema completamente separado do Supabase Auth dos produtores.
+  // Autenticação própria via JWT em cookie httpOnly.
+  if (pathname.startsWith('/gestsilo-admin')) {
+    if (!pathname.startsWith('/gestsilo-admin/login')) {
+      const token = request.cookies.get('gestsilo_admin_token')?.value;
+      const payload = token ? verificarToken(token) : null;
+      if (!payload) {
+        return NextResponse.redirect(new URL('/gestsilo-admin/login', request.url));
+      }
+    }
+    return NextResponse.next();
+  }
+  // ── Fim do bloco admin GestSilo ──────────────────────────────────────────
   // Gera nonce único por request para CSP
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const isDev = process.env.NODE_ENV === 'development';
@@ -55,8 +72,6 @@ export async function middleware(request: NextRequest) {
     error,
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
   // Protected routes: redirect to /login if not authenticated
   const isProtectedRoute =
     pathname.startsWith('/dashboard') || pathname.startsWith('/operador');
@@ -99,6 +114,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/gestsilo-admin/:path*',
     '/dashboard/:path*',
     '/operador/:path*',
     '/login',

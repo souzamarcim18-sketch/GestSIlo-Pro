@@ -889,6 +889,74 @@ Se o perfil `Gerente` for adicionado ao banco futuramente, revisar condicionais 
 
 ---
 
+## Painel Interno GestSilo (`/gestsilo-admin`)
+
+Sistema de administração da **plataforma** (não dos produtores). Completamente separado do Supabase Auth.
+
+### Separação de sistemas
+
+| Sistema | Auth | Rota | Tabela |
+|---|---|---|---|
+| Produtores | Supabase Auth | `/dashboard`, `/operador` | `profiles`, `fazendas` |
+| Admin GestSilo | JWT próprio (cookie httpOnly) | `/gestsilo-admin` | `gestsilo_admins` |
+
+### Autenticação admin
+
+- **Biblioteca**: `lib/admin-auth.ts` — `hashSenha`, `verificarSenha`, `gerarToken`, `verificarToken`, `getAdminSession`, `setAdminCookie`, `clearAdminCookie`
+- **JWT**: assinado com `ADMIN_JWT_SECRET` (env var), validade 8h
+- **Cookie**: `gestsilo_admin_token`, `httpOnly`, `secure`, `sameSite: strict` — nunca acessível via JavaScript
+- **Middleware**: bloco no início de `middleware.ts` intercepta `/gestsilo-admin/*` (exceto `/gestsilo-admin/login`) e redireciona para login se token inválido
+- **Tabela `gestsilo_admins`**: acesso exclusivo via `SUPABASE_SERVICE_ROLE_KEY` — sem RLS para roles públicas, sem Supabase Auth
+
+### Criar o primeiro admin (script one-time)
+
+1. Adicione ao `.env.local`:
+   ```
+   ADMIN_JWT_SECRET=uma-string-longa-e-aleatoria-minimo-32-chars
+   ADMIN_NOME="Marcio"
+   ADMIN_EMAIL_INICIAL=seu@email.com
+   ADMIN_SENHA_INICIAL=sua-senha-forte
+   ```
+2. Execute:
+   ```bash
+   npx ts-node --project tsconfig.json scripts/criar-admin.ts
+   ```
+3. Remova `ADMIN_NOME`, `ADMIN_EMAIL_INICIAL` e `ADMIN_SENHA_INICIAL` do `.env.local` após a execução.
+
+### Arquivos do painel admin
+
+```
+app/gestsilo-admin/
+├── layout.tsx          # Sidebar + guard de sessão (RSC)
+├── page.tsx            # Hub — lista de solicitações de acesso (em breve)
+├── login/
+│   ├── page.tsx        # Formulário de login (client component)
+│   └── actions.ts      # Server Action loginAdmin
+└── logout/
+    └── route.ts        # POST → limpa cookie + redirect para /login
+lib/admin-auth.ts       # Funções de JWT, bcrypt e cookie
+scripts/criar-admin.ts  # Script one-time para criar o primeiro admin
+```
+
+### Variáveis de ambiente do painel admin
+
+```
+ADMIN_JWT_SECRET=<string aleatória ≥ 32 chars>    # obrigatória em runtime
+ADMIN_NOME="..."                                    # só para o script one-time
+ADMIN_EMAIL_INICIAL=...                             # só para o script one-time
+ADMIN_SENHA_INICIAL=...                             # só para o script one-time
+```
+
+### Regras invioláveis do painel admin
+
+- ❌ Nunca usar Supabase Auth em nenhuma parte do fluxo `/gestsilo-admin`
+- ❌ Nunca tocar em arquivos de auth dos produtores ao alterar o painel admin
+- ❌ Nunca expor o cookie `gestsilo_admin_token` via JavaScript
+- ✅ Todas as queries à `gestsilo_admins` usam `SUPABASE_SERVICE_ROLE_KEY`
+- ✅ O bloco admin no `middleware.ts` deve sempre ficar ANTES de qualquer lógica dos produtores
+
+---
+
 ## Antes de Cada Sessão
 
 1. Ler o arquivo relevante antes de editar

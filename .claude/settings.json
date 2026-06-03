@@ -108,7 +108,13 @@
       "Bash(Remove-Item -Recurse -Force node_modules)",
       "Bash(Remove-Item -Force package-lock.json)",
       "Bash(Write-Host \"Limpeza concluída\")",
-      "Bash(grep -E \"^\\(Failed|Error:|\\\\.\\\\/\\)\")"
+      "Bash(grep -E \"^\\(Failed|Error:|\\\\.\\\\/\\)\")",
+      "Bash(grep -v \"//\\\\|\\\\.ts\\\\b\")",
+      "Bash(git rm *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(grep -v \"import\\\\|//\\\\|node_modules\")",
+      "Bash(grep -v \"//\\\\|import\\\\|node_modules\")",
+      "Bash(grep -v \"//\\\\|node_modules\\\\|import\\\\|export const [A-Z]\")"
     ],
     "additionalDirectories": [
       "\\tmp"
