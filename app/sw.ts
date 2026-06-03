@@ -130,16 +130,26 @@ const serwist = new Serwist({
       }),
     },
     // Rotas internas do app (páginas Next.js estáticas/públicas)
-    // Rotas autenticadas (/dashboard, /operador) e /login são excluídas:
-    // o middleware do Next.js emite redirects nessas rotas e o SW não deve
-    // interceptá-las, pois navigationPreload + redirect gera "no-response".
+    // Excluídas do cache:
+    // - /dashboard, /operador: middleware emite redirects → "no-response" com navigationPreload
+    // - /login: idem
+    // - /solicitar-acesso, /forgot-password, /register: Server Actions usam POST para a
+    //   mesma URL da página; cachear essas rotas impede o submit do formulário ("no-response")
+    // - /gestsilo-admin: autenticação própria via JWT cookie; não cachear para evitar
+    //   conflitos com o middleware do painel interno
+    // Regra adicional: requisições POST nunca são cacheadas (Server Actions)
     {
-      matcher: ({ url }) =>
+      matcher: ({ url, request }) =>
         url.origin === self.location.origin &&
+        request.method !== 'POST' &&
         !url.pathname.startsWith('/api/') &&
         !url.pathname.startsWith('/dashboard') &&
         !url.pathname.startsWith('/operador') &&
-        url.pathname !== '/login',
+        !url.pathname.startsWith('/gestsilo-admin') &&
+        url.pathname !== '/login' &&
+        url.pathname !== '/solicitar-acesso' &&
+        url.pathname !== '/forgot-password' &&
+        url.pathname !== '/register',
       handler: new NetworkFirst({
         cacheName: 'others',
         networkTimeoutSeconds: 10,

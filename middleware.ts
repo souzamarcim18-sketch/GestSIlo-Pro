@@ -8,14 +8,20 @@ export async function middleware(request: NextRequest) {
   // ── Painel admin GestSilo (/gestsilo-admin) ──────────────────────────────
   // Sistema completamente separado do Supabase Auth dos produtores.
   // Autenticação própria via JWT em cookie httpOnly.
-  if (pathname.startsWith('/gestsilo-admin')) {
-    if (!pathname.startsWith('/gestsilo-admin/login')) {
-      const token = request.cookies.get('gestsilo_admin_token')?.value;
-      const payload = token ? verificarToken(token) : null;
-      if (!payload) {
-        return NextResponse.redirect(new URL('/gestsilo-admin/login', request.url));
-      }
+  if (
+    pathname.startsWith('/gestsilo-admin') &&
+    pathname !== '/gestsilo-admin/login'
+  ) {
+    const token = request.cookies.get('gestsilo_admin_token')?.value;
+    const payload = token ? verificarToken(token) : null;
+    if (!payload) {
+      return NextResponse.redirect(new URL('/gestsilo-admin/login', request.url));
     }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/gestsilo-admin')) {
+    // /gestsilo-admin/login — sem cookie necessário, renderiza direto
     return NextResponse.next();
   }
   // ── Fim do bloco admin GestSilo ──────────────────────────────────────────
