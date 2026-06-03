@@ -340,7 +340,7 @@ export default function LandingPage() {
               Entrar
             </button>
             <button
-              onClick={() => router.push('/register')}
+              onClick={() => router.push('/solicitar-acesso')}
               className="text-sm font-semibold text-white px-4 md:px-6 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
               style={{ background: 'linear-gradient(135deg, #135a36, #00843D)' }}
             >
@@ -850,7 +850,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <button
-                  onClick={() => router.push('/register')}
+                  onClick={() => router.push(`/solicitar-acesso?plano=${plan.name}`)}
                   className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:opacity-90"
                   style={
                     plan.highlight
@@ -887,7 +887,7 @@ export default function LandingPage() {
             Mais controle. Menos perdas. Mais resultados para seu rebanho e para sua propriedade.
           </p>
           <button
-            onClick={() => router.push('/register')}
+            onClick={() => router.push('/solicitar-acesso')}
             className="px-10 py-5 font-bold text-lg rounded-2xl shadow-2xl transition-all duration-200 hover:-translate-y-1 text-white"
             style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
           >

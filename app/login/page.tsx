@@ -388,7 +388,7 @@ export default function LoginPage() {
               <p className="text-sm text-muted-foreground">
                 Ainda não tem uma conta?{' '}
                 <a
-                  href="/register"
+                  href="/solicitar-acesso"
                   className="font-semibold text-brand-primary hover:opacity-80 transition-opacity"
                 >
                   Solicite seu acesso →
