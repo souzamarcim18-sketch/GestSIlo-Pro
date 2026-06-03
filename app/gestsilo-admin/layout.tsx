@@ -22,7 +22,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
-  const session = getAdminSession(cookieStore);
+  const session = await getAdminSession(cookieStore);
 
   if (!session) {
     redirect('/gestsilo-admin/login');

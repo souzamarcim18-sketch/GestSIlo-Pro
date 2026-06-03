@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SolicitacoesPage() {
   const cookieStore = await cookies();
-  const session = getAdminSession(cookieStore);
+  const session = await getAdminSession(cookieStore);
   if (!session) redirect('/gestsilo-admin/login');
 
   const supabase = createClient(

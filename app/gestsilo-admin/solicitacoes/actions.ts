@@ -15,7 +15,7 @@ function getServiceClient() {
 
 async function requireAdminSession() {
   const cookieStore = await cookies();
-  const session = getAdminSession(cookieStore);
+  const session = await getAdminSession(cookieStore);
   if (!session) throw new Error('Não autorizado');
   return session;
 }

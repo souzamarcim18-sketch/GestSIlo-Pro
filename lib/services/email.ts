@@ -1,37 +1,28 @@
-﻿import jwt from 'jsonwebtoken';
+import { SignJWT } from 'jose/jwt/sign';
+import { jwtVerify } from 'jose/jwt/verify';
 
-/**
- * Gera JWT para link mágico do consultor
- * Válido por 24 horas
- */
-export function gerarTokenConfirmacao(
-  agendamentoId: string,
-  tipo: 'confirmar' | 'recusar' | 'remarcar'
-): string {
-  const payload = {
-    agendamento_id: agendamentoId,
-    tipo,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 horas
-  };
-
-  return jwt.sign(payload, process.env.JWT_SECRET || 'seu-secret-aqui');
+function getSecret(): Uint8Array {
+  return new TextEncoder().encode(process.env.JWT_SECRET || 'seu-secret-aqui');
 }
 
-/**
- * Verifica se token é válido
- */
-export function verificarTokenConfirmacao(
+export async function gerarTokenConfirmacao(
+  agendamentoId: string,
+  tipo: 'confirmar' | 'recusar' | 'remarcar'
+): Promise<string> {
+  return new SignJWT({ agendamento_id: agendamentoId, tipo })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('24h')
+    .sign(getSecret());
+}
+
+export async function verificarTokenConfirmacao(
   token: string
-): { agendamento_id: string; tipo: string } | null {
+): Promise<{ agendamento_id: string; tipo: string } | null> {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'seu-secret-aqui') as { agendamento_id: string; tipo: string };
-    return {
-      agendamento_id: decoded.agendamento_id,
-      tipo: decoded.tipo,
-    };
+    const { payload } = await jwtVerify(token, getSecret());
+    if (typeof payload.agendamento_id !== 'string' || typeof payload.tipo !== 'string') return null;
+    return { agendamento_id: payload.agendamento_id, tipo: payload.tipo };
   } catch {
     return null;
   }
 }
-

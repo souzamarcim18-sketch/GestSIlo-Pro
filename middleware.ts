@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
     pathname !== '/gestsilo-admin/login'
   ) {
     const token = request.cookies.get('gestsilo_admin_token')?.value;
-    const payload = token ? verificarToken(token) : null;
+    const payload = token ? await verificarToken(token) : null;
     if (!payload) {
       return NextResponse.redirect(new URL('/gestsilo-admin/login', request.url));
     }

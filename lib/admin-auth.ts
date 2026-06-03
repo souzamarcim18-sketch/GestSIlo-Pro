@@ -1,15 +1,16 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { SignJWT } from 'jose/jwt/sign';
+import { jwtVerify } from 'jose/jwt/verify';
 import { type NextResponse } from 'next/server';
 import { type ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 
 const COOKIE_NAME = 'gestsilo_admin_token';
 const MAX_AGE = 60 * 60 * 8; // 8 horas em segundos
 
-function getSecret(): string {
+function getSecret(): Uint8Array {
   const secret = process.env.ADMIN_JWT_SECRET;
   if (!secret) throw new Error('ADMIN_JWT_SECRET não definida');
-  return secret;
+  return new TextEncoder().encode(secret);
 }
 
 export async function hashSenha(senha: string): Promise<string> {
@@ -20,25 +21,29 @@ export async function verificarSenha(senha: string, hash: string): Promise<boole
   return bcrypt.compare(senha, hash);
 }
 
-export function gerarToken(adminId: string): string {
-  return jwt.sign({ sub: adminId }, getSecret(), { expiresIn: '8h' });
+export async function gerarToken(adminId: string): Promise<string> {
+  return new SignJWT({ sub: adminId })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('8h')
+    .sign(getSecret());
 }
 
-export function verificarToken(token: string): { sub: string } | null {
+export async function verificarToken(token: string): Promise<{ sub: string } | null> {
   try {
-    const payload = jwt.verify(token, getSecret()) as { sub: string };
+    const { payload } = await jwtVerify(token, getSecret());
+    if (typeof payload.sub !== 'string') return null;
     return { sub: payload.sub };
   } catch {
     return null;
   }
 }
 
-export function getAdminSession(
+export async function getAdminSession(
   cookies: ReadonlyRequestCookies
-): { adminId: string } | null {
+): Promise<{ adminId: string } | null> {
   const token = cookies.get(COOKIE_NAME)?.value;
   if (!token) return null;
-  const payload = verificarToken(token);
+  const payload = await verificarToken(token);
   if (!payload) return null;
   return { adminId: payload.sub };
 }

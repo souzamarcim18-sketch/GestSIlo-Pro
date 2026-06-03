@@ -45,7 +45,7 @@ export async function loginAdmin(
     return { error: 'Email ou senha incorretos' };
   }
 
-  const token = gerarToken(admin.id);
+  const token = await gerarToken(admin.id);
 
   // Atualiza ultimo_login (fire-and-forget — falha não bloqueia login)
   void supabase
