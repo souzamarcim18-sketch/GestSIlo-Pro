@@ -65,6 +65,8 @@ export default function LoginPage() {
       redirectingRef.current = true;
       if (profile.perfil === 'Operador') {
         router.push('/operador');
+      } else if (!profile.fazenda_id) {
+        router.push('/dashboard/onboarding');
       } else {
         router.push('/dashboard');
       }

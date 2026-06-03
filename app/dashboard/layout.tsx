@@ -112,6 +112,11 @@ export default function DashboardLayout({
     );
   }
 
+  // Aguarda redirect do useEffect — não renderiza children enquanto needsOnboarding
+  if (needsOnboarding && !isOnboardingPage) {
+    return null;
+  }
+
   // Layout normal
   return (
     <div className="h-screen relative overflow-hidden">
