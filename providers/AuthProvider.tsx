@@ -134,7 +134,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       authLog('[FETCH-PROFILE] SUCCESS');
       setUser(currentUser);
-      setProfile(data ?? null);
+      // Só sobrescreve o profile se o banco retornou dados.
+      // Se data=null (profile ainda não existe — novo usuário recém-confirmado),
+      // mantém o profile derivado do JWT metadata para não zerar needsOnboarding.
+      if (data !== null) {
+        setProfile(data);
+      }
       setProfileError(null);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {

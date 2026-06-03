@@ -32,6 +32,8 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gestsilo.com.br';
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
@@ -40,6 +42,7 @@ export async function POST(request: NextRequest) {
           nome,
           perfil: perfil || 'Administrador',
         },
+        emailRedirectTo: `${siteUrl}/auth/confirm`,
       },
     });
 
