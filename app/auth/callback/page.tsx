@@ -8,29 +8,38 @@ export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Supabase pode enviar erro no hash quando o link expirou
+    // Checa erro em query params (Supabase às vezes manda assim)
+    const searchParams = new URLSearchParams(window.location.search);
+    const qError = searchParams.get('error');
+    const qErrorCode = searchParams.get('error_code');
+
+    // Checa erro no hash fragment
     const hash = window.location.hash;
-    if (hash.includes('error=')) {
-      const params = new URLSearchParams(hash.slice(1));
-      const errorCode = params.get('error_code');
-      if (errorCode === 'otp_expired' || errorCode === 'access_denied') {
+    const hashParams = new URLSearchParams(hash.slice(1));
+    const hError = hashParams.get('error');
+    const hErrorCode = hashParams.get('error_code');
+
+    const errorCode = qErrorCode || hErrorCode;
+    const hasError = qError || hError;
+
+    if (hasError) {
+      if (errorCode === 'otp_expired') {
         router.replace('/login?error=link_expirado');
-        return;
+      } else {
+        router.replace('/login?error=link_invalido');
       }
-      router.replace('/login?error=link_invalido');
       return;
     }
 
     const supabase = getSupabaseClient();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
         const isConvidado = !!session.user.app_metadata?.convidado_por;
         if (isConvidado) {
           router.replace('/auth/set-password');
           return;
         }
-        // Novo usuário sem fazenda → onboarding; usuário existente → dashboard
         const fazendaId = session.user.user_metadata?.fazenda_id || session.user.app_metadata?.fazenda_id;
         router.replace(fazendaId ? '/dashboard' : '/dashboard/onboarding');
       }
