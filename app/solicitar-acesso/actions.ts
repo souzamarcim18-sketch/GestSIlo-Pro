@@ -22,7 +22,7 @@ export async function solicitarAcessoAction(formData: unknown) {
 
   const { error: dbError } = await supabase
     .from('solicitacoes_acesso')
-    .insert({ nome, email, fazenda, whatsapp, plano });
+    .insert({ nome, email, nome_fazenda: fazenda, whatsapp, plano });
 
   if (dbError) {
     console.error('solicitarAcessoAction: db error', dbError.message);
