@@ -8,6 +8,19 @@ export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Supabase pode enviar erro no hash quando o link expirou
+    const hash = window.location.hash;
+    if (hash.includes('error=')) {
+      const params = new URLSearchParams(hash.slice(1));
+      const errorCode = params.get('error_code');
+      if (errorCode === 'otp_expired' || errorCode === 'access_denied') {
+        router.replace('/login?error=link_expirado');
+        return;
+      }
+      router.replace('/login?error=link_invalido');
+      return;
+    }
+
     const supabase = getSupabaseClient();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
