@@ -31,6 +31,7 @@ import {
   ShoppingCart,
   RefreshCw,
   Tractor,
+  CreditCard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -72,8 +73,9 @@ const ferramentasRoutes: RouteItem[] = [
 ];
 
 const sistemaRoutes: RouteItem[] = [
-  { label: 'Configurações', icon: Settings,   href: '/dashboard/configuracoes', badge: null },
-  { label: 'Suporte',       icon: HelpCircle, href: '/dashboard/suporte',       badge: null },
+  { label: 'Configurações',      icon: Settings,    href: '/dashboard/configuracoes',       badge: null },
+  { label: 'Plano e assinatura', icon: CreditCard,  href: '/dashboard/configuracoes/plano', badge: null },
+  { label: 'Suporte',            icon: HelpCircle,  href: '/dashboard/suporte',             badge: null },
 ];
 
 const sincronizacaoRoute: RouteItem = {

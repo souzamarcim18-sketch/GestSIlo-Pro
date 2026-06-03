@@ -114,7 +114,9 @@
       "Bash(echo \"exit: $?\")",
       "Bash(grep -v \"import\\\\|//\\\\|node_modules\")",
       "Bash(grep -v \"//\\\\|import\\\\|node_modules\")",
-      "Bash(grep -v \"//\\\\|node_modules\\\\|import\\\\|export const [A-Z]\")"
+      "Bash(grep -v \"//\\\\|node_modules\\\\|import\\\\|export const [A-Z]\")",
+      "Bash(Select-String \"webhook\")",
+      "Bash(grep -v \"//\\\\|cancel_at\\\\|trial\\\\|Created\\\\|pause\\\\|phase\\\\|proration\\\\|prorate\\\\|resum\")"
     ],
     "additionalDirectories": [
       "\\tmp"

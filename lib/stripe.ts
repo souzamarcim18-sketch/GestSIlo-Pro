@@ -1,0 +1,12 @@
+import Stripe from 'stripe';
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY não configurada');
+}
+
+// Singleton server-side — nunca importar em Client Components
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2026-05-27.dahlia',
+});
+
+export default stripe;
