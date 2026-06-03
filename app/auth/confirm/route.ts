@@ -1,6 +1,26 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+
+// Garante que o profile existe no banco após confirmação de email.
+// O trigger on_auth_user_created deveria ter criado, mas pode falhar ou
+// ter sido criado antes do trigger existir. Upsert defensivo via service role.
+async function ensureProfile(userId: string, email: string, userMeta: Record<string, unknown>) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+  const admin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+  const nome = (userMeta.nome as string) || (userMeta.full_name as string) || email.split('@')[0];
+  const perfil = (userMeta.perfil as string) || 'Administrador';
+  const fazenda_id = (userMeta.fazenda_id as string) || null;
+  await admin.from('profiles').upsert(
+    { id: userId, email, nome, perfil, fazenda_id },
+    { onConflict: 'id', ignoreDuplicates: true }
+  );
+}
 
 // Recebe o redirect do Supabase após verificar o token em supabase.co/auth/v1/verify
 // O Supabase pode enviar: token_hash (PKCE) ou access_token+refresh_token (implicit)
@@ -48,9 +68,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=link_expirado', request.url));
     }
 
+    // Garante que o profile existe — o trigger pode ter falhado silenciosamente
+    const { data: { user: confirmedUser } } = await supabase.auth.getUser();
+    if (confirmedUser && type === 'email') {
+      await ensureProfile(confirmedUser.id, confirmedUser.email ?? '', confirmedUser.user_metadata ?? {});
+    }
+
     const redirectTo = type === 'invite' || type === 'recovery'
       ? '/auth/set-password'
-      : '/dashboard';
+      : '/dashboard/onboarding';
 
     const response = NextResponse.redirect(new URL(redirectTo, request.url));
     cookieStore.getAll().forEach(({ name, value }) => {
@@ -70,12 +96,13 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: { user } } = await supabase.auth.getUser();
-    // Se o usuário não tem senha definida (convidado), vai para set-password
-    // Caso contrário vai para o dashboard
-    const isInvite = user?.app_metadata?.provider === 'email' &&
-      !user?.last_sign_in_at;
+    // Garante que o profile existe
+    if (user) {
+      await ensureProfile(user.id, user.email ?? '', user.user_metadata ?? {});
+    }
 
-    const redirectTo = isInvite ? '/auth/set-password' : '/dashboard';
+    const isInvite = user?.app_metadata?.convidado_por != null;
+    const redirectTo = isInvite ? '/auth/set-password' : '/dashboard/onboarding';
 
     const response = NextResponse.redirect(new URL(redirectTo, request.url));
     cookieStore.getAll().forEach(({ name, value }) => {
