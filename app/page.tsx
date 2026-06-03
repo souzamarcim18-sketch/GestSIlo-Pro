@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
@@ -135,29 +135,6 @@ export default function LandingPage() {
   const { user, loading } = useAuth();
   const [openModal, setOpenModal] = useState<ModalType>(null);
   const [planoAnual, setPlanoAnual] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-
-  const handleCheckout = useCallback(async (plano: string, periodo: 'mensal' | 'anual') => {
-    const key = `${plano}-${periodo}`;
-    setCheckoutLoading(key);
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plano, periodo }),
-      });
-      const data = await res.json() as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        console.error('Erro no checkout:', data.error);
-        return;
-      }
-      window.location.href = data.url;
-    } catch (err) {
-      console.error('Erro ao iniciar checkout:', err);
-    } finally {
-      setCheckoutLoading(null);
-    }
-  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -872,41 +849,17 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                {plan.name === 'Starter' || plan.name === 'Pro' ? (
-                  <button
-                    onClick={() => {
-                      if (!user) {
-                        router.push(`/login?redirect=/#planos`);
-                        return;
-                      }
-                      const periodo = planoAnual ? 'anual' : 'mensal';
-                      void handleCheckout(plan.name.toLowerCase(), periodo);
-                    }}
-                    disabled={checkoutLoading === `${plan.name.toLowerCase()}-${planoAnual ? 'anual' : 'mensal'}`}
-                    className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
-                    style={
-                      plan.highlight
-                        ? { background: '#ffffff', color: '#00843D' }
-                        : { background: 'linear-gradient(135deg, #00A651, #00843D)', color: '#ffffff' }
-                    }
-                  >
-                    {checkoutLoading === `${plan.name.toLowerCase()}-${planoAnual ? 'anual' : 'mensal'}`
-                      ? 'Aguarde...'
-                      : plan.cta}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => router.push(plan.name === 'Max' ? '/solicitar-acesso?plano=max' : '/solicitar-acesso')}
-                    className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:opacity-90"
-                    style={
-                      plan.highlight
-                        ? { background: '#ffffff', color: '#00843D' }
-                        : { background: 'linear-gradient(135deg, #00A651, #00843D)', color: '#ffffff' }
-                    }
-                  >
-                    {plan.cta}
-                  </button>
-                )}
+                <button
+                  onClick={() => router.push(`/solicitar-acesso?plano=${plan.name.toLowerCase()}`)}
+                  className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:opacity-90"
+                  style={
+                    plan.highlight
+                      ? { background: '#ffffff', color: '#00843D' }
+                      : { background: 'linear-gradient(135deg, #00A651, #00843D)', color: '#ffffff' }
+                  }
+                >
+                  {plan.cta}
+                </button>
               </div>
             ))}
           </div>
