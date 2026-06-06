@@ -25,11 +25,31 @@ export default function LoginPage() {
   // Impede redirect automático antes do usuário tentar login (evita loop com sessão stale)
   const redirectingRef = useRef(false);
 
+  // Estado do fluxo de convite
+  const [isInviteFlow, setIsInviteFlow] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlError = params.get('error');
     if (urlError === 'link_expirado') setError('O link de acesso expirou. Solicite um novo convite ou recuperação de senha.');
     if (urlError === 'link_invalido') setError('Link inválido. Solicite um novo convite ou recuperação de senha.');
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const hashParams = new URLSearchParams(hash.substring(1));
+    const type = hashParams.get('type');
+    const accessToken = hashParams.get('access_token');
+    if (type === 'invite' && accessToken) {
+      setIsInviteFlow(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -127,6 +147,42 @@ export default function LoginPage() {
     [email, password, router]
   );
 
+  const handleSetInvitePassword = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setInviteError('');
+
+      if (newPassword.length < 8) {
+        setInviteError('A senha deve ter no mínimo 8 caracteres.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setInviteError('As senhas não coincidem.');
+        return;
+      }
+
+      setInviteLoading(true);
+      try {
+        const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+        if (updateError) {
+          setInviteError(updateError.message || 'Erro ao definir senha. O link pode ter expirado.');
+          toast.error('Erro ao definir senha.');
+          return;
+        }
+        toast.success('Senha criada com sucesso! Bem-vindo ao GestSilo.');
+        router.push('/dashboard/onboarding');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Erro desconhecido';
+        authLog('handleSetInvitePassword error:', message);
+        setInviteError('Ocorreu um erro inesperado. Tente novamente.');
+        toast.error('Erro ao definir senha.');
+      } finally {
+        setInviteLoading(false);
+      }
+    },
+    [newPassword, confirmPassword, router]
+  );
+
   return (
     <div className="min-h-screen flex relative bg-background">
 
@@ -212,189 +268,335 @@ export default function LoginPage() {
           </div>
 
           <AuthCard>
-            <div className="mb-8">
-              <h1 className="text-2xl font-black tracking-tight text-foreground mb-2">
-                Bem-vindo de volta
-              </h1>
-              <p className="text-base text-muted-foreground">
-                Acesse sua conta para gerenciar sua propriedade
-              </p>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-5" noValidate>
-
-              {/* E-mail */}
-              <div>
-                <AuthLabel htmlFor="email">E-mail</AuthLabel>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                    </svg>
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    required
-                    autoComplete="email"
-                    aria-describedby={error ? 'form-error' : undefined}
-                    className="w-full pl-12 pr-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
-                  />
+            {isInviteFlow ? (
+              /* ===== FORMULÁRIO DE CONVITE — Criar senha ===== */
+              <>
+                <div className="mb-8">
+                  <h1 className="text-2xl font-black tracking-tight text-foreground mb-2">
+                    Crie sua senha
+                  </h1>
+                  <p className="text-base text-muted-foreground">
+                    Você foi convidado para o GestSilo. Defina uma senha para acessar sua conta.
+                  </p>
                 </div>
-              </div>
 
-              {/* Senha */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <AuthLabel htmlFor="password">Senha</AuthLabel>
-                  <a
-                    href="/forgot-password"
-                    className="text-sm font-semibold text-brand-primary hover:opacity-80 transition-opacity"
-                  >
-                    Esqueceu a senha?
-                  </a>
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
+                <form onSubmit={handleSetInvitePassword} className="space-y-5" noValidate>
+
+                  {/* Nova senha */}
+                  <div>
+                    <AuthLabel htmlFor="new-password">Nova senha</AuthLabel>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
+                      <input
+                        id="new-password"
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Mínimo 8 caracteres"
+                        required
+                        autoComplete="new-password"
+                        aria-describedby={inviteError ? 'invite-error' : undefined}
+                        className="w-full pl-12 pr-12 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        aria-label={showNewPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        aria-pressed={showNewPassword}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showNewPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    autoComplete="current-password"
-                    aria-describedby={error ? 'form-error' : undefined}
-                    className="w-full pl-12 pr-12 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
-                  />
+
+                  {/* Confirmar senha */}
+                  <div>
+                    <AuthLabel htmlFor="confirm-password">Confirmar senha</AuthLabel>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
+                      <input
+                        id="confirm-password"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Repita a senha"
+                        required
+                        autoComplete="new-password"
+                        aria-describedby={inviteError ? 'invite-error' : undefined}
+                        className="w-full pl-12 pr-12 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        aria-label={showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}
+                        aria-pressed={showConfirmPassword}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showConfirmPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Erro */}
+                  {inviteError && (
+                    <div
+                      id="invite-error"
+                      role="alert"
+                      aria-live="assertive"
+                      className="flex items-center gap-3 p-4 bg-red-dim border border-red-border rounded-xl"
+                    >
+                      <svg className="w-5 h-5 text-status-danger flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-status-danger text-sm font-medium">{inviteError}</p>
+                    </div>
+                  )}
+
+                  {/* Submit */}
                   <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                    aria-pressed={showPassword}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                    type="submit"
+                    disabled={inviteLoading}
+                    aria-busy={inviteLoading}
+                    className="w-full py-4 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 mt-2 hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
+                    style={{
+                      background: inviteLoading ? '#9CA3AF' : 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
+                      boxShadow: inviteLoading ? 'none' : '0 4px 20px rgba(0,166,81,0.35)',
+                    }}
                   >
-                    {showPassword ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
+                    {inviteLoading ? (
+                      <>
+                        <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        <span>Salvando...</span>
+                      </>
                     ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
+                      <>
+                        <span>Criar senha e acessar</span>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </>
                     )}
                   </button>
+                </form>
+              </>
+            ) : (
+              /* ===== FORMULÁRIO DE LOGIN NORMAL ===== */
+              <>
+                <div className="mb-8">
+                  <h1 className="text-2xl font-black tracking-tight text-foreground mb-2">
+                    Bem-vindo de volta
+                  </h1>
+                  <p className="text-base text-muted-foreground">
+                    Acesse sua conta para gerenciar sua propriedade
+                  </p>
                 </div>
-              </div>
 
-              {/* Erro */}
-              {(error || (loginAttempted && profileError) || (loginAttempted && timeout)) && (
-                <div
-                  id="form-error"
-                  role="alert"
-                  aria-live="assertive"
-                  className="flex items-center gap-3 p-4 bg-red-dim border border-red-border rounded-xl"
-                >
-                  <svg
-                    className="w-5 h-5 text-status-danger flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-status-danger text-sm font-medium">
-                      {error || profileError || (timeout && 'Tempo limite ao carregar seu perfil. Tente fazer login novamente.')}
-                    </p>
-                    {(profileError || timeout) && (
-                      <p className="text-status-danger/80 text-sm mt-1">
-                        Contate o suporte se o problema persistir.
-                      </p>
-                    )}
+                <form onSubmit={handleLogin} className="space-y-5" noValidate>
+
+                  {/* E-mail */}
+                  <div>
+                    <AuthLabel htmlFor="email">E-mail</AuthLabel>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg
+                          className="w-5 h-5 text-muted-foreground"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                        </svg>
+                      </div>
+                      <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        required
+                        autoComplete="email"
+                        aria-describedby={error ? 'form-error' : undefined}
+                        className="w-full pl-12 pr-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                aria-busy={loading}
-                className="w-full py-4 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 mt-2 hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
-                style={{
-                  background: loading ? '#9CA3AF' : 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
-                  boxShadow: loading ? 'none' : '0 4px 20px rgba(0,166,81,0.35)',
-                }}
-              >
-                {loading ? (
-                  <>
-                    <svg
-                      className="animate-spin w-5 h-5 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
+                  {/* Senha */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <AuthLabel htmlFor="password">Senha</AuthLabel>
+                      <a
+                        href="/forgot-password"
+                        className="text-sm font-semibold text-brand-primary hover:opacity-80 transition-opacity"
+                      >
+                        Esqueceu a senha?
+                      </a>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg
+                          className="w-5 h-5 text-muted-foreground"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
+                      <input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        autoComplete="current-password"
+                        aria-describedby={error ? 'form-error' : undefined}
+                        className="w-full pl-12 pr-12 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-base shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        aria-pressed={showPassword}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Erro */}
+                  {(error || (loginAttempted && profileError) || (loginAttempted && timeout)) && (
+                    <div
+                      id="form-error"
+                      role="alert"
+                      aria-live="assertive"
+                      className="flex items-center gap-3 p-4 bg-red-dim border border-red-border rounded-xl"
                     >
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    <span>Entrando...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Entrar na plataforma</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </form>
+                      <svg
+                        className="w-5 h-5 text-status-danger flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-status-danger text-sm font-medium">
+                          {error || profileError || (timeout && 'Tempo limite ao carregar seu perfil. Tente fazer login novamente.')}
+                        </p>
+                        {(profileError || timeout) && (
+                          <p className="text-status-danger/80 text-sm mt-1">
+                            Contate o suporte se o problema persistir.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Divider */}
-            <div className="flex items-center gap-4 my-8" aria-hidden="true">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-sm text-muted-foreground">ou</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    aria-busy={loading}
+                    className="w-full py-4 px-6 text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 mt-2 hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
+                    style={{
+                      background: loading ? '#9CA3AF' : 'linear-gradient(135deg, #00A651 0%, #00843D 100%)',
+                      boxShadow: loading ? 'none' : '0 4px 20px rgba(0,166,81,0.35)',
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <svg
+                          className="animate-spin w-5 h-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        <span>Entrando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Entrar na plataforma</span>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </form>
 
-            {/* Cadastro */}
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                Ainda não tem uma conta?{' '}
-                <a
-                  href="/solicitar-acesso"
-                  className="font-semibold text-brand-primary hover:opacity-80 transition-opacity"
-                >
-                  Solicite seu acesso →
-                </a>
-              </p>
-            </div>
+                {/* Divider */}
+                <div className="flex items-center gap-4 my-8" aria-hidden="true">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-sm text-muted-foreground">ou</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+
+                {/* Cadastro */}
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Ainda não tem uma conta?{' '}
+                    <a
+                      href="/solicitar-acesso"
+                      className="font-semibold text-brand-primary hover:opacity-80 transition-opacity"
+                    >
+                      Solicite seu acesso →
+                    </a>
+                  </p>
+                </div>
+              </>
+            )}
           </AuthCard>
 
           {/* Footer */}
