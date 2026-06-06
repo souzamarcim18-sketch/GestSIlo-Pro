@@ -20,19 +20,18 @@ export default async function SolicitacoesPage() {
   const { data, error } = await supabase
     .from('solicitacoes_acesso')
     .select(
-      'id, nome, email, nome_fazenda, whatsapp, plano_solicitado, status, created_at, aprovado_em, rejeitado_em, observacoes, invite_enviado_em',
+      'id, nome, email, nome_fazenda, whatsapp, plano_solicitado, status, created_at, aprovado_em, rejeitado_em, observacoes, invite_enviado_em, arquivada_em',
     )
-    .order('status', { ascending: true })
     .order('created_at', { ascending: false });
 
   if (error) {
     console.error('SolicitacoesPage: query error', error.message);
   }
 
-  // Garantir que pendentes venham primeiro
+  const STATUS_ORDER: Record<string, number> = { pendente: 0, aprovada: 1, rejeitada: 2, arquivada: 3 };
   const sorted = (data ?? []).slice().sort((a, b) => {
-    if (a.status === 'pendente' && b.status !== 'pendente') return -1;
-    if (a.status !== 'pendente' && b.status === 'pendente') return 1;
+    const diff = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99);
+    if (diff !== 0) return diff;
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   }) as Solicitacao[];
 

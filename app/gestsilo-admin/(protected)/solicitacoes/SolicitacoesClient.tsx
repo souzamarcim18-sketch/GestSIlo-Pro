@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { aprovarSolicitacao, rejeitarSolicitacao } from './actions';
+import { aprovarSolicitacao, rejeitarSolicitacao, arquivarSolicitacao, deletarSolicitacao } from './actions';
 
-type Status = 'pendente' | 'aprovada' | 'rejeitada';
+type Status = 'pendente' | 'aprovada' | 'rejeitada' | 'arquivada';
 
 export interface Solicitacao {
   id: string;
@@ -18,24 +18,28 @@ export interface Solicitacao {
   rejeitado_em: string | null;
   observacoes: string | null;
   invite_enviado_em: string | null;
+  arquivada_em: string | null;
 }
 
 const STATUS_LABEL: Record<Status, string> = {
   pendente: 'Pendente',
   aprovada: 'Aprovada',
   rejeitada: 'Rejeitada',
+  arquivada: 'Arquivada',
 };
 
 const STATUS_COLOR: Record<Status, string> = {
   pendente: '#f5d000',
   aprovada: '#738D45',
   rejeitada: '#e05252',
+  arquivada: '#555',
 };
 
 const STATUS_BG: Record<Status, string> = {
   pendente: 'rgba(245,208,0,0.12)',
   aprovada: 'rgba(115,141,69,0.15)',
   rejeitada: 'rgba(224,82,82,0.12)',
+  arquivada: 'rgba(85,85,85,0.15)',
 };
 
 function formatDate(iso: string) {
@@ -49,7 +53,7 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
-type FilterStatus = 'todos' | Status;
+type FilterStatus = 'todos' | 'arquivadas' | Status;
 
 export default function SolicitacoesClient({
   initialData,
@@ -70,13 +74,27 @@ export default function SolicitacoesClient({
   const [motivoRejeitar, setMotivoRejeitar] = useState('');
   const [rejeitarError, setRejeitarError] = useState('');
 
-  const filtered = items.filter((s) => filter === 'todos' || s.status === filter);
+  // Arquivar
+  const [arquivarTarget, setArquivarTarget] = useState<Solicitacao | null>(null);
+  const [arquivarError, setArquivarError] = useState('');
+
+  // Deletar
+  const [deletarTarget, setDeletarTarget] = useState<Solicitacao | null>(null);
+  const [deletarError, setDeletarError] = useState('');
+
+  // "todos" exclui arquivadas — arquivadas só aparecem no filtro "arquivadas"
+  const filtered = items.filter((s) => {
+    if (filter === 'todos') return s.status !== 'arquivada';
+    if (filter === 'arquivadas') return s.status === 'arquivada';
+    return s.status === filter;
+  });
 
   const counts = {
-    todos: items.length,
+    todos: items.filter((s) => s.status !== 'arquivada').length,
     pendente: items.filter((s) => s.status === 'pendente').length,
     aprovada: items.filter((s) => s.status === 'aprovada').length,
     rejeitada: items.filter((s) => s.status === 'rejeitada').length,
+    arquivadas: items.filter((s) => s.status === 'arquivada').length,
   };
 
   function handleAprovar() {
@@ -130,11 +148,46 @@ export default function SolicitacoesClient({
     });
   }
 
+  function handleArquivar() {
+    if (!arquivarTarget) return;
+    setArquivarError('');
+    startTransition(async () => {
+      const res = await arquivarSolicitacao(arquivarTarget.id);
+      if (res.success) {
+        setItems((prev) =>
+          prev.map((s) =>
+            s.id === arquivarTarget.id
+              ? { ...s, status: 'arquivada' as Status }
+              : s,
+          ),
+        );
+        setArquivarTarget(null);
+      } else {
+        setArquivarError(res.error ?? 'Erro desconhecido');
+      }
+    });
+  }
+
+  function handleDeletar() {
+    if (!deletarTarget) return;
+    setDeletarError('');
+    startTransition(async () => {
+      const res = await deletarSolicitacao(deletarTarget.id);
+      if (res.success) {
+        setItems((prev) => prev.filter((s) => s.id !== deletarTarget.id));
+        setDeletarTarget(null);
+      } else {
+        setDeletarError(res.error ?? 'Erro desconhecido');
+      }
+    });
+  }
+
   const filterTabs: { key: FilterStatus; label: string }[] = [
     { key: 'todos', label: `Todos (${counts.todos})` },
     { key: 'pendente', label: `Pendente (${counts.pendente})` },
     { key: 'aprovada', label: `Aprovada (${counts.aprovada})` },
     { key: 'rejeitada', label: `Rejeitada (${counts.rejeitada})` },
+    { key: 'arquivadas', label: `Arquivadas (${counts.arquivadas})` },
   ];
 
   return (
@@ -219,6 +272,7 @@ export default function SolicitacoesClient({
                   style={{
                     borderBottom: i < filtered.length - 1 ? '1px solid #2a2a2a' : 'none',
                     backgroundColor: 'transparent',
+                    opacity: s.status === 'arquivada' ? 0.6 : 1,
                   }}
                 >
                   {/* Nome / Fazenda */}
@@ -259,42 +313,38 @@ export default function SolicitacoesClient({
                   </td>
                   {/* Ações */}
                   <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                    {s.status === 'pendente' ? (
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {s.status === 'pendente' && (
+                        <>
+                          <button
+                            onClick={() => { setAprovarTarget(s); setObsAprovar(''); setAprovarError(''); }}
+                            style={btnStyle('green')}
+                          >
+                            Aprovar
+                          </button>
+                          <button
+                            onClick={() => { setRejeitarTarget(s); setMotivoRejeitar(''); setRejeitarError(''); }}
+                            style={btnStyle('red')}
+                          >
+                            Rejeitar
+                          </button>
+                        </>
+                      )}
+                      {s.status !== 'arquivada' && (
                         <button
-                          onClick={() => { setAprovarTarget(s); setObsAprovar(''); setAprovarError(''); }}
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: '6px',
-                            border: '1px solid #738D45',
-                            backgroundColor: 'rgba(115,141,69,0.15)',
-                            color: '#9ab558',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
+                          onClick={() => { setArquivarTarget(s); setArquivarError(''); }}
+                          style={btnStyle('gray')}
                         >
-                          Aprovar
+                          Arquivar
                         </button>
-                        <button
-                          onClick={() => { setRejeitarTarget(s); setMotivoRejeitar(''); setRejeitarError(''); }}
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: '6px',
-                            border: '1px solid #5a2a2a',
-                            backgroundColor: 'rgba(224,82,82,0.1)',
-                            color: '#e05252',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Rejeitar
-                        </button>
-                      </div>
-                    ) : (
-                      <span style={{ color: '#444', fontSize: '13px' }}>—</span>
-                    )}
+                      )}
+                      <button
+                        onClick={() => { setDeletarTarget(s); setDeletarError(''); }}
+                        style={btnStyle('darkred')}
+                      >
+                        Deletar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -305,182 +355,179 @@ export default function SolicitacoesClient({
 
       {/* Modal Aprovar */}
       {aprovarTarget && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 50,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '16px',
-          }}
-          onClick={(e) => { if (e.target === e.currentTarget) setAprovarTarget(null); }}
-        >
-          <div
-            style={{
-              backgroundColor: '#222',
-              borderRadius: '12px',
-              border: '1px solid #2e2e2e',
-              padding: '28px',
-              width: '100%',
-              maxWidth: '420px',
-            }}
-          >
-            <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#e8e8e8', margin: '0 0 8px' }}>
-              Aprovar solicitação
-            </h2>
-            <p style={{ fontSize: '14px', color: '#888', margin: '0 0 20px' }}>
-              Aprovar acesso de <strong style={{ color: '#e8e8e8' }}>{aprovarTarget.nome}</strong> ({aprovarTarget.email})?
-              Um convite será enviado imediatamente.
-            </p>
-            <label style={{ display: 'block', fontSize: '13px', color: '#888', marginBottom: '6px' }}>
-              Observações (opcional)
-            </label>
-            <textarea
-              value={obsAprovar}
-              onChange={(e) => setObsAprovar(e.target.value)}
-              rows={3}
-              placeholder="Mensagem adicional ao solicitante..."
-              style={{
-                width: '100%',
-                backgroundColor: '#1c1c1c',
-                border: '1px solid #2e2e2e',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                color: '#e8e8e8',
-                fontSize: '14px',
-                resize: 'vertical',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-            {aprovarError && (
-              <p style={{ color: '#e05252', fontSize: '13px', marginTop: '8px' }}>{aprovarError}</p>
-            )}
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setAprovarTarget(null)}
-                disabled={isPending}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  border: '1px solid #2e2e2e',
-                  backgroundColor: 'transparent',
-                  color: '#888',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleAprovar}
-                disabled={isPending}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: '#738D45',
-                  color: '#fff',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: isPending ? 'not-allowed' : 'pointer',
-                  opacity: isPending ? 0.7 : 1,
-                }}
-              >
-                {isPending ? 'Aprovando...' : 'Confirmar aprovação'}
-              </button>
-            </div>
+        <Modal onClose={() => setAprovarTarget(null)}>
+          <h2 style={modalTitle}>Aprovar solicitação</h2>
+          <p style={modalDesc}>
+            Aprovar acesso de <strong style={{ color: '#e8e8e8' }}>{aprovarTarget.nome}</strong> ({aprovarTarget.email})?
+            Um convite será enviado imediatamente.
+          </p>
+          <label style={labelStyle}>Observações (opcional)</label>
+          <textarea
+            value={obsAprovar}
+            onChange={(e) => setObsAprovar(e.target.value)}
+            rows={3}
+            placeholder="Mensagem adicional ao solicitante..."
+            style={textareaStyle()}
+          />
+          {aprovarError && <p style={errorStyle}>{aprovarError}</p>}
+          <div style={modalFooter}>
+            <button onClick={() => setAprovarTarget(null)} disabled={isPending} style={btnStyle('ghost')}>
+              Cancelar
+            </button>
+            <button onClick={handleAprovar} disabled={isPending} style={{ ...btnStyle('green'), opacity: isPending ? 0.7 : 1 }}>
+              {isPending ? 'Aprovando...' : 'Confirmar aprovação'}
+            </button>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Modal Rejeitar */}
       {rejeitarTarget && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 50,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '16px',
-          }}
-          onClick={(e) => { if (e.target === e.currentTarget) setRejeitarTarget(null); }}
-        >
-          <div
-            style={{
-              backgroundColor: '#222',
-              borderRadius: '12px',
-              border: '1px solid #2e2e2e',
-              padding: '28px',
-              width: '100%',
-              maxWidth: '420px',
-            }}
-          >
-            <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#e8e8e8', margin: '0 0 8px' }}>
-              Rejeitar solicitação
-            </h2>
-            <p style={{ fontSize: '14px', color: '#888', margin: '0 0 20px' }}>
-              Rejeitar acesso de <strong style={{ color: '#e8e8e8' }}>{rejeitarTarget.nome}</strong>?
-            </p>
-            <label style={{ display: 'block', fontSize: '13px', color: '#888', marginBottom: '6px' }}>
-              Motivo <span style={{ color: '#e05252' }}>*</span>
-            </label>
-            <textarea
-              value={motivoRejeitar}
-              onChange={(e) => { setMotivoRejeitar(e.target.value); setRejeitarError(''); }}
-              rows={3}
-              placeholder="Informe o motivo da rejeição..."
-              style={{
-                width: '100%',
-                backgroundColor: '#1c1c1c',
-                border: `1px solid ${rejeitarError ? '#e05252' : '#2e2e2e'}`,
-                borderRadius: '8px',
-                padding: '10px 12px',
-                color: '#e8e8e8',
-                fontSize: '14px',
-                resize: 'vertical',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-            {rejeitarError && (
-              <p style={{ color: '#e05252', fontSize: '13px', marginTop: '4px' }}>{rejeitarError}</p>
-            )}
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setRejeitarTarget(null)}
-                disabled={isPending}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  border: '1px solid #2e2e2e',
-                  backgroundColor: 'transparent',
-                  color: '#888',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleRejeitar}
-                disabled={isPending}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: '#7a2222',
-                  color: '#fff',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: isPending ? 'not-allowed' : 'pointer',
-                  opacity: isPending ? 0.7 : 1,
-                }}
-              >
-                {isPending ? 'Rejeitando...' : 'Confirmar rejeição'}
-              </button>
-            </div>
+        <Modal onClose={() => setRejeitarTarget(null)}>
+          <h2 style={modalTitle}>Rejeitar solicitação</h2>
+          <p style={modalDesc}>
+            Rejeitar acesso de <strong style={{ color: '#e8e8e8' }}>{rejeitarTarget.nome}</strong>?
+          </p>
+          <label style={labelStyle}>
+            Motivo <span style={{ color: '#e05252' }}>*</span>
+          </label>
+          <textarea
+            value={motivoRejeitar}
+            onChange={(e) => { setMotivoRejeitar(e.target.value); setRejeitarError(''); }}
+            rows={3}
+            placeholder="Informe o motivo da rejeição..."
+            style={textareaStyle(!!rejeitarError)}
+          />
+          {rejeitarError && <p style={errorStyle}>{rejeitarError}</p>}
+          <div style={modalFooter}>
+            <button onClick={() => setRejeitarTarget(null)} disabled={isPending} style={btnStyle('ghost')}>
+              Cancelar
+            </button>
+            <button onClick={handleRejeitar} disabled={isPending} style={{ ...btnStyle('red'), opacity: isPending ? 0.7 : 1 }}>
+              {isPending ? 'Rejeitando...' : 'Confirmar rejeição'}
+            </button>
           </div>
-        </div>
+        </Modal>
+      )}
+
+      {/* Modal Arquivar */}
+      {arquivarTarget && (
+        <Modal onClose={() => setArquivarTarget(null)}>
+          <h2 style={modalTitle}>Arquivar solicitação</h2>
+          <p style={modalDesc}>
+            Arquivar a solicitação de <strong style={{ color: '#e8e8e8' }}>{arquivarTarget.nome}</strong>?
+            A solicitação será ocultada da lista principal, mas permanecerá no banco de dados.
+          </p>
+          {arquivarError && <p style={errorStyle}>{arquivarError}</p>}
+          <div style={modalFooter}>
+            <button onClick={() => setArquivarTarget(null)} disabled={isPending} style={btnStyle('ghost')}>
+              Cancelar
+            </button>
+            <button onClick={handleArquivar} disabled={isPending} style={{ ...btnStyle('gray'), opacity: isPending ? 0.7 : 1 }}>
+              {isPending ? 'Arquivando...' : 'Confirmar arquivo'}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Deletar */}
+      {deletarTarget && (
+        <Modal onClose={() => setDeletarTarget(null)}>
+          <h2 style={{ ...modalTitle, color: '#e05252' }}>Deletar solicitação</h2>
+          <p style={modalDesc}>
+            Tem certeza que deseja <strong style={{ color: '#e8e8e8' }}>deletar permanentemente</strong> a
+            solicitação de <strong style={{ color: '#e8e8e8' }}>{deletarTarget.nome}</strong> ({deletarTarget.email})?
+          </p>
+          <p style={{ ...modalDesc, color: '#7a3535', backgroundColor: 'rgba(224,82,82,0.08)', padding: '10px 12px', borderRadius: '8px', marginTop: '0' }}>
+            Esta ação não pode ser desfeita.
+          </p>
+          {deletarError && <p style={errorStyle}>{deletarError}</p>}
+          <div style={modalFooter}>
+            <button onClick={() => setDeletarTarget(null)} disabled={isPending} style={btnStyle('ghost')}>
+              Cancelar
+            </button>
+            <button onClick={handleDeletar} disabled={isPending} style={{ ...btnStyle('darkred'), padding: '8px 18px', fontSize: '14px', opacity: isPending ? 0.7 : 1 }}>
+              {isPending ? 'Deletando...' : 'Deletar permanentemente'}
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );
+}
+
+// ── helpers de estilo ──────────────────────────────────────────────────────────
+
+function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        style={{
+          backgroundColor: '#222',
+          borderRadius: '12px',
+          border: '1px solid #2e2e2e',
+          padding: '28px',
+          width: '100%',
+          maxWidth: '420px',
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+type BtnVariant = 'green' | 'red' | 'darkred' | 'gray' | 'ghost';
+
+function btnStyle(variant: BtnVariant): React.CSSProperties {
+  const base: React.CSSProperties = {
+    padding: '5px 12px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    border: '1px solid',
+    whiteSpace: 'nowrap',
+  };
+  switch (variant) {
+    case 'green':
+      return { ...base, borderColor: '#738D45', backgroundColor: 'rgba(115,141,69,0.15)', color: '#9ab558' };
+    case 'red':
+      return { ...base, borderColor: '#5a2a2a', backgroundColor: 'rgba(224,82,82,0.1)', color: '#e05252' };
+    case 'darkred':
+      return { ...base, borderColor: '#7a2222', backgroundColor: 'rgba(122,34,34,0.3)', color: '#e05252' };
+    case 'gray':
+      return { ...base, borderColor: '#3a3a3a', backgroundColor: 'rgba(255,255,255,0.04)', color: '#888' };
+    case 'ghost':
+      return { ...base, borderColor: '#2e2e2e', backgroundColor: 'transparent', color: '#888', fontSize: '14px', padding: '8px 18px' };
+  }
+}
+
+const modalTitle: React.CSSProperties = { fontSize: '17px', fontWeight: 700, color: '#e8e8e8', margin: '0 0 8px' };
+const modalDesc: React.CSSProperties = { fontSize: '14px', color: '#888', margin: '0 0 20px' };
+const modalFooter: React.CSSProperties = { display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' };
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '13px', color: '#888', marginBottom: '6px' };
+const errorStyle: React.CSSProperties = { color: '#e05252', fontSize: '13px', marginTop: '8px' };
+
+function textareaStyle(hasError = false): React.CSSProperties {
+  return {
+    width: '100%',
+    backgroundColor: '#1c1c1c',
+    border: `1px solid ${hasError ? '#e05252' : '#2e2e2e'}`,
+    borderRadius: '8px',
+    padding: '10px 12px',
+    color: '#e8e8e8',
+    fontSize: '14px',
+    resize: 'vertical',
+    outline: 'none',
+    boxSizing: 'border-box',
+  };
 }

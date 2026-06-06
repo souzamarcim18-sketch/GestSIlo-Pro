@@ -124,7 +124,11 @@
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\" -Force)",
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\\\\solicitacoes\" -Force)",
       "PowerShell(Copy-Item \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\solicitacoes\\\\SolicitacoesClient.tsx\" \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\\\\\\(protected\\)\\\\solicitacoes\\\\SolicitacoesClient.tsx\")",
-      "PowerShell(npm run test 2>&1)"
+      "PowerShell(npm run test 2>&1)",
+      "PowerShell(Get-ChildItem \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
+      "Bash(Select-String -Pattern \"solicitacoes|gestsilo-admin\")",
+      "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"solicitacoes|arquivar|deletar|gestsilo-admin\" })",
+      "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; $out = npx tsc --noEmit 2>&1; $out | Where-Object { $_ -match \"solicit|arquivar|deletar|admin\" })"
     ],
     "additionalDirectories": [
       "\\tmp"

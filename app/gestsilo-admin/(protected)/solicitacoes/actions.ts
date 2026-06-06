@@ -109,3 +109,51 @@ export async function rejeitarSolicitacao(
 
   return { success: true };
 }
+
+export async function arquivarSolicitacao(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requireAdminSession();
+  } catch {
+    return { success: false, error: 'Não autorizado' };
+  }
+
+  const supabase = getServiceClient();
+
+  const { error } = await supabase
+    .from('solicitacoes_acesso')
+    .update({ status: 'arquivada', arquivada_em: new Date().toISOString() } as Record<string, unknown>)
+    .eq('id', id);
+
+  if (error) {
+    console.error('arquivarSolicitacao: error', error.message);
+    return { success: false, error: 'Erro ao arquivar solicitação' };
+  }
+
+  return { success: true };
+}
+
+export async function deletarSolicitacao(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requireAdminSession();
+  } catch {
+    return { success: false, error: 'Não autorizado' };
+  }
+
+  const supabase = getServiceClient();
+
+  const { error } = await supabase
+    .from('solicitacoes_acesso')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('deletarSolicitacao: error', error.message);
+    return { success: false, error: 'Erro ao deletar solicitação' };
+  }
+
+  return { success: true };
+}
