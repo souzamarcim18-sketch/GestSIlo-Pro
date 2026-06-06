@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { getAdminSession } from '@/lib/admin-auth';
+import AdminNav from './AdminNav';
 
 async function logoutAction() {
   'use server';
@@ -87,32 +88,7 @@ export default async function AdminLayout({
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '0 12px' }}>
-          <a
-            href="/gestsilo-admin/solicitacoes"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '10px 12px',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              color: '#ccc',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'background-color 0.15s',
-            }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.backgroundColor = '#2a2a2a')
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.backgroundColor = 'transparent')
-            }
-          >
-            <span style={{ fontSize: '16px' }}>📋</span>
-            Solicitações de acesso
-          </a>
-        </nav>
+        <AdminNav />
 
         {/* Sair */}
         <div style={{ padding: '16px 12px 0', borderTop: '1px solid #2e2e2e' }}>
