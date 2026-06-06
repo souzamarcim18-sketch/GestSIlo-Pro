@@ -44,7 +44,7 @@ export async function aprovarSolicitacao(
     return { success: false, error: 'Erro ao atualizar solicitação' };
   }
 
-  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`;
+  const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL}/onboarding`;
 
   const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
     redirectTo,
