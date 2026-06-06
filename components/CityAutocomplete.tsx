@@ -124,7 +124,7 @@ export function CityAutocomplete({
                         {city.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {city.state} • {city.latitude.toFixed(4)}°, {city.longitude.toFixed(4)}°
+                        {city.state}
                       </p>
                     </button>
                   </li>

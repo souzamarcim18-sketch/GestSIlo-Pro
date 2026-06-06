@@ -32,6 +32,7 @@ import {
   RefreshCw,
   Tractor,
   CreditCard,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ import { supabase } from '@/lib/supabase';
 import { CowIcon } from '@/components/icons/CowIcon';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
+import { parsePlanoSlug, planoPermiteModulo } from '@/lib/planos';
 
 
 type RouteItem = {
@@ -48,28 +50,29 @@ type RouteItem = {
   icon: React.ElementType;
   href: string;
   badge?: 'comingSoon' | null;
+  modulo?: string;
 };
 
 const gerencialRoutes: RouteItem[] = [
-  { label: 'Silos',              icon: Database,   href: '/dashboard/silos',                badge: null },
-  { label: 'Pastagens',          icon: Leaf,        href: '/dashboard/pastagens',            badge: null },
-  { label: 'Balanço Forrageiro', icon: Scale,       href: '/dashboard/balanco-forrageiro',   badge: null },
-  { label: 'Lavouras',           icon: Sprout,      href: '/dashboard/talhoes',              badge: null },
-  { label: 'Rebanho',            icon: CowIcon,     href: '/dashboard/rebanho',              badge: null },
-  { label: 'Insumos',            icon: Package,     href: '/dashboard/insumos',              badge: null },
-  { label: 'Produtos',           icon: PackageOpen, href: '/dashboard/produtos',             badge: null },
-  { label: 'Frota',              icon: Tractor,       href: '/dashboard/frota',                badge: null },
-  { label: 'Equipe',             icon: Users,       href: '/dashboard/mao-de-obra',          badge: null },
-  { label: 'Financeiro',  icon: DollarSign,    href: '/dashboard/financeiro',                     badge: null },
-  { label: 'Calendário',  icon: Calendar,      href: '/dashboard/calendario',                     badge: null },
-  { label: 'Relatórios',  icon: BarChart3,     href: '/dashboard/relatorios',                     badge: null },
+  { label: 'Silos',              icon: Database,    href: '/dashboard/silos',              badge: null },
+  { label: 'Pastagens',          icon: Leaf,        href: '/dashboard/pastagens',          badge: null, modulo: 'pastagens' },
+  { label: 'Balanço Forrageiro', icon: Scale,       href: '/dashboard/balanco-forrageiro', badge: null, modulo: 'balanco_forrageiro' },
+  { label: 'Lavouras',           icon: Sprout,      href: '/dashboard/talhoes',            badge: null, modulo: 'talhoes' },
+  { label: 'Rebanho',            icon: CowIcon,     href: '/dashboard/rebanho',            badge: null, modulo: 'rebanho' },
+  { label: 'Insumos',            icon: Package,     href: '/dashboard/insumos',            badge: null, modulo: 'insumos' },
+  { label: 'Produtos',           icon: PackageOpen, href: '/dashboard/produtos',           badge: null, modulo: 'produtos' },
+  { label: 'Frota',              icon: Tractor,     href: '/dashboard/frota',              badge: null, modulo: 'frota' },
+  { label: 'Equipe',             icon: Users,       href: '/dashboard/mao-de-obra',        badge: null, modulo: 'mao_de_obra' },
+  { label: 'Financeiro',         icon: DollarSign,  href: '/dashboard/financeiro',         badge: null, modulo: 'financeiro' },
+  { label: 'Calendário',         icon: Calendar,    href: '/dashboard/calendario',         badge: null },
+  { label: 'Relatórios',         icon: BarChart3,   href: '/dashboard/relatorios',         badge: null },
 ];
 
 const ferramentasRoutes: RouteItem[] = [
-  { label: 'Calculadoras',              icon: Calculator,   href: '/dashboard/calculadoras'          },
-  { label: 'Planejamento de Silagem',   icon: NotebookPen,  href: '/dashboard/planejamento-silagem' },
-  { label: 'Planejamento de Compras',          icon: ShoppingCart, href: '/dashboard/planejamento-compras' },
-  { label: 'Assessoria agronômica',  icon: GraduationCap, href: '/dashboard/assessoria'          },
+  { label: 'Calculadoras',            icon: Calculator,    href: '/dashboard/calculadoras'          },
+  { label: 'Planejamento de Silagem', icon: NotebookPen,   href: '/dashboard/planejamento-silagem'  },
+  { label: 'Planejamento de Compras', icon: ShoppingCart,  href: '/dashboard/planejamento-compras', modulo: 'planejamento_compras' },
+  { label: 'Assessoria agronômica',   icon: GraduationCap, href: '/dashboard/assessoria'            },
 ];
 
 const sistemaRoutes: RouteItem[] = [
@@ -217,10 +220,39 @@ function SubNavItem({
 }
 
 
+function LockedNavItem({
+  icon: Icon,
+  label,
+  onNavigate,
+}: {
+  icon: React.ElementType;
+  label: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <li>
+      <Link
+        href="/dashboard/configuracoes/plano?origem=sidebar"
+        onClick={onNavigate}
+        prefetch={false}
+        className="text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2 text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/[0.04] transition-all duration-150"
+      >
+        <span className="flex items-center gap-2">
+          <Icon aria-hidden="true" className="h-4 w-4 flex-shrink-0 text-muted-foreground/40" />
+          <span>{label}</span>
+        </span>
+        <Lock aria-hidden="true" className="h-3 w-3 flex-shrink-0 text-muted-foreground/40" />
+      </Link>
+    </li>
+  );
+}
+
 export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, planoAtual } = useAuth();
+
+  const plano = parsePlanoSlug(planoAtual);
 
   const visibleGerencialRoutes = profile?.perfil === 'Operador'
     ? gerencialRoutes.filter(
@@ -296,18 +328,32 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                 Gerencial
               </div>
               <ul className="space-y-0.5 list-none">
-                {visibleGerencialRoutes.map((route) => (
-                  <div key={route.href}>
-                    <NavItem
-                      href={route.href}
-                      icon={route.icon}
-                      label={route.label}
-                      isActive={pathname === route.href}
-                      onNavigate={onNavigate}
-                      badge={route.badge}
-                    />
-                  </div>
-                ))}
+                {visibleGerencialRoutes.map((route) => {
+                  const isLocked =
+                    profile?.perfil !== 'Operador' &&
+                    !!route.modulo &&
+                    !planoPermiteModulo(plano, route.modulo);
+                  return (
+                    <div key={route.href}>
+                      {isLocked ? (
+                        <LockedNavItem
+                          icon={route.icon}
+                          label={route.label}
+                          onNavigate={onNavigate}
+                        />
+                      ) : (
+                        <NavItem
+                          href={route.href}
+                          icon={route.icon}
+                          label={route.label}
+                          isActive={pathname === route.href}
+                          onNavigate={onNavigate}
+                          badge={route.badge}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </ul>
             </div>
           </nav>
@@ -323,15 +369,26 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
               </div>
               <ul className="space-y-0.5 list-none">
                 {ferramentasRoutes.map((route) => {
-                  const isRestrictedRoute = ['/dashboard/planejamento-compras', '/dashboard/assessoria'].includes(route.href);
                   const isAssessoria = route.href === '/dashboard/assessoria';
 
-                  if (isRestrictedRoute) {
-                    const hasAccess = isAssessoria
-                      ? profile?.perfil === 'Administrador'
-                      : profile?.perfil === 'Administrador' || profile?.perfil === 'Visualizador';
+                  if (isAssessoria && profile?.perfil !== 'Administrador') return null;
 
-                    if (!hasAccess) return null;
+                  const isPlanejamentoCompras = route.href === '/dashboard/planejamento-compras';
+                  if (isPlanejamentoCompras && (profile?.perfil === 'Operador' || profile?.perfil === 'Visualizador')) return null;
+
+                  const isLocked =
+                    !!route.modulo &&
+                    !planoPermiteModulo(plano, route.modulo);
+
+                  if (isLocked) {
+                    return (
+                      <LockedNavItem
+                        key={route.href}
+                        icon={route.icon}
+                        label={route.label}
+                        onNavigate={onNavigate}
+                      />
+                    );
                   }
 
                   return (

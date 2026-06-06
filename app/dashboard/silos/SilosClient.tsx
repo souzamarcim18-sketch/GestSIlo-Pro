@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Database } from 'lucide-react';
+import { Plus, Database, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
@@ -12,6 +13,7 @@ import { SiloCard, SiloKpiStrip } from './components';
 import { SiloForm } from './components/dialogs/SiloForm';
 import { AbrirSiloDialog } from './components/dialogs/AbrirSiloDialog';
 import { calcularDadosSilos, type SiloCardData } from './helpers';
+import { planoPermiteMaisRegistros, parsePlanoSlug } from '@/lib/planos';
 
 type InsumoSelect = { id: string; nome: string };
 
@@ -21,9 +23,10 @@ interface Props {
   initialInsumosLona: InsumoSelect[];
   initialInsumosInoculante: InsumoSelect[];
   isAdmin?: boolean;
+  planoAtual?: string | null;
 }
 
-export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumosLona, initialInsumosInoculante, isAdmin }: Props) {
+export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumosLona, initialInsumosInoculante, isAdmin, planoAtual }: Props) {
   const router = useRouter();
   const [siloCardData, setSiloCardData] = useState<SiloCardData[]>(initialSiloCardData);
   const [talhoes] = useState<Talhao[]>(initialTalhoes);
@@ -31,6 +34,9 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
   const [insumosInoculante] = useState<InsumoSelect[]>(initialInsumosInoculante);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
   const [abrirSiloTarget, setAbrirSiloTarget] = useState<{ id: string; nome: string; dataAberturaPrevia?: string | null } | null>(null);
+
+  const plano = parsePlanoSlug(planoAtual);
+  const limiteAtingido = !planoPermiteMaisRegistros(plano, 'silos', siloCardData.length);
 
   const fetchData = useCallback(async () => {
     try {
@@ -46,10 +52,20 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Silagens</h2>
-        <Button onClick={() => setIsAddSiloOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Silo
-        </Button>
+        {limiteAtingido ? (
+          <Link
+            href="/dashboard/configuracoes/plano?origem=silos"
+            className="inline-flex items-center gap-2 text-xs font-semibold rounded-lg border border-border px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all duration-150"
+          >
+            <Lock className="h-4 w-4" />
+            Limite atingido — Fazer upgrade
+          </Link>
+        ) : (
+          <Button onClick={() => setIsAddSiloOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Silo
+          </Button>
+        )}
       </div>
 
       <SiloKpiStrip data={siloCardData} />

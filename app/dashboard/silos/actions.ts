@@ -3,6 +3,45 @@
 import { upsertRegistroColaborador } from '@/lib/supabase/registros-colaborador';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { abrirSiloSchema } from '@/lib/validations/silos';
+import { parsePlanoSlug, planoPermiteMaisRegistros } from '@/lib/planos';
+
+/**
+ * Verifica se o plano da fazenda permite criar mais silos.
+ * Retorna null se permitido, ou { error, limite } se bloqueado.
+ */
+export async function verificarLimiteSilosAction(): Promise<{ error: 'limite_atingido'; limite: number } | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('fazenda_id')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.fazenda_id) return null;
+
+  const { data: fazenda } = await supabase
+    .from('fazendas')
+    .select('plano_atual')
+    .eq('id', profile.fazenda_id)
+    .single();
+
+  const plano = parsePlanoSlug(fazenda?.plano_atual);
+  const limite = (plano === 'free') ? 2 : Infinity;
+  if (limite === Infinity) return null;
+
+  const { count } = await supabase
+    .from('silos')
+    .select('id', { count: 'exact', head: true })
+    .eq('fazenda_id', profile.fazenda_id);
+
+  const atual = count ?? 0;
+  if (!planoPermiteMaisRegistros(plano, 'silos', atual)) {
+    return { error: 'limite_atingido', limite };
+  }
+  return null;
+}
 
 /**
  * Vincula colaborador ao cadastro de um silo.

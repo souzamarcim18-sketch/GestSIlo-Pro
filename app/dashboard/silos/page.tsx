@@ -16,10 +16,20 @@ export default async function SilosPage() {
 
   const { data: profileData } = await supabase
     .from('profiles')
-    .select('perfil')
+    .select('perfil, fazenda_id')
     .eq('id', user.id)
     .single();
   const isAdmin = profileData?.perfil === 'Administrador';
+
+  let planoAtual: string | null = null;
+  if (profileData?.fazenda_id) {
+    const { data: fazenda } = await supabase
+      .from('fazendas')
+      .select('plano_atual')
+      .eq('id', profileData.fazenda_id)
+      .single();
+    planoAtual = fazenda?.plano_atual ?? null;
+  }
 
   const [silosRes, talhoesRes, insumosRes] = await Promise.all([
     supabase
@@ -73,6 +83,7 @@ export default async function SilosPage() {
       initialInsumosLona={insumosLona}
       initialInsumosInoculante={insumosInoculante}
       isAdmin={isAdmin}
+      planoAtual={planoAtual}
     />
   );
 }

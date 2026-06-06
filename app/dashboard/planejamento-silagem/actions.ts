@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { qServer } from '@/lib/supabase/queries-audit';
 import { detectarRebanho, projetarRebanho } from '@/lib/supabase/rebanho';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { parsePlanoSlug, planoPermiteMaisRegistros } from '@/lib/planos';
 import type { PlanejamentoSilagem, RebanhoSnapshot } from '@/lib/types/planejamento-silagem';
 import type { DeteccaoRebanho, RebanhoProjetado } from '@/lib/types/rebanho';
 
@@ -13,7 +15,36 @@ export async function savePlanejamentoAction(
   payload: Omit<PlanejamentoSilagem, 'id' | 'created_at' | 'fazenda_id'> & {
     rebanho_snapshot?: RebanhoSnapshot;
   }
-): Promise<{ success: boolean; data?: PlanejamentoSilagem; error?: string }> {
+): Promise<{ success: boolean; data?: PlanejamentoSilagem; error?: string; limite?: number }> {
+  // Verificação de limite de plano
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('fazenda_id')
+      .eq('id', user.id)
+      .single();
+    if (profile?.fazenda_id) {
+      const { data: fazenda } = await supabase
+        .from('fazendas')
+        .select('plano_atual')
+        .eq('id', profile.fazenda_id)
+        .single();
+      const plano = parsePlanoSlug(fazenda?.plano_atual);
+      const limite = (plano === 'free') ? 1 : Infinity;
+      if (limite !== Infinity) {
+        const { count } = await supabase
+          .from('planejamentos_silagem')
+          .select('id', { count: 'exact', head: true })
+          .eq('fazenda_id', profile.fazenda_id);
+        if (!planoPermiteMaisRegistros(plano, 'planejamentos', count ?? 0)) {
+          return { success: false, error: 'limite_atingido', limite };
+        }
+      }
+    }
+  }
+
   try {
     const result = await qServer.planejamentosSilagem.create(payload);
     revalidatePath('/dashboard/planejamento-silagem/historico');
