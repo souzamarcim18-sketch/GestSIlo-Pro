@@ -27,6 +27,8 @@ export default function LoginPage() {
 
   // Estado do fluxo de convite
   const [isInviteFlow, setIsInviteFlow] = useState(false);
+  const [inviteSessionReady, setInviteSessionReady] = useState(false);
+  const [inviteSessionError, setInviteSessionError] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -47,9 +49,25 @@ export default function LoginPage() {
     const hashParams = new URLSearchParams(hash.substring(1));
     const type = hashParams.get('type');
     const accessToken = hashParams.get('access_token');
-    if (type === 'invite' && accessToken) {
-      setIsInviteFlow(true);
+    const refreshToken = hashParams.get('refresh_token');
+    if (type !== 'invite' || !accessToken || !refreshToken) return;
+
+    setIsInviteFlow(true);
+
+    async function estabelecerSessaoConvite() {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken!,
+        refresh_token: refreshToken!,
+      });
+      if (sessionError) {
+        authLog('setSession invite error:', sessionError.message);
+        setInviteSessionError('O link de convite expirou ou é inválido. Solicite um novo convite.');
+        return;
+      }
+      setInviteSessionReady(true);
     }
+
+    estabelecerSessaoConvite();
   }, []);
 
   useEffect(() => {
@@ -280,6 +298,29 @@ export default function LoginPage() {
                   </p>
                 </div>
 
+                {/* Aguardando setSession */}
+                {!inviteSessionReady && !inviteSessionError && (
+                  <div className="flex items-center justify-center gap-3 py-8 text-muted-foreground">
+                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span className="text-sm">Validando convite...</span>
+                  </div>
+                )}
+
+                {/* Erro no setSession */}
+                {inviteSessionError && (
+                  <div role="alert" aria-live="assertive" className="flex items-center gap-3 p-4 bg-red-dim border border-red-border rounded-xl">
+                    <svg className="w-5 h-5 text-status-danger flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-status-danger text-sm font-medium">{inviteSessionError}</p>
+                  </div>
+                )}
+
+                {/* Formulário — só exibido após sessão estabelecida */}
+                {inviteSessionReady && (
                 <form onSubmit={handleSetInvitePassword} className="space-y-5" noValidate>
 
                   {/* Nova senha */}
@@ -408,6 +449,7 @@ export default function LoginPage() {
                     )}
                   </button>
                 </form>
+                )}
               </>
             ) : (
               /* ===== FORMULÁRIO DE LOGIN NORMAL ===== */

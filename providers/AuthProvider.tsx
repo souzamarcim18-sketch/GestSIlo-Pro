@@ -9,6 +9,7 @@ export interface AuthState {
   user: User | null;
   profile: Profile | null;
   fazendaId: string | null;
+  planoAtual: string | null;
   loading: boolean;
   needsOnboarding: boolean;
   profileError: string | null;
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthState>({
   user: null,
   profile: null,
   fazendaId: null,
+  planoAtual: null,
   loading: true,
   needsOnboarding: false,
   profileError: null,
@@ -28,6 +30,7 @@ const AuthContext = createContext<AuthState>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [planoAtual, setPlanoAtual] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -139,6 +142,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // mantém o profile derivado do JWT metadata para não zerar needsOnboarding.
       if (data !== null) {
         setProfile(data);
+
+        // Busca plano_atual da fazenda em background (não bloqueia o load)
+        if (data.fazenda_id) {
+          const fazendaIdParaPlano = data.fazenda_id;
+          void (async () => {
+            try {
+              const { data: fazenda } = await supabase
+                .from('fazendas')
+                .select('plano_atual')
+                .eq('id', fazendaIdParaPlano)
+                .single();
+              if (fazenda?.plano_atual) {
+                setPlanoAtual(fazenda.plano_atual);
+              }
+            } catch (err) {
+              authLog('[FETCH-PLANO] Failed (non-blocking):', err);
+            }
+          })();
+        }
       }
       setProfileError(null);
     } catch (error) {
@@ -208,6 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           lastProcessedUserIdRef.current = null;
           setUser(null);
           setProfile(null);
+          setPlanoAtual(null);
           setProfileError(null);
           setLoading(false);
           return;
@@ -274,12 +297,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       profile,
       fazendaId,
+      planoAtual,
       loading,
       needsOnboarding,
       profileError,
       refreshProfile,
     }),
-    [user, profile, fazendaId, loading, needsOnboarding, profileError, refreshProfile]
+    [user, profile, fazendaId, planoAtual, loading, needsOnboarding, profileError, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
