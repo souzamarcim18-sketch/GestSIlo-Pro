@@ -6,6 +6,12 @@ import Stripe from 'stripe';
 import { Resend } from 'resend';
 import stripe from '@/lib/stripe';
 import type { Database, Json } from '@/types/supabase';
+import {
+  emailConfirmacaoAssinatura,
+  emailFalhaPagamento,
+  emailAssinaturaCancelada,
+  emailRenovacaoSucesso,
+} from '@/lib/email/templates/assinaturas';
 
 // Service role — webhook não tem contexto de usuário autenticado
 function getServiceClient() {
@@ -164,16 +170,20 @@ async function handleCheckoutCompleted(
   if (resend) {
     const { email, nome } = await getFazendaEmail(supabase, fazendaId);
     if (email) {
-      await resend.emails.send({
+      const dataRenovacao = periodoFim
+        ? new Date(periodoFim).toLocaleDateString('pt-BR')
+        : '—';
+      const { subject, html } = emailConfirmacaoAssinatura({
+        nomeProdutor: nome,
+        plano,
+        dataRenovacao,
+        dashboardUrl: `${APP_URL}/dashboard`,
+      });
+      resend.emails.send({
         from: 'GestSilo <noreply@gestsilo.com.br>',
         to: email,
-        subject: `✅ Assinatura ${plano.charAt(0).toUpperCase() + plano.slice(1)} ativada — GestSilo`,
-        html: `
-          <p>Olá,</p>
-          <p>Sua assinatura do plano <strong>${plano.toUpperCase()}</strong> para <strong>${nome}</strong> foi ativada com sucesso.</p>
-          <p>Acesse sua conta em <a href="${APP_URL}/dashboard">${APP_URL}/dashboard</a>.</p>
-          <p>Equipe GestSilo</p>
-        `,
+        subject,
+        html,
       }).catch((err: unknown) => console.error('[webhook] Erro ao enviar email confirmação:', err));
     }
   }
@@ -200,13 +210,41 @@ async function handleInvoicePaymentSucceeded(
     ? new Date(firstItem.current_period_end * 1000).toISOString()
     : null;
 
-  const { error } = await supabase
+  // Busca assinatura atual para verificar se já havia periodo_inicio (não é a primeira cobrança)
+  const { data: assinatura, error } = await supabase
     .from('assinaturas')
     .update({ status: 'ativa', periodo_fim: periodoFim ?? undefined, cancelada_em: null })
-    .eq('stripe_subscription_id', subscriptionId);
+    .eq('stripe_subscription_id', subscriptionId)
+    .select('fazenda_id, plano, periodo_inicio')
+    .single();
 
   if (error) {
     console.error('[webhook] Erro ao atualizar período após renovação:', error);
+    return;
+  }
+
+  // Só envia email de renovação se não for a primeira cobrança
+  // (primeira cobrança já dispara checkout.session.completed)
+  const isPrimeiraCobranca = !assinatura?.periodo_inicio;
+  if (!isPrimeiraCobranca && resend && assinatura?.fazenda_id) {
+    const { email, nome } = await getFazendaEmail(supabase, assinatura.fazenda_id);
+    if (email) {
+      const dataProximaRenovacao = periodoFim
+        ? new Date(periodoFim).toLocaleDateString('pt-BR')
+        : '—';
+      const { subject, html } = emailRenovacaoSucesso({
+        nomeProdutor: nome,
+        plano: assinatura.plano ?? 'starter',
+        dataProximaRenovacao,
+        dashboardUrl: `${APP_URL}/dashboard`,
+      });
+      resend.emails.send({
+        from: 'GestSilo <noreply@gestsilo.com.br>',
+        to: email,
+        subject,
+        html,
+      }).catch((err: unknown) => console.error('[webhook] Erro ao enviar email renovação:', err));
+    }
   }
 }
 
@@ -242,20 +280,26 @@ async function handleInvoicePaymentFailed(
     console.error('[webhook] Erro ao marcar inadimplente:', error);
   }
 
-  // Email de aviso
+  // Email de aviso de falha
   if (resend) {
+    const { data: assinaturaComPlano } = await supabase
+      .from('assinaturas')
+      .select('plano')
+      .eq('stripe_subscription_id', subscriptionId)
+      .single();
+
     const { email, nome } = await getFazendaEmail(supabase, assinatura.fazenda_id);
     if (email) {
-      await resend.emails.send({
+      const { subject, html } = emailFalhaPagamento({
+        nomeProdutor: nome,
+        plano: assinaturaComPlano?.plano ?? 'starter',
+        portalUrl: `${APP_URL}/dashboard/configuracoes/plano`,
+      });
+      resend.emails.send({
         from: 'GestSilo <noreply@gestsilo.com.br>',
         to: email,
-        subject: '⚠️ Falha no pagamento da assinatura — GestSilo',
-        html: `
-          <p>Olá,</p>
-          <p>Não conseguimos processar o pagamento da assinatura de <strong>${nome}</strong>.</p>
-          <p>Por favor, verifique seu método de pagamento em <a href="${APP_URL}/dashboard/configuracoes/plano">${APP_URL}/dashboard/configuracoes/plano</a>.</p>
-          <p>Equipe GestSilo</p>
-        `,
+        subject,
+        html,
       }).catch((err: unknown) => console.error('[webhook] Erro ao enviar email inadimplência:', err));
     }
   }
@@ -291,6 +335,24 @@ async function handleSubscriptionDeleted(
     .eq('id', resolvedFazendaId);
 
   await arquivarExcedentes(supabase, resolvedFazendaId, planoAnterior, 'free');
+
+  // Email de confirmação de cancelamento
+  if (resend) {
+    const { email, nome } = await getFazendaEmail(supabase, resolvedFazendaId);
+    if (email) {
+      const { subject, html } = emailAssinaturaCancelada({
+        nomeProdutor: nome,
+        plano: planoAnterior,
+        reativarUrl: `${APP_URL}/dashboard/configuracoes/plano`,
+      });
+      resend.emails.send({
+        from: 'GestSilo <noreply@gestsilo.com.br>',
+        to: email,
+        subject,
+        html,
+      }).catch((err: unknown) => console.error('[webhook] Erro ao enviar email cancelamento:', err));
+    }
+  }
 }
 
 async function handleSubscriptionUpdated(

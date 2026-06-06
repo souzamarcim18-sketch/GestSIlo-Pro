@@ -86,7 +86,7 @@ export function CityAutocomplete({
     <div className="space-y-2">
       {label && <Label htmlFor="city-autocomplete">{label}</Label>}
 
-      <div ref={containerRef} className="relative">
+      <div ref={containerRef} className="relative z-10">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
@@ -106,7 +106,7 @@ export function CityAutocomplete({
         </div>
 
         {showDropdown && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg z-50">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-xl z-[9999]">
             {hasResults ? (
               <ul className="max-h-64 overflow-y-auto">
                 {results.map((city, idx) => (

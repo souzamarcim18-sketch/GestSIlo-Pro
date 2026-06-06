@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Landmark, ArrowRight } from 'lucide-react';
+import { Landmark, ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { CityAutocomplete } from '@/components/CityAutocomplete';
@@ -23,6 +23,7 @@ export default function OnboardingPage() {
   const { user, refreshProfile } = useAuth();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [redirecionando, setRedirecionando] = useState(false);
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
 
   const nomeRef = useRef<HTMLInputElement>(null);
@@ -60,12 +61,13 @@ export default function OnboardingPage() {
         longitude: selectedCity.longitude,
       });
 
-      toast.success('Fazenda criada com sucesso! 🎉');
+      toast.success('Fazenda criada com sucesso!');
 
       // Atualiza o state do useAuth sem reload
       await refreshProfile();
 
-      // Redireciona pro dashboard
+      // Exibe tela de loading para evitar flash do form vazio antes do redirect
+      setRedirecionando(true);
       router.replace('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao criar fazenda';
@@ -74,6 +76,15 @@ export default function OnboardingPage() {
       setSaving(false);
     }
   };
+
+  if (redirecionando) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden="true" />
+        <p className="text-sm text-muted-foreground">Carregando sua fazenda...</p>
+      </div>
+    );
+  }
 
   return (
     <Card className="w-full max-w-lg mx-4 shadow-lg dark:bg-card dark:border-border">
