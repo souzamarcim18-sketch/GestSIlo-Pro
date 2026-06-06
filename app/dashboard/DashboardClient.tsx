@@ -14,6 +14,11 @@ import {
   AlertCircle,
   Info,
   Leaf,
+  TrendingDown,
+  Beef,
+  Plus,
+  CalendarClock,
+  ArrowRight,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn, formatBRL } from '@/lib/utils';
@@ -34,6 +39,7 @@ const PieCategoriasRebanho = dynamic(
 );
 import type { DashboardData, AlertaSeveridade } from './dashboard-data';
 import { AtividadesRecentesList } from '@/components/dashboard/AtividadesRecentesList';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -91,12 +97,21 @@ function FinanceiroCard({
   variante,
   href,
   subtitle = 'Mês corrente',
+  variacaoPct,
+  variacaoTipo,
+  linkLabel,
 }: {
   title: string;
   value: string;
   variante: 'receita' | 'despesa' | 'saldo_positivo' | 'saldo_negativo';
   href: string;
   subtitle?: string;
+  /** variação % vs mês anterior; null oculta o badge */
+  variacaoPct?: number | null;
+  /** define se uma variação positiva é "boa" (receita) ou "ruim" (despesa) */
+  variacaoTipo?: 'receita' | 'despesa';
+  /** quando presente, exibe um link "ver detalhes" no rodapé do card */
+  linkLabel?: string;
 }) {
   const router = useRouter();
   const valueColor =
@@ -107,6 +122,12 @@ function FinanceiroCard({
         : variante === 'saldo_positivo'
           ? 'text-[#00c45a]'
           : 'text-[#f87171]';
+
+  // Para receita, subir é bom (verde); para despesa, subir é ruim (vermelho).
+  const variacaoBom =
+    variacaoPct != null && (variacaoTipo === 'despesa' ? variacaoPct <= 0 : variacaoPct >= 0);
+  const VariacaoIcon = variacaoPct != null && variacaoPct >= 0 ? TrendingUp : TrendingDown;
+
   return (
     <button
       onClick={() => router.push(href)}
@@ -116,7 +137,23 @@ function FinanceiroCard({
         <div className="space-y-1.5">
           <p className="uppercase tracking-[0.13em] font-bold text-xs text-[#688070]">{title}</p>
           <p className={cn('text-xl md:text-2xl font-black tracking-tight truncate', valueColor)}>{value}</p>
-          <p className="text-xs text-[#688070]">{subtitle}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-xs text-[#688070]">{subtitle}</p>
+            {variacaoPct != null && (
+              <span
+                className={cn(
+                  'inline-flex items-center gap-0.5 text-xs font-semibold',
+                  variacaoBom ? 'text-status-success' : 'text-status-danger'
+                )}
+              >
+                <VariacaoIcon className="w-3 h-3" aria-hidden="true" />
+                {Math.abs(variacaoPct)}%
+              </span>
+            )}
+          </div>
+          {linkLabel && (
+            <span className="text-xs text-[#00c45a] group-hover:underline inline-block pt-0.5">{linkLabel} →</span>
+          )}
         </div>
       </Card>
     </button>
@@ -281,6 +318,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               autonomia={data.silosAutonomiaDias}
               consumo={data.silosConsumoDiario}
               taxaPerdas={data.silosTaxaPerdas}
+              consumoSparkline={data.consumoSparkline}
             />
           </div>
           <div className="row-span-2 flex">
@@ -294,6 +332,49 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </div>
       </section>
 
+      {/* Próximas Operações — só renderiza quando há operações de campo agendadas */}
+      {data.proximasOperacoes.length > 0 && (
+        <section aria-label="Próximas Operações">
+          <SectionLabel>Próximas Operações</SectionLabel>
+          <Card className="rounded-2xl p-4 md:p-5">
+            <div className="space-y-2">
+              {data.proximasOperacoes.slice(0, 5).map((op) => {
+                const janelaAtiva = op.janelaColheita?.ativo;
+                return (
+                  <button
+                    key={op.id}
+                    onClick={() => router.push('/dashboard/talhoes')}
+                    className="w-full text-left p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  >
+                    <div className="shrink-0 w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center">
+                      <CalendarClock className="w-4 h-4 text-brand-primary" aria-hidden="true" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground leading-tight truncate">
+                        {op.tipo_operacao}
+                        {op.cultura ? ` — ${op.cultura}` : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {op.talhao_nome}
+                        {op.data_esperada
+                          ? ` · ${new Date(op.data_esperada).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
+                          : ''}
+                      </p>
+                    </div>
+                    {janelaAtiva && (
+                      <span className="shrink-0 text-xs font-semibold text-status-warning bg-status-warning/10 rounded-full px-2 py-0.5">
+                        Janela em {op.janelaColheita!.diasRestantes}d
+                      </span>
+                    )}
+                    <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        </section>
+      )}
+
       {/* Campo — Rebanho + Lavouras + Pastagens */}
       <section aria-label="Campo">
         <SectionLabel>Campo</SectionLabel>
@@ -301,12 +382,31 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
           {/* Coluna Rebanho */}
           <div className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rebanho</p>
-            <KpiChartCard
-              label="Total de Animais"
-              chart={<PieCategoriasRebanho data={data.categoriasRebanho} total={data.totalAnimais} />}
-              className="flex-1"
-              onClick={() => router.push('/dashboard/rebanho')}
-            />
+            {data.totalAnimais === 0 ? (
+              <Card className="rounded-[13px] p-2 flex-1 flex items-center justify-center">
+                <EmptyState
+                  icon={<Beef className="w-12 h-12" />}
+                  title="Nenhum animal cadastrado"
+                  description="Comece a registrar seu rebanho para acompanhar indicadores e movimentações."
+                  action={
+                    <Link
+                      href="/dashboard/rebanho"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1"
+                    >
+                      <Plus className="w-4 h-4" aria-hidden="true" />
+                      Cadastrar rebanho
+                    </Link>
+                  }
+                />
+              </Card>
+            ) : (
+              <KpiChartCard
+                label="Total de Animais"
+                chart={<PieCategoriasRebanho data={data.categoriasRebanho} total={data.totalAnimais} />}
+                className="flex-1"
+                onClick={() => router.push('/dashboard/rebanho')}
+              />
+            )}
           </div>
 
           {/* Coluna Lavouras */}
@@ -426,8 +526,22 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       <section aria-label="Financeiro">
         <SectionLabel>Financeiro</SectionLabel>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <FinanceiroCard title="RECEITA DO MÊS" value={data.receitaMes} variante="receita" href="/dashboard/financeiro" />
-          <FinanceiroCard title="DESPESA DO MÊS" value={data.despesaMes} variante="despesa" href="/dashboard/financeiro" />
+          <FinanceiroCard
+            title="RECEITA DO MÊS"
+            value={data.receitaMes}
+            variante="receita"
+            href="/dashboard/financeiro"
+            variacaoPct={data.receitaVariacaoPct}
+            variacaoTipo="receita"
+          />
+          <FinanceiroCard
+            title="DESPESA DO MÊS"
+            value={data.despesaMes}
+            variante="despesa"
+            href="/dashboard/financeiro"
+            variacaoPct={data.despesaVariacaoPct}
+            variacaoTipo="despesa"
+          />
           <FinanceiroCard
             title="SALDO LÍQUIDO"
             value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
@@ -440,6 +554,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
             href="/dashboard/financeiro"
             subtitle="Meses anteriores"
+            linkLabel="Ver detalhes"
           />
         </div>
       </section>

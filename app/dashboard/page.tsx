@@ -57,6 +57,8 @@ export default async function DashboardPage() {
   const now = new Date();
   const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+  const mesAnteriorInicio = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+  const mesAnteriorFim = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
   const trintaDiasAtras = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const hoje = now.toISOString().split('T')[0];
   const proximosDias = new Date(now);
@@ -93,6 +95,7 @@ export default async function DashboardPage() {
     piquetesAlertaRes,
     atividadesRecentesRes,
     finAcumuladoRes,
+    finMesAnteriorRes,
   ] = await Promise.all([
     supabase
       .from('silos')
@@ -198,6 +201,12 @@ export default async function DashboardPage() {
       .select('tipo, valor')
       .eq('fazenda_id', fazendaId)
       .lt('data', mesInicio),
+    supabase
+      .from('financeiro')
+      .select('tipo, valor')
+      .eq('fazenda_id', fazendaId)
+      .gte('data', mesAnteriorInicio)
+      .lte('data', mesAnteriorFim),
   ]);
 
   // --- Silagem ---
@@ -259,9 +268,23 @@ export default async function DashboardPage() {
       ? `${consumoDiarioKg.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} kg/dia`
       : '—';
 
+  // Série diária de consumo dos últimos 30 dias (kg/dia) para sparkline
+  const consumoPorDia = new Map<string, number>();
+  for (const m of saidasConsumo) {
+    if (!m.data) continue;
+    const dia = m.data.slice(0, 10);
+    consumoPorDia.set(dia, (consumoPorDia.get(dia) ?? 0) + (m.quantidade ?? 0) * 1000);
+  }
+  const consumoSparkline: number[] = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    consumoSparkline.push(Math.round(consumoPorDia.get(d) ?? 0));
+  }
+
   const totalEstoqueAtual = silosData.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
   const autonomiaDias = consumoDiarioKg > 0 ? Math.round((totalEstoqueAtual * 1000) / consumoDiarioKg) : null;
-  const silosAutonomiaDias = autonomiaDias !== null ? `${autonomiaDias} dias` : '—';
+  const silosAutonomiaDias =
+    autonomiaDias === null ? '—' : autonomiaDias > 365 ? '+365 dias' : `${autonomiaDias} dias`;
 
   const saidasDescarte = movsRecentes.filter((m) => m.tipo === 'Saída' && m.subtipo === 'Descarte');
   const totalDescarte = saidasDescarte.reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
@@ -308,6 +331,15 @@ export default async function DashboardPage() {
   const receitaAcumulada = finAcumulado.filter((l) => l.tipo === 'Receita').reduce((acc, l) => acc + l.valor, 0);
   const despesaAcumulada = finAcumulado.filter((l) => l.tipo === 'Despesa').reduce((acc, l) => acc + l.valor, 0);
   const saldoAcumuladoNum = receitaAcumulada - despesaAcumulada;
+
+  // Variação percentual vs mês anterior (null quando não há base de comparação)
+  const finMesAnterior = finMesAnteriorRes.data ?? [];
+  const receitaMesAnteriorNum = finMesAnterior.filter((l) => l.tipo === 'Receita').reduce((acc, l) => acc + l.valor, 0);
+  const despesaMesAnteriorNum = finMesAnterior.filter((l) => l.tipo === 'Despesa').reduce((acc, l) => acc + l.valor, 0);
+  const variacao = (atual: number, anterior: number): number | null =>
+    anterior > 0 ? Math.round(((atual - anterior) / anterior) * 100) : null;
+  const receitaVariacaoPct = variacao(receitaMesNum, receitaMesAnteriorNum);
+  const despesaVariacaoPct = variacao(despesaMesNum, despesaMesAnteriorNum);
 
   // --- Frota ---
   const totalMaquinas = maquinasRes.count ?? 0;
@@ -536,7 +568,10 @@ export default async function DashboardPage() {
     despesaMes,
     receitaMesNum,
     despesaMesNum,
+    receitaVariacaoPct,
+    despesaVariacaoPct,
     saldoAcumuladoNum,
+    consumoSparkline,
     maquinasTotal,
     maquinasDetalhe,
     totalAnimais,

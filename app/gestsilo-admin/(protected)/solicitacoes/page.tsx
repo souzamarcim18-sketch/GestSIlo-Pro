@@ -29,6 +29,11 @@ export default async function SolicitacoesPage() {
     console.error('SolicitacoesPage: query error', error.message);
   }
 
+  console.log('SERVICE_ROLE_KEY presente:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+  console.log('Query result - data:', JSON.stringify(data))
+  console.log('Query result - error:', JSON.stringify(error))
+  console.log('Query count:', data?.length)
+
   // Garantir que pendentes venham primeiro
   const sorted = (data ?? []).slice().sort((a, b) => {
     if (a.status === 'pendente' && b.status !== 'pendente') return -1;
