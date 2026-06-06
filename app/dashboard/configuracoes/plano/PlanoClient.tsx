@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   CreditCard,
@@ -17,6 +16,7 @@ import {
   RefreshCw,
   Database,
   ClipboardList,
+  Check,
 } from 'lucide-react';
 
 type StatusAssinatura = 'ativa' | 'inadimplente' | 'cancelada' | string;
@@ -57,6 +57,43 @@ const NOMES_RECURSO: Record<string, string> = {
   silo: 'Silo',
   planejamento_silagem: 'Planejamento de Silagem',
 };
+
+type PlanoUpgrade = 'starter' | 'pro' | 'max';
+type Periodo = 'mensal' | 'anual';
+
+const PLANOS_UPGRADE: Array<{
+  slug: PlanoUpgrade;
+  nome: string;
+  mensal: string;
+  anual: string;
+  destaque: boolean;
+  recursos: string[];
+}> = [
+  {
+    slug: 'starter',
+    nome: 'Starter',
+    mensal: 'R$ 49/mês',
+    anual: 'R$ 490/ano',
+    destaque: false,
+    recursos: ['Silos ilimitados', 'Rebanho completo', 'Balanço Forrageiro', 'Pastagens e Piquetes', 'Insumos com alertas'],
+  },
+  {
+    slug: 'pro',
+    nome: 'Pro',
+    mensal: 'R$ 74/mês',
+    anual: 'R$ 740/ano',
+    destaque: true,
+    recursos: ['Tudo do Starter', 'Talhões ilimitados', 'Frota e Maquinário', 'Financeiro completo', 'Todos os relatórios exportáveis'],
+  },
+  {
+    slug: 'max',
+    nome: 'Max',
+    mensal: 'R$ 119/mês',
+    anual: 'R$ 1.190/ano',
+    destaque: false,
+    recursos: ['Tudo do Pro', 'Reunião online a cada 2 meses', 'Suporte prioritário (4h úteis)', 'Acesso antecipado a novidades'],
+  },
+];
 
 function formatarData(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -111,6 +148,9 @@ export function PlanoClient({
   temStripeCustomer,
 }: PlanoClientProps) {
   const [abrindoPortal, setAbrindoPortal] = useState(false);
+  const [abrindoCheckout, setAbrindoCheckout] = useState<PlanoUpgrade | null>(null);
+  const [mostrarUpgrade, setMostrarUpgrade] = useState(false);
+  const [periodoSelecionado, setPeriodoSelecionado] = useState<Periodo>('mensal');
   const router = useRouter();
 
   const nomePlano = NOMES_PLANO[plano] ?? plano;
@@ -119,6 +159,27 @@ export function PlanoClient({
   const isPago = !isFree;
   const inadimplente = status === 'inadimplente';
   const cancelada = status === 'cancelada';
+
+  async function iniciarCheckout(planoEscolhido: PlanoUpgrade) {
+    setAbrindoCheckout(planoEscolhido);
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plano: planoEscolhido, periodo: periodoSelecionado }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        toast.error(data.error ?? 'Não foi possível iniciar o checkout.');
+        return;
+      }
+      router.push(data.url);
+    } catch {
+      toast.error('Erro ao conectar com o sistema de pagamento.');
+    } finally {
+      setAbrindoCheckout(null);
+    }
+  }
 
   async function abrirPortal() {
     setAbrindoPortal(true);
@@ -186,9 +247,13 @@ export function PlanoClient({
             </p>
           </div>
           {isAdmin && (
-            <Link href="/#planos" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMostrarUpgrade(true)}
+            >
               Reativar
-            </Link>
+            </Button>
           )}
         </div>
       )}
@@ -223,10 +288,10 @@ export function PlanoClient({
         {isAdmin && (
           <div className="flex flex-wrap gap-2 pt-2">
             {isFree && (
-              <Link href="/#planos" className={buttonVariants({ variant: 'default' })}>
+              <Button variant="default" onClick={() => setMostrarUpgrade((v) => !v)}>
                 <ArrowUpCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                 Fazer upgrade
-              </Link>
+              </Button>
             )}
 
             {isPago && status === 'ativa' && temStripeCustomer && (
@@ -277,13 +342,102 @@ export function PlanoClient({
         {isFree && isAdmin && (
           <p className="text-xs text-muted-foreground pt-1">
             Quer remover os limites?{' '}
-            <Link href="/#planos" className="text-primary underline underline-offset-2">
+            <button
+              type="button"
+              className="text-primary underline underline-offset-2"
+              onClick={() => setMostrarUpgrade(true)}
+            >
               Conheça os planos pagos
-            </Link>
+            </button>
             .
           </p>
         )}
       </div>
+
+      {/* Painel de upgrade */}
+      {mostrarUpgrade && isAdmin && (
+        <div
+          className="rounded-xl border p-6 space-y-5"
+          style={{ background: 'var(--sidebar)', borderColor: 'var(--border)' }}
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Escolha seu plano
+            </p>
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setMostrarUpgrade(false)}
+            >
+              Fechar
+            </button>
+          </div>
+
+          {/* Toggle mensal / anual */}
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => setPeriodoSelecionado('mensal')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${periodoSelecionado === 'mensal' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Mensal
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriodoSelecionado('anual')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${periodoSelecionado === 'anual' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Anual
+              <span className="ml-1.5 text-xs font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                2 meses grátis
+              </span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {PLANOS_UPGRADE.map((p) => (
+              <div
+                key={p.slug}
+                className={`rounded-lg border p-4 space-y-3 flex flex-col ${p.destaque ? 'border-primary' : 'border-border'}`}
+                style={{ background: p.destaque ? 'var(--green-dim)' : 'var(--background)' }}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-foreground">{p.nome}</p>
+                    {p.destaque && (
+                      <span className="text-xs font-semibold text-primary">Mais popular</span>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
+                    {periodoSelecionado === 'mensal' ? p.mensal : p.anual}
+                  </p>
+                </div>
+                <ul className="space-y-1 flex-1">
+                  {p.recursos.map((r) => (
+                    <li key={r} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                      <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant={p.destaque ? 'default' : 'outline'}
+                  size="sm"
+                  className="w-full"
+                  disabled={abrindoCheckout === p.slug}
+                  onClick={() => iniciarCheckout(p.slug)}
+                >
+                  {abrindoCheckout === p.slug ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    `Assinar ${p.nome}`
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Seção — Dados arquivados */}
       {arquivados.length > 0 && (
@@ -315,10 +469,10 @@ export function PlanoClient({
             })}
           </ul>
           {isAdmin && (
-            <Link href="/#planos" className={buttonVariants({ variant: 'outline' }) + ' w-full'}>
+            <Button variant="outline" className="w-full" onClick={() => setMostrarUpgrade(true)}>
               <ArrowUpCircle className="h-4 w-4 mr-2" aria-hidden="true" />
               Reativar plano para restaurar
-            </Link>
+            </Button>
           )}
         </div>
       )}

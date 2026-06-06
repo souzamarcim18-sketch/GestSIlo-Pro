@@ -130,7 +130,8 @@
       "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"solicitacoes|arquivar|deletar|gestsilo-admin\" })",
       "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; $out = npx tsc --noEmit 2>&1; $out | Where-Object { $_ -match \"solicit|arquivar|deletar|admin\" })",
       "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\app\\\\gestsilo-admin\" -Recurse -Force)",
-      "Bash(Sort-Object FullName)"
+      "Bash(Sort-Object FullName)",
+      "Bash(grep -n \"redirect\\\\|\\\\/dashboard\\\\|pathname.*==\\\\s*'\\\\/\" middleware.ts)"
     ],
     "additionalDirectories": [
       "\\tmp"

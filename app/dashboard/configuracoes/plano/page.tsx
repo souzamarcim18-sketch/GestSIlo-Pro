@@ -23,12 +23,17 @@ export default async function PlanoPage() {
   const fazendaId = profileRes.data.fazenda_id;
   const isAdmin = profileRes.data.perfil === 'Administrador';
 
-  const [assinaturaRes, silosRes, planejamentosRes, arquivadosRes] = await Promise.all([
+  const [assinaturaRes, fazendaRes, silosRes, planejamentosRes, arquivadosRes] = await Promise.all([
     supabase
       .from('assinaturas')
       .select('plano, status, periodo_fim, stripe_customer_id')
       .eq('fazenda_id', fazendaId)
       .maybeSingle(),
+    supabase
+      .from('fazendas')
+      .select('plano_atual')
+      .eq('id', fazendaId)
+      .single(),
     supabase
       .from('silos')
       .select('id', { count: 'exact', head: true })
@@ -45,7 +50,9 @@ export default async function PlanoPage() {
   ]);
 
   const assinatura = assinaturaRes.data;
-  const plano = assinatura?.plano ?? 'free';
+  // fazendas.plano_atual é a fonte de verdade (atualizada pelo webhook Stripe);
+  // a tabela assinaturas pode estar ausente em contas criadas manualmente.
+  const plano = assinatura?.plano ?? fazendaRes.data?.plano_atual ?? 'free';
   const status = assinatura?.status ?? 'ativa';
   const periodoFim = assinatura?.periodo_fim ?? null;
   const temStripeCustomer = !!assinatura?.stripe_customer_id;
