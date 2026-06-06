@@ -9,11 +9,11 @@ export interface Solicitacao {
   id: string;
   nome: string;
   email: string;
-  fazenda: string;
+  nome_fazenda: string;
   whatsapp: string;
-  plano: string;
+  plano_solicitado: string;
   status: Status;
-  criado_em: string;
+  created_at: string;
   aprovado_em: string | null;
   rejeitado_em: string | null;
   observacoes: string | null;
@@ -93,7 +93,7 @@ export default function SolicitacoesClient({
         setItems((prev) =>
           prev.map((s) =>
             s.id === aprovarTarget.id
-              ? { ...s, status: 'aprovada', aprovado_em: new Date().toISOString(), observacoes: obsAprovar || null }
+              ? { ...s, status: 'aprovada' as Status, aprovado_em: new Date().toISOString(), observacoes: obsAprovar || null }
               : s,
           ),
         );
@@ -118,7 +118,7 @@ export default function SolicitacoesClient({
         setItems((prev) =>
           prev.map((s) =>
             s.id === rejeitarTarget.id
-              ? { ...s, status: 'rejeitada', rejeitado_em: new Date().toISOString(), observacoes: motivoRejeitar }
+              ? { ...s, status: 'rejeitada' as Status, rejeitado_em: new Date().toISOString(), observacoes: motivoRejeitar }
               : s,
           ),
         );
@@ -225,7 +225,7 @@ export default function SolicitacoesClient({
                   <td style={{ padding: '14px 16px' }}>
                     <div style={{ fontWeight: 600, color: '#e8e8e8' }}>{s.nome}</div>
                     <div style={{ fontSize: '12px', color: '#777', marginTop: '2px' }}>
-                      {s.fazenda}
+                      {s.nome_fazenda}
                     </div>
                     <div style={{ fontSize: '12px', color: '#555', marginTop: '1px' }}>
                       {s.email}
@@ -236,7 +236,7 @@ export default function SolicitacoesClient({
                     {s.whatsapp}
                   </td>
                   {/* Plano */}
-                  <td style={{ padding: '14px 16px', color: '#bbb' }}>{s.plano}</td>
+                  <td style={{ padding: '14px 16px', color: '#bbb' }}>{s.plano_solicitado}</td>
                   {/* Status */}
                   <td style={{ padding: '14px 16px' }}>
                     <span
@@ -255,7 +255,7 @@ export default function SolicitacoesClient({
                   </td>
                   {/* Data */}
                   <td style={{ padding: '14px 16px', color: '#777', whiteSpace: 'nowrap', fontSize: '13px' }}>
-                    {formatDate(s.criado_em)}
+                    {formatDate(s.created_at)}
                   </td>
                   {/* Ações */}
                   <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>

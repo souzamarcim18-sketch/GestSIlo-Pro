@@ -20,25 +20,20 @@ export default async function SolicitacoesPage() {
   const { data, error } = await supabase
     .from('solicitacoes_acesso')
     .select(
-      'id, nome, email, fazenda, whatsapp, plano, status, criado_em, aprovado_em, rejeitado_em, observacoes, invite_enviado_em',
+      'id, nome, email, nome_fazenda, whatsapp, plano_solicitado, status, created_at, aprovado_em, rejeitado_em, observacoes, invite_enviado_em',
     )
-    .order('status', { ascending: true }) // pendente vem antes de aprovada/rejeitada alfabeticamente
-    .order('criado_em', { ascending: false });
+    .order('status', { ascending: true })
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('SolicitacoesPage: query error', error.message);
   }
 
-  console.log('SERVICE_ROLE_KEY presente:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-  console.log('Query result - data:', JSON.stringify(data))
-  console.log('Query result - error:', JSON.stringify(error))
-  console.log('Query count:', data?.length)
-
   // Garantir que pendentes venham primeiro
   const sorted = (data ?? []).slice().sort((a, b) => {
     if (a.status === 'pendente' && b.status !== 'pendente') return -1;
     if (a.status !== 'pendente' && b.status === 'pendente') return 1;
-    return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   }) as Solicitacao[];
 
   return <SolicitacoesClient initialData={sorted} />;
