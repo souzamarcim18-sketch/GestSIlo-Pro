@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -178,7 +177,6 @@ export function PlanoClient({
   const [abrindoCheckout, setAbrindoCheckout] = useState<PlanoUpgrade | null>(null);
   const [mostrarUpgrade, setMostrarUpgrade] = useState(false);
   const [periodoSelecionado, setPeriodoSelecionado] = useState<Periodo>('mensal');
-  const router = useRouter();
 
   const nomePlano = NOMES_PLANO[plano] ?? plano;
   const statusConfig = STATUS_CONFIG[status] ?? { label: status, variant: 'outline' as const };
@@ -205,7 +203,7 @@ export function PlanoClient({
         toast.error(data.error ?? 'Não foi possível iniciar o checkout.');
         return;
       }
-      router.push(data.url);
+      window.open(data.url, '_blank', 'noopener,noreferrer');
     } catch {
       toast.error('Erro ao conectar com o sistema de pagamento.');
     } finally {
@@ -222,7 +220,7 @@ export function PlanoClient({
         toast.error(data.error ?? 'Não foi possível abrir o portal de pagamento.');
         return;
       }
-      router.push(data.url);
+      window.open(data.url, '_blank', 'noopener,noreferrer');
     } catch {
       toast.error('Erro ao conectar com o portal de pagamento.');
     } finally {

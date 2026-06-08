@@ -746,7 +746,7 @@ export default function LandingPage() {
                 priceMonthly: null,
                 priceAnnually: null,
                 desc: 'Para produtores que querem iniciar e conhecer',
-                features: ['Até 2 silos', '1 simulação de planejamento salva', 'Alertas críticos do dashboard'],
+                features: ['Até 2 silos', '1 simulação de planejamento', 'Alertas críticos do dashboard'],
                 cta: 'Começar grátis',
                 highlight: false,
                 freeForever: true,
@@ -863,6 +863,22 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+
+          {/* Link de dúvidas — WhatsApp */}
+          <div className="mt-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              Ficou com dúvidas sobre qual plano escolher?{' '}
+              <a
+                href="https://wa.me/5531990875346?text=Ol%C3%A1!%20Tenho%20interesse%20no%20GestSilo%20e%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas%20antes%20de%20assinar."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-semibold text-brand-primary hover:underline transition-colors"
+              >
+                <MessageSquare size={14} />
+                Fale com a gente no WhatsApp
+              </a>
+            </p>
+          </div>
         </div>
       </section>
 
@@ -886,14 +902,25 @@ export default function LandingPage() {
           <p className="text-lg mb-10 text-muted-foreground">
             Mais controle. Menos perdas. Mais resultados para seu rebanho e para sua propriedade.
           </p>
-          <button
-            onClick={() => router.push('/solicitar-acesso')}
-            className="px-10 py-5 font-bold text-lg rounded-2xl shadow-2xl transition-all duration-200 hover:-translate-y-1 text-white"
-            style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
-          >
-            Solicitar meu acesso
-          </button>
-          <p className="text-sm mt-4 text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => router.push('/solicitar-acesso')}
+              className="px-10 py-5 font-bold text-lg rounded-2xl shadow-2xl transition-all duration-200 hover:-translate-y-1 text-white"
+              style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
+            >
+              Solicitar meu acesso
+            </button>
+            <a
+              href="https://wa.me/5531990875346?text=Ol%C3%A1!%20Tenho%20interesse%20no%20GestSilo%20e%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas%20antes%20de%20assinar."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-5 font-bold text-base rounded-2xl border-2 border-border text-foreground hover:border-brand-primary hover:text-brand-primary transition-all duration-200"
+            >
+              <MessageSquare size={18} />
+              Tirar dúvidas no WhatsApp
+            </a>
+          </div>
+          <p className="text-sm mt-6 text-muted-foreground">
             Solicite seu primeiro acesso, conheça o sistema GestSilo e melhore a gestão de sua propriedade.
           </p>
         </div>
