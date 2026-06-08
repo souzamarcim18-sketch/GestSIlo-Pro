@@ -867,7 +867,7 @@ export default function LandingPage() {
           {/* Link de dúvidas — WhatsApp */}
           <div className="mt-10 text-center">
             <p className="text-sm text-muted-foreground">
-              Ficou com dúvidas sobre qual plano escolher?{' '}
+              Ficou com dúvidas sobre qual o melhor plano para sua propriedade?{' '}
               <a
                 href="https://wa.me/5531990875346?text=Ol%C3%A1!%20Tenho%20interesse%20no%20GestSilo%20e%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas%20antes%20de%20assinar."
                 target="_blank"
@@ -875,7 +875,7 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-1.5 font-semibold text-brand-primary hover:underline transition-colors"
               >
                 <MessageSquare size={14} />
-                Fale com a gente no WhatsApp
+                Clique aqui que te ajudamos!
               </a>
             </p>
           </div>
@@ -917,7 +917,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 px-8 py-5 font-bold text-base rounded-2xl border-2 border-border text-foreground hover:border-brand-primary hover:text-brand-primary transition-all duration-200"
             >
               <MessageSquare size={18} />
-              Tirar dúvidas no WhatsApp
+              Contacte conosco no WhatsApp
             </a>
           </div>
           <p className="text-sm mt-6 text-muted-foreground">
