@@ -77,6 +77,22 @@ const faqItems = [
     q: 'Os dados inseridos estão seguros?',
     a: 'Sim. O GestSilo utiliza o Supabase (banco PostgreSQL hospedado na nuvem) com isolamento total entre fazendas via políticas de segurança em nível de linha (RLS). Seus dados nunca são acessíveis por outros usuários. O acesso é protegido por autenticação com sessão segura e rate limiting nas rotas de login.',
   },
+  {
+    q: 'O plano Free tem limite de tempo?',
+    a: 'Não. O plano Free é gratuito para sempre — não há período de teste nem cobrança futura. Você pode usar os recursos incluídos (até 2 silos, 1 simulação salva e alertas críticos do dashboard) sem nenhum compromisso.',
+  },
+  {
+    q: 'Como fazer upgrade de plano?',
+    a: 'Entre em contato pelo e-mail gestsilo.app@gmail.com ou pelo WhatsApp informando o plano desejado. O upgrade é aplicado imediatamente e todos os seus dados e histórico são preservados — nada é alterado ou removido ao subir de plano.',
+  },
+  {
+    q: 'O que acontece com meus dados se eu fizer downgrade?',
+    a: 'Nenhum dado é excluído. Se o novo plano tiver limites menores (por exemplo, menos silos permitidos), os registros excedentes são arquivados — ficam inacessíveis na interface até que o plano seja restaurado, mas o histórico e todas as informações são preservados integralmente. Ao fazer upgrade novamente, tudo é reativado automaticamente, sem perda de dados.',
+  },
+  {
+    q: 'Como cancelar minha assinatura?',
+    a: 'Para cancelar, entre em contato pelo e-mail gestsilo.app@gmail.com. O acesso às funcionalidades do plano contratado permanece ativo até o fim do ciclo mensal já pago. Após o encerramento, sua conta passa automaticamente para o plano Free. Seus dados ficam disponíveis por um período para exportação antes de serem removidos conforme nossa Política de Privacidade.',
+  },
 ];
 
 export default function SuportePage() {

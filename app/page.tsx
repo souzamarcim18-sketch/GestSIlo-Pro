@@ -249,6 +249,7 @@ export default function LandingPage() {
                         { q: 'O aplicativo funciona sem internet?', a: 'Sim. O GestSilo é um PWA com suporte offline. Operações são salvas localmente e sincronizadas ao reconectar.' },
                         { q: 'Como adicionar um operador ou visualizador?', a: 'Em Configurações → Usuários e Acessos, clique em "Convidar Usuário" e informe o e-mail e o perfil desejado.' },
                         { q: 'Os meus dados estão seguros?', a: 'Sim. Usamos criptografia em trânsito e em repouso, isolamento total entre fazendas via RLS e backups automáticos semanais.' },
+                        { q: 'Posso mudar de plano depois?', a: 'Sim. Upgrade é imediato e sem perda de dados. No downgrade, nenhum dado é excluído — registros excedentes são arquivados e reativados automaticamente se você voltar ao plano anterior.' },
                       ].map((item, i) => (
                         <div key={i} className="border-t border-border pt-3 first:border-0 first:pt-0">
                           <p className="text-xs font-semibold text-foreground mb-1">{item.q}</p>
@@ -784,7 +785,7 @@ export default function LandingPage() {
             ].map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-[13px] p-7 border relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+                className={`rounded-[13px] p-7 border relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col ${
                   plan.highlight ? 'shadow-2xl' : 'bg-surface border-border2'
                 }`}
                 style={
@@ -832,7 +833,7 @@ export default function LandingPage() {
                     </>
                   )}
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm">
                       <svg

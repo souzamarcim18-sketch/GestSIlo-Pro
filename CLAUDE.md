@@ -37,9 +37,8 @@ A seção `#planos` da landing page (`app/page.tsx`) exibe 4 planos com toggle m
 
 **Free** — Grátis para sempre
 - Até 2 silos
-- 1 simulação de planejamento salva
+- 1 simulação de planejamento
 - Alertas críticos do dashboard
-- Suporte por e-mail
 - CTA: "Começar grátis"
 
 **Starter** — R$ 49/mês | R$ 490/ano
@@ -49,7 +48,7 @@ A seção `#planos` da landing page (`app/page.tsx`) exibe 4 planos com toggle m
 - CTA: "Assinar Campo"
 
 **Pro** — R$ 74/mês | R$ 740/ano *(card destacado — gradiente verde)*
-- Tudo do Starter + Talhões ilimitados, Frota e Maquinário, Financeiro
+- Tudo do Starter + Gestão de lavouras, Gestão de Frota e Maquinário, Financeiro
 - Estoque de produtos, Planejamento de Compras, Calendário de Atividades
 - Todos os relatórios exportáveis (XLSX e PDF)
 - CTA: "Assinar Pro"
@@ -58,13 +57,16 @@ A seção `#planos` da landing page (`app/page.tsx`) exibe 4 planos com toggle m
 - Tudo do Pro + 1 reunião online a cada 2 meses com equipe GestSilo
 - Histórico de assessoria no sistema, Resposta em até 4h úteis
 - Acesso antecipado a novas funcionalidades
-- CTA: "Falar com vendas"
+- CTA: "Assinar Max"
 
 ### Notas de implementação
 - Grid: `grid-cols-1 md:grid-cols-2 lg:grid-cols-4`
 - Card Pro: sem `scale-105` — destaque apenas por gradiente verde e sombra
 - Free: campo `freeForever: true` — nunca exibe preço anual, ignora o toggle
 - Toggle anual exibe badge "2 meses grátis" quando ativo
+- CTAs dos cards chamam `router.push('/solicitar-acesso?plano=<nome_lower>')` (não `/register`)
+- Após o grid de planos: link WhatsApp "Ficou com dúvidas?" aponta para `https://wa.me/5531990875346`
+- CTA final da LP: botão "Solicitar meu acesso" (`/solicitar-acesso`) + link WhatsApp lado a lado
 
 ---
 
@@ -202,6 +204,10 @@ sou_admin_ou_visualizador() → boolean
 -- Existe no banco mas equivale a sou_admin() na prática (Gerente não existe)
 -- ⚠️ Não usar em novas policies — preferir sou_admin() explicitamente
 sou_gerente_ou_admin() → boolean
+
+-- Retorna o plano atual da fazenda do usuário autenticado (adicionado 2026-06-03)
+-- STABLE, SECURITY DEFINER — lê fazendas.plano_atual filtrando por get_minha_fazenda_id()
+get_plano_fazenda() → text  -- 'free' | 'starter' | 'pro' | 'max'
 ```
 
 ### Tabelas Principais
@@ -217,7 +223,8 @@ sou_gerente_ou_admin() → boolean
 `planejamentos_atividade`, `planejamento_insumos`,
 `pastagens`, `piquetes`, `ocupacoes_piquete`, `eventos_manejo_pastagem`,
 `colaboradores`, `atividades_mao_obra`, `atividades_mao_obra_colaboradores`,
-`registros_colaborador`
+`registros_colaborador`,
+`assinaturas`, `solicitacoes_acesso`, `gestsilo_admins`, `recursos_arquivados_downgrade`
 
 ### Índices Existentes (criados em 29/04/2026)
 - `idx_planos_manutencao_fazenda_id`
@@ -928,15 +935,30 @@ Sistema de administração da **plataforma** (não dos produtores). Completament
 ```
 app/gestsilo-admin/
 ├── layout.tsx          # Sidebar + guard de sessão (RSC)
-├── page.tsx            # Hub — lista de solicitações de acesso (em breve)
+├── page.tsx            # Hub — lista de solicitações de acesso (tabela solicitacoes_acesso)
 ├── login/
 │   ├── page.tsx        # Formulário de login (client component)
 │   └── actions.ts      # Server Action loginAdmin
 └── logout/
     └── route.ts        # POST → limpa cookie + redirect para /login
+app/solicitar-acesso/
+├── page.tsx            # Formulário público (nome, email, fazenda, WhatsApp, plano); sem autenticação
+└── actions.ts          # Server Action: valida com solicitarAcessoSchema + INSERT em solicitacoes_acesso (anon)
 lib/admin-auth.ts       # Funções de JWT, bcrypt e cookie
+lib/validations/solicitar-acesso.ts  # Zod schema: solicitarAcessoSchema
 scripts/criar-admin.ts  # Script one-time para criar o primeiro admin
 ```
+
+### Fluxo de Solicitação de Acesso (implementado 2026-06-03)
+
+1. Usuário clica CTA da LP → `/solicitar-acesso?plano=<free|starter|pro|max>`
+2. Preenche formulário: nome, email, nome da fazenda, WhatsApp, plano desejado
+3. Server Action faz INSERT em `solicitacoes_acesso` (policy `anon` INSERT — sem autenticação)
+4. Admin GestSilo acessa `/gestsilo-admin` → visualiza solicitações pendentes
+5. Admin aprova → envia convite via `/api/auth/invite` (cria usuário no Supabase Auth)
+6. `solicitacoes_acesso.invite_enviado_em` e `aprovado_em` são atualizados via `service_role`
+
+**Banco** (`fazendas.plano_atual`): coluna adicionada com `DEFAULT 'free'`. Função `get_plano_fazenda()` retorna o plano do usuário autenticado via JWT.
 
 ### Variáveis de ambiente do painel admin
 

@@ -575,6 +575,92 @@ ORDER BY c.table_name, c.ordinal_position;
 | uso_maquinas              | created_by                   | uuid                        | YES      | auth.uid()                     |                           |```
 ```
 
+### Tabelas adicionadas em 2026-06-03 (migration `20260603000001_assinaturas_e_solicitacoes`)
+
+#### `fazendas` — nova coluna
+| tabela   | coluna       | tipo | nullable | default  | chave |
+|----------|-------------|------|----------|----------|-------|
+| fazendas | plano_atual | text | NO       | `'free'` | CHECK (`'free','starter','pro','max'`) |
+
+#### `assinaturas`
+| coluna                    | tipo                     | nullable | default               | chave               |
+|--------------------------|--------------------------|----------|-----------------------|---------------------|
+| id                       | uuid                     | NO       | gen_random_uuid()     | PK                  |
+| fazenda_id               | uuid                     | NO       | —                     | FK → fazendas.id    |
+| stripe_customer_id       | text                     | YES      | —                     |                     |
+| stripe_subscription_id   | text                     | YES      | —                     |                     |
+| plano                    | text                     | NO       | `'free'`              | CHECK (`'free','starter','pro','max'`) |
+| status                   | text                     | NO       | `'ativa'`             | CHECK (`'ativa','inadimplente','cancelada','pendente'`) |
+| periodo_inicio           | timestamptz              | YES      | —                     |                     |
+| periodo_fim              | timestamptz              | YES      | —                     |                     |
+| cancelada_em             | timestamptz              | YES      | —                     |                     |
+| created_at               | timestamptz              | NO       | now()                 |                     |
+| updated_at               | timestamptz              | NO       | now()                 |                     |
+
+**RLS**: SELECT apenas Admin da própria fazenda (`sou_admin()`). INSERT/UPDATE exclusivos para `service_role` (webhook Stripe).  
+**Índices**: `idx_assinaturas_fazenda_id`, `idx_assinaturas_stripe_subscription_id`.
+
+#### `solicitacoes_acesso`
+| coluna             | tipo        | nullable | default     | chave                                  |
+|--------------------|-------------|----------|-------------|----------------------------------------|
+| id                 | uuid        | NO       | gen_random_uuid() | PK                               |
+| nome               | text        | NO       | —           |                                        |
+| email              | text        | NO       | —           |                                        |
+| nome_fazenda       | text        | NO       | —           |                                        |
+| whatsapp           | text        | NO       | —           |                                        |
+| status             | text        | NO       | `'pendente'`| CHECK (`'pendente','aprovada','rejeitada'`) |
+| plano_solicitado   | text        | NO       | `'free'`    | CHECK (`'free','starter','pro','max'`) |
+| observacoes        | text        | YES      | —           |                                        |
+| aprovado_em        | timestamptz | YES      | —           |                                        |
+| rejeitado_em       | timestamptz | YES      | —           |                                        |
+| invite_enviado_em  | timestamptz | YES      | —           |                                        |
+| created_at         | timestamptz | NO       | now()       |                                        |
+| updated_at         | timestamptz | NO       | now()       |                                        |
+
+**RLS**: INSERT liberado para `anon` (formulário público `/solicitar-acesso`). SELECT/UPDATE exclusivos para `service_role` (painel `/gestsilo-admin`).  
+**Índices**: `idx_solicitacoes_acesso_status`, `idx_solicitacoes_acesso_email`.
+
+#### `gestsilo_admins`
+| coluna       | tipo        | nullable | default           | chave  |
+|-------------|-------------|----------|-------------------|--------|
+| id           | uuid        | NO       | gen_random_uuid() | PK     |
+| nome         | text        | NO       | —                 |        |
+| email        | text        | NO       | —                 | UNIQUE |
+| senha_hash   | text        | NO       | —                 |        |
+| ativo        | boolean     | NO       | `true`            |        |
+| ultimo_login | timestamptz | YES      | —                 |        |
+| created_at   | timestamptz | NO       | now()             |        |
+| updated_at   | timestamptz | NO       | now()             |        |
+
+**RLS**: nenhuma policy para roles públicas — acesso exclusivo via `SUPABASE_SERVICE_ROLE_KEY`.  
+**Índice**: `idx_gestsilo_admins_email`.
+
+#### `recursos_arquivados_downgrade`
+| coluna         | tipo        | nullable | default           | chave             |
+|----------------|-------------|----------|-------------------|-------------------|
+| id             | uuid        | NO       | gen_random_uuid() | PK                |
+| fazenda_id     | uuid        | NO       | —                 | FK → fazendas.id  |
+| tipo_recurso   | text        | NO       | —                 |                   |
+| recurso_id     | uuid        | NO       | —                 |                   |
+| dados_snapshot | jsonb       | NO       | —                 |                   |
+| motivo         | text        | NO       | `'downgrade'`     |                   |
+| plano_anterior | text        | NO       | —                 |                   |
+| plano_novo     | text        | NO       | —                 |                   |
+| restaurado_em  | timestamptz | YES      | —                 |                   |
+| created_at     | timestamptz | NO       | now()             |                   |
+
+**RLS**: SELECT apenas Admin da própria fazenda. INSERT/UPDATE exclusivos para `service_role`.  
+**Índices**: `idx_recursos_arquivados_fazenda_id`, `idx_recursos_arquivados_tipo_recurso`.
+
+### Função SQL adicionada em 2026-06-03
+
+```sql
+-- Retorna o plano atual da fazenda do usuário autenticado
+get_plano_fazenda() → text
+-- STABLE, SECURITY DEFINER
+-- Lê fazendas.plano_atual filtrando por get_minha_fazenda_id()
+```
+
 ---
 
 ## 🛡️ SEÇÃO 4 — POLICIES RLS COMPLETAS
