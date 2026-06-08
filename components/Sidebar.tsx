@@ -10,29 +10,25 @@ import {
   Leaf,
   Package,
   PackageOpen,
-  Truck,
   Users,
   DollarSign,
   BarChart3,
   Settings,
   LogOut,
   Calculator,
-  Beaker,
   Calendar,
   HelpCircle,
   GraduationCap,
-  Heart,
-  Milk,
   Scale,
-  Stethoscope,
-  ArrowRightLeft,
   NotebookPen,
-  Beef,
   ShoppingCart,
   RefreshCw,
   Tractor,
   CreditCard,
   Lock,
+  Zap,
+  ArrowRight,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +38,9 @@ import { supabase } from '@/lib/supabase';
 import { CowIcon } from '@/components/icons/CowIcon';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { parsePlanoSlug, planoPermiteModulo } from '@/lib/planos';
+import { parsePlanoSlug, planoPermiteModulo, planoMinimoParaModulo, PLANOS, PlanoSlug } from '@/lib/planos';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
 type RouteItem = {
@@ -72,7 +70,7 @@ const ferramentasRoutes: RouteItem[] = [
   { label: 'Calculadoras',            icon: Calculator,    href: '/dashboard/calculadoras'          },
   { label: 'Planejamento de Silagem', icon: NotebookPen,   href: '/dashboard/planejamento-silagem'  },
   { label: 'Planejamento de Compras', icon: ShoppingCart,  href: '/dashboard/planejamento-compras', modulo: 'planejamento_compras' },
-  { label: 'Assessoria agronômica',   icon: GraduationCap, href: '/dashboard/assessoria'            },
+  { label: 'Assessoria agronômica',   icon: GraduationCap, href: '/dashboard/assessoria', modulo: 'assessoria' },
 ];
 
 const sistemaRoutes: RouteItem[] = [
@@ -220,29 +218,156 @@ function SubNavItem({
 }
 
 
+const PLANO_LABELS: Record<PlanoSlug, string> = {
+  free: 'Free',
+  starter: 'Starter',
+  pro: 'Pro',
+  max: 'Max',
+};
+
+const PLANO_ORDER: PlanoSlug[] = ['free', 'starter', 'pro', 'max'];
+
+const PLANO_PRECO: Record<PlanoSlug, string> = {
+  free: 'Grátis',
+  starter: 'R$ 49/mês',
+  pro: 'R$ 74/mês',
+  max: 'R$ 119/mês',
+};
+
+function UpgradeModal({
+  open,
+  onClose,
+  moduloLabel,
+  moduloSlug,
+  planoAtual,
+}: {
+  open: boolean;
+  onClose: () => void;
+  moduloLabel: string;
+  moduloSlug: string;
+  planoAtual: PlanoSlug;
+}) {
+  const router = useRouter();
+  const planoMinimo = planoMinimoParaModulo(moduloSlug);
+  const planosQuePermitem = PLANO_ORDER.filter((p) => planoPermiteModulo(p, moduloSlug));
+  const planosDisponiveis = planosQuePermitem.filter((p) => PLANO_ORDER.indexOf(p) > PLANO_ORDER.indexOf(planoAtual));
+
+  const handleUpgrade = (plano: PlanoSlug) => {
+    onClose();
+    router.push(`/dashboard/configuracoes/plano?upgrade=${plano}&origem=modal_upgrade`);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-sm p-0 overflow-hidden gap-0" style={{ background: 'var(--sidebar)', border: '1px solid var(--border)' }}>
+
+        {/* Cabeçalho com gradiente */}
+        <div
+          className="relative px-6 pt-6 pb-5"
+          style={{ background: 'linear-gradient(135deg, var(--green-dim) 0%, transparent 100%)', borderBottom: '1px solid var(--border)' }}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 rounded-lg" style={{ background: 'var(--green-dim)', border: '1px solid var(--green-border)' }}>
+              <Lock className="h-4 w-4 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">Módulo bloqueado</p>
+              <DialogTitle className="text-sm font-bold text-foreground leading-tight">{moduloLabel}</DialogTitle>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Este módulo está disponível a partir do plano{' '}
+            <span className="text-primary font-semibold">{planoMinimo ? PLANO_LABELS[planoMinimo] : 'Pro'}</span>.
+            Faça upgrade para desbloquear.
+          </p>
+        </div>
+
+        {/* Planos disponíveis */}
+        <div className="px-6 py-4 space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Planos que incluem este módulo</p>
+          {planosDisponiveis.map((plano) => {
+            const isPro = plano === 'pro';
+            return (
+              <button
+                key={plano}
+                onClick={() => handleUpgrade(plano)}
+                className={cn(
+                  'w-full flex items-center justify-between rounded-lg px-3 py-2.5 transition-all duration-150 text-left group',
+                  isPro
+                    ? 'text-foreground hover:opacity-90'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
+                )}
+                style={isPro ? {
+                  background: 'linear-gradient(135deg, var(--green-dim) 0%, var(--sidebar) 100%)',
+                  border: '1px solid var(--green-border)',
+                  boxShadow: '0 0 12px var(--green-glow)',
+                } : {
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  {isPro && <Zap className="h-3.5 w-3.5 text-primary flex-shrink-0" aria-hidden="true" />}
+                  <span className="text-xs font-bold">{PLANO_LABELS[plano]}</span>
+                  {isPro && (
+                    <Badge className="text-[9px] px-1.5 py-0 font-bold" style={{ background: 'var(--green-dim)', border: '1px solid var(--green-border)', color: 'var(--primary)' }}>
+                      Popular
+                    </Badge>
+                  )}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-primary">{PLANO_PRECO[plano]}</span>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Rodapé */}
+        <div className="px-6 pb-5">
+          <button
+            onClick={onClose}
+            className="w-full text-xs text-muted-foreground hover:text-foreground text-center transition-colors py-1"
+          >
+            Continuar com o plano atual
+          </button>
+        </div>
+
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function LockedNavItem({
   icon: Icon,
   label,
-  onNavigate,
+  modulo,
+  onOpenUpgrade,
 }: {
   icon: React.ElementType;
   label: string;
-  onNavigate?: () => void;
+  modulo: string;
+  onOpenUpgrade: (label: string, modulo: string) => void;
 }) {
   return (
     <li>
-      <Link
-        href="/dashboard/configuracoes/plano?origem=sidebar"
-        onClick={onNavigate}
-        prefetch={false}
-        className="text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2 text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/[0.04] transition-all duration-150"
+      <button
+        onClick={() => onOpenUpgrade(label, modulo)}
+        className="text-xs w-full group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2 text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/[0.04] transition-all duration-150"
       >
         <span className="flex items-center gap-2">
           <Icon aria-hidden="true" className="h-4 w-4 flex-shrink-0 text-muted-foreground/40" />
           <span>{label}</span>
         </span>
         <Lock aria-hidden="true" className="h-3 w-3 flex-shrink-0 text-muted-foreground/40" />
-      </Link>
+      </button>
     </li>
   );
 }
@@ -251,8 +376,13 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const { profile, planoAtual } = useAuth();
+  const [upgradeModal, setUpgradeModal] = useState<{ label: string; modulo: string } | null>(null);
 
   const plano = parsePlanoSlug(planoAtual);
+
+  const handleOpenUpgrade = (label: string, modulo: string) => {
+    setUpgradeModal({ label, modulo });
+  };
 
   const visibleGerencialRoutes = profile?.perfil === 'Operador'
     ? gerencialRoutes.filter(
@@ -339,7 +469,8 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                         <LockedNavItem
                           icon={route.icon}
                           label={route.label}
-                          onNavigate={onNavigate}
+                          modulo={route.modulo!}
+                          onOpenUpgrade={handleOpenUpgrade}
                         />
                       ) : (
                         <NavItem
@@ -370,7 +501,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
               <ul className="space-y-0.5 list-none">
                 {ferramentasRoutes.map((route) => {
                   const isAssessoria = route.href === '/dashboard/assessoria';
-
+                  // Assessoria só aparece para Admin (independente do plano)
                   if (isAssessoria && profile?.perfil !== 'Administrador') return null;
 
                   const isPlanejamentoCompras = route.href === '/dashboard/planejamento-compras';
@@ -386,7 +517,8 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                         key={route.href}
                         icon={route.icon}
                         label={route.label}
-                        onNavigate={onNavigate}
+                        modulo={route.modulo!}
+                        onOpenUpgrade={handleOpenUpgrade}
                       />
                     );
                   }
@@ -455,6 +587,16 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
           <span>Sair da conta</span>
         </Button>
       </div>
+
+      {upgradeModal && (
+        <UpgradeModal
+          open={!!upgradeModal}
+          onClose={() => setUpgradeModal(null)}
+          moduloLabel={upgradeModal.label}
+          moduloSlug={upgradeModal.modulo}
+          planoAtual={plano}
+        />
+      )}
     </div>
   );
 }

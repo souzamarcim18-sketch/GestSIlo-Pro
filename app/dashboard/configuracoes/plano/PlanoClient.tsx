@@ -95,6 +95,33 @@ const PLANOS_UPGRADE: Array<{
   },
 ];
 
+// Planos disponíveis para upgrade a partir do plano atual
+const UPGRADES_DISPONIVEIS: Record<string, PlanoUpgrade[]> = {
+  free:    ['starter', 'pro', 'max'],
+  starter: ['pro', 'max'],
+  pro:     ['max'],
+  max:     [],
+};
+
+// Módulos incluídos por plano (exibidos no card "Incluído no seu plano")
+const MODULOS_POR_PLANO: Record<string, string[]> = {
+  free: [],
+  starter: [
+    'Silos ilimitados', 'Rebanho completo', 'Balanço Forrageiro',
+    'Pastagens e Piquetes', 'Insumos com alertas', 'Calculadoras Agronômicas',
+    'Relatórios de silos e rebanho',
+  ],
+  pro: [
+    'Tudo do Starter', 'Talhões ilimitados', 'Frota e Maquinário',
+    'Financeiro completo', 'Estoque de Produtos', 'Planejamento de Compras',
+    'Calendário de Atividades', 'Todos os relatórios exportáveis (XLSX e PDF)',
+  ],
+  max: [
+    'Tudo do Pro', 'Reunião online a cada 2 meses com equipe GestSilo',
+    'Resposta em até 4h úteis', 'Acesso antecipado a novidades',
+  ],
+};
+
 function formatarData(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 }
@@ -159,6 +186,11 @@ export function PlanoClient({
   const isPago = !isFree;
   const inadimplente = status === 'inadimplente';
   const cancelada = status === 'cancelada';
+  const upgradesDisponiveis = (UPGRADES_DISPONIVEIS[plano] ?? []).map(
+    (slug) => PLANOS_UPGRADE.find((p) => p.slug === slug)!,
+  );
+  const podeUpgrade = upgradesDisponiveis.length > 0 && status !== 'cancelada';
+  const modulosIncluidos = MODULOS_POR_PLANO[plano] ?? [];
 
   async function iniciarCheckout(planoEscolhido: PlanoUpgrade) {
     setAbrindoCheckout(planoEscolhido);
@@ -287,10 +319,10 @@ export function PlanoClient({
 
         {isAdmin && (
           <div className="flex flex-wrap gap-2 pt-2">
-            {isFree && (
+            {podeUpgrade && (
               <Button variant="default" onClick={() => setMostrarUpgrade((v) => !v)}>
                 <ArrowUpCircle className="h-4 w-4 mr-2" aria-hidden="true" />
-                Fazer upgrade
+                {mostrarUpgrade ? 'Ocultar planos' : 'Fazer upgrade'}
               </Button>
             )}
 
@@ -319,38 +351,65 @@ export function PlanoClient({
         )}
       </div>
 
-      {/* Card — Uso */}
+      {/* Card — Uso (Free) / Módulos incluídos (planos pagos) */}
       <div
         className="rounded-xl border p-6 space-y-5"
         style={{ background: 'var(--sidebar)', borderColor: 'var(--border)' }}
       >
-        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Uso do plano</p>
-
-        <UsageBar
-          label="Silos ativos"
-          icon={Database}
-          atual={totalSilos}
-          limite={limites.silos}
-        />
-        <UsageBar
-          label="Planejamentos de Silagem"
-          icon={ClipboardList}
-          atual={totalPlanejamentos}
-          limite={limites.planejamentos}
-        />
-
-        {isFree && isAdmin && (
-          <p className="text-xs text-muted-foreground pt-1">
-            Quer remover os limites?{' '}
-            <button
-              type="button"
-              className="text-primary underline underline-offset-2"
-              onClick={() => setMostrarUpgrade(true)}
-            >
-              Conheça os planos pagos
-            </button>
-            .
-          </p>
+        {isFree ? (
+          <>
+            <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Uso do plano</p>
+            <UsageBar
+              label="Silos ativos"
+              icon={Database}
+              atual={totalSilos}
+              limite={limites.silos}
+            />
+            <UsageBar
+              label="Planejamentos de Silagem"
+              icon={ClipboardList}
+              atual={totalPlanejamentos}
+              limite={limites.planejamentos}
+            />
+            {isAdmin && (
+              <p className="text-xs text-muted-foreground pt-1">
+                Quer remover os limites?{' '}
+                <button
+                  type="button"
+                  className="text-primary underline underline-offset-2"
+                  onClick={() => setMostrarUpgrade(true)}
+                >
+                  Conheça os planos pagos
+                </button>
+                .
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Incluído no seu plano</p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+              {modulosIncluidos.map((m) => (
+                <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" aria-hidden="true" />
+                  {m}
+                </li>
+              ))}
+            </ul>
+            {podeUpgrade && isAdmin && (
+              <p className="text-xs text-muted-foreground pt-1">
+                Quer mais recursos?{' '}
+                <button
+                  type="button"
+                  className="text-primary underline underline-offset-2"
+                  onClick={() => setMostrarUpgrade(true)}
+                >
+                  Ver planos superiores
+                </button>
+                .
+              </p>
+            )}
+          </>
         )}
       </div>
 
@@ -395,7 +454,7 @@ export function PlanoClient({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {PLANOS_UPGRADE.map((p) => (
+            {upgradesDisponiveis.map((p) => (
               <div
                 key={p.slug}
                 className={`rounded-lg border p-4 space-y-3 flex flex-col ${p.destaque ? 'border-primary' : 'border-border'}`}

@@ -746,7 +746,7 @@ export default function LandingPage() {
                 priceMonthly: null,
                 priceAnnually: null,
                 desc: 'Para produtores que querem iniciar e conhecer',
-                features: ['Até 2 silos', '1 simulação de planejamento salva', 'Alertas críticos do dashboard', 'Suporte por e-mail'],
+                features: ['Até 2 silos', '1 simulação de planejamento salva', 'Alertas críticos do dashboard'],
                 cta: 'Começar grátis',
                 highlight: false,
                 freeForever: true,
@@ -766,7 +766,7 @@ export default function LandingPage() {
                 priceMonthly: 74,
                 priceAnnually: 740,
                 desc: 'Para gestão completa da propriedade',
-                features: ['Tudo do Starter', 'Talhões ilimitados', 'Frota e Maquinário', 'Financeiro', 'Estoque de produtos', 'Planejamento de Compras', 'Calendário de Atividades', 'Todos os relatórios exportáveis (XLSX e PDF)'],
+                features: ['Tudo do Starter', 'Gestão de lavouras', 'Gestão de Frota e Maquinário', 'Financeiro', 'Estoque de produtos', 'Planejamento de Compras', 'Calendário de Atividades', 'Todos os relatórios exportáveis (XLSX e PDF)'],
                 cta: 'Assinar Pro',
                 highlight: true,
                 freeForever: false,
@@ -777,7 +777,7 @@ export default function LandingPage() {
                 priceAnnually: 1190,
                 desc: 'Para quem quer suporte técnico da equipe GestSilo',
                 features: ['Tudo do Pro', '1 reunião online a cada 2 meses com equipe GestSilo', 'Histórico de assessoria no sistema', 'Resposta em até 4h úteis', 'Acesso antecipado a novas funcionalidades'],
-                cta: 'Falar com vendas',
+                cta: 'Assinar Max',
                 highlight: false,
                 freeForever: false,
               },
@@ -894,7 +894,7 @@ export default function LandingPage() {
             Solicitar meu acesso
           </button>
           <p className="text-sm mt-4 text-muted-foreground">
-            Solicite seu primeiro acesso, conheça e melhore sua gestão.
+            Solicite seu primeiro acesso, conheça o sistema GestSilo e melhore a gestão de sua propriedade.
           </p>
         </div>
       </section>
