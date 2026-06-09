@@ -25,7 +25,6 @@ import {
   Users,
   Scale,
   AlertTriangle,
-  ArrowUp,
   X,
   Target,
   Eye,
@@ -47,8 +46,8 @@ const MODAL_CONTENT = {
     content: (
       <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
         <p>
-          Nossa missão é democratizar a gestão agrícola profissional, levando-a de forma simples e acessível 
-          ao produtor rural brasileiro, para transformar rotina improvisada em decisões seguras, com dados reais, 
+          Nossa missão é democratizar a gestão agrícola profissional, levando-a de forma simples e acessível
+          ao produtor rural brasileiro, para transformar rotina improvisada em decisões seguras, com dados reais,
           mesmo em ambientes de baixa conectividade.
         </p>
        </div>
@@ -61,8 +60,8 @@ const MODAL_CONTENT = {
     content: (
       <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
         <p>
-          Nossa visão é ser a principal referência em gestão agropecuária para pequenos e médios produtores 
-          no Brasil, reconhecida pela profundidade técnica, pela simplicidade de uso e pela confiança nos dados 
+          Nossa visão é ser a principal referência em gestão agropecuária para pequenos e médios produtores
+          no Brasil, reconhecida pela profundidade técnica, pela simplicidade de uso e pela confiança nos dados
           que entrega, impulsionando um futuro em que toda propriedade rural tome decisões baseadas em dados reais,
           não em estimativas.
         </p>
@@ -90,7 +89,7 @@ const MODAL_CONTENT = {
           },
           {
             title: 'Compromisso com o campo brasileiro',
-            desc: 'Acreditamos que o agronegócio brasileiro é estratégico para o país. Nosso trabalho é fortalecer quem está na base dessa cadeia — o produtor rural  .',
+            desc: 'Acreditamos que o agronegócio brasileiro é estratégico para o país. Nosso trabalho é fortalecer quem está na base dessa cadeia — o produtor rural.',
           },
           {
             title: 'Melhoria contínua',
@@ -411,37 +410,129 @@ export default function LandingPage() {
                 <span className="text-foreground/85">da sua propriedade</span>
               </h1>
 
-              <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-2xl text-muted-foreground">
-                Sua propriedade merece mais do que cadernos e planilhas.
-                Controle sua silagem, suas lavouras, sua frota e seus insumos em uma plataforma feita para o
-                produtor brasileiro — do campo à gestão, com poucos cliques.
+              <p className="text-lg md:text-xl leading-relaxed mb-6 max-w-2xl text-muted-foreground">
+                Saiba agora mesmo quanto tem no silo — e quantos dias o seu rebanho tem de estoque.
+                Sem planilha, sem palpite, sem depender de sinal no campo.
               </p>
-            </div>
 
-            {/* COLUNA DIREITA — Imagem */}
-            <div className="relative hidden lg:flex items-center justify-end">
-              <div className="relative w-full max-w-md">
-                <div
-                  className="absolute -inset-4 rounded-[40px] rotate-3 opacity-25 z-0"
-                  style={{ background: 'linear-gradient(135deg, #36875d, #205b0d)' }}
-                />
-                <div className="relative z-10 rounded-[32px] overflow-hidden shadow-2xl w-full max-w-md" style={{ aspectRatio: '4/3' }}>
-                  <Image
-                    src="/imagem-hero.webp?v=1"
-                    alt="Gestão agrícola com GestSilo"
-                    fill
-                    className="object-cover"
-                    priority
-                    unoptimized
-                  />
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-1/3 z-10"
-                    style={{ background: 'linear-gradient(to top, rgba(0,132,61,0.35), transparent)' }}
-                  />
-                </div>
+              {/* Prova social inline */}
+              <div className="flex flex-col gap-2 mb-8">
+                {[
+                  'Desenvolvido por agrônomo com mestrado e experiência de campo em silagem',
+                  'Funciona no celular, sem sinal, direto do campo',
+                  'Começar é gratuito — sem cartão de crédito',
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+                      <circle cx="8" cy="8" r="8" fill="rgba(0,196,90,0.15)" />
+                      <path d="M5 8l2 2 4-4" stroke="#00c45a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-sm text-muted-foreground">{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <button
+                  onClick={() => router.push('/solicitar-acesso?plano=free')}
+                  className="px-8 py-4 font-bold text-base rounded-2xl shadow-2xl transition-all duration-200 hover:-translate-y-1 text-white whitespace-nowrap"
+                  style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
+                >
+                  Começar grátis
+                </button>
+                <button
+                  onClick={() => router.push('/login')}
+                  className="px-6 py-4 font-semibold text-base rounded-2xl border border-border text-muted-foreground hover:text-foreground hover:border-border2 transition-all duration-200 whitespace-nowrap"
+                >
+                  Entrar
+                </button>
+                <a
+                  href="#como-funciona"
+                  className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+                >
+                  Ver como funciona →
+                </a>
               </div>
             </div>
 
+            {/* COLUNA DIREITA — Imagem editorial */}
+            <div className="relative hidden lg:flex items-center justify-end">
+              <div className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl" style={{ aspectRatio: '4/3' }}>
+                <Image
+                  src="/imagem-hero.webp?v=1"
+                  alt="Produtor rural usando GestSilo no campo"
+                  fill
+                  className="object-cover"
+                  priority
+                  unoptimized
+                />
+                {/* Gradiente de fusão com o fundo à esquerda */}
+                <div
+                  className="absolute inset-0 z-10 pointer-events-none"
+                  style={{ background: 'linear-gradient(to right, #161616 0%, transparent 30%)' }}
+                />
+                {/* Gradiente inferior suave */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-1/4 z-10 pointer-events-none"
+                  style={{ background: 'linear-gradient(to top, rgba(22,22,22,0.6), transparent)' }}
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ===== COMO FUNCIONA ===== */}
+      <section id="como-funciona" style={{ background: 'var(--sidebar)' }} className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="text-xs font-bold uppercase tracking-widest text-brand-primary mb-3 block">
+              Simples de começar
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground leading-tight">
+              Em 3 passos, sua fazenda organizada
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Linha conectora no desktop */}
+            <div className="hidden md:block absolute top-8 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px" style={{ background: 'rgba(0,196,90,0.2)' }} />
+
+            {[
+              {
+                num: '01',
+                title: 'Solicite seu acesso',
+                desc: 'Preencha um formulário rápido com os dados da sua fazenda. Em até 1 dia útil você recebe o convite por e-mail.',
+              },
+              {
+                num: '02',
+                title: 'Cadastre sua propriedade',
+                desc: 'Nome da fazenda, seus silos, rebanho e áreas. Leva menos de 10 minutos para ter tudo pronto.',
+              },
+              {
+                num: '03',
+                title: 'Comece a controlar',
+                desc: 'Registre entradas e saídas, acompanhe o estoque em tempo real e receba alertas automáticos.',
+              },
+            ].map((step) => (
+              <div key={step.num} className="flex flex-col items-center text-center relative">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 relative z-10"
+                  style={{ background: 'rgba(0,196,90,0.1)', border: '1px solid rgba(0,196,90,0.25)' }}
+                >
+                  <span
+                    className="text-2xl font-black"
+                    style={{ color: '#00c45a', letterSpacing: '-0.04em' }}
+                  >
+                    {step.num}
+                  </span>
+                </div>
+                <h3 className="font-bold text-base text-foreground mb-2">{step.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[220px]">{step.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -451,10 +542,10 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
-              O sistema que a sua fazenda precisa
+              Uma plataforma para cada parte da sua fazenda
             </h2>
             <p className="text-lg max-w-xl mx-auto text-muted-foreground">
-              Uma plataforma completa para gestão. Do campo à administração.
+              Módulos integrados que se conversam — o que você registra em um lugar aparece automaticamente nos outros.
             </p>
           </div>
 
@@ -468,7 +559,7 @@ export default function LandingPage() {
               <div
                 key={item.title}
                 className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-8 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
-                style={{ border: '1px solid #00843D', outline: '1px solid rgba(255,255,255,0.12)', outlineOffset: '-2px' }}
+                style={{ border: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
                 <div className="mb-4">
@@ -491,7 +582,7 @@ export default function LandingPage() {
               <div
                 key={item.title}
                 className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
-                style={{ border: '1px solid #00843D', outline: '1px solid rgba(255,255,255,0.12)', outlineOffset: '-2px' }}
+                style={{ border: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
                 <div className="mb-3">
@@ -508,13 +599,13 @@ export default function LandingPage() {
             {[
               { Icon: Package, title: 'Estoque de Insumos & Produtos', desc: 'Controle os estoques de insumos e de seus produtos, com níveis mínimos, alertas automáticos, integração financeira e planejamento de compras.', iconColor: '#A5F3FC' },
               { Icon: Scale, title: 'Balanço Forrageiro', desc: 'Cruzamento do consumo real da silagem, da demanda projetada para o rebanho e da oferta das pastagens para calcular a autonomia líquida.', iconColor: '#D9F99D' },
-              { Icon: Calculator, title: 'Calculadoras Agronômicas', desc: 'Encontrae a combinação de fertilizantes mais econômica ou com melhor eficicência de manejo para sua necessidade. Calcule a necessidade de calcário a partir da sua análise de solo', iconColor: '#E9D5FF' },
+              { Icon: Calculator, title: 'Calculadoras Agronômicas', desc: 'Encontre a combinação de fertilizantes mais econômica para sua necessidade. Calcule a necessidade de calcário a partir da análise de solo, com recomendação técnica integrada.', iconColor: '#E9D5FF' },
               { Icon: BarChart3, title: 'Relatórios Exportáveis', desc: 'Mais de 15 relatórios em Excel e PDF cobrindo todos os módulos — rebanho, financeiro, talhões, frota e muito mais.', iconColor: '#DDD6FE' },
             ].map((item) => (
               <div
                 key={item.title}
                 className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
-                style={{ border: '1px solid #00843D', outline: '1px solid rgba(255,255,255,0.12)', outlineOffset: '-2px' }}
+                style={{ border: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
                 <div className="mb-3">
@@ -524,6 +615,19 @@ export default function LandingPage() {
                 <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
+          </div>
+
+          {/* CTA intermediário */}
+          <div className="mt-12 text-center">
+            <button
+              onClick={() => router.push('/solicitar-acesso?plano=free')}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:underline transition-colors"
+            >
+              Quero conhecer todos os módulos na prática
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       </section>
@@ -540,10 +644,10 @@ export default function LandingPage() {
             </h2>
             <div className="space-y-5">
               {[
-                { Icon: Zap, title: 'Agilidade', desc: 'Acesse qualquer informação em segundos, do celular ou do computador.' },
-                { Icon: MapPin, title: 'Rastreabilidade', desc: 'Histórico completo de cada silo, de cada lavoura e das máquinas da sua fazenda.' },
-                { Icon: TrendingDown, title: 'Gestão de custos', desc: 'Identifique os gargalos e reduza os desperdícios, através de dados precisos.' },
-                { Icon: Shield, title: 'Segurança', desc: 'Seus dados protegidos com criptografia e backup automático.' },
+                { Icon: Zap, title: 'Agilidade no campo', desc: 'Qualquer dado em menos de 3 segundos, do celular, com luvas, mesmo com sinal fraco.' },
+                { Icon: MapPin, title: 'Rastreabilidade completa', desc: 'Histórico desde o primeiro dia: cada silo, cada retirada, cada lote do rebanho.' },
+                { Icon: TrendingDown, title: 'Custo real, não estimativa', desc: 'Saiba exatamente o que cada silagem, cada animal e cada talhão está custando.' },
+                { Icon: Shield, title: 'Seus dados são seus', desc: 'Criptografia, backup semanal automático e isolamento total entre fazendas.' },
               ].map((b) => (
                 <div key={b.title} className="flex items-start gap-4">
                   <div className="bg-green-dim border border-green-border rounded-[8px] w-12 h-12 flex items-center justify-center flex-shrink-0">
@@ -699,6 +803,75 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ===== ANCORAGEM HUMANA ===== */}
+      <section style={{ background: '#111a13' }} className="py-20 px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+
+          {/* Bloco A — Quem fez */}
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-brand-primary mb-4 block">
+              Origem do produto
+            </span>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-5 leading-tight">
+              Feito por quem já esteve no curral anotando no bloco de papel
+            </h2>
+            <div
+              className="rounded-2xl p-6"
+              style={{ background: 'rgba(0,196,90,0.05)', border: '1px solid rgba(0,196,90,0.15)' }}
+            >
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                O GestSilo foi desenvolvido por um engenheiro agrônomo com mestrado e anos de experiência prática
+                no campo, trabalhando diretamente com silagem, balanço forrageiro e gestão de rebanho.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                Não é um produto de escritório. Cada funcionalidade nasceu de uma necessidade real — de quem já
+                perdeu silagem por falta de controle, já tomou decisão no escuro por não ter os números certos,
+                e conhece o custo real de um dado impreciso na fazenda.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                O objetivo é simples: o produtor não deve precisar de um consultor para entender seus próprios dados.
+              </p>
+              <div className="mt-5 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="text-sm font-bold text-foreground">Márcio</p>
+                <p className="text-xs text-muted-foreground">Eng. Agrônomo, Msc. · Fundador do GestSilo</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bloco B — Diferenciais de campo */}
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 block">
+              Feito para o campo brasileiro
+            </span>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-5 leading-tight">
+              Pensado para a realidade de quem produz
+            </h2>
+            <div className="space-y-4">
+              {[
+                { label: 'Interface pensada para uso com luvas, ao sol, com 4G fraco' },
+                { label: 'PWA offline-ready: registre no campo sem sinal, sincroniza depois' },
+                { label: 'Nenhum jargão técnico desnecessário na interface' },
+                { label: 'Suporte via WhatsApp — sem ticket, sem fila, sem robô' },
+                { label: 'Desenvolvido no Brasil, para o campo brasileiro' },
+              ].map((item) => (
+                <div key={item.label} className="flex items-start gap-3">
+                  <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: 'rgba(0,196,90,0.15)', border: '1px solid rgba(0,196,90,0.3)' }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 5l2 2 4-4" stroke="#00c45a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       {/* ===== PLANOS ===== */}
       <section id="planos" className="bg-bg2 py-24 px-6">
         <div className="max-w-6xl mx-auto">
@@ -777,7 +950,7 @@ export default function LandingPage() {
                 priceMonthly: 119,
                 priceAnnually: 1190,
                 desc: 'Para quem quer suporte técnico da equipe GestSilo',
-                features: ['Tudo do Pro', '1 reunião online a cada 2 meses com equipe GestSilo', 'Histórico de assessoria no sistema', 'Resposta em até 4h úteis', 'Acesso antecipado a novas funcionalidades'],
+                features: ['Tudo do Pro', 'Revisão agronômica bimestral com o fundador — analise dados e tire dúvidas técnicas', 'Histórico de assessoria no sistema', 'Resposta em até 4h úteis', 'Acesso antecipado a novas funcionalidades'],
                 cta: 'Assinar Max',
                 highlight: false,
                 freeForever: false,
@@ -897,33 +1070,33 @@ export default function LandingPage() {
         </div>
 
         <div className="relative z-10 max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-foreground">
-            Pronto para gerenciar<br />suas silagens e sua propriedade?
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-6 px-4 py-2 rounded-full" style={{ background: 'rgba(245,208,0,0.1)', color: '#f5d000', border: '1px solid rgba(245,208,0,0.25)' }}>
+            Acesso aprovado em até 1 dia útil
+          </span>
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-5 text-foreground leading-tight">
+            Quantas toneladas de silagem você<br />perdeu este ano por falta de controle?
           </h2>
           <p className="text-lg mb-10 text-muted-foreground">
-            Mais controle. Menos perdas. Mais resultados para seu rebanho e para sua propriedade.
+            O plano gratuito já resolve isso. Sem cartão de crédito, sem compromisso.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={() => router.push('/solicitar-acesso')}
+              onClick={() => router.push('/solicitar-acesso?plano=free')}
               className="px-10 py-5 font-bold text-lg rounded-2xl shadow-2xl transition-all duration-200 hover:-translate-y-1 text-white"
               style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
             >
-              Solicitar meu acesso
+              Solicitar acesso gratuito
             </button>
             <a
-              href="https://wa.me/5531990875346?text=Ol%C3%A1!%20Tenho%20interesse%20no%20GestSilo%20e%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas%20antes%20de%20assinar."
+              href="https://wa.me/5531990875346?text=Ol%C3%A1!%20Tenho%20interesse%20no%20GestSilo%20e%20gostaria%20de%20tirar%20algumas%20d%C3%BAdidas%20antes%20de%20assinar."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-5 font-bold text-base rounded-2xl border-2 border-border text-foreground hover:border-brand-primary hover:text-brand-primary transition-all duration-200"
             >
               <MessageSquare size={18} />
-              Contacte conosco no WhatsApp
+              Fale conosco pelo WhatsApp
             </a>
           </div>
-          <p className="text-sm mt-6 text-muted-foreground">
-            Solicite seu primeiro acesso, conheça o sistema GestSilo e melhore a gestão de sua propriedade.
-          </p>
         </div>
       </section>
 
@@ -945,7 +1118,7 @@ export default function LandingPage() {
                 className="object-contain"
               />
               <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] text-center sm:text-left">
-                Plataforma de gestão agropecuária para o produtor rural brasileiro  .
+                Plataforma de gestão agropecuária para o produtor rural brasileiro
               </p>
             </div>
 

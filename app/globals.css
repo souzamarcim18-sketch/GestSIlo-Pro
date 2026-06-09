@@ -107,19 +107,6 @@
   --brand-green-soft: #BBF7D0;
 
   /* ============================================
-     GRADIENTE METÁLICO (assinatura visual GestSilo)
-     ============================================ */
-  --bg-metal: linear-gradient(
-    135deg,
-    #b8b8b8 0%,
-    #e8e8e8 25%,
-    #f5f5f5 50%,
-    #d0d0d0 75%,
-    #a8a8a8 100%
-  );
-  --bg-metal-solid: #e8e8e8;
-
-  /* ============================================
      SUPERFÍCIES — Hierarquia de profundidade
      ============================================ */
   --background: #161616;          /* base da página */
@@ -215,14 +202,3 @@
   }
 }
 
-@layer utilities {
-  /* Gradiente metálico — assinatura visual GestSilo */
-  .bg-metal {
-    background: var(--bg-metal);
-  }
-
-  /* Versão sólida (fallback / áreas internas) */
-  .bg-metal-solid {
-    background-color: var(--bg-metal-solid);
-  }
-}
