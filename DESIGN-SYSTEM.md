@@ -10,11 +10,11 @@
 
 The design system reflects a premium, operational aesthetic: data-heavy but elegant, with semantic color coding for quick decision-making, and sophisticated dark-mode treatment with green-accented interface elements.
 
-### Provided Assets
-- `uploads/gestsilo-design-system-prompt.md` — Complete brand guidelines and component specifications
-- `uploads/gestsilo-v3.html` — Dashboard reference implementation (6 silos, KPIs, line/bar/donut charts, alert card)
-- `uploads/gestsilo-silo-detail.html` — Silo detail screen (occupancy ring, quality parameters, timeline, forecast)
-- `uploads/logo.png`, `logo_degrad-*.png` — Brand logomark and wordmark variations
+### Assets de Logo
+- `public/logo_verde.png` — Logo principal GestSilo (usada em relatórios PDF/Excel)
+- `public/logo_degradhor.png` — Logo com degradê horizontal
+- `public/logo_pretohor.png` — Logo preta horizontal
+- `public/icon_preto.png` — Ícone isolado
 
 ---
 
@@ -34,9 +34,30 @@ The design system reflects a premium, operational aesthetic: data-heavy but eleg
 | **Sidebar** | `#0a140d` | Navigation sidebar |
 | **Text Primary** | `#dceede` | Main text |
 | **Text Muted** | `#688070` | Secondary text, labels |
-| **Text Faint** | `#2a4433` | Tertiary, separators |
+| **Text Faint** | `#9b9f9d` | Tertiary text, muted placeholders |
 
-All colors exist as CSS custom properties (see `colors_and_type.css`). Semantic usage:
+All colors exist as CSS custom properties (see `colors_and_type.css`).
+
+### Brand Tokens (Print & Reports)
+
+Tokens fixos usados exclusivamente em relatórios PDF/Excel (fundo claro — nunca no tema dark):
+
+| Token | Value | Usage |
+|---|---|---|
+| `--brand-green-deep` | `#023c1f` | Título do relatório |
+| `--brand-green-primary` | `#00843D` | Cabeçalho de tabela (fundo) |
+| `--brand-green-vivid` | `#00A651` | Valores em destaque, NC calagem |
+| `--brand-green-soft` | `#BBF7D0` | Reservado |
+
+Fonte de implementação: `lib/branding/tokens.ts`. Nunca hardcodar hex fora desse arquivo.
+
+### Gradiente Metálico
+
+Assinatura visual GestSilo usada em elementos de marca (logo backgrounds, telas de onboarding):
+- `--bg-metal`: gradiente linear prata (135deg, #b8b8b8 → #f5f5f5 → #a8a8a8)
+- Classe utilitária: `.bg-metal`
+
+Semantic usage:
 - **Occupancy < 30%** → Blue (filling phase)
 - **Occupancy 30–80%** → Green (normal operation)
 - **Occupancy 81–92%** → Gold (attention/compacting)
@@ -265,12 +286,11 @@ All colors exist as CSS custom properties (see `colors_and_type.css`). Semantic 
 
 ## Files in This System
 
-- `app/globals.css` — **Source of Truth**: Applied theme, Tailwind overrides, dark-mode defaults
-- `colors_and_type.css` — Reference specification: CSS variables, type scales, reset, component foundations
-- `preview/` — Card samples for each category (type, colors, spacing, components)
-- `assets/` — Logo files, icon assets
-- `ui_kits/dashboard/` — Full dashboard UI kit (clickable, interactive)
-- `SKILL.md` — Skill definition for use in Claude Code
+- `app/globals.css` — **Fonte de Verdade**: tema aplicado, variáveis CSS, integrações shadcn/ui e Tailwind 4
+- `colors_and_type.css` — Especificação de referência: variáveis CSS, escalas tipográficas, reset, fundações de componentes
+- `DESIGN-SYSTEM.md` — Este documento: identidade visual, regras de uso, padrões de componentes
+- `lib/branding/tokens.ts` — Tokens de impressão: cores para PDF/Excel (fundo claro)
+- `public/` — Assets de logo: `logo_verde.png`, `logo_degradhor.png`, `logo_pretohor.png`, `icon_preto.png`
 
 ---
 

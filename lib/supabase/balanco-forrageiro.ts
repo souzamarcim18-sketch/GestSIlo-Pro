@@ -153,7 +153,8 @@ export async function getAnimaisAtivosPorCategoria(
   const { data, error } = await supabase
     .from('animais')
     .select('categoria')
-    .eq('status', 'Ativo');
+    .eq('status', 'Ativo')
+    .is('deleted_at', null);
 
   if (error || !data) return [];
 
