@@ -114,13 +114,22 @@ export default function Funcionalidades() {
 
         {/* CTA — página dedicada */}
         <div className="mt-14 text-center">
+          <p className="text-sm text-muted-foreground mb-4">
+            E isso é só uma parte do que o GestSilo faz pela sua fazenda.
+          </p>
           <button
             onClick={() => router.push('/funcionalidades')}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:underline transition-colors"
+            className="group inline-flex items-center gap-2.5 rounded-2xl px-7 py-3.5 text-sm font-bold text-brand-primary border border-green-border bg-green-dim shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-primary/10 hover:bg-brand-primary hover:text-white hover:border-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40"
           >
             Conheça todas as funcionalidades
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              className="transition-transform duration-200 group-hover:translate-x-1"
+            >
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>

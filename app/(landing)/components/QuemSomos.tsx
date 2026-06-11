@@ -3,7 +3,8 @@ import Image from 'next/image';
 export default function QuemSomos() {
   return (
     <section
-      className="relative overflow-hidden"
+      id="quem-somos"
+      className="relative overflow-hidden scroll-mt-20"
       style={{ backgroundColor: 'rgb(10, 20, 13)' }}
     >
       {/* Imagem de fundo full-bleed */}

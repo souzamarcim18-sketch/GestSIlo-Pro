@@ -177,14 +177,14 @@ export default function Beneficios() {
           </div>
         </div>
 
-        {/* Faixa — Feito para o campo brasileiro */}
-        <div className="mt-16 pt-10 border-t border-white/8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <h3 className="text-xl font-extrabold text-foreground">Feito para a realidade de quem produz</h3>
-            <span className="text-xs font-bold uppercase tracking-widest text-brand-primary">
-              Feito para o campo brasileiro
-            </span>
-          </div>
+        {/* Faixa — Feito para o campo brasileiro (continuação da seção) */}
+        <div className="mt-12">
+          <h3 className="text-xl font-extrabold text-foreground mb-1">
+            Feito para a realidade de quem produz
+          </h3>
+          <p className="text-sm text-muted-foreground mb-6">
+            Pensado para o campo brasileiro — do sinal fraco ao chão de terra.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {DIFERENCIAIS_CAMPO.map((item) => (
               <div

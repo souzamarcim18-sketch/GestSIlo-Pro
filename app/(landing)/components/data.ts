@@ -357,6 +357,34 @@ export const SUPORTE_FAQ = [
   { q: 'Posso mudar de plano depois?', a: 'Sim. Upgrade é imediato e sem perda de dados. No downgrade, nenhum dado é excluído — registros excedentes são arquivados e reativados automaticamente se você voltar ao plano anterior.' },
 ];
 
+// ===== LANDING — FAQ =====
+export const LANDING_FAQ = [
+  {
+    q: 'Preciso de internet no campo para usar?',
+    a: 'Não. O GestSilo funciona offline: você registra entradas, saídas e atividades direto do celular, mesmo sem sinal, e tudo sincroniza sozinho quando a conexão voltar.',
+  },
+  {
+    q: 'É difícil de configurar? Quanto tempo leva?',
+    a: 'Em poucos minutos sua fazenda já está pronta. Você informa silos, rebanho e talhões em poucos cliques e começa a usar — sem instalação complicada e sem manual.',
+  },
+  {
+    q: 'Meus dados ficam seguros?',
+    a: 'Sim. Usamos criptografia, isolamento total entre fazendas e backup automático semanal. Seus dados são seus — ninguém de outra propriedade tem acesso a eles.',
+  },
+  {
+    q: 'Posso começar de graça?',
+    a: 'Pode. O plano Free é gratuito para sempre, sem cartão de crédito e sem compromisso. Você só evolui de plano quando a sua operação pedir mais.',
+  },
+  {
+    q: 'Consigo mudar de plano depois?',
+    a: 'Sim. O upgrade é imediato e sem perder nada. Se precisar voltar a um plano menor, nenhum dado é apagado — os registros excedentes ficam arquivados e voltam automaticamente caso você reative o plano.',
+  },
+  {
+    q: 'Serve para rebanho de leite e de corte?',
+    a: 'Os dois. O módulo de rebanho cobre leiteiro, corte e dupla aptidão: ficha por animal, lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado.',
+  },
+];
+
 // ===== MODAL — Valores =====
 export const VALORES = [
   {

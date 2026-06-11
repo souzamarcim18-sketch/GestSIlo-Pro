@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Navbar() {
   const router = useRouter();
@@ -12,7 +13,15 @@ export default function Navbar() {
       style={{ background: 'rgba(28,28,28,0.92)' }}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          aria-label="Ir para o topo da página"
+          className="flex items-center gap-3 rounded-lg transition-opacity hover:opacity-80"
+        >
           <Image
             src="/logo_verde.png"
             alt="GestSilo"
@@ -21,12 +30,15 @@ export default function Navbar() {
             className="object-contain brightness-110"
             priority
           />
-        </div>
+        </a>
 
         <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold">
           <a href="#funcionalidades" className="text-muted-foreground hover:text-brand-primary transition-colors">Funcionalidades</a>
           <a href="#beneficios" className="text-muted-foreground hover:text-brand-primary transition-colors">Benefícios</a>
+          <a href="#quem-somos" className="text-muted-foreground hover:text-brand-primary transition-colors">Quem somos</a>
           <a href="#planos" className="text-muted-foreground hover:text-brand-primary transition-colors">Planos</a>
+          <a href="#faq" className="text-muted-foreground hover:text-brand-primary transition-colors">Dúvidas</a>
+          <Link href="/guias" className="text-muted-foreground hover:text-brand-primary transition-colors">Guias</Link>
         </nav>
 
         <div className="flex items-center gap-2 md:gap-4">

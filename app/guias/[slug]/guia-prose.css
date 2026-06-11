@@ -1,0 +1,127 @@
+/* Estilo do conteúdo Markdown renderizado dos guias.
+   Escopo: .guia-prose — tema escuro, cor de marca #00c45a, tipografia mínima 14px. */
+
+.guia-prose {
+  color: var(--foreground);
+  font-size: 0.9375rem; /* 15px — corpo confortável, acima do mínimo de 14px */
+  line-height: 1.75;
+}
+
+.guia-prose > *:first-child {
+  margin-top: 0;
+}
+
+.guia-prose h2 {
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.guia-prose h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.guia-prose p {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.guia-prose strong {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.guia-prose a {
+  color: #00c45a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.guia-prose a:hover {
+  opacity: 0.8;
+}
+
+.guia-prose ul,
+.guia-prose ol {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+  color: var(--muted-foreground);
+}
+
+.guia-prose ul {
+  list-style: disc;
+}
+
+.guia-prose ol {
+  list-style: decimal;
+}
+
+.guia-prose li {
+  margin-bottom: 0.5rem;
+}
+
+.guia-prose li::marker {
+  color: #00c45a;
+}
+
+.guia-prose blockquote {
+  border-left: 3px solid #00c45a;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.guia-prose code {
+  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+
+/* Tabelas */
+.guia-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  display: block;
+  overflow-x: auto;
+}
+
+.guia-prose thead {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.guia-prose th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--foreground);
+  padding: 0.625rem 0.75rem;
+  white-space: nowrap;
+}
+
+.guia-prose td {
+  color: var(--muted-foreground);
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.guia-prose tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.guia-prose hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 2rem 0;
+}

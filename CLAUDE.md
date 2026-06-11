@@ -70,6 +70,22 @@ A seção `#planos` da landing page (`app/page.tsx`) exibe 4 planos com toggle m
 
 ---
 
+## Guias e Materiais (seção pública — implementado 2026-06-11)
+
+Biblioteca de guias técnicos para o produtor rural, **100% pública** (sem login, sem `middleware.ts`). Conteúdo estático — **sem CMS, sem MDX, sem banco**.
+
+- **Fonte de conteúdo**: `lib/guias/data.ts` — tipo `Guia`, array `GUIAS[]`, `CATEGORIAS_GUIA`, helpers `listGuias()` (ordena por `publicadoEm` desc) e `getGuiaBySlug()`
+- **Categorias** (`CategoriaGuia`): `Silagem`, `Solo`, `Rebanho`, `Financeiro`, `Pastagens`, `Geral`
+- **Listagem** (`/guias`): RSC; filtro por categoria via `searchParams.categoria` (sem JS client-side); grid `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`; banner CTA → `/solicitar-acesso`; estado vazio amigável
+- **Detalhe** (`/guias/[slug]`): RSC com `generateMetadata` dinâmica + `generateStaticParams` (SSG); markdown renderizado via **`marked`** (`marked.parse`); breadcrumb Início > Guias > título; CTA verde final → `/solicitar-acesso`; `notFound()` para slug inexistente
+- **Estilo do markdown**: `app/guias/[slug]/guia-prose.css` — classe escopada `.guia-prose`, tema escuro, cor de marca `#00c45a`, mínimo 14px
+- **Navbar**: `app/guias/GuiasNavbar.tsx` (RSC leve, só links — não confundir com o `Navbar.tsx` client da landing); link "Guias" também adicionado ao navbar da landing antes do CTA
+- **Dependência**: `marked` (adicionada 2026-06-11) — usada apenas no servidor para renderizar o markdown dos guias
+
+**Para adicionar um novo guia**: incluir um objeto no array `GUIAS` em `lib/guias/data.ts`. O `generateStaticParams` gera a rota estática automaticamente no próximo build.
+
+---
+
 ## Stack Técnico
 
 ### Core
@@ -386,10 +402,36 @@ app/
 │       ├── corte/page.tsx           # Dashboard de corte + pesagem em lote + projeção de abate
 │       ├── sanidade/page.tsx        # Alertas sanitários + calendário + registro de eventos
 │       └── movimentacoes/page.tsx   # Movimentações consolidadas (entradas/saídas/transferências)
+├── guias/                           # Seção pública de guias técnicos (sem login) — adicionada 2026-06-11
+│   ├── page.tsx                     # RSC: listagem com filtro por categoria via searchParams + banner CTA + estado vazio
+│   ├── GuiasNavbar.tsx              # Navbar RSC leve (apenas links) reutilizada nas páginas de guias
+│   ├── GuiaCard.tsx                 # Card RSC: título, descrição, badge de categoria, tempo de leitura, data
+│   └── [slug]/
+│       ├── page.tsx                 # RSC: generateMetadata + generateStaticParams; renderiza markdown via marked; notFound() para slug inexistente
+│       └── guia-prose.css           # Estilo escopado (.guia-prose) do markdown renderizado — tema escuro, cor #00c45a, mínimo 14px
 ├── login/
 ├── register/
 ├── forgot-password/
-└── page.tsx
+├── (landing)/
+│   └── components/                  # Componentes da landing page (cada seção em arquivo próprio)
+│       ├── Navbar.tsx               # Header fixo; link "Guias" → /guias antes do CTA
+│       ├── Hero.tsx
+│       ├── ComoFunciona.tsx
+│       ├── Funcionalidades.tsx
+│       ├── Beneficios.tsx
+│       ├── QuemSomos.tsx
+│       ├── Planos.tsx               # 4 planos + toggle mensal/anual (ver seção Planos de Assinatura)
+│       ├── Faq.tsx
+│       ├── CtaFinal.tsx
+│       ├── Footer.tsx
+│       ├── ModalInstitucional.tsx   # Modais Missão/Visão/Valores/Suporte/Privacidade/Termos
+│       ├── LandingModalContext.tsx  # Provider + hook useLandingModal (controla qual modal está aberto)
+│       ├── mockups.tsx              # Mockups visuais usados nas seções
+│       └── data.ts                  # Dados estáticos da landing (planos, funcionalidades, etc.)
+└── page.tsx                         # Landing page: 'use client'; compõe os componentes acima dentro de LandingModalProvider
+
+lib/guias/
+└── data.ts                          # Conteúdo estático dos guias (sem CMS/MDX/banco): tipo Guia, GUIAS[], CATEGORIAS_GUIA, listGuias(), getGuiaBySlug()
 
 components/
 ├── ui/                              # shadcn/ui

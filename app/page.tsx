@@ -13,6 +13,7 @@ import Funcionalidades from './(landing)/components/Funcionalidades';
 import Beneficios from './(landing)/components/Beneficios';
 import QuemSomos from './(landing)/components/QuemSomos';
 import Planos from './(landing)/components/Planos';
+import Faq from './(landing)/components/Faq';
 import CtaFinal from './(landing)/components/CtaFinal';
 import Footer from './(landing)/components/Footer';
 
@@ -60,6 +61,7 @@ export default function LandingPage() {
         <Beneficios />
         <QuemSomos />
         <Planos />
+        <Faq />
         <CtaFinal />
         <Footer />
       </div>

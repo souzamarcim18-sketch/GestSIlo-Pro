@@ -10,9 +10,12 @@ export default function Planos() {
   const [planoAnual, setPlanoAnual] = useState(false);
 
   return (
-    <section id="planos" className="bg-bg2 py-24 px-6">
+    <section id="planos" className="bg-bg2 py-24 px-6 scroll-mt-20">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
+          <span className="inline-block text-xs font-bold uppercase tracking-widest mb-4 px-4 py-1.5 rounded-full" style={{ background: 'rgba(0,166,81,0.1)', color: '#00A651', border: '1px solid rgba(0,166,81,0.25)' }}>
+            Planos a partir de R$ 0
+          </span>
           <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
             O plano certo para cada fazenda!
           </h2>
@@ -55,11 +58,11 @@ export default function Planos() {
             <div
               key={plan.name}
               className={`rounded-[13px] p-7 border relative transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col ${
-                plan.highlight ? 'shadow-2xl' : 'bg-surface border-border2'
+                plan.highlight ? 'shadow-2xl ring-2 ring-brand-primary/40' : 'bg-surface border-border2'
               }`}
               style={
                 plan.highlight
-                  ? { background: 'linear-gradient(145deg, #00A651, #00843D)', borderColor: '#00843D' }
+                  ? { background: 'linear-gradient(145deg, #00A651, #00843D)', borderColor: '#00843D', boxShadow: '0 20px 50px -12px rgba(0,166,81,0.45)' }
                   : {}
               }
             >
@@ -134,8 +137,24 @@ export default function Planos() {
           ))}
         </div>
 
+        {/* Selos de confiança */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
+          {[
+            'Sem cartão de crédito para começar',
+            'Cancele quando quiser',
+            'Seus dados sob sigilo e backup automático',
+          ].map((selo) => (
+            <span key={selo} className="inline-flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+              {selo}
+            </span>
+          ))}
+        </div>
+
         {/* Link de dúvidas — WhatsApp */}
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
             Ficou com dúvidas sobre qual o melhor plano para sua propriedade?{' '}
             <a
