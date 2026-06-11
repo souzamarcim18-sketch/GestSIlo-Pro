@@ -11,7 +11,7 @@ import Hero from './(landing)/components/Hero';
 import ComoFunciona from './(landing)/components/ComoFunciona';
 import Funcionalidades from './(landing)/components/Funcionalidades';
 import Beneficios from './(landing)/components/Beneficios';
-import AncoragemHumana from './(landing)/components/AncoragemHumana';
+import QuemSomos from './(landing)/components/QuemSomos';
 import Planos from './(landing)/components/Planos';
 import CtaFinal from './(landing)/components/CtaFinal';
 import Footer from './(landing)/components/Footer';
@@ -58,7 +58,7 @@ export default function LandingPage() {
         <ComoFunciona />
         <Funcionalidades />
         <Beneficios />
-        <AncoragemHumana />
+        <QuemSomos />
         <Planos />
         <CtaFinal />
         <Footer />

@@ -136,7 +136,9 @@
       "PowerShell(npm run build)",
       "Bash(sed -n '585,660p' app/dashboard/financeiro/FinanceiroClient.tsx)",
       "Bash(sed -n '1,60p' app/dashboard/planejamento-silagem/components/resultados/CardResumoGeral.tsx)",
-      "Bash(echo \"EXIT $?\")"
+      "Bash(echo \"EXIT $?\")",
+      "Bash(rm -f shot-mobile.cjs)",
+      "Bash(rm -f c:/tmp/shot-mobile.mjs)"
     ],
     "additionalDirectories": [
       "\\tmp"

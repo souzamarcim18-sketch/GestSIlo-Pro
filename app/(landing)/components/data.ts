@@ -281,12 +281,12 @@ export const MOCKUP_FINANCEIRO = [
   { label: 'Despesa do Mês', value: 'R$ 0,00', color: '#F87171' },
 ];
 
-// ===== ANCORAGEM HUMANA — diferenciais =====
-export const ANCORAGEM_DIFERENCIAIS: { label: string }[] = [
-  { label: 'Interface pensada para uso com luvas, ao sol, com 4G fraco' },
-  { label: 'PWA offline-ready: registre no campo sem sinal, sincroniza depois' },
-  { label: 'Nenhum jargão técnico desnecessário na interface' },
-  { label: 'Suporte via WhatsApp — sem ticket, sem fila, sem robô' },
+// ===== FEITO PARA O CAMPO — diferenciais (faixa em Benefícios) =====
+export const DIFERENCIAIS_CAMPO: { label: string }[] = [
+  { label: 'Uso com luvas, ao sol, com 4G fraco' },
+  { label: 'Offline-ready: registre sem sinal, sincroniza depois' },
+  { label: 'Sem jargão técnico desnecessário' },
+  { label: 'Suporte via WhatsApp — sem ticket, sem fila' },
   { label: 'Desenvolvido no Brasil, para o campo brasileiro' },
 ];
 
