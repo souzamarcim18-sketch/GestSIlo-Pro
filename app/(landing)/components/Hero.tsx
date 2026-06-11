@@ -8,24 +8,42 @@ export default function Hero() {
   const router = useRouter();
 
   return (
-    <section className="bg-background relative min-h-[80vh] flex items-center overflow-hidden pt-20">
-      {/* Grid pattern */}
-      <div className="absolute left-0 top-0 h-full w-full z-0 opacity-10">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="hero-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00A651" strokeWidth="0.4"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#hero-grid)" />
-        </svg>
-      </div>
+    <section
+      className="relative min-h-[88vh] flex items-center overflow-hidden"
+      style={{ backgroundColor: 'rgb(10, 20, 13)' }}
+    >
+      {/* Imagem de fundo full-bleed — apenas desktop */}
+      <Image
+        src="/hero1.png"
+        alt="Produtor rural usando GestSilo no campo"
+        fill
+        className="hidden lg:block object-cover z-0"
+        style={{ objectFit: 'cover', objectPosition: 'right center' }}
+        priority
+      />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[70vh] py-12">
+      {/* Overlay escuro base — apenas desktop (no mobile a section já é escura) */}
+      <div
+        className="hidden lg:block absolute inset-0 pointer-events-none"
+        style={{ background: 'rgba(10, 20, 13, 0.55)' }}
+      />
+      {/* Overlay gradiente lateral esquerdo — apenas desktop */}
+      <div
+        className="hidden lg:block absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to right, rgba(10,20,13,0.92) 0%, rgba(10,20,13,0.7) 35%, rgba(10,20,13,0.2) 65%, transparent 100%)',
+        }}
+      />
+      {/* Overlay gradiente inferior — apenas desktop */}
+      <div
+        className="hidden lg:block absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(to top, rgba(10,20,13,0.8) 0%, transparent 40%)' }}
+      />
 
-          {/* COLUNA ESQUERDA — Texto */}
-          <div className="flex flex-col justify-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full py-20 sm:py-32 lg:py-40">
+        {/* Texto */}
+        <div className="flex flex-col justify-center max-w-xl">
             <div className="mb-8">
               <span
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm border"
@@ -39,7 +57,7 @@ export default function Hero() {
               </span>
             </div>
 
-            <h1 className="text-5xl xl:text-6xl font-extrabold leading-[1.08] tracking-tight mb-8">
+            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold leading-[1.08] tracking-tight mb-8">
               <span className="text-foreground">
                 Planeje, gerencie e<br />maximize a{' '}
               </span>
@@ -67,7 +85,7 @@ export default function Hero() {
               <span className="text-foreground/85">da sua propriedade</span>
             </h1>
 
-            <p className="text-lg md:text-xl leading-relaxed mb-6 max-w-2xl text-muted-foreground">
+            <p className="text-lg md:text-xl leading-relaxed mb-6 max-w-2xl text-white/75">
               Tenha o controle total de suas silagens — e saiba quantos dias o seu rebanho tem de estoque.
               Sem planilha, sem palpite, sem depender de sinal no campo.
             </p>
@@ -80,7 +98,7 @@ export default function Hero() {
                     <circle cx="8" cy="8" r="8" fill="rgba(0,196,90,0.15)" />
                     <path d="M5 8l2 2 4-4" stroke="#00c45a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span className="text-sm text-muted-foreground">{item}</span>
+                  <span className="text-sm text-white/65">{item}</span>
                 </div>
               ))}
             </div>
@@ -96,7 +114,7 @@ export default function Hero() {
               </button>
               <button
                 onClick={() => router.push('/login')}
-                className="px-6 py-4 font-semibold text-base rounded-2xl border border-border text-muted-foreground hover:text-foreground hover:border-border2 transition-all duration-200 whitespace-nowrap"
+                className="px-6 py-4 font-semibold text-base rounded-2xl border border-white/25 text-white/70 hover:text-white hover:border-white/50 transition-all duration-200 whitespace-nowrap"
               >
                 Entrar
               </button>
@@ -107,32 +125,6 @@ export default function Hero() {
                 Ver como funciona →
               </a>
             </div>
-          </div>
-
-          {/* COLUNA DIREITA — Imagem editorial */}
-          <div className="relative hidden lg:flex items-center justify-end">
-            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl" style={{ aspectRatio: '4/3' }}>
-              <Image
-                src="/imagem-hero.webp?v=1"
-                alt="Produtor rural usando GestSilo no campo"
-                fill
-                className="object-cover"
-                priority
-                unoptimized
-              />
-              {/* Gradiente de fusão com o fundo à esquerda */}
-              <div
-                className="absolute inset-0 z-10 pointer-events-none"
-                style={{ background: 'linear-gradient(to right, #161616 0%, transparent 30%)' }}
-              />
-              {/* Gradiente inferior suave */}
-              <div
-                className="absolute bottom-0 left-0 right-0 h-1/4 z-10 pointer-events-none"
-                style={{ background: 'linear-gradient(to top, rgba(22,22,22,0.6), transparent)' }}
-              />
-            </div>
-          </div>
-
         </div>
       </div>
     </section>

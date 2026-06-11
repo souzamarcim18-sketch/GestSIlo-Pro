@@ -5,33 +5,33 @@ export default function AncoragemHumana() {
     <section style={{ background: '#111a13' }} className="py-20 px-6">
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
-        {/* Bloco A — Quem fez */}
+        {/* Bloco A — Quem somos */}
         <div>
           <span className="text-xs font-bold uppercase tracking-widest text-brand-primary mb-4 block">
-            Origem do produto
+            Quem somos
           </span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-5 leading-tight">
-            Feito por quem já esteve no curral anotando no bloco de papel
+            O GestSilo nasceu no campo, não no escritório
           </h2>
           <div
             className="rounded-2xl p-6"
             style={{ background: 'rgba(0,196,90,0.05)', border: '1px solid rgba(0,196,90,0.15)' }}
           >
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              O GestSilo foi desenvolvido por um engenheiro agrônomo com mestrado e anos de experiência prática
-              no campo, trabalhando diretamente com silagem, balanço forrageiro e gestão de rebanho.
+              Surgiu da experiência de quem lida todo dia com a terra, com o gado e com a silagem — e conhece
+              de perto a dificuldade de tomar decisão sem número confiável na mão.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              Não é um produto de escritório. Cada funcionalidade nasceu de uma necessidade real — de quem já
-              perdeu silagem por falta de controle, já tomou decisão no escuro por não ter os números certos,
-              e conhece o custo real de um dado impreciso na fazenda.
+              Somos gente do agro construindo tecnologia para o agro. Cada funcionalidade da plataforma resolve
+              um problema real da fazenda: do balanço forrageiro ao controle de estoque, do talhão ao fluxo de caixa.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              O objetivo é simples: o produtor não deve precisar de um consultor para entender seus próprios dados.
+              Nosso compromisso é simples: transformar dado em decisão e deixar a gestão da propriedade tão sólida
+              quanto o trabalho de quem a sustenta. Sem complicação — só o que ajuda a produzir melhor.
             </p>
             <div className="mt-5 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-sm font-bold text-foreground">Márcio</p>
-              <p className="text-xs text-muted-foreground">Eng. Agrônomo, Msc. · Fundador do GestSilo</p>
+              <p className="text-sm font-bold text-foreground">Equipe GestSilo</p>
+              <p className="text-xs text-muted-foreground">Gente do agro, construindo para o agro</p>
             </div>
           </div>
         </div>
