@@ -14,8 +14,28 @@ import {
   Leaf,
   Users,
   Scale,
+  SlidersHorizontal,
+  CalendarDays,
+  MessageSquare,
   type LucideIcon,
 } from 'lucide-react';
+import type { ComponentType } from 'react';
+import {
+  MockupSilos,
+  MockupLavouras,
+  MockupRebanho,
+  MockupPastagens,
+  MockupBalanco,
+  MockupPlanejamento,
+  MockupFinanceiro,
+  MockupFrota,
+  MockupInsumos,
+  MockupRelatorios,
+  MockupProdutos,
+  MockupMaoDeObra,
+  MockupAssessoria,
+  MockupCalendario,
+} from './mockups';
 
 // ===== COMO FUNCIONA =====
 export interface Step {
@@ -28,17 +48,17 @@ export const STEPS: Step[] = [
   {
     num: '01',
     title: 'Solicite seu acesso',
-    desc: 'Preencha um formulário rápido com os dados da sua fazenda. Em até 1 dia útil você recebe o convite por e-mail.',
+    desc: 'Preencha um formulário rápido e, em até 1 dia útil, seu convite chega por e-mail. Sem cartão e sem compromisso.',
   },
   {
     num: '02',
     title: 'Cadastre sua propriedade',
-    desc: 'Nome da fazenda, seus silos, rebanho e áreas. Leva menos de 10 minutos para ter tudo pronto.',
+    desc: 'Informe silos, rebanho e talhões em poucos cliques. Em menos de 10 minutos sua fazenda já está pronta para uso.',
   },
   {
     num: '03',
-    title: 'Comece a controlar',
-    desc: 'Registre entradas e saídas, acompanhe o estoque em tempo real e receba alertas automáticos.',
+    title: 'Tenha o controle na mão',
+    desc: 'Registre entradas e saídas, acompanhe o estoque em tempo real e receba alertas antes que o problema apareça.',
   },
 ];
 
@@ -68,6 +88,145 @@ export const FUNCIONALIDADES_SUPORTE: Funcionalidade[] = [
   { Icon: Scale, title: 'Balanço Forrageiro', desc: 'Cruzamento do consumo real da silagem, da demanda projetada para o rebanho e da oferta das pastagens para calcular a autonomia líquida.', iconColor: '#D9F99D' },
   { Icon: Calculator, title: 'Calculadoras Agronômicas', desc: 'Encontre a combinação de fertilizantes mais econômica para sua necessidade. Calcule a necessidade de calcário a partir da análise de solo, com recomendação técnica integrada.', iconColor: '#E9D5FF' },
   { Icon: BarChart3, title: 'Relatórios Exportáveis', desc: 'Mais de 15 relatórios em Excel e PDF cobrindo todos os módulos — rebanho, financeiro, talhões, frota e muito mais.', iconColor: '#DDD6FE' },
+];
+
+// ===== TRILHA HORIZONTAL (Home) — 6 abas com mockup fiel ao dashboard =====
+export interface AbaFuncionalidade {
+  id: string;
+  title: string;
+  desc: string;
+  Icon: LucideIcon;
+  iconColor: string;
+  Mockup: ComponentType;
+}
+
+export const ABAS_FUNCIONALIDADES: AbaFuncionalidade[] = [
+  {
+    id: 'silos',
+    title: 'Silos',
+    desc: 'Controle total das suas silagens — entradas, saídas, volumes, qualidade bromatológica e de tamanho de partículas. Acompanhe ocupação, autonomia em dias e consumo diário de cada silo, evitando perdas e garantindo forragem de alto valor nutricional.',
+    Icon: Wheat,
+    iconColor: '#BBF7D0',
+    Mockup: MockupSilos,
+  },
+  {
+    id: 'lavouras',
+    title: 'Lavouras',
+    desc: 'Gerencie seus talhões, ciclos agrícolas e operações de campo. Acompanhe histórico de cultivos, produtividade por área e o custo de produção por ciclo, incluindo insumos, máquinas e serviços terceirizados.',
+    Icon: Sprout,
+    iconColor: '#BFDBFE',
+    Mockup: MockupLavouras,
+  },
+  {
+    id: 'rebanho',
+    title: 'Rebanho',
+    desc: 'Seja para o rebanho leiteiro ou de corte: ficha completa de cada animal, controle por lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado em um único módulo.',
+    Icon: Beef,
+    iconColor: '#FED7AA',
+    Mockup: MockupRebanho,
+  },
+  {
+    id: 'pastagens',
+    title: 'Pastagens',
+    desc: 'Controle de piquetes e pastejo rotacionado com cálculo automático de UA/ha, ocupações de lotes, alertas de superlotação e descanso, e histórico de eventos de manejo por área.',
+    Icon: Leaf,
+    iconColor: '#BBF7D0',
+    Mockup: MockupPastagens,
+  },
+  {
+    id: 'balanco',
+    title: 'Balanço Forrageiro',
+    desc: 'Cruza o consumo real da silagem, a demanda projetada do rebanho e a oferta das pastagens para calcular a autonomia líquida dos silos — com sazonalidade por espécie forrageira.',
+    Icon: Scale,
+    iconColor: '#D9F99D',
+    Mockup: MockupBalanco,
+  },
+  {
+    id: 'planejamento',
+    title: 'Ferramentas de Planejamento',
+    desc: 'Planeje sua silagem com o wizard de dimensionamento, organize a lista de compras de insumos e use as calculadoras agronômicas — incluindo o otimizador que encontra a combinação de fertilizantes mais econômica.',
+    Icon: SlidersHorizontal,
+    iconColor: '#E9D5FF',
+    Mockup: MockupPlanejamento,
+  },
+];
+
+// ===== PÁGINA DEDICADA (/funcionalidades) — storytelling com TODOS os módulos =====
+export interface ModuloDetalhado {
+  id: string;
+  title: string;
+  desc: string;
+  Icon: LucideIcon;
+  iconColor: string;
+  Mockup: ComponentType;
+}
+
+export const MODULOS_DETALHADOS: ModuloDetalhado[] = [
+  ...ABAS_FUNCIONALIDADES,
+  {
+    id: 'financeiro',
+    title: 'Financeiro',
+    desc: 'DRE, fluxo de caixa e análise de lucratividade com integração automática de todos os módulos — insumos, mão de obra, vendas de silagem e produtos lançam suas despesas e receitas sem retrabalho.',
+    Icon: DollarSign,
+    iconColor: '#FEF08A',
+    Mockup: MockupFinanceiro,
+  },
+  {
+    id: 'frota',
+    title: 'Frota & Maquinário',
+    desc: 'Plano de manutenção preventiva e corretiva, diário de bordo, abastecimentos e custo operacional por máquina — com alertas de manutenção próxima.',
+    Icon: Tractor,
+    iconColor: '#FED7AA',
+    Mockup: MockupFrota,
+  },
+  {
+    id: 'insumos',
+    title: 'Insumos',
+    desc: 'Controle de estoque com níveis mínimos, alertas automáticos de estoque crítico e integração financeira direta nas saídas de insumos.',
+    Icon: Package,
+    iconColor: '#A5F3FC',
+    Mockup: MockupInsumos,
+  },
+  {
+    id: 'produtos',
+    title: 'Produtos',
+    desc: 'Gestão do estoque de produtos da fazenda — grãos, leite, feno, sementes e mais — com entradas por colheita, vendas, consumo próprio e integração financeira automática.',
+    Icon: Package,
+    iconColor: '#BBF7D0',
+    Mockup: MockupProdutos,
+  },
+  {
+    id: 'mao-de-obra',
+    title: 'Mão de Obra',
+    desc: 'Registro de atividades rurais com custo calculado por colaborador, vínculo com talhões, silos e máquinas, e integração automática ao financeiro.',
+    Icon: Users,
+    iconColor: '#E9D5FF',
+    Mockup: MockupMaoDeObra,
+  },
+  {
+    id: 'relatorios',
+    title: 'Relatórios',
+    desc: 'Mais de 15 relatórios em Excel e PDF cobrindo todos os módulos — rebanho, financeiro, talhões, frota, pastagens e mais — com construtor dinâmico para o rebanho.',
+    Icon: BarChart3,
+    iconColor: '#DDD6FE',
+    Mockup: MockupRelatorios,
+  },
+  {
+    id: 'calendario',
+    title: 'Calendário',
+    desc: 'Visão consolidada de todos os eventos da fazenda em um único calendário mensal — operações de campo, manutenções, eventos do rebanho, manejo de pasto e mão de obra.',
+    Icon: CalendarDays,
+    iconColor: '#A5F3FC',
+    Mockup: MockupCalendario,
+  },
+  {
+    id: 'assessoria',
+    title: 'Assessoria Agronômica',
+    desc: 'Agende reuniões com a equipe técnica via link mágico, mantenha um bloco de notas da fazenda e registre o histórico de atendimentos — disponível no plano Max.',
+    Icon: MessageSquare,
+    iconColor: '#FED7AA',
+    Mockup: MockupAssessoria,
+  },
 ];
 
 // ===== HERO — prova social =====

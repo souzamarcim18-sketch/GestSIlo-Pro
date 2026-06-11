@@ -1,19 +1,38 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  FUNCIONALIDADES_CORE,
-  FUNCIONALIDADES_GESTAO,
-  FUNCIONALIDADES_SUPORTE,
-} from './data';
+import { ABAS_FUNCIONALIDADES } from './data';
 
 export default function Funcionalidades() {
   const router = useRouter();
+  const [activeId, setActiveId] = useState<string>(ABAS_FUNCIONALIDADES[0].id);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  const activeIndex = ABAS_FUNCIONALIDADES.findIndex((a) => a.id === activeId);
+  const active = ABAS_FUNCIONALIDADES[activeIndex];
+
+  const focusTab = (index: number) => {
+    const aba = ABAS_FUNCIONALIDADES[(index + ABAS_FUNCIONALIDADES.length) % ABAS_FUNCIONALIDADES.length];
+    setActiveId(aba.id);
+    tabRefs.current[aba.id]?.focus();
+    tabRefs.current[aba.id]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      focusTab(activeIndex + 1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      focusTab(activeIndex - 1);
+    }
+  };
 
   return (
     <section id="funcionalidades" className="bg-bg2 py-24 px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
             Uma plataforma para cada parte da sua fazenda
           </h2>
@@ -22,73 +41,97 @@ export default function Funcionalidades() {
           </p>
         </div>
 
-        {/* Linha 1 — módulos core */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          {FUNCIONALIDADES_CORE.map((item) => (
-            <div
-              key={item.title}
-              className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-8 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
-              style={{ border: '1px solid rgba(255,255,255,0.07)' }}
-            >
-              <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
-              <div className="mb-4">
-                <item.Icon size={36} strokeWidth={1.8} color={item.iconColor} />
-              </div>
-              <h3 className="font-bold text-foreground text-lg mb-2">{item.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
+        {/* Trilha de abas — horizontal no desktop, carrossel deslizável no mobile */}
+        <div
+          role="tablist"
+          aria-label="Funcionalidades"
+          onKeyDown={onKeyDown}
+          className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:justify-center md:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {ABAS_FUNCIONALIDADES.map((aba) => {
+            const isActive = aba.id === activeId;
+            return (
+              <button
+                key={aba.id}
+                ref={(el) => { tabRefs.current[aba.id] = el; }}
+                role="tab"
+                id={`tab-${aba.id}`}
+                aria-selected={isActive}
+                aria-controls={`panel-${aba.id}`}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => setActiveId(aba.id)}
+                className={`snap-center flex-shrink-0 inline-flex items-center gap-2 rounded-[13px] px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 border ${
+                  isActive
+                    ? 'text-foreground border-b-2'
+                    : 'text-muted-foreground border-white/[0.07] hover:text-foreground hover:bg-surface2'
+                }`}
+                style={
+                  isActive
+                    ? {
+                        background: 'var(--surface)',
+                        borderColor: 'rgba(255,255,255,0.07)',
+                        borderBottomColor: '#00A651',
+                        boxShadow: '0 0 0 1px rgba(0,166,81,0.18), 0 4px 24px rgba(0,166,81,0.18)',
+                      }
+                    : { background: 'var(--surface)' }
+                }
+              >
+                <aba.Icon size={18} strokeWidth={1.9} color={isActive ? '#00A651' : aba.iconColor} />
+                {aba.title}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Linha 2 — módulos de gestão */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {FUNCIONALIDADES_GESTAO.map((item) => (
-            <div
-              key={item.title}
-              className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
-              style={{ border: '1px solid rgba(255,255,255,0.07)' }}
-            >
-              <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
-              <div className="mb-3">
-                <item.Icon size={32} strokeWidth={1.8} color={item.iconColor} />
-              </div>
-              <h3 className="font-bold text-foreground text-base mb-1.5">{item.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+        {/* Conteúdo da aba ativa */}
+        <div
+          key={active.id}
+          role="tabpanel"
+          id={`panel-${active.id}`}
+          aria-labelledby={`tab-${active.id}`}
+          className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center motion-safe:animate-[fadeIn_0.4s_ease]"
+        >
+          {/* Texto descritivo */}
+          <div className="order-1">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-[10px] mb-4 bg-green-dim border border-green-border">
+              <active.Icon size={24} strokeWidth={1.9} color="#00A651" />
             </div>
-          ))}
+            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground mb-4">{active.title}</h3>
+            <p className="text-base text-muted-foreground leading-relaxed">{active.desc}</p>
+          </div>
+
+          {/* Mockup — abaixo do texto no mobile, ao lado no desktop */}
+          <div className="order-2 relative">
+            <div
+              className="absolute -inset-4 rounded-[32px] opacity-20 blur-2xl z-0"
+              style={{ background: 'linear-gradient(135deg, #00A651, #135a36)' }}
+            />
+            <div className="relative z-10">
+              <active.Mockup />
+            </div>
+          </div>
         </div>
 
-        {/* Linha 3 — módulos de suporte e análise */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FUNCIONALIDADES_SUPORTE.map((item) => (
-            <div
-              key={item.title}
-              className="bg-surface rounded-[13px] relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.28),0_8px_28px_rgba(0,0,0,0.16)] p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-surface2 cursor-default"
-              style={{ border: '1px solid rgba(255,255,255,0.07)' }}
-            >
-              <div className="absolute top-0 left-[1.125rem] right-[1.125rem] h-px bg-gradient-to-r from-transparent via-white/[0.055] to-transparent pointer-events-none" />
-              <div className="mb-3">
-                <item.Icon size={32} strokeWidth={1.8} color={item.iconColor} />
-              </div>
-              <h3 className="font-bold text-foreground text-base mb-1.5">{item.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA intermediário */}
-        <div className="mt-12 text-center">
+        {/* CTA — página dedicada */}
+        <div className="mt-14 text-center">
           <button
-            onClick={() => router.push('/solicitar-acesso?plano=free')}
+            onClick={() => router.push('/funcionalidades')}
             className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:underline transition-colors"
           >
-            Quero conhecer todos os módulos na prática
+            Conheça todas as funcionalidades
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </section>
   );
 }

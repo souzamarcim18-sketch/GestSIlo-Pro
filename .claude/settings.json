@@ -133,7 +133,10 @@
       "Bash(Sort-Object FullName)",
       "Bash(grep -n \"redirect\\\\|\\\\/dashboard\\\\|pathname.*==\\\\s*'\\\\/\" middleware.ts)",
       "Bash(grep -A 5 -B 5 \"plano\\\\|Starter\\\\|Pro\\\\|Max\\\\|Free\\\\|R\\\\$\\\\|49\\\\|74\\\\|119\")",
-      "PowerShell(npm run build)"
+      "PowerShell(npm run build)",
+      "Bash(sed -n '585,660p' app/dashboard/financeiro/FinanceiroClient.tsx)",
+      "Bash(sed -n '1,60p' app/dashboard/planejamento-silagem/components/resultados/CardResumoGeral.tsx)",
+      "Bash(echo \"EXIT $?\")"
     ],
     "additionalDirectories": [
       "\\tmp"
