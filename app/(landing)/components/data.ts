@@ -232,7 +232,6 @@ export const MODULOS_DETALHADOS: ModuloDetalhado[] = [
 // ===== HERO — prova social =====
 export const HERO_PROVA_SOCIAL: string[] = [
   'Criado por quem vive o campo. Destinado para quem depende dele',
-  'Funciona no celular, mesmo sem sinal',
   'Grátis para começar — sem cartão de crédito',
 ];
 
@@ -283,10 +282,9 @@ export const MOCKUP_FINANCEIRO = [
 
 // ===== FEITO PARA O CAMPO — diferenciais (faixa em Benefícios) =====
 export const DIFERENCIAIS_CAMPO: { label: string }[] = [
-  { label: 'Uso com luvas, ao sol, com 4G fraco' },
-  { label: 'Offline-ready: registre sem sinal, sincroniza depois' },
+  { label: 'Uso offline: registre sem sinal, sincroniza depois' },
   { label: 'Sem jargão técnico desnecessário' },
-  { label: 'Suporte via WhatsApp — sem ticket, sem fila' },
+  { label: 'Suporte via WhatsApp' },
   { label: 'Desenvolvido no Brasil, para o campo brasileiro' },
 ];
 

@@ -2,36 +2,37 @@ import Image from 'next/image';
 
 export default function QuemSomos() {
   return (
-    <section style={{ background: '#111a13' }} className="py-20 px-6">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        {/* Imagem dividindo a tela */}
-        <div className="relative order-last lg:order-first">
-          <div
-            className="absolute -inset-3 rounded-[28px] opacity-25 blur-2xl"
-            style={{ background: 'linear-gradient(135deg, #00A651, #135a36)' }}
-          />
-          <div className="relative aspect-[4/3] rounded-[20px] overflow-hidden border border-white/10 shadow-2xl">
-            <Image
-              src="/quem-somos.png"
-              alt="Produtor rural usando o GestSilo no campo"
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-            {/* Selo flutuante */}
-            <div
-              className="absolute bottom-4 left-4 right-4 rounded-xl px-4 py-3 backdrop-blur-md"
-              style={{ background: 'rgba(17,26,19,0.72)', border: '1px solid rgba(255,255,255,0.08)' }}
-            >
-              <p className="text-sm font-bold text-foreground">Equipe GestSilo</p>
-              <p className="text-xs text-muted-foreground">Gente do agro, construindo para o agro</p>
-            </div>
-          </div>
-        </div>
+    <section
+      className="relative overflow-hidden"
+      style={{ backgroundColor: 'rgb(10, 20, 13)' }}
+    >
+      {/* Imagem de fundo full-bleed */}
+      <Image
+        src="/quem-somos.png"
+        alt="Produtor rural usando o GestSilo no campo"
+        fill
+        sizes="100vw"
+        className="object-cover z-0"
+        style={{ objectPosition: 'center' }}
+      />
 
-        {/* Texto */}
-        <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-brand-primary mb-4 block">
+      {/* Overlay escuro base */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'rgba(10, 20, 13, 0.6)' }}
+      />
+      {/* Overlay gradiente lateral direito — escurece o lado do texto */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to left, rgba(10,20,13,0.92) 0%, rgba(10,20,13,0.78) 40%, rgba(10,20,13,0.35) 70%, transparent 100%)',
+        }}
+      />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full py-24 sm:py-32 lg:py-40">
+        <div className="lg:ml-auto lg:max-w-2xl">
+          <span className="text-xl font-bold uppercase tracking-widest text-brand-primary mb-4 block">
             Quem somos
           </span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-6 leading-tight">
@@ -45,13 +46,13 @@ export default function QuemSomos() {
             “Sem número confiável na mão, toda decisão na fazenda vira aposta.”
           </blockquote>
 
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm text-white/75 leading-relaxed mb-4">
             O GestSilo surgiu da experiência de quem lida todo dia com a terra, com o gado e com a silagem.
             Somos gente do agro construindo tecnologia para o agro — cada funcionalidade resolve um problema
             real da fazenda, do balanço forrageiro ao controle de estoque, do talhão ao fluxo de caixa.
           </p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Nosso compromisso é simples: transformar dado em decisão e deixar a gestão da propriedade tão
+          <p className="text-sm text-white/75 leading-relaxed">
+            Nosso compromisso é simples: transformar dados em decisões e deixar a gestão da propriedade tão
             sólida quanto o trabalho de quem a sustenta. Sem complicação — só o que ajuda a produzir melhor.
           </p>
         </div>
