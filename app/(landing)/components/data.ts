@@ -166,7 +166,7 @@ export const MODULOS_DETALHADOS: ModuloDetalhado[] = [
   {
     id: 'financeiro',
     title: 'Financeiro',
-    desc: 'DRE, fluxo de caixa e análise de lucratividade com integração automática de todos os módulos — insumos, mão de obra, vendas de silagem e produtos lançam suas despesas e receitas sem retrabalho.',
+    desc: 'Fluxo de caixa e análise de lucratividade com integração automática de todos os módulos — insumos, mão de obra, vendas de silagem e produtos lançam suas despesas e receitas sem retrabalho.',
     Icon: DollarSign,
     iconColor: '#FEF08A',
     Mockup: MockupFinanceiro,
@@ -231,9 +231,9 @@ export const MODULOS_DETALHADOS: ModuloDetalhado[] = [
 
 // ===== HERO — prova social =====
 export const HERO_PROVA_SOCIAL: string[] = [
-  'Desenvolvido por agrônomo com mestrado e experiência de campo em silagem',
-  'Funciona no celular, sem sinal, direto do campo',
-  'Começar é gratuito — sem cartão de crédito',
+  'Criado por quem vive o campo. Destinado para quem depende dele',
+  'Funciona no celular, mesmo sem sinal',
+  'Grátis para começar — sem cartão de crédito',
 ];
 
 // ===== BENEFÍCIOS =====

@@ -53,7 +53,7 @@ export default function Hero() {
                   borderColor: 'rgba(0,166,81,0.3)',
                 }}
               >
-                Um ambiente de gestão feita para os pecuaristas e agricultores brasileiros
+                Gestão feita para o campo brasileiro
               </span>
             </div>
 
@@ -86,8 +86,8 @@ export default function Hero() {
             </h1>
 
             <p className="text-lg md:text-xl leading-relaxed mb-6 max-w-2xl text-white/75">
-              Tenha o controle total de suas silagens — e saiba quantos dias o seu rebanho tem de estoque.
-              Sem planilha, sem palpite, sem depender de sinal no campo.
+              Saiba quantos dias de estoque seu rebanho tem — em tempo real, direto do computador ou do celular.
+              Sem planilha, sem palpite e sem depender de sinal no campo.
             </p>
 
             {/* Prova social inline */}
@@ -118,12 +118,6 @@ export default function Hero() {
               >
                 Entrar
               </button>
-              <a
-                href="#como-funciona"
-                className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
-              >
-                Ver como funciona →
-              </a>
             </div>
         </div>
       </div>
