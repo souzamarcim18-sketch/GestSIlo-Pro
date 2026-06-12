@@ -33,7 +33,7 @@ export default function CtaFinal() {
           <div className="relative">
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-6 px-4 py-2 rounded-full" style={{ background: 'rgba(245,208,0,0.1)', color: '#f5d000', border: '1px solid rgba(245,208,0,0.25)' }}>
               <span className="w-1.5 h-1.5 rounded-full bg-[#f5d000] animate-pulse" />
-              Acesso aprovado em até 1 dia útil
+              Acesso aprovado em no máximo 24 horas
             </span>
             <h2 className="text-4xl md:text-5xl font-extrabold mb-5 text-foreground leading-tight">
               Quantas toneladas de silagem você<br />perdeu este ano por falta de controle?
@@ -60,7 +60,7 @@ export default function CtaFinal() {
               </a>
             </div>
             <p className="mt-8 text-sm text-muted-foreground">
-              Mais de 10 minutos para configurar? Não. Em poucos cliques sua fazenda já está no controle.
+              Configuração e cadastros complicados? Não. Em poucos cliques sua fazenda já está no controle.
             </p>
           </div>
         </div>

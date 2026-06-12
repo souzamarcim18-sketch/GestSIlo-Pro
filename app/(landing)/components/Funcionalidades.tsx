@@ -37,7 +37,7 @@ export default function Funcionalidades() {
             Uma plataforma para cada parte da sua fazenda
           </h2>
           <p className="text-lg max-w-xl mx-auto text-muted-foreground">
-            Módulos integrados que se conversam — o que você registra em um lugar aparece automaticamente nos outros.
+            Módulos integrados que se conectam — o que você registra em um lugar atualiza automaticamente nos outros.
           </p>
         </div>
 

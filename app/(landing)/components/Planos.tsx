@@ -14,7 +14,7 @@ export default function Planos() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
           <span className="inline-block text-xs font-bold uppercase tracking-widest mb-4 px-4 py-1.5 rounded-full" style={{ background: 'rgba(0,166,81,0.1)', color: '#00A651', border: '1px solid rgba(0,166,81,0.25)' }}>
-            Planos a partir de R$ 0
+            Plano gartuito e planos que não pesam financeiramente para quem produz com eficiência
           </span>
           <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
             O plano certo para cada fazenda!
@@ -140,7 +140,7 @@ export default function Planos() {
         {/* Selos de confiança */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
           {[
-            'Sem cartão de crédito para começar',
+            'Sem cadastro de cartão para começar gratuitamente',
             'Cancele quando quiser',
             'Seus dados sob sigilo e backup automático',
           ].map((selo) => (
@@ -154,19 +154,20 @@ export default function Planos() {
         </div>
 
         {/* Link de dúvidas — WhatsApp */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 flex flex-col items-center gap-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Ficou com dúvidas sobre qual o melhor plano para sua propriedade?{' '}
-            <a
-              href="https://wa.me/5531990875346?text=Ol%C3%A1!%20Tenho%20interesse%20no%20GestSilo%20e%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas%20antes%20de%20assinar."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-semibold text-brand-primary hover:underline transition-colors"
-            >
-              <MessageSquare size={14} />
-              Clique aqui que te ajudamos!
-            </a>
+            Ficou com dúvidas sobre qual o melhor plano para sua propriedade?
           </p>
+          <a
+            href="https://wa.me/5531990875346?text=Ol%C3%A1!%20Tenho%20interesse%20no%20GestSilo%20e%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas%20antes%20de%20assinar."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white transition-all duration-200 hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #00A651, #00843D)' }}
+          >
+            <MessageSquare size={16} />
+            Clique aqui que te ajudamos!
+          </a>
         </div>
       </div>
     </section>

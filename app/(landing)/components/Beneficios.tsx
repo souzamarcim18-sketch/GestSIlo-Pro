@@ -1,7 +1,6 @@
-import { Wheat, BarChart3, AlertTriangle, Check } from 'lucide-react';
+import { Wheat, BarChart3, AlertTriangle } from 'lucide-react';
 import {
   BENEFICIOS,
-  DIFERENCIAIS_CAMPO,
   MOCKUP_SIDEBAR_ITEMS,
   MOCKUP_ALERTAS,
   MOCKUP_SILOS,
@@ -22,7 +21,7 @@ export default function Beneficios() {
               Decisões mais inteligentes,<br />resultado no campo
             </h2>
             <p className="text-base text-muted-foreground mb-8 max-w-md">
-              Tudo o que acontece na fazenda em uma só tela — para você agir antes do problema, não depois do prejuízo.
+              Tudo o que acontece na fazenda — para você agir antes do problema, não depois do prejuízo.
             </p>
             <div className="space-y-5">
               {BENEFICIOS.map((b) => (
@@ -174,32 +173,6 @@ export default function Beneficios() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Faixa — Feito para o campo brasileiro (continuação da seção) */}
-        <div className="mt-12">
-          <h3 className="text-xl font-extrabold text-foreground mb-1">
-            Feito para a realidade de quem produz
-          </h3>
-          <p className="text-sm text-muted-foreground mb-6">
-            Pensado para o campo brasileiro — do sinal fraco ao chão de terra.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {DIFERENCIAIS_CAMPO.map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 border border-white/8 bg-surface"
-              >
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(0,196,90,0.15)', border: '1px solid rgba(0,196,90,0.3)' }}
-                >
-                  <Check size={13} className="text-brand-primary" />
-                </div>
-                <p className="text-sm text-muted-foreground">{item.label}</p>
-              </div>
-            ))}
           </div>
         </div>
       </div>

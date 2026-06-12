@@ -37,7 +37,7 @@ export default function Faq() {
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : index)}
                   aria-expanded={isOpen}
-                  className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 rounded-2xl"
+                  className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40 rounded-2xl"
                 >
                   <span className={`text-base font-bold transition-colors ${isOpen ? 'text-brand-primary' : 'text-foreground'}`}>
                     {item.q}

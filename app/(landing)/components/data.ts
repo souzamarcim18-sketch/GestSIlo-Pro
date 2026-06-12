@@ -18,6 +18,11 @@ import {
   CalendarDays,
   MessageSquare,
   type LucideIcon,
+  TrendingUp,
+  WifiOff,
+  Speech,
+  Phone,
+  ChartBarIncreasing,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import {
@@ -48,12 +53,12 @@ export const STEPS: Step[] = [
   {
     num: '01',
     title: 'Solicite seu acesso',
-    desc: 'Preencha um formulário rápido e, em até 1 dia útil, seu convite chega por e-mail. Sem cartão e sem compromisso.',
+    desc: 'Preencha um formulário rápido e, em até 24 horas, seu convite chega por e-mail. Sem cartão e sem compromisso.',
   },
   {
     num: '02',
     title: 'Cadastre sua propriedade',
-    desc: 'Informe silos, rebanho e talhões em poucos cliques. Em menos de 10 minutos sua fazenda já está pronta para uso.',
+    desc: 'Registre seus silos, rebanho e talhões em poucos cliques. Rapidamente sua fazenda já está pronta para uso.',
   },
   {
     num: '03',
@@ -144,7 +149,7 @@ export const ABAS_FUNCIONALIDADES: AbaFuncionalidade[] = [
   {
     id: 'planejamento',
     title: 'Ferramentas de Planejamento',
-    desc: 'Planeje sua silagem com o wizard de dimensionamento, organize a lista de compras de insumos e use as calculadoras agronômicas — incluindo o otimizador que encontra a combinação de fertilizantes mais econômica.',
+    desc: 'Planeje sua demanda de silagens, organize a lista de compras de insumos e use as calculadoras agronômicas — incluindo o otimizador que encontra a combinação de fertilizantes mais econômica.',
     Icon: SlidersHorizontal,
     iconColor: '#E9D5FF',
     Mockup: MockupPlanejamento,
@@ -243,9 +248,12 @@ export interface Beneficio {
 }
 
 export const BENEFICIOS: Beneficio[] = [
-  { Icon: Zap, title: 'Agilidade no campo', desc: 'Qualquer dado em menos de 3 segundos, do celular, com luvas, mesmo com sinal fraco.' },
+  { Icon: Zap, title: 'Agilidade no campo', desc: 'Qualquer dado acessado rapidamente, do celular, mesmo com sinal fraco.' },
+  { Icon: WifiOff, title: 'Uso offline', desc: 'Faça os registros mesmo sem sinal de internet. Depois só fazer sincronização'},
   { Icon: MapPin, title: 'Rastreabilidade completa', desc: 'Histórico desde o primeiro dia: cada silo, cada retirada, cada lote do rebanho.' },
-  { Icon: TrendingDown, title: 'Custo real, não estimativa', desc: 'Saiba exatamente o que cada silagem, cada animal e cada talhão está custando.' },
+  { Icon: ChartBarIncreasing, title: 'Custo real, não estimativa', desc: 'Saiba exatamente o que cada silagem, cada animal e cada talhão está custando.' },
+  { Icon: Speech, title: 'Facilidade de comunicação', desc: 'Termos do dia a dia, sem jargões técnicos desnecessário'},
+  { Icon: Phone, title: 'Suporte real', desc: 'Atendimento por WhatsApp, e-mail e telefone'},
   { Icon: Shield, title: 'Seus dados são seus', desc: 'Criptografia, backup semanal automático e isolamento total entre fazendas.' },
 ];
 
@@ -278,14 +286,6 @@ export const MOCKUP_SILOS = [
 export const MOCKUP_FINANCEIRO = [
   { label: 'Receita do Mês', value: 'R$ 0,00', color: '#4ADE80' },
   { label: 'Despesa do Mês', value: 'R$ 0,00', color: '#F87171' },
-];
-
-// ===== FEITO PARA O CAMPO — diferenciais (faixa em Benefícios) =====
-export const DIFERENCIAIS_CAMPO: { label: string }[] = [
-  { label: 'Uso offline: registre sem sinal, sincroniza depois' },
-  { label: 'Sem jargão técnico desnecessário' },
-  { label: 'Suporte via WhatsApp' },
-  { label: 'Desenvolvido no Brasil, para o campo brasileiro' },
 ];
 
 // ===== PLANOS =====
@@ -336,7 +336,7 @@ export const PLANOS: Plano[] = [
     priceMonthly: 119,
     priceAnnually: 1190,
     desc: 'Para quem quer suporte técnico da equipe GestSilo',
-    features: ['Tudo do Pro', 'Revisão agronômica bimestral com o fundador — analise dados e tire dúvidas técnicas', 'Histórico de assessoria no sistema', 'Resposta em até 4h úteis', 'Acesso antecipado a novas funcionalidades'],
+    features: ['Tudo do Pro', 'Consultoria bimestral com Engº Agrônomo — analise dados e tire dúvidas técnicas', 'Histórico de assessoria no sistema', 'Resposta em até 4h úteis', 'Acesso antecipado a novas funcionalidades'],
     cta: 'Assinar Max',
     highlight: false,
     freeForever: false,
@@ -361,15 +361,15 @@ export const SUPORTE_FAQ = [
 export const LANDING_FAQ = [
   {
     q: 'Preciso de internet no campo para usar?',
-    a: 'Não. O GestSilo funciona offline: você registra entradas, saídas e atividades direto do celular, mesmo sem sinal, e tudo sincroniza sozinho quando a conexão voltar.',
+    a: 'Não. O GestSilo funciona offline: você registra entradas, saídas e atividades direto do celular, mesmo sem sinal. Tudo sincroniza quando a conexão voltar.',
   },
   {
     q: 'É difícil de configurar? Quanto tempo leva?',
-    a: 'Em poucos minutos sua fazenda já está pronta. Você informa silos, rebanho e talhões em poucos cliques e começa a usar — sem instalação complicada e sem manual.',
+    a: 'Não. Em pouco tempo sua fazenda já está pronta. Depois você cadastra os silos, seu rebanho e seus talhões em poucos cliques e começa a usar — sem instalação complicada e sem manual.',
   },
   {
     q: 'Meus dados ficam seguros?',
-    a: 'Sim. Usamos criptografia, isolamento total entre fazendas e backup automático semanal. Seus dados são seus — ninguém de outra propriedade tem acesso a eles.',
+    a: 'Sim. Usamos criptografia, isolamento total entre fazendas e backup automático semanal. Seus dados são seus — ninguém tem acesso a eles.',
   },
   {
     q: 'Posso começar de graça?',
@@ -377,11 +377,11 @@ export const LANDING_FAQ = [
   },
   {
     q: 'Consigo mudar de plano depois?',
-    a: 'Sim. O upgrade é imediato e sem perder nada. Se precisar voltar a um plano menor, nenhum dado é apagado — os registros excedentes ficam arquivados e voltam automaticamente caso você reative o plano.',
+    a: 'Sim. O upgrade de plano é imediato e sem perder nada. Se precisar voltar a um plano menor, nenhum dado é apagado — os registros excedentes ficam arquivados e voltam automaticamente caso você reative o plano.',
   },
   {
     q: 'Serve para rebanho de leite e de corte?',
-    a: 'Os dois. O módulo de rebanho cobre leiteiro, corte e dupla aptidão: ficha por animal, lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado.',
+    a: 'Os dois. O módulo cobre rebanho leiteiro, rebanho de corte e de dupla aptidão: ficha por animal, lotes, reprodução, produção leiteira, sanidade, pesagens e GMD — tudo integrado.',
   },
 ];
 

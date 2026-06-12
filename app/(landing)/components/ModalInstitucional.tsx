@@ -17,7 +17,6 @@ import { useLandingModal, type ModalType } from './LandingModalContext';
 import {
   VALORES,
   SUPORTE_CONTATOS,
-  SUPORTE_FAQ,
   PRIVACIDADE_SECOES,
   TERMOS_SECOES,
 } from './data';
@@ -168,20 +167,6 @@ export default function ModalInstitucional() {
                     </div>
                   );
                 })}
-              </div>
-              <div className="rounded-[10px] border border-border2 bg-bg2 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <BookOpen size={15} className="text-muted-foreground" />
-                  <p className="text-sm font-semibold text-foreground">Perguntas Frequentes</p>
-                </div>
-                <div className="space-y-3">
-                  {SUPORTE_FAQ.map((item, i) => (
-                    <div key={i} className="border-t border-border pt-3 first:border-0 first:pt-0">
-                      <p className="text-xs font-semibold text-foreground mb-1">{item.q}</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{item.a}</p>
-                    </div>
-                  ))}
-                </div>
               </div>
               <p className="text-xs text-center text-muted-foreground">GestSilo · Suporte disponível seg–sex, das 8h às 18h</p>
             </div>
