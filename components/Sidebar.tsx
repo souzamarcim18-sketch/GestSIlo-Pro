@@ -28,6 +28,7 @@ import {
   Lock,
   Zap,
   ArrowRight,
+  BookOpen,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -99,6 +100,8 @@ const sincronizacaoRoute: RouteItem = {
 
 interface SidebarProps {
   onNavigate?: () => void;
+  /** Quando true, a sidebar inicia recolhida (só ícones) e expande no hover. Usada no desktop. */
+  collapsible?: boolean;
 }
 
 function NavItem({
@@ -123,8 +126,10 @@ function NavItem({
         onClick={onNavigate}
         prefetch={false}
         aria-current={isActive ? 'page' : undefined}
+        title={label}
         className={cn(
           'text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2',
+          'group-data-[collapsed=true]/sb:justify-center group-data-[collapsed=true]/sb:px-0 group-data-[collapsed=true]/sb:mr-0',
           isActive
             ? 'text-primary'
             : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all duration-150',
@@ -136,7 +141,7 @@ function NavItem({
           boxShadow: '0 0 12px var(--green-glow)',
         } : undefined}
       >
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2 min-w-0">
           <Icon
             aria-hidden="true"
             className={cn(
@@ -144,14 +149,14 @@ function NavItem({
               isActive ? 'text-primary' : 'text-muted-foreground'
             )}
           />
-          <span>{label}</span>
+          <span className="truncate group-data-[collapsed=true]/sb:hidden">{label}</span>
         </span>
         {badge === 'comingSoon' && (
           <Badge
             variant="outline"
-            className="ml-1 bg-[color:var(--gold-dim)] text-status-warning border-[color:var(--gold-border)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0"
+            className="ml-1 bg-[color:var(--gold-dim)] text-status-warning border-[color:var(--gold-border)] text-[9px] font-bold tracking-wider rounded-full px-1.5 py-0 group-data-[collapsed=true]/sb:hidden"
           >
-            Em breve
+            Em&nbsp;breve
           </Badge>
         )}
       </Link>
@@ -360,23 +365,28 @@ function LockedNavItem({
     <li>
       <button
         onClick={() => onOpenUpgrade(label, modulo)}
-        className="text-xs w-full group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2 text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/[0.04] transition-all duration-150"
+        title={label}
+        className="text-xs w-full group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2 text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/[0.04] transition-all duration-150 group-data-[collapsed=true]/sb:justify-center group-data-[collapsed=true]/sb:px-0 group-data-[collapsed=true]/sb:mr-0"
       >
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2 min-w-0">
           <Icon aria-hidden="true" className="h-4 w-4 flex-shrink-0 text-muted-foreground/40" />
-          <span>{label}</span>
+          <span className="truncate group-data-[collapsed=true]/sb:hidden">{label}</span>
         </span>
-        <Lock aria-hidden="true" className="h-3 w-3 flex-shrink-0 text-muted-foreground/40" />
+        <Lock aria-hidden="true" className="h-3 w-3 flex-shrink-0 text-muted-foreground/40 group-data-[collapsed=true]/sb:hidden" />
       </button>
     </li>
   );
 }
 
-export function Sidebar({ onNavigate }: SidebarProps = {}) {
+export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const { profile, planoAtual } = useAuth();
   const [upgradeModal, setUpgradeModal] = useState<{ label: string; modulo: string } | null>(null);
+  const [hovered, setHovered] = useState(false);
+
+  // Recolhida apenas quando é colapsável e o mouse não está sobre ela.
+  const isCollapsed = collapsible && !hovered;
 
   const plano = parsePlanoSlug(planoAtual);
 
@@ -400,7 +410,13 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
 
   return (
     <div
-      className="flex flex-col h-full w-64 relative"
+      data-collapsed={isCollapsed ? 'true' : undefined}
+      onMouseEnter={collapsible ? () => setHovered(true) : undefined}
+      onMouseLeave={collapsible ? () => setHovered(false) : undefined}
+      className={cn(
+        'group/sb flex flex-col h-full relative transition-[width] duration-200 ease-in-out',
+        isCollapsed ? 'w-[68px]' : 'w-64',
+      )}
       style={{ background: 'var(--sidebar)', borderRight: '1px solid var(--border)' }}
     >
       {/* Glow topo */}
@@ -413,23 +429,35 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
         }}
       />
 
-      <div className="py-6 flex-1 flex flex-col min-h-0 px-6 relative z-10">
+      <div className="py-6 flex-1 flex flex-col min-h-0 px-3 group-data-[collapsed=true]/sb:px-2 relative z-10 transition-[padding] duration-200">
 
-        {/* Logo */}
+        {/* Logo — completa quando expandida, só o símbolo quando recolhida */}
         <Link
           href="/dashboard"
-          className="flex items-center justify-center mb-6 group transition-all"
+          className="flex items-center justify-center mb-6 group transition-all h-[43px]"
           aria-label="GestSilo — ir para o Dashboard"
         >
-          <Image
-            src="/logo_verde.png"
-            alt="GestSilo"
-            width={170}
-            height={43}
-            className="object-contain group-hover:opacity-90 transition-opacity"
-            priority
-            aria-hidden="true"
-          />
+          {isCollapsed ? (
+            <Image
+              src="/icon-192.png"
+              alt="GestSilo"
+              width={36}
+              height={36}
+              className="object-contain group-hover:opacity-90 transition-opacity"
+              priority
+              aria-hidden="true"
+            />
+          ) : (
+            <Image
+              src="/logo_verde.png"
+              alt="GestSilo"
+              width={170}
+              height={43}
+              className="object-contain group-hover:opacity-90 transition-opacity"
+              priority
+              aria-hidden="true"
+            />
+          )}
         </Link>
 
         {/* Navegação */}
@@ -454,7 +482,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
           {/* Bloco 2 — Gerencial */}
           <nav role="navigation" aria-label="Gerencial">
             <div className="pb-2">
-              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
                 Gerencial
               </div>
               <ul className="space-y-0.5 list-none">
@@ -495,7 +523,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
           {/* Bloco 3 — Ferramentas */}
           <nav role="navigation" aria-label="Ferramentas">
             <div className="pb-2">
-              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
                 Ferramentas
               </div>
               <ul className="space-y-0.5 list-none">
@@ -534,6 +562,24 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
                     />
                   );
                 })}
+
+                {/* Materiais — biblioteca pública de guias, abre em nova aba */}
+                <li>
+                  <a
+                    href="/guias"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={onNavigate}
+                    title="Materiais"
+                    className="text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors group-data-[collapsed=true]/sb:justify-center group-data-[collapsed=true]/sb:px-0 group-data-[collapsed=true]/sb:mr-0"
+                  >
+                    <span className="flex items-center gap-3 min-w-0">
+                      <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span className="truncate group-data-[collapsed=true]/sb:hidden">Materiais</span>
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-60 transition-opacity group-data-[collapsed=true]/sb:hidden" aria-hidden="true" />
+                  </a>
+                </li>
               </ul>
             </div>
           </nav>
@@ -544,7 +590,7 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
           {/* Bloco 4 — Sistema */}
           <nav role="navigation" aria-label="Sistema">
             <div className="pb-2">
-              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em]">
+              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
                 Sistema
               </div>
               <ul className="space-y-0.5 list-none">
@@ -576,15 +622,16 @@ export function Sidebar({ onNavigate }: SidebarProps = {}) {
       </div>
 
       {/* Rodapé — Sair */}
-      <div className="p-4" style={{ borderTop: '1px solid var(--border)' }}>
+      <div className="p-4 group-data-[collapsed=true]/sb:px-2" style={{ borderTop: '1px solid var(--border)' }}>
         <Button
           variant="ghost"
-          className="text-muted-foreground hover:text-destructive hover:bg-[color:var(--red-dim)] rounded-lg transition-all w-full justify-start py-1.5 px-3 h-auto text-xs font-semibold"
+          title="Sair da conta"
+          className="text-muted-foreground hover:text-destructive hover:bg-[color:var(--red-dim)] rounded-lg transition-all w-full justify-start py-1.5 px-3 h-auto text-xs font-semibold group-data-[collapsed=true]/sb:justify-center group-data-[collapsed=true]/sb:px-0"
           onClick={handleLogout}
           aria-label="Sair da conta"
         >
-          <LogOut className="h-4 w-4 mr-2.5 flex-shrink-0" aria-hidden="true" />
-          <span>Sair da conta</span>
+          <LogOut className="h-4 w-4 mr-2.5 flex-shrink-0 group-data-[collapsed=true]/sb:mr-0" aria-hidden="true" />
+          <span className="group-data-[collapsed=true]/sb:hidden">Sair da conta</span>
         </Button>
       </div>
 

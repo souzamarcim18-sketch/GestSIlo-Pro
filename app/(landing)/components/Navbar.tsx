@@ -45,7 +45,7 @@ export default function Navbar() {
           <a href={sectionHref('quem-somos')} className="text-muted-foreground hover:text-brand-primary transition-colors">Quem somos</a>
           <a href={sectionHref('planos')} className="text-muted-foreground hover:text-brand-primary transition-colors">Planos</a>
           <a href={sectionHref('faq')} className="text-muted-foreground hover:text-brand-primary transition-colors">Dúvidas</a>
-          <Link href="/guias" className="text-muted-foreground hover:text-brand-primary transition-colors">Guias</Link>
+          <Link href="/guias" className="text-muted-foreground hover:text-brand-primary transition-colors">Materiais</Link>
         </nav>
 
         <div className="flex items-center gap-2 md:gap-4">

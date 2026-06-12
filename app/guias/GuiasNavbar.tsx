@@ -34,7 +34,7 @@ export default function GuiasNavbar() {
             href="/guias"
             className="text-brand-primary transition-colors"
           >
-            Guias
+            Materiais
           </Link>
         </nav>
 

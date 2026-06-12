@@ -122,12 +122,12 @@ export default function DashboardLayout({
     <div className="h-screen relative overflow-hidden">
       <nav
         aria-label="Menu principal"
-        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80 transition-all duration-300 ease-in-out"
+        className="hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-80"
       >
-        <Sidebar />
+        <Sidebar collapsible />
       </nav>
 
-      <main className="h-full overflow-y-auto flex flex-col bg-muted/30 md:pl-60">
+      <main className="h-full overflow-y-auto flex flex-col bg-muted/30 md:pl-[68px]">
         <header role="banner">
           <Header />
         </header>
