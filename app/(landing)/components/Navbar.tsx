@@ -1,11 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isHome = pathname === '/';
+
+  // Na home, usa âncora pura (rolagem suave). Fora dela, navega para a home + âncora.
+  const sectionHref = (id: string) => (isHome ? `#${id}` : `/#${id}`);
 
   return (
     <header
@@ -14,10 +19,12 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <a
-          href="#"
+          href={isHome ? '#' : '/'}
           onClick={(e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (isHome) {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
           }}
           aria-label="Ir para o topo da página"
           className="flex items-center gap-3 rounded-lg transition-opacity hover:opacity-80"
@@ -33,11 +40,11 @@ export default function Navbar() {
         </a>
 
         <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold">
-          <a href="#funcionalidades" className="text-muted-foreground hover:text-brand-primary transition-colors">Funcionalidades</a>
-          <a href="#beneficios" className="text-muted-foreground hover:text-brand-primary transition-colors">Benefícios</a>
-          <a href="#quem-somos" className="text-muted-foreground hover:text-brand-primary transition-colors">Quem somos</a>
-          <a href="#planos" className="text-muted-foreground hover:text-brand-primary transition-colors">Planos</a>
-          <a href="#faq" className="text-muted-foreground hover:text-brand-primary transition-colors">Dúvidas</a>
+          <a href={sectionHref('funcionalidades')} className="text-muted-foreground hover:text-brand-primary transition-colors">Funcionalidades</a>
+          <a href={sectionHref('beneficios')} className="text-muted-foreground hover:text-brand-primary transition-colors">Benefícios</a>
+          <a href={sectionHref('quem-somos')} className="text-muted-foreground hover:text-brand-primary transition-colors">Quem somos</a>
+          <a href={sectionHref('planos')} className="text-muted-foreground hover:text-brand-primary transition-colors">Planos</a>
+          <a href={sectionHref('faq')} className="text-muted-foreground hover:text-brand-primary transition-colors">Dúvidas</a>
           <Link href="/guias" className="text-muted-foreground hover:text-brand-primary transition-colors">Guias</Link>
         </nav>
 
