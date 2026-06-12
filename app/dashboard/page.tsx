@@ -284,7 +284,7 @@ export default async function DashboardPage() {
   const totalEstoqueAtual = silosData.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
   const autonomiaDias = consumoDiarioKg > 0 ? Math.round((totalEstoqueAtual * 1000) / consumoDiarioKg) : null;
   const silosAutonomiaDias =
-    autonomiaDias === null ? '—' : autonomiaDias > 365 ? '+365 dias' : `${autonomiaDias} dias`;
+    autonomiaDias === null ? '—' : autonomiaDias > 365 ? 'Mais de 1 ano' : `${autonomiaDias} dias`;
 
   const saidasDescarte = movsRecentes.filter((m) => m.tipo === 'Saída' && m.subtipo === 'Descarte');
   const totalDescarte = saidasDescarte.reduce((acc, m) => acc + (m.quantidade ?? 0), 0);

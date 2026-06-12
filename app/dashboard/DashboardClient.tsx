@@ -19,6 +19,10 @@ import {
   Plus,
   CalendarClock,
   ArrowRight,
+  Package,
+  Clock,
+  Wallet,
+  BellRing,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn, formatBRL } from '@/lib/utils';
@@ -43,7 +47,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-bold uppercase tracking-[0.18em] mb-3" style={{ color: '#dceede' }}>
+    <p className="text-xs font-bold uppercase tracking-[0.18em] mb-3 text-foreground">
       {children}
     </p>
   );
@@ -68,21 +72,18 @@ function KpiCard({
   return (
     <button
       onClick={() => router.push(href)}
-      className={cn('text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]', className)}
+      className={cn('text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl', className)}
     >
-      <Card className="rounded-[13px] p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+      <Card className="rounded-2xl p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5 flex-1 min-w-0">
-            <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-[#688070]">{title}</p>
-            <p className="text-xl md:text-2xl font-black tracking-tight text-[#dceede] truncate">{value}</p>
-            <p className="text-xs md:text-sm text-[#688070] truncate">{detail}</p>
+            <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-muted-foreground">{title}</p>
+            <p className="text-xl md:text-2xl font-black tracking-tight text-foreground truncate">{value}</p>
+            <p className="text-xs md:text-sm text-muted-foreground truncate">{detail}</p>
           </div>
           {Icon && (
-            <div
-              className="shrink-0 p-2.5 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
-            >
-              <Icon className="h-4 w-4 text-[#00c45a]" />
+            <div className="shrink-0 p-2.5 rounded-xl bg-foreground/[0.07] border border-foreground/10">
+              <Icon className="h-4 w-4 text-primary" />
             </div>
           )}
         </div>
@@ -116,12 +117,12 @@ function FinanceiroCard({
   const router = useRouter();
   const valueColor =
     variante === 'receita'
-      ? 'text-[#00c45a]'
+      ? 'text-status-success'
       : variante === 'despesa'
-        ? 'text-[#f87171]'
+        ? 'text-status-danger'
         : variante === 'saldo_positivo'
-          ? 'text-[#00c45a]'
-          : 'text-[#f87171]';
+          ? 'text-status-success'
+          : 'text-status-danger';
 
   // Para receita, subir é bom (verde); para despesa, subir é ruim (vermelho).
   const variacaoBom =
@@ -131,14 +132,14 @@ function FinanceiroCard({
   return (
     <button
       onClick={() => router.push(href)}
-      className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+      className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl"
     >
-      <Card className="rounded-[13px] p-4 h-full transition-all duration-300 group-hover:-translate-y-1">
+      <Card className="rounded-2xl p-4 h-full transition-all duration-300 group-hover:-translate-y-1">
         <div className="space-y-1.5">
-          <p className="uppercase tracking-[0.13em] font-bold text-xs text-[#688070]">{title}</p>
+          <p className="uppercase tracking-[0.13em] font-bold text-xs text-muted-foreground">{title}</p>
           <p className={cn('text-xl md:text-2xl font-black tracking-tight truncate', valueColor)}>{value}</p>
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-xs text-[#688070]">{subtitle}</p>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
             {variacaoPct != null && (
               <span
                 className={cn(
@@ -152,10 +153,42 @@ function FinanceiroCard({
             )}
           </div>
           {linkLabel && (
-            <span className="text-xs text-[#00c45a] group-hover:underline inline-block pt-0.5">{linkLabel} →</span>
+            <span className="text-xs text-primary group-hover:underline inline-block pt-0.5">{linkLabel} →</span>
           )}
         </div>
       </Card>
+    </button>
+  );
+}
+
+function ResumoItem({
+  label,
+  value,
+  valueClass,
+  icon: Icon,
+  href,
+}: {
+  label: string;
+  value: string;
+  valueClass?: string;
+  icon: React.ElementType;
+  href: string;
+}) {
+  const router = useRouter();
+  return (
+    <button
+      onClick={() => router.push(href)}
+      className="flex items-center gap-3 px-4 py-3 flex-1 min-w-0 text-left hover:bg-foreground/[0.03] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+    >
+      <div className="shrink-0 p-2 rounded-lg bg-foreground/[0.07] border border-foreground/10">
+        <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+      </div>
+      <div className="min-w-0">
+        <p className="uppercase tracking-[0.13em] font-bold text-xs text-muted-foreground truncate">{label}</p>
+        <p className={cn('text-lg md:text-xl font-black tracking-tight truncate', valueClass ?? 'text-foreground')}>
+          {value}
+        </p>
+      </div>
     </button>
   );
 }
@@ -174,6 +207,18 @@ const ALERTA_CONFIG: Record<AlertaSeveridade, {
   critico: { Icon: AlertCircle,   iconClass: 'text-status-danger',   bgClass: 'bg-status-danger/10'   },
   urgente: { Icon: AlertTriangle, iconClass: 'text-status-warning',  bgClass: 'bg-status-warning/10'  },
   aviso:   { Icon: Info,          iconClass: 'text-status-info',     bgClass: 'bg-status-info/10'     },
+};
+
+// Cabeçalho do banner: reflete a MAIOR severidade presente (não fica sempre vermelho).
+const BANNER_CONFIG: Record<AlertaSeveridade, {
+  titulo: string;
+  Icon: React.ElementType;
+  textClass: string;
+  borderClass: string;
+}> = {
+  critico: { titulo: 'Alertas Críticos', Icon: AlertCircle,   textClass: 'text-status-danger',  borderClass: 'border-status-danger/20'  },
+  urgente: { titulo: 'Pontos de Atenção', Icon: AlertTriangle, textClass: 'text-status-warning', borderClass: 'border-status-warning/20' },
+  aviso:   { titulo: 'Avisos',            Icon: Info,          textClass: 'text-status-info',    borderClass: 'border-status-info/20'    },
 };
 
 export function DashboardClient({ data, userName }: { data: DashboardData; userName: string }) {
@@ -206,6 +251,11 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
   );
   const alertasExibidos = alertasOrdenados.slice(0, 5);
   const alertasOcultos = alertasOrdenados.length - alertasExibidos.length;
+  // Maior severidade presente define o tom do banner (já ordenado: crítico → urgente → aviso)
+  const banner = BANNER_CONFIG[alertasOrdenados[0]?.severidade ?? 'aviso'];
+
+  const saldoMesNum = data.receitaMesNum - data.despesaMesNum;
+  const qtdAlertas = alertasOrdenados.length;
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
@@ -217,19 +267,51 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       )}
       {/* Cabeçalho */}
       <div className="space-y-1 mb-2">
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#dceede]">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
           {greeting}, {userName}!
         </h1>
         <p className="text-sm text-muted-foreground">Visão geral da sua propriedade</p>
       </div>
 
+      {/* Faixa de resumo — panorama da fazenda sem rolar a tela */}
+      <Card className="rounded-2xl p-1 md:p-1.5">
+        <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-border">
+          <ResumoItem
+            label="Estoque de Silagem"
+            value={data.silosGaugeDetalhe}
+            icon={Package}
+            href="/dashboard/silos"
+          />
+          <ResumoItem
+            label="Autonomia"
+            value={data.silosAutonomiaDias}
+            icon={Clock}
+            href="/dashboard/balanco-forrageiro"
+          />
+          <ResumoItem
+            label="Saldo do Mês"
+            value={formatBRL(saldoMesNum)}
+            valueClass={saldoMesNum >= 0 ? 'text-status-success' : 'text-status-danger'}
+            icon={Wallet}
+            href="/dashboard/financeiro"
+          />
+          <ResumoItem
+            label="Alertas Ativos"
+            value={String(qtdAlertas)}
+            valueClass={qtdAlertas > 0 ? 'text-status-warning' : 'text-foreground'}
+            icon={BellRing}
+            href="/dashboard/calendario"
+          />
+        </div>
+      </Card>
+
       {/* Alertas Críticos — banner condicional no topo */}
       {alertasExibidos.length > 0 && (
-        <Card className="bg-card rounded-2xl p-4 md:p-5 shadow-sm border border-status-danger/20">
+        <Card className={cn('bg-card rounded-2xl p-4 md:p-5 shadow-sm border', banner.borderClass)}>
           <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="w-4 h-4 text-status-danger shrink-0" aria-hidden="true" />
-            <h2 className="text-sm font-bold uppercase tracking-[0.13em] text-status-danger">
-              Alertas Críticos
+            <banner.Icon className={cn('w-4 h-4 shrink-0', banner.textClass)} aria-hidden="true" />
+            <h2 className={cn('text-sm font-bold uppercase tracking-[0.13em]', banner.textClass)}>
+              {banner.titulo}
             </h2>
             {alertasOcultos > 0 && (
               <span className="ml-auto text-xs text-muted-foreground">
@@ -269,17 +351,17 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
           <div className="row-span-2 flex">
             <button
               onClick={() => router.push('/dashboard/silos')}
-              className="text-left group w-full flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+              className="text-left group w-full flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl"
             >
-              <div className="relative rounded-[13px] border border-border bg-card p-5 flex flex-col gap-4 h-full transition-all duration-300 group-hover:-translate-y-1 shadow-[0_2px_12px_rgba(0,0,0,0.08)] group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
-                <p className="text-sm font-bold uppercase tracking-[0.13em] text-[#688070]">Ocupação dos Silos</p>
+              <div className="relative rounded-2xl border border-border bg-card p-5 flex flex-col gap-4 h-full transition-all duration-300 group-hover:-translate-y-1 shadow-[0_2px_12px_rgba(0,0,0,0.08)] group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
+                <p className="text-sm font-bold uppercase tracking-[0.13em] text-muted-foreground">Ocupação dos Silos</p>
                 {/* Gauge centralizado */}
                 <div className="flex justify-center">
                   <GaugeOcupacaoSilos percentual={data.silosOcupacaoPctNum} />
                 </div>
                 {/* Estoque abaixo do gauge */}
                 <div className="text-center -mt-2">
-                  <p className="text-base font-bold tracking-tight text-[#dceede]">{data.silosGaugeDetalhe}</p>
+                  <p className="text-base font-bold tracking-tight text-foreground">{data.silosGaugeDetalhe}</p>
                   <p className="text-xs text-muted-foreground">estoque atual</p>
                 </div>
                 {/* Barras de silos ocupando largura total */}
@@ -289,7 +371,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                       <div key={nome} className="space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-muted-foreground truncate">{nome}</span>
-                          <span className="text-xs font-semibold text-[#dceede] ml-2">{data.silosOcupacaoPctNum}%</span>
+                          <span className="text-xs font-semibold text-foreground ml-2">{data.silosOcupacaoPctNum}%</span>
                         </div>
                         <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
@@ -329,6 +411,43 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               culturas={data.culturasEnsiladas}
             />
           </div>
+        </div>
+      </section>
+
+      {/* Financeiro — elevado logo após Silagem por impacto na decisão do produtor */}
+      <section aria-label="Financeiro">
+        <SectionLabel>Financeiro</SectionLabel>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <FinanceiroCard
+            title="RECEITA DO MÊS"
+            value={data.receitaMes}
+            variante="receita"
+            href="/dashboard/financeiro"
+            variacaoPct={data.receitaVariacaoPct}
+            variacaoTipo="receita"
+          />
+          <FinanceiroCard
+            title="DESPESA DO MÊS"
+            value={data.despesaMes}
+            variante="despesa"
+            href="/dashboard/financeiro"
+            variacaoPct={data.despesaVariacaoPct}
+            variacaoTipo="despesa"
+          />
+          <FinanceiroCard
+            title="SALDO LÍQUIDO"
+            value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
+            variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+            href="/dashboard/financeiro"
+          />
+          <FinanceiroCard
+            title="SALDO ACUMULADO"
+            value={formatBRL(data.saldoAcumuladoNum)}
+            variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+            href="/dashboard/financeiro"
+            subtitle="Total até hoje"
+            linkLabel="Ver detalhes"
+          />
         </div>
       </section>
 
@@ -383,7 +502,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
           <div className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rebanho</p>
             {data.totalAnimais === 0 ? (
-              <Card className="rounded-[13px] p-2 flex-1 flex items-center justify-center">
+              <Card className="rounded-2xl p-2 flex-1 flex items-center justify-center">
                 <EmptyState
                   icon={<Beef className="w-12 h-12" />}
                   title="Nenhum animal cadastrado"
@@ -421,10 +540,10 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             />
             <button
               onClick={() => router.push('/dashboard/talhoes')}
-              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl flex-1"
             >
-              <div className="relative rounded-[13px] border border-border bg-card p-5 flex flex-col gap-3 h-full transition-all duration-300 group-hover:-translate-y-1 shadow-[0_2px_12px_rgba(0,0,0,0.08)] group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
-                <p className="text-sm font-bold uppercase tracking-[0.13em] text-[#688070]">Culturas Ativas</p>
+              <div className="relative rounded-2xl border border-border bg-card p-5 flex flex-col gap-3 h-full transition-all duration-300 group-hover:-translate-y-1 shadow-[0_2px_12px_rgba(0,0,0,0.08)] group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)]">
+                <p className="text-sm font-bold uppercase tracking-[0.13em] text-muted-foreground">Culturas Ativas</p>
                 {data.culturasAtivas.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center">
                     <p className="text-sm text-muted-foreground">Nenhuma cultura ativa</p>
@@ -432,8 +551,8 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                 ) : (
                   <div className="space-y-2 flex-1">
                     {data.culturasAtivas.map((c) => (
-                      <div key={c.name} className="flex items-center justify-between gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                        <span className="text-sm font-medium text-[#dceede] truncate">{c.name}</span>
+                      <div key={c.name} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-foreground/[0.04]">
+                        <span className="text-sm font-medium text-foreground truncate">{c.name}</span>
                         <span className="text-xs text-muted-foreground shrink-0">{c.value} talhão{c.value > 1 ? 'ões' : ''}</span>
                       </div>
                     ))}
@@ -448,114 +567,75 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pastagens</p>
             <button
               onClick={() => router.push('/dashboard/pastagens')}
-              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px] flex-1"
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl flex-1"
             >
-              <Card className="rounded-[13px] p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+              <Card className="rounded-2xl p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
                 <div className="flex items-start justify-between gap-3 mb-4">
-                  <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-[#688070]">Piquetes</p>
+                  <p className="uppercase tracking-[0.13em] font-bold text-xs md:text-sm text-muted-foreground">Piquetes</p>
                   <div
-                    className="shrink-0 p-2.5 rounded-xl"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    className="shrink-0 p-2.5 rounded-xl bg-foreground/[0.07] border border-foreground/10"
                   >
-                    <Leaf className="h-4 w-4 text-[#00c45a]" />
+                    <Leaf className="h-4 w-4 text-primary" />
                   </div>
                 </div>
                 {data.totalPiquetes === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground">Nenhum piquete cadastrado</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">
-                      <span className="text-[#00c45a] underline">Cadastrar pastagem</span>
+                      <span className="text-primary underline">Cadastrar pastagem</span>
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Em pastejo</span>
-                      <span className="font-semibold text-[#dceede]">{data.piquetesEmPastejo}</span>
+                      <span className="font-semibold text-foreground">{data.piquetesEmPastejo}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Prontos para entrada</span>
-                      <span className={`font-semibold ${data.piquetesProntosEntrada > 0 ? 'text-status-success' : 'text-[#dceede]'}`}>
+                      <span className={`font-semibold ${data.piquetesProntosEntrada > 0 ? 'text-status-success' : 'text-foreground'}`}>
                         {data.piquetesProntosEntrada}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Em reforma</span>
-                      <span className="font-semibold text-[#dceede]">{data.piquetesEmReforma}</span>
+                      <span className="font-semibold text-foreground">{data.piquetesEmReforma}</span>
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-[#00c45a] mt-4 group-hover:underline">Ver pastagens →</p>
+                <p className="text-xs text-primary mt-4 group-hover:underline">Ver pastagens →</p>
               </Card>
             </button>
             <button
               onClick={() => router.push('/dashboard/pastagens')}
-              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]"
+              className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl"
             >
-              <Card className="rounded-[13px] p-4 md:p-5 transition-all duration-300 group-hover:-translate-y-1">
+              <Card className="rounded-2xl p-4 md:p-5 transition-all duration-300 group-hover:-translate-y-1">
                 <div className="flex items-center justify-between gap-3">
                   <div className="space-y-0.5 flex-1 min-w-0">
-                    <p className="uppercase tracking-[0.13em] font-bold text-xs text-[#688070]">Área de Pastagem</p>
+                    <p className="uppercase tracking-[0.13em] font-bold text-xs text-muted-foreground">Área de Pastagem</p>
                     {data.pastagensCount === 0 ? (
                       <p className="text-sm text-muted-foreground">Nenhuma pastagem cadastrada</p>
                     ) : (
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <p className="text-xl font-black tracking-tight text-[#dceede]">
+                        <p className="text-xl font-black tracking-tight text-foreground">
                           {data.pastagensAreaTotalHa.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ha
                         </p>
-                        <p className="text-xs text-[#688070]">
+                        <p className="text-xs text-muted-foreground">
                           {data.pastagensCount} sistema{data.pastagensCount > 1 ? 's' : ''}
                         </p>
                       </div>
                     )}
                   </div>
                   <div
-                    className="shrink-0 p-2.5 rounded-xl"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    className="shrink-0 p-2.5 rounded-xl bg-foreground/[0.07] border border-foreground/10"
                   >
-                    <Leaf className="h-4 w-4 text-[#00c45a]" />
+                    <Leaf className="h-4 w-4 text-primary" />
                   </div>
                 </div>
               </Card>
             </button>
           </div>
-        </div>
-      </section>
-
-      {/* Financeiro */}
-      <section aria-label="Financeiro">
-        <SectionLabel>Financeiro</SectionLabel>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <FinanceiroCard
-            title="RECEITA DO MÊS"
-            value={data.receitaMes}
-            variante="receita"
-            href="/dashboard/financeiro"
-            variacaoPct={data.receitaVariacaoPct}
-            variacaoTipo="receita"
-          />
-          <FinanceiroCard
-            title="DESPESA DO MÊS"
-            value={data.despesaMes}
-            variante="despesa"
-            href="/dashboard/financeiro"
-            variacaoPct={data.despesaVariacaoPct}
-            variacaoTipo="despesa"
-          />
-          <FinanceiroCard
-            title="SALDO LÍQUIDO"
-            value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
-            variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
-            href="/dashboard/financeiro"
-          />
-          <FinanceiroCard
-            title="SALDO ACUMULADO"
-            value={formatBRL(data.saldoAcumuladoNum)}
-            variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
-            href="/dashboard/financeiro"
-            subtitle="Meses anteriores"
-            linkLabel="Ver detalhes"
-          />
         </div>
       </section>
 
@@ -568,20 +648,35 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </div>
       </section>
 
-      {/* Atividades Recentes */}
+      {/* Atividades Recentes — faixa fina quando vazio, bloco completo quando há dados */}
       <section aria-label="Atividades Recentes">
-        <Card className="bg-card rounded-2xl p-4 md:p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base md:text-lg font-semibold text-foreground">Atividades Recentes</h2>
-            <Link
-              href="/dashboard/calendario"
-              className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors"
-            >
-              Ver tudo
-            </Link>
-          </div>
-          <AtividadesRecentesList eventos={data.atividadesRecentes} />
-        </Card>
+        {data.atividadesRecentes.length === 0 ? (
+          <Link
+            href="/dashboard/calendario"
+            className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <TrendingUp className="w-4 h-4 text-muted-foreground/50 shrink-0" aria-hidden="true" />
+              <span className="text-sm text-muted-foreground truncate">
+                Nenhuma atividade recente — suas movimentações aparecerão aqui.
+              </span>
+            </div>
+            <span className="text-sm font-semibold text-brand-primary shrink-0">Ver tudo →</span>
+          </Link>
+        ) : (
+          <Card className="bg-card rounded-2xl p-4 md:p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base md:text-lg font-semibold text-foreground">Atividades Recentes</h2>
+              <Link
+                href="/dashboard/calendario"
+                className="text-sm font-semibold text-brand-primary hover:text-brand-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded px-2 py-1 transition-colors"
+              >
+                Ver tudo
+              </Link>
+            </div>
+            <AtividadesRecentesList eventos={data.atividadesRecentes} />
+          </Card>
+        )}
       </section>
     </div>
   );
