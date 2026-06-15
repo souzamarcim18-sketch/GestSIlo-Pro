@@ -4,8 +4,29 @@ import {
   calcularConsumoHistorico,
   calcularDemandaProjetada,
   calcularComparativo,
+  calcularOfertaPasto,
 } from '@/lib/utils/balanco-forrageiro';
 import type { MovimentacaoSiloRow, AnimalPorCategoriaRow } from '@/lib/utils/balanco-forrageiro';
+import type { PiqueteAtivoRow } from '@/lib/supabase/balanco-forrageiro';
+
+function makePiquete(overrides: Partial<PiqueteAtivoRow> = {}): PiqueteAtivoRow {
+  return {
+    piquete_id: 'p1',
+    piquete_nome: 'Piquete 1',
+    area_ha: 10,
+    ua_suportada: null,
+    status: 'Em pastejo',
+    sistema_pastejo: 'rotacionado',
+    especie_forrageira: 'Braquiária Marandu', // verão 45, seca 10
+    nivel_tecnologia: 'medio',
+    pastagem_nome: 'Pasto Norte',
+    ocupacao_id: null,
+    quantidade_animais: null,
+    ua_real: null,
+    data_entrada: null,
+    ...overrides,
+  };
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -206,5 +227,66 @@ describe('calcularComparativo', () => {
   it('calcula diferenca_autonomia_dias corretamente quando ambos disponíveis', () => {
     const resultado = calcularComparativo(consumoBase(110, 90), demandaBase(100, 100));
     expect(resultado.diferenca_autonomia_dias).toBe(-10); // 90 - 100
+  });
+});
+
+// ─── calcularOfertaPasto ──────────────────────────────────────────────────────
+
+describe('calcularOfertaPasto', () => {
+  it('marca sem_piquetes quando não há pastagens disponíveis', () => {
+    const r = calcularOfertaPasto([], 100, 1);
+    expect(r.sem_piquetes).toBe(true);
+    expect(r.oferta_total_kg_ms_dia).toBe(0);
+  });
+
+  it('calcula oferta = taxa × nível médio (1.0) × área (verão)', () => {
+    // Marandu verão = 45, médio = 1.0, 10 ha → 450
+    const r = calcularOfertaPasto([makePiquete()], 1000, 1 /* janeiro = verão */);
+    expect(r.epoca).toBe('verao');
+    expect(r.oferta_total_kg_ms_dia).toBe(450);
+  });
+
+  it('usa taxa da seca no inverno', () => {
+    // Marandu seca = 10, médio = 1.0, 10 ha → 100
+    const r = calcularOfertaPasto([makePiquete()], 1000, 6 /* junho = seca */);
+    expect(r.epoca).toBe('seca');
+    expect(r.oferta_total_kg_ms_dia).toBe(100);
+  });
+
+  it('aplica multiplicador de tecnologia baixo (0.8)', () => {
+    const r = calcularOfertaPasto([makePiquete({ nivel_tecnologia: 'baixo' })], 1000, 1);
+    expect(r.oferta_total_kg_ms_dia).toBeCloseTo(450 * 0.8, 5); // 360
+  });
+
+  it('aplica multiplicador de tecnologia alto (1.15)', () => {
+    const r = calcularOfertaPasto([makePiquete({ nivel_tecnologia: 'alto' })], 1000, 1);
+    expect(r.oferta_total_kg_ms_dia).toBeCloseTo(450 * 1.15, 5); // 517.5
+  });
+
+  it('normaliza nível inválido para médio', () => {
+    const r = calcularOfertaPasto([makePiquete({ nivel_tecnologia: 'invalido' })], 1000, 1);
+    expect(r.oferta_total_kg_ms_dia).toBe(450);
+    expect(r.por_piquete[0].nivel_tecnologia).toBe('medio');
+  });
+
+  it('inclui piquetes em Descanso na oferta', () => {
+    const r = calcularOfertaPasto([makePiquete({ status: 'Descanso' })], 1000, 1);
+    expect(r.sem_piquetes).toBe(false);
+    expect(r.oferta_total_kg_ms_dia).toBe(450);
+    expect(r.por_piquete[0].status).toBe('Descanso');
+  });
+
+  it('usa estimativa padrão quando a espécie não está catalogada', () => {
+    // padrão verão = 40, médio, 10 ha → 400
+    const r = calcularOfertaPasto([makePiquete({ especie_forrageira: 'Capim Inventado' })], 1000, 1);
+    expect(r.piquetes_sem_especie).toBe(1);
+    expect(r.por_piquete[0].especie_estimada).toBe(true);
+    expect(r.oferta_total_kg_ms_dia).toBe(400);
+  });
+
+  it('emite alerta de cobertura baixa quando oferta < 20% da demanda', () => {
+    // oferta 450, demanda 5000 → 9% < 20%
+    const r = calcularOfertaPasto([makePiquete()], 5000, 1);
+    expect(r.alerta_cobertura_baixa).toBe(true);
   });
 });

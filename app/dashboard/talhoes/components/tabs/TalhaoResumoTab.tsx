@@ -5,13 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Talhao, type CicloAgricola, type AtividadeCampo } from '@/lib/types/talhoes';
-import { type Profile } from '@/lib/supabase';
-import { AlertCircle, Plus, Edit2, Trash2 } from 'lucide-react';
+import { AlertCircle, Plus } from 'lucide-react';
 import {
   Alert,
   AlertDescription,
 } from '@/components/ui/alert';
-import { TalhaoForm } from '../dialogs/TalhaoForm';
 import { CicloForm } from '../dialogs/CicloForm';
 import { calcularCustoTotalEstimado, calcularCustoPorHectare, calcularBreakdownCusto, verificarAlertaSilagem } from '../../helpers';
 
@@ -19,22 +17,15 @@ interface TalhaoResumoTabProps {
   talhao: Talhao;
   cicloAtivo?: CicloAgricola;
   atividades: AtividadeCampo[];
-  onEditTalhao?: () => void;
-  onDeleteTalhao?: () => void;
   onRefresh?: () => void;
-  profile?: Profile | null;
 }
 
 export function TalhaoResumoTab({
   talhao,
   cicloAtivo,
   atividades,
-  onEditTalhao,
-  onDeleteTalhao,
   onRefresh,
-  profile,
 }: TalhaoResumoTabProps) {
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddCicloOpen, setIsAddCicloOpen] = useState(false);
 
   const custoTotal = calcularCustoTotalEstimado(atividades);
@@ -204,49 +195,7 @@ export function TalhaoResumoTab({
         </Card>
       )}
 
-      {/* Ações */}
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          onClick={() => setIsEditOpen(true)}
-          className="flex-1"
-        >
-          <Edit2 className="w-4 h-4 mr-2" />
-          Editar Talhão
-        </Button>
-        {cicloAtivo && (
-          <Button
-            onClick={() => setIsAddCicloOpen(true)}
-            className="flex-1"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Ciclo
-          </Button>
-        )}
-        {profile?.perfil === 'Administrador' && (
-          <Button
-            variant="destructive"
-            onClick={onDeleteTalhao}
-            className="flex-1"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Deletar
-          </Button>
-        )}
-      </div>
-
       {/* Dialogs */}
-      <TalhaoForm
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        mode="edit"
-        talhao={talhao}
-        onSuccess={() => {
-          setIsEditOpen(false);
-          onRefresh?.();
-        }}
-      />
-
       <CicloForm
         open={isAddCicloOpen}
         onOpenChange={setIsAddCicloOpen}

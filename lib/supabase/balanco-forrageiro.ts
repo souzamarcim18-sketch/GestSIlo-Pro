@@ -8,8 +8,10 @@ export type PiqueteAtivoRow = {
   piquete_nome: string;
   area_ha: number;
   ua_suportada: number | null;
+  status: string;
   sistema_pastejo: string;
   especie_forrageira: string | null;
+  nivel_tecnologia: string;
   pastagem_nome: string;
   // ocupação ativa
   ocupacao_id: string | null;
@@ -101,13 +103,15 @@ export async function getConsumoPorPeriodo(
 export async function getPiquetesAtivosParaBalanco(
   supabase: SupabaseClient<Database>
 ): Promise<PiqueteAtivoRow[]> {
-  // Busca piquetes Em pastejo com a ocupação aberta (sem data_saida_real)
+  // Pasto disponível como oferta = piquetes Em pastejo ou em Descanso.
+  // Excluídos: Em reforma e Interditado (não pastejáveis).
+  // Piquetes em Descanso não têm ocupação aberta — contribuem só com oferta.
   const { data, error } = await supabase
     .from('piquetes')
     .select(
-      'id, nome, area_ha, ua_suportada, pastagens(nome, especie_forrageira, sistema_pastejo), ocupacoes_piquete(id, quantidade_animais, ua_real, data_entrada, data_saida_real)'
+      'id, nome, area_ha, ua_suportada, status, pastagens(nome, especie_forrageira, sistema_pastejo, nivel_tecnologia), ocupacoes_piquete(id, quantidade_animais, ua_real, data_entrada, data_saida_real)'
     )
-    .eq('status', 'Em pastejo');
+    .in('status', ['Em pastejo', 'Descanso']);
 
   if (error || !data) return [];
 
@@ -118,7 +122,13 @@ export async function getPiquetesAtivosParaBalanco(
     nome: string;
     area_ha: number;
     ua_suportada: number | null;
-    pastagens: { nome: string; especie_forrageira: string | null; sistema_pastejo: string } | null;
+    status: string;
+    pastagens: {
+      nome: string;
+      especie_forrageira: string | null;
+      sistema_pastejo: string;
+      nivel_tecnologia: string | null;
+    } | null;
     ocupacoes_piquete: Array<{
       id: string;
       quantidade_animais: number | null;
@@ -134,8 +144,10 @@ export async function getPiquetesAtivosParaBalanco(
       piquete_nome: p.nome,
       area_ha: p.area_ha,
       ua_suportada: p.ua_suportada,
+      status: p.status,
       sistema_pastejo: p.pastagens?.sistema_pastejo ?? 'rotacionado',
       especie_forrageira: p.pastagens?.especie_forrageira ?? null,
+      nivel_tecnologia: p.pastagens?.nivel_tecnologia ?? 'medio',
       pastagem_nome: p.pastagens?.nome ?? '',
       ocupacao_id: ocupacaoAtiva?.id ?? null,
       quantidade_animais: ocupacaoAtiva?.quantidade_animais ?? null,

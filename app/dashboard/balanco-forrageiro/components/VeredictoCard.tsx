@@ -31,7 +31,7 @@ export function VeredictoCard({ demanda, ofertaPasto, demandaLiquida }: Props) {
           <div>
             <p className="text-lg font-bold text-foreground">Sem rebanho ativo cadastrado</p>
             <p className="text-sm text-muted-foreground">
-              Cadastre animais ativos para projetar a autonomia de pasto e silo.
+              Cadastre animais ativos para projetar a autonomia de pasto e silagem.
             </p>
           </div>
         </CardContent>

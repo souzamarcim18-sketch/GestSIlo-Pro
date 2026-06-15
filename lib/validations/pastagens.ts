@@ -5,6 +5,7 @@ export const pastagemFormSchema = z.object({
   especie_forrageira: z.string().max(150).optional().nullable(),
   area_total_ha:      z.number().positive('Área deve ser maior que zero'),
   sistema_pastejo:    z.enum(['rotacionado', 'continuo', 'semi_intensivo']),
+  nivel_tecnologia:   z.enum(['baixo', 'medio', 'alto']),
   observacoes:        z.string().max(500).optional().nullable(),
 });
 

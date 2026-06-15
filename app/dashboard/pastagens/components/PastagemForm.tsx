@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -10,7 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -23,6 +26,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { pastagemFormSchema, type PastagemFormData } from '@/lib/validations/pastagens';
+import {
+  CATALOGO_ESPECIES_FORRAGEIRAS,
+  ESPECIES_CATALOGADAS,
+  VALOR_ESPECIE_OUTRA,
+  NIVEIS_TECNOLOGIA,
+  NIVEL_TECNOLOGIA_PADRAO,
+} from '@/lib/constants/balanco-forrageiro';
 import { criarPastagemAction, atualizarPastagemAction } from '../actions';
 import type { Pastagem } from '@/lib/types/pastagens';
 
@@ -38,13 +48,21 @@ interface PastagemFormProps {
 }
 
 export function PastagemForm({ pastagem, onSuccess }: PastagemFormProps) {
+  // Espécie de cadastro antigo (ou texto livre) não está no catálogo → modo "Outra"
+  const especieInicial = pastagem?.especie_forrageira ?? '';
+  const especieEhCatalogada = especieInicial !== '' && ESPECIES_CATALOGADAS.has(especieInicial);
+  const [usaEspecieLivre, setUsaEspecieLivre] = useState(
+    especieInicial !== '' && !especieEhCatalogada
+  );
+
   const form = useForm<PastagemFormData>({
     resolver: zodResolver(pastagemFormSchema),
     defaultValues: {
       nome: pastagem?.nome ?? '',
-      especie_forrageira: pastagem?.especie_forrageira ?? '',
+      especie_forrageira: especieInicial,
       area_total_ha: pastagem?.area_total_ha ?? ('' as unknown as number),
       sistema_pastejo: pastagem?.sistema_pastejo ?? 'rotacionado',
+      nivel_tecnologia: pastagem?.nivel_tecnologia ?? NIVEL_TECNOLOGIA_PADRAO,
       observacoes: pastagem?.observacoes ?? '',
     },
   });
@@ -93,14 +111,54 @@ export function PastagemForm({ pastagem, onSuccess }: PastagemFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-sm text-muted-foreground">Espécie forrageira</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ex: Brachiaria brizantha cv. Marandu"
-                  {...field}
-                  value={field.value ?? ''}
-                  className="bg-[#222] border-white/10 text-sm"
-                />
-              </FormControl>
+              <Select
+                value={usaEspecieLivre ? VALOR_ESPECIE_OUTRA : (field.value ?? '')}
+                onValueChange={(value) => {
+                  if (value === VALOR_ESPECIE_OUTRA) {
+                    setUsaEspecieLivre(true);
+                    field.onChange('');
+                  } else {
+                    setUsaEspecieLivre(false);
+                    field.onChange(value);
+                  }
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger className="bg-[#222] border-white/10 text-sm">
+                    <SelectValue placeholder="Selecione a espécie" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-[#222] border-white/10 max-h-72">
+                  {CATALOGO_ESPECIES_FORRAGEIRAS.map((g) => (
+                    <SelectGroup key={g.grupo}>
+                      <SelectLabel className="text-xs text-muted-foreground">{g.grupo}</SelectLabel>
+                      {g.especies.map((esp) => (
+                        <SelectItem key={esp} value={esp} className="text-sm">
+                          {esp}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                  <SelectGroup>
+                    <SelectItem value={VALOR_ESPECIE_OUTRA} className="text-sm">
+                      {VALOR_ESPECIE_OUTRA}
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {usaEspecieLivre && (
+                <FormControl>
+                  <Input
+                    placeholder="Digite a espécie forrageira"
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="bg-[#222] border-white/10 text-sm mt-2"
+                  />
+                </FormControl>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Usada para estimar a produtividade de referência do pasto no Balanço Forrageiro.
+              </p>
               <FormMessage />
             </FormItem>
           )}
@@ -157,6 +215,36 @@ export function PastagemForm({ pastagem, onSuccess }: PastagemFormProps) {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="nivel_tecnologia"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm text-muted-foreground">Nível de tecnologia *</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger className="bg-[#222] border-white/10 text-sm">
+                    <SelectValue>
+                      {NIVEIS_TECNOLOGIA.find((n) => n.value === field.value)?.label ?? field.value}
+                    </SelectValue>
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-[#222] border-white/10">
+                  {NIVEIS_TECNOLOGIA.map((n) => (
+                    <SelectItem key={n.value} value={n.value} className="text-sm">
+                      {n.label} — {n.descricao}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Ajusta a estimativa de produtividade: baixo −20%, médio padrão, alto +15%.
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Aviso sistema contínuo */}
         {sistemaPastejo === 'continuo' && !pastagem && (

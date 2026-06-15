@@ -208,7 +208,7 @@ export default function SiloDetailPage() {
 
       {/* Tabs */}
       <div className="w-full space-y-6">
-        <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+        <div className="inline-flex flex-wrap gap-1 rounded-xl bg-muted/50 border border-border p-[3px]">
           {(['visao-geral', 'estoque', 'qualidade'] as const).map((tab) => {
             const labels = { 'visao-geral': 'Visão Geral', estoque: 'Estoque', qualidade: 'Qualidade' };
             return (

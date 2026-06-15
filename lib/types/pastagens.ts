@@ -16,6 +16,8 @@ export type TipoEventoManejo =
 
 export type MetodoCalculoUA = 'peso_real' | 'fator_categoria';
 
+export type NivelTecnologia = 'baixo' | 'medio' | 'alto';
+
 // ─── Entidades base ─────────────────────────────────────────────────────────
 
 export interface Pastagem {
@@ -25,6 +27,7 @@ export interface Pastagem {
   especie_forrageira: string | null;
   area_total_ha: number;
   sistema_pastejo: SistemaPastejo;
+  nivel_tecnologia: NivelTecnologia;
   observacoes: string | null;
   ativo: boolean;
   created_at: string | null;

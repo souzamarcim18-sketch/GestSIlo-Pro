@@ -344,7 +344,7 @@ app/
 │   │   ├── actions.ts                   # 11 Server Actions (pastagem, piquete, ocupação, evento manejo)
 │   │   ├── components/
 │   │   │   ├── PastagemCard.tsx         # Card pastagem: nome, espécie, sistema, counters por status, ações
-│   │   │   ├── PastagemForm.tsx         # Modal criar/editar pastagem (React Hook Form + Zod)
+│   │   │   ├── PastagemForm.tsx         # Modal criar/editar pastagem (RHF + Zod); espécie via dropdown agrupado (CATALOGO_ESPECIES_FORRAGEIRAS) + "Outra" (texto livre); campo nível de tecnologia
 │   │   │   ├── DeletePastagemDialog.tsx # Confirm dialog exclusão pastagem (cascade warning)
 │   │   │   ├── PiqueteCard.tsx          # Card piquete: status badge, UA/ha progress bar, lote, alertas
 │   │   │   ├── PiqueteForm.tsx          # Modal criar/editar piquete
@@ -478,7 +478,7 @@ lib/
 │   ├── useDadosOffline.ts           # lê qualquer TableName do IndexedDB; retorna { dados, isLoading }
 │   └── (demais hooks via lib/hooks/)
 ├── types/
-│   ├── pastagens.ts                 # SistemaPastejo, StatusPiquete, TipoEventoManejo, Pastagem, Piquete, OcupacaoPiquete, PastagemComResumo, FATORES_UA_POR_CATEGORIA
+│   ├── pastagens.ts                 # SistemaPastejo, StatusPiquete, TipoEventoManejo, NivelTecnologia, Pastagem (com nivel_tecnologia), Piquete, OcupacaoPiquete, PastagemComResumo, FATORES_UA_POR_CATEGORIA
 │   ├── mao-de-obra.ts               # FuncaoColaborador, VinculoColaborador, TipoValorColaborador, TipoAtividade, DuracaoTipo, Colaborador, AtividadeMaoObra, AtividadeComColaboradores, KpisMaoObra, HORAS_POR_DIA, FUNCOES_COLABORADOR, VINCULOS_COLABORADOR, TIPOS_ATIVIDADE
 │   ├── rebanho-lote.ts              # TipoEventoRebanho (alias do enum, inclui aspiracao_opu, protocolo_hormonal, transferencia_embriao), TIPOS_EVENTO_LOTE, LABEL_TIPO_EVENTO, AnimalParaLote, WizardState, ResultadoLote
 │   └── ...outros tipos por módulo
@@ -1152,26 +1152,29 @@ Rota: `/dashboard/balanco-forrageiro`
 - `getEstoqueSilos()` — todas as movimentações de todos os silos sem filtro de data (estoque total correto)
 - `getConsumoPorPeriodo(dataCorte)` — saídas com `.gte('data', hoje−90d)` filtrado no banco
 - `getAnimaisAtivosPorCategoria()` — animais com `status = 'Ativo'`, agrupados por categoria em memória
-- `getPiquetesAtivosParaBalanco()` — piquetes com `status = 'Em pastejo'`, join com `pastagens(nome, especie_forrageira, sistema_pastejo)` e `ocupacoes_piquete` filtrando pela ocupação sem `data_saida_real`
+- `getPiquetesAtivosParaBalanco()` — pasto **disponível** = piquetes com `status IN ('Em pastejo', 'Descanso')` (exclui `Em reforma` e `Interditado`, não pastejáveis); join com `pastagens(nome, especie_forrageira, sistema_pastejo, nivel_tecnologia)` e `ocupacoes_piquete` filtrando a ocupação sem `data_saida_real`. Piquetes em `Descanso` entram sem ocupação ativa (UA/lote nulos) — contribuem só com a oferta. Retorna também `status` e `nivel_tecnologia` por piquete.
 
 **Constantes** (`lib/constants/balanco-forrageiro.ts`):
 - `CONSUMO_MS_POR_CATEGORIA` — `Map<string, number>` com 14 categorias → kg MS/cab/dia; não mapeadas usam `CONSUMO_MS_PADRAO = 7.0`
-- `OFERTA_MS_POR_ESPECIE` — `Map<string, { verao: number; seca: number }>` com 27 espécies forrageiras → kg MS/ha/dia por época. Espécies não mapeadas usam `OFERTA_MS_PADRAO = { verao: 40, seca: 8 }` (estimativa silenciosa)
+- `OFERTA_MS_POR_ESPECIE` — `Map<string, { verao: number; seca: number }>` com 29 cultivares forrageiras → kg MS/ha/dia por época (Braquiárias por cultivar: Marandu, Xaraés, Piatã, Paiaguás, Decumbens, Ruziziensis, BRS Ipyporã, Mulato II; Panicum: Mombaça, Tanzânia, Massai, Zuri, Quênia, Miyagi, BRS Tamani; Cynodon: Tifton 85/68, Estrela Africana; corte: Capiaçu, BRS Kurumi; Andropogon; invernais; leguminosas). Espécies não mapeadas (opção "Outra") usam `OFERTA_MS_PADRAO = { verao: 40, seca: 8 }` (estimativa silenciosa). **São estimativas de referência, não medições de campo.**
+- `CATALOGO_ESPECIES_FORRAGEIRAS` — array agrupado por gênero (fonte única do dropdown de cadastro, derivado das chaves do Map); `ESPECIES_CATALOGADAS` (Set plano) e `VALOR_ESPECIE_OUTRA = 'Outra (não listada)'`
+- `MULTIPLICADOR_TECNOLOGIA` — `Record<NivelTecnologia, number>`: `baixo = 0.8`, `medio = 1.0`, `alto = 1.15`; `NIVEL_TECNOLOGIA_PADRAO = 'medio'`; `NIVEIS_TECNOLOGIA` (value/label/descrição para o select). O nível multiplica a produtividade-base da espécie na oferta de pasto.
 - `getEpocaAtual(mes?)` → `'verao' | 'seca'` — **seca = mai–out**, **verão = nov–abr** (padrão Brasil Central)
 - `COBERTURA_PASTO_MINIMA_PERC = 0.20` — limiar para alerta de cobertura baixa (pasto cobre < 20% da demanda)
 
 **Funções puras** (`lib/utils/balanco-forrageiro.ts`):
 - `calcularConsumoHistorico()` — filtra saídas por período local (subtipo != Descarte), retorna consumo total e médio diário
 - `calcularDemandaProjetada()` — cruza animais ativos com Map de categorias, retorna demanda por categoria e total
-- `calcularOfertaPasto(piquetes, demandaTotalKgMsDia, mesAtual?)` — para cada piquete em pastejo: `oferta = taxa[especie][epoca] × area_ha`; agrega total; detecta piquetes sem espécie; emite `alerta_cobertura_baixa` se `oferta / demanda < 0.20`
+- `calcularOfertaPasto(piquetes, demandaTotalKgMsDia, mesAtual?)` — para cada piquete disponível: `oferta = taxa[especie][epoca] × multiplicador(nivel_tecnologia) × area_ha`; agrega total; detecta piquetes sem espécie; emite `alerta_cobertura_baixa` se `oferta / demanda < 0.20`. Helper interno `normalizarNivelTecnologia()` faz fallback para `'medio'` em valor inválido. Cada `PiqueteContribuicao` carrega `status` e `nivel_tecnologia`.
 - `calcularDemandaLiquidaSilos(demandaTotal, ofertaPasto, estoqueTotal)` — `demanda_liquida = max(0, demandaTotal − ofertaPasto)`; `autonomia_liquida = estoqueTotal / demanda_liquida`; `pasto_cobre_tudo = true` quando oferta ≥ demanda
 - `calcularComparativo()` — déficit/superávit diário e autonomia pelos critérios de consumo real vs demanda projetada
 - `classesAutonomia()` — classes CSS: vermelho < 10d, amarelo 10–29d, verde ≥ 30d
 
 **Sazonalidade e sistemas de pastejo**:
-- Sistema **rotacionado**: apenas piquetes `'Em pastejo'` contribuem (os demais estão em descanso ou reforma)
-- Sistema **contínuo**: a pastagem inteira contribui — a query filtra por `status = 'Em pastejo'`, que no contínuo abrange toda a área
-- Espécie não cadastrada: estimativa silenciosa com `OFERTA_MS_PADRAO`; aviso discreto no `OfertaPastoCard` informando que cadastrar a espécie melhora a precisão
+- A oferta conta o **pasto disponível** (Em pastejo + Descanso). Conceito zootécnico: pasto não é estoque acumulado como silo, é fluxo (produz X kg MS/ha/dia); pasto em descanso está "carregando" e ainda é capacidade disponível, então contribui com a oferta integral. Em reforma / Interditado ficam de fora.
+- Sistema **contínuo**: a pastagem inteira contribui (o piquete único abrange toda a área e fica em Em pastejo/Descanso)
+- **Nível de tecnologia** da pastagem multiplica a produtividade-base (baixo 0.8 / médio 1.0 / alto 1.15)
+- Espécie não cadastrada ("Outra"): estimativa silenciosa com `OFERTA_MS_PADRAO`; aviso discreto no `OfertaPastoCard` informando que selecionar a espécie do catálogo melhora a precisão
 
 **Seletor de período**: 7 / 30 / 60 / 90 dias — re-cálculo local sobre `saidasUltimos90Dias`, sem re-fetch ao banco. Oferta de pasto e demanda líquida são recalculadas via `useMemo` junto com o período.
 
@@ -1179,7 +1182,7 @@ Rota: `/dashboard/balanco-forrageiro`
 - `KpisSection.tsx` — duas linhas de cards: (1) Estoque Total, Consumo Real/Dia, Autonomia Real, Autonomia Projetada; (2) Oferta de Pasto, Demanda Líquida Silos, Autonomia Silos (líquida), Piquetes em Pastejo
 - `ConsumoHistoricoCard.tsx` — consumo por silo com barras de progresso
 - `DemandaProjetadaCard.tsx` — demanda por categoria animal com badge `~` para estimativas
-- `OfertaPastoCard.tsx` — época do ano (badge Verão/Seca), alerta de cobertura baixa, aviso de espécie não cadastrada, tabela por piquete (nome, pastagem, espécie, área, oferta kg MS/dia), autonomia líquida dos silos, nota de metodologia
+- `OfertaPastoCard.tsx` — época do ano (badge Verão/Seca), alerta de cobertura baixa, aviso de espécie não cadastrada, tabela por piquete (nome, badge `Descanso`, pastagem, espécie, área, nível de tecnologia, oferta kg MS/dia), autonomia líquida dos silos, nota de metodologia que deixa explícito tratar-se de **estimativa de referência, não medição de campo**
 - `ComparativoSection.tsx` — dois cards: (1) Consumo Real × Demanda Projetada (déficit/superávit); (2) Demanda Líquida sobre Silos (Demanda Total − Oferta Pasto = Demanda Líquida, com autonomia líquida badge colorido)
 - `PeriodoSelector.tsx` — seletor 7/30/60/90 dias
 
@@ -1187,13 +1190,32 @@ Rota: `/dashboard/balanco-forrageiro`
 - Admin e Visualizador: acesso completo (leitura)
 - Operador: bloqueado via `layout.tsx` → `/dashboard`
 
-**Testes**: 19 casos em `__tests__/balanco-forrageiro/utils.test.ts` (funções originais; funções de pasto pendentes de cobertura)
+**Testes**: 28 casos em `__tests__/balanco-forrageiro/utils.test.ts` (19 das funções originais + 9 de `calcularOfertaPasto`: multiplicador de tecnologia, sazonalidade verão/seca, piquetes em Descanso, espécie não catalogada, alerta de cobertura)
 
 ### 🗺️ Talhões
 - Gestão de áreas com mapa
 - Ciclo agrícola completo: planejamento → plantio → colheita
 - Eventos DAP, janelas de colheita, histórico de culturas
 - Coluna real: `produtividade_ton_ha` (não `produtividade`)
+
+**Culturas e cronograma DAP (ampliado 2026-06-14)**:
+
+As culturas selecionáveis no cadastro de ciclo e seu cronograma de operações vivem em **duas listas `CULTURAS_SUPORTADAS` que devem andar em par**:
+- `app/dashboard/talhoes/helpers.ts` — alimenta a UI + `MATRIZ_DAP` (cronograma de operações por DAP) + `MATRIZ_DAP_REBROTA` (perenes/recorrentes)
+- `lib/validations/talhoes.ts` — `as const` que alimenta o `z.enum` do cadastro de ciclo. **Cultura que entrar só no helpers e não aqui é rejeitada pelo Zod no INSERT.**
+- Não há CHECK constraint em `ciclos_agricolas.cultura` (texto livre) — adicionar cultura não exige migration.
+
+23 culturas suportadas, em 3 grupos:
+- **Com DAP** (geram eventos no calendário): Milho Grão/Silagem, Soja, Feijão, Sorgo Grão/Silagem, Trigo/Trigo Silagem, Girassol Grão/Silagem, Milheto Grão/Silagem, Aveia Grão/Silagem, Cana-de-açúcar
+- **Perenes com rebrota automática**: Sorgo Silagem, Capim Capiaçu, Capim Cameroon, Tifton, Cana-de-açúcar (soca) — usam rótulo "Corte" nos eventos
+- **Sem DAP** (cadastráveis, `CicloForm` exibe aviso "sem acompanhamento"): Algodão, Amendoim, Mandioca, Café, Pastagem, Outra
+
+**Como a estimativa funciona**:
+- A data de colheita prevista é **digitada à mão** no `CicloForm.tsx` (não é calculada automaticamente)
+- O cronograma de operações (eventos DAP) só é gerado quando o produtor registra uma atividade do tipo **"Plantio"** em `AtividadeDialog.tsx` → `q.eventosDAP.generate()`. `gerarEventosDAP` usa o ponto médio de cada janela DAP; descarta eventos posteriores à colheita prevista
+- **Rebrota** dispara ao registrar Colheita/Corte de cultura com entrada em `MATRIZ_DAP_REBROTA` + `permite_rebrota`. Projeta **1 ciclo por vez** (ao colher a rebrota/soca, gera a seguinte)
+- Helpers em `helpers.ts`: `culturaPossuiDAP()`, `culturaPossuiRebrota()`, `ehOperacaoColheita()` (reconhece tanto "Colheita" quanto "Corte"). A rebrota e o gatilho em `AtividadeDialog` são **genéricos** — não mais hardcoded para `'Sorgo Silagem'`
+- `verificarAlertaSilagem()` cobre todas as silagens (Milho/Sorgo/Trigo/Girassol/Milheto/Aveia) + capins Capiaçu/Cameroon
 
 **Custo de produção por ciclo (implementado 2026-05-29)**:
 
@@ -1238,8 +1260,9 @@ Rota: `/dashboard/balanco-forrageiro`
 - Ao deletar evento com `despesa_id`: deleta a despesa em `financeiro` antes de deletar o evento (`deletarEventoManejoAction`)
 
 **Enums e valores válidos**:
-- `sistema_pastejo`: `rotacionado`, `continuo`, `semicontinuo`, `voisin`
+- `sistema_pastejo`: `rotacionado`, `continuo`, `semi_intensivo`
 - `status_piquete`: `Em pastejo`, `Descanso`, `Em reforma`, `Interditado`
+- `nivel_tecnologia` (coluna em `pastagens`, migration `20260614000001`): `baixo` | `medio` (default) | `alto` — CHECK `pastagens_nivel_tecnologia_check`; multiplica a produtividade-base no Balanço Forrageiro (0.8 / 1.0 / 1.15)
 - `tipo_evento_manejo`: `adubacao`, `calagem`, `aplicacao_defensivo`, `ressemeadura`, `rocagem`, `irrigacao`, `amostragem_solo`, `reforma_pastagem`, `interdicao`, `liberacao`, `outro`
 - `metodo_calculo_ua`: `peso_real` (pesagem ≤ 90 dias) | `estimativa` (fator fixo por `categorias_rebanho`)
 
@@ -1276,7 +1299,7 @@ Rota: `/dashboard/balanco-forrageiro`
 - **Detalhe** (`/dashboard/pastagens/[id]`): tabs Piquetes / Histórico de Ocupações / Eventos de Manejo
 
 **Arquivos principais**:
-- `lib/types/pastagens.ts` — tipos: `SistemaPastejo`, `StatusPiquete`, `TipoEventoManejo`, `MetodoCalculoUA`, `Pastagem`, `Piquete`, `OcupacaoPiquete`, `PiqueteComOcupacaoAtual`, `PastagemComResumo`, `FATORES_UA_POR_CATEGORIA`, `UA_FATOR_PADRAO`
+- `lib/types/pastagens.ts` — tipos: `SistemaPastejo`, `StatusPiquete`, `TipoEventoManejo`, `MetodoCalculoUA`, `NivelTecnologia`, `Pastagem` (com `nivel_tecnologia`), `Piquete`, `OcupacaoPiquete`, `PiqueteComOcupacaoAtual`, `PastagemComResumo`, `FATORES_UA_POR_CATEGORIA`, `UA_FATOR_PADRAO`
 - `lib/validations/pastagens.ts` — 6 schemas Zod: `pastagemFormSchema`, `piqueteFormSchema`, `ocupacaoFormSchema`, `fecharOcupacaoSchema`, `eventoManejoFormSchema`, `atualizarStatusSchema`
 - `lib/supabase/pastagens.ts` — todas as queries, incluindo `listPastagensParaAlertas()` (usada no dashboard)
 - `app/dashboard/pastagens/actions.ts` — 11 Server Actions: `criarPastagemAction`, `atualizarPastagemAction`, `deletarPastagemAction`, `criarPiqueteAction`, `atualizarPiqueteAction`, `deletarPiqueteAction`, `atualizarStatusPiqueteAction`, `registrarEntradaLoteAction`, `fecharOcupacaoAction`, `registrarEventoManejoAction`, `deletarEventoManejoAction`

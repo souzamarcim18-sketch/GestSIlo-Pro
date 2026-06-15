@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Edit, Trash2, ChevronRight, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +31,7 @@ interface PastagemCardProps {
 }
 
 export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -41,7 +42,9 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
   return (
     <>
       <Card
-        className={`p-5 transition-all ${
+        role="article"
+        onClick={() => router.push(`/dashboard/pastagens/${pastagem.id}`)}
+        className={`p-5 cursor-pointer transition-all hover:shadow-md hover:border-border ${
           temAlertas ? 'border-l-4 border-l-yellow-500/60' : ''
         }`}
       >
@@ -104,7 +107,10 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setEditOpen(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditOpen(true);
+                  }}
                   className="h-7 px-2.5 text-xs gap-1"
                 >
                   <Edit className="h-3 w-3" />
@@ -113,7 +119,10 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setDeleteOpen(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteOpen(true);
+                  }}
                   className="h-7 px-2.5 text-xs border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/35 gap-1"
                 >
                   <Trash2 className="h-3 w-3" />
@@ -122,12 +131,15 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
               </>
             )}
           </div>
-          <Link href={`/dashboard/pastagens/${pastagem.id}`}>
-            <Button variant="outline" size="sm" className="h-7 px-3 text-xs gap-1">
-              Ver detalhes
-              <ChevronRight className="h-3 w-3" />
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/dashboard/pastagens/${pastagem.id}`)}
+            className="h-7 px-3 text-xs gap-1"
+          >
+            Ver detalhes
+            <ChevronRight className="h-3 w-3" />
+          </Button>
         </div>
       </Card>
 

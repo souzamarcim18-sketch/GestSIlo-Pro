@@ -53,6 +53,7 @@ export async function criarPastagemAction(formData: unknown): Promise<ActionResu
       especie_forrageira: parsed.especie_forrageira ?? null,
       area_total_ha: parsed.area_total_ha,
       sistema_pastejo: parsed.sistema_pastejo,
+      nivel_tecnologia: parsed.nivel_tecnologia,
       observacoes: parsed.observacoes ?? null,
       ativo: true,
     });
@@ -89,6 +90,7 @@ export async function atualizarPastagemAction(id: string, formData: unknown): Pr
       especie_forrageira: parsed.especie_forrageira ?? null,
       area_total_ha: parsed.area_total_ha,
       sistema_pastejo: parsed.sistema_pastejo,
+      nivel_tecnologia: parsed.nivel_tecnologia,
       observacoes: parsed.observacoes ?? null,
     });
 

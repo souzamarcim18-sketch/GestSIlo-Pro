@@ -4,8 +4,10 @@ import {
   OFERTA_MS_POR_ESPECIE,
   OFERTA_MS_PADRAO,
   COBERTURA_PASTO_MINIMA_PERC,
+  MULTIPLICADOR_TECNOLOGIA,
   getEpocaAtual,
   type EpocaAno,
+  type NivelTecnologia,
 } from '@/lib/constants/balanco-forrageiro';
 import type { MovimentacaoSiloRow, AnimalPorCategoriaRow, PiqueteAtivoRow } from '@/lib/supabase/balanco-forrageiro';
 
@@ -59,6 +61,8 @@ export type PiqueteContribuicao = {
   area_ha: number;
   especie_forrageira: string | null;
   especie_estimada: boolean;
+  nivel_tecnologia: NivelTecnologia;
+  status: string;
   oferta_kg_ms_dia: number;
   ua_real: number | null;
   ua_suportada: number | null;
@@ -247,6 +251,10 @@ export function calcularComparativo(
   return { saldo_diario_kg, diferenca_autonomia_dias, status };
 }
 
+function normalizarNivelTecnologia(valor: string | null | undefined): NivelTecnologia {
+  return valor === 'baixo' || valor === 'alto' ? valor : 'medio';
+}
+
 export function calcularOfertaPasto(
   piquetes: PiqueteAtivoRow[],
   demandaTotalKgMsDia: number,
@@ -273,8 +281,10 @@ export function calcularOfertaPasto(
     const especie_estimada = mapeado === undefined;
     if (especie_estimada) piquetes_sem_especie++;
 
+    const nivel = normalizarNivelTecnologia(p.nivel_tecnologia);
+    const multiplicador = MULTIPLICADOR_TECNOLOGIA[nivel];
     const taxaEspecie = mapeado ?? OFERTA_MS_PADRAO;
-    const oferta_kg_ms_dia = taxaEspecie[epoca] * p.area_ha;
+    const oferta_kg_ms_dia = taxaEspecie[epoca] * multiplicador * p.area_ha;
 
     return {
       piquete_id: p.piquete_id,
@@ -283,6 +293,8 @@ export function calcularOfertaPasto(
       area_ha: p.area_ha,
       especie_forrageira: p.especie_forrageira,
       especie_estimada,
+      nivel_tecnologia: nivel,
+      status: p.status,
       oferta_kg_ms_dia,
       ua_real: p.ua_real,
       ua_suportada: p.ua_suportada,

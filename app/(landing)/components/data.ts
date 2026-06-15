@@ -53,7 +53,7 @@ export const STEPS: Step[] = [
   {
     num: '01',
     title: 'Solicite seu acesso',
-    desc: 'Preencha um formulário rápido e, em até 24 horas, seu convite chega por e-mail. Sem cartão e sem compromisso.',
+    desc: 'Preencha um formulário rápido e depois, em até 24 horas, seu convite chega por e-mail. Sem cartão e sem compromisso.',
   },
   {
     num: '02',

@@ -39,6 +39,7 @@ import {
 } from './fields';
 import { ColaboradorSelect } from '@/components/ColaboradorSelect';
 import { criarAtividadeCampoAction } from '@/app/dashboard/talhoes/actions';
+import { culturaPossuiRebrota, ehOperacaoColheita } from '@/app/dashboard/talhoes/helpers';
 
 const TIPOS_OPERACAO = Object.values(TipoOperacao);
 
@@ -150,8 +151,12 @@ export function AtividadeDialog({
         toast.success('Atividade registrada com sucesso!');
       }
 
-      // Gerar eventos de rebrota ao registrar Colheita de Sorgo Silagem
-      if (data.tipo_operacao === 'Colheita' && cicloAtivo.cultura === 'Sorgo Silagem' && data.permite_rebrota) {
+      // Gerar eventos de rebrota ao registrar Colheita/Corte de cultura recorrente
+      if (
+        ehOperacaoColheita(data.tipo_operacao) &&
+        culturaPossuiRebrota(cicloAtivo.cultura) &&
+        data.permite_rebrota
+      ) {
         try {
           await q.eventosDAP.generateRebrota(cicloAtivo.id, cicloAtivo.cultura, data.data);
           toast.success('Colheita registrada. Eventos de rebrota gerados.');

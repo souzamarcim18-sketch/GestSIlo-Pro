@@ -8,7 +8,11 @@ import { TipoOperacao, CategoriaPulverizacao } from '@/lib/types/talhoes';
 
 // ========== CONSTANTES ==========
 
+// Mantida em sincronia com CULTURAS_SUPORTADAS em app/dashboard/talhoes/helpers.ts.
+// Esta lista alimenta o z.enum que valida o cadastro de ciclo; aquela alimenta
+// a UI e a matriz DAP. Ao adicionar uma cultura, atualize ambas.
 export const CULTURAS_SUPORTADAS = [
+  // Com cronograma DAP
   'Milho Grão',
   'Milho Silagem',
   'Soja',
@@ -17,6 +21,24 @@ export const CULTURAS_SUPORTADAS = [
   'Sorgo Silagem',
   'Trigo',
   'Trigo Silagem',
+  'Girassol Grão',
+  'Girassol Silagem',
+  'Milheto Grão',
+  'Milheto Silagem',
+  'Aveia Grão',
+  'Aveia Silagem',
+  'Cana-de-açúcar',
+  // Perenes com rebrota
+  'Capim Capiaçu',
+  'Capim Cameroon',
+  'Tifton',
+  // Sem cronograma DAP
+  'Algodão',
+  'Amendoim',
+  'Mandioca',
+  'Café',
+  'Pastagem',
+  'Outra',
 ] as const;
 
 export const TIPOS_SOLO = [

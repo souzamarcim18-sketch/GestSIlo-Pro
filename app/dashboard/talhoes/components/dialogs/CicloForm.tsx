@@ -24,7 +24,8 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
-import { CULTURAS_SUPORTADAS } from '../../helpers';
+import { CULTURAS_SUPORTADAS, culturaPossuiDAP } from '../../helpers';
+import { Info } from 'lucide-react';
 
 const cicloSchema = z.object({
   talhao_id: z.string().min(1, 'Talhão é obrigatório'),
@@ -117,6 +118,16 @@ export function CicloForm({
             </Select>
             {errors.cultura && (
               <p className="text-sm text-destructive">{errors.cultura.message}</p>
+            )}
+            {cultura && !culturaPossuiDAP(cultura) && (
+              <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>
+                  Esta cultura não possui cronograma de operações automático. O
+                  ciclo será registrado, mas sem acompanhamento de etapas no
+                  calendário.
+                </span>
+              </p>
             )}
           </div>
 

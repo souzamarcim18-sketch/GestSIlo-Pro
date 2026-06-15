@@ -39,7 +39,7 @@ export function OfertaPastoCard({ oferta, demandaLiquida }: Props) {
           {badgeEpoca(oferta.epoca)}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Contribuição diária estimada dos piquetes em pastejo
+          Estimativa de referência da produção das pastagens disponíveis (em pastejo e em descanso)
         </p>
       </CardHeader>
 
@@ -68,10 +68,10 @@ export function OfertaPastoCard({ oferta, demandaLiquida }: Props) {
           </Alert>
         )}
 
-        {/* Sem piquetes ativos */}
+        {/* Sem pastagens disponíveis */}
         {oferta.sem_piquetes ? (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Nenhum piquete em pastejo no momento.
+            Nenhuma pastagem disponível. Cadastre pastagens em pastejo ou em descanso para estimar a oferta.
           </p>
         ) : (
           <>
@@ -120,7 +120,14 @@ export function OfertaPastoCard({ oferta, demandaLiquida }: Props) {
                     className="flex items-center justify-between gap-2 rounded-md px-3 py-2 bg-surface text-sm"
                   >
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{p.piquete_nome}</p>
+                      <p className="font-medium truncate flex items-center gap-1.5">
+                        {p.piquete_nome}
+                        {p.status === 'Descanso' && (
+                          <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/30 text-xs font-normal">
+                            Descanso
+                          </Badge>
+                        )}
+                      </p>
                       <p className="text-xs text-muted-foreground truncate">
                         {p.pastagem_nome}
                         {' · '}
@@ -129,6 +136,8 @@ export function OfertaPastoCard({ oferta, demandaLiquida }: Props) {
                         )}
                         {' · '}
                         {p.area_ha} ha
+                        {' · tec. '}
+                        {p.nivel_tecnologia}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
@@ -144,8 +153,9 @@ export function OfertaPastoCard({ oferta, demandaLiquida }: Props) {
 
             {/* Nota de metodologia */}
             <p className="text-xs text-muted-foreground">
-              * Oferta calculada como: taxa MS/ha/dia da espécie na época × área do piquete.
+              * Oferta calculada como: taxa MS/ha/dia da espécie na época × nível de tecnologia × área do piquete.
               Valores baseados em dados Embrapa para {oferta.epoca === 'verao' ? 'período das chuvas' : 'período seco'}.
+              É uma <strong>estimativa de referência</strong>, não um valor medido em campo.
             </p>
           </>
         )}

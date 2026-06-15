@@ -27,7 +27,7 @@ type OcupacaoUpdate = Omit<Database['public']['Tables']['ocupacoes_piquete']['Up
 
 type EventoManejoInsert = Omit<Database['public']['Tables']['eventos_manejo_pastagem']['Insert'], 'id' | 'fazenda_id' | 'created_at' | 'created_by'>;
 
-const PASTAGEM_COLS = 'id, fazenda_id, nome, especie_forrageira, area_total_ha, sistema_pastejo, observacoes, ativo, created_at, updated_at';
+const PASTAGEM_COLS = 'id, fazenda_id, nome, especie_forrageira, area_total_ha, sistema_pastejo, nivel_tecnologia, observacoes, ativo, created_at, updated_at';
 const PIQUETE_COLS = 'id, fazenda_id, pastagem_id, nome, area_ha, status, ua_suportada, dias_descanso_ideal, altura_entrada_cm, altura_saida_cm, observacoes, created_at, updated_at';
 const OCUPACAO_COLS = 'id, fazenda_id, piquete_id, lote_id, data_entrada, data_saida_prevista, data_saida_real, altura_dossel_entrada_cm, altura_dossel_saida_cm, quantidade_animais, peso_medio_kg, ua_real, metodo_calculo_ua, observacoes, created_by, created_at, updated_at';
 const EVENTO_COLS = 'id, fazenda_id, piquete_id, tipo, data, insumo_id, quantidade_insumo, unidade_insumo, dose_por_ha, maquina_id, custo_estimado, observacoes, created_by, created_at';

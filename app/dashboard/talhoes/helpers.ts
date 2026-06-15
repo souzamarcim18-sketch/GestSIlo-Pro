@@ -7,6 +7,7 @@ const TIPOS_SOLO = [
 ];
 
 const CULTURAS_SUPORTADAS = [
+  // Com cronograma DAP
   'Milho Grão',
   'Milho Silagem',
   'Soja',
@@ -15,6 +16,24 @@ const CULTURAS_SUPORTADAS = [
   'Sorgo Silagem',
   'Trigo',
   'Trigo Silagem',
+  'Girassol Grão',
+  'Girassol Silagem',
+  'Milheto Grão',
+  'Milheto Silagem',
+  'Aveia Grão',
+  'Aveia Silagem',
+  'Cana-de-açúcar',
+  // Perenes com rebrota
+  'Capim Capiaçu',
+  'Capim Cameroon',
+  'Tifton',
+  // Sem cronograma DAP (sem acompanhamento de operações)
+  'Algodão',
+  'Amendoim',
+  'Mandioca',
+  'Café',
+  'Pastagem',
+  'Outra',
 ];
 
 /**
@@ -108,15 +127,103 @@ export const MATRIZ_DAP: Record<string, DAPEntry[]> = {
     { tipo: 'Fungicida', dapInicio: 35, dapFim: 45 },
     { tipo: 'Colheita (ponto de silagem)', dapInicio: 60, dapFim: 80 },
   ],
+  'Girassol Grão': [
+    { tipo: 'Dessecação', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Herbicida pré-emergente', dapInicio: 1, dapFim: 5 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 20, dapFim: 30 },
+    { tipo: 'Inseticida', dapInicio: 30, dapFim: 45 },
+    { tipo: 'Fungicida', dapInicio: 45, dapFim: 55 },
+    { tipo: 'Colheita', dapInicio: 90, dapFim: 115 },
+  ],
+  'Girassol Silagem': [
+    { tipo: 'Dessecação', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Herbicida pré-emergente', dapInicio: 1, dapFim: 5 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 20, dapFim: 30 },
+    { tipo: 'Inseticida', dapInicio: 30, dapFim: 45 },
+    { tipo: 'Colheita (ponto de silagem)', dapInicio: 70, dapFim: 90 },
+  ],
+  'Milheto Grão': [
+    { tipo: 'Dessecação', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Herbicida pós-emergente', dapInicio: 15, dapFim: 25 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 20, dapFim: 30 },
+    { tipo: 'Colheita', dapInicio: 80, dapFim: 100 },
+  ],
+  'Milheto Silagem': [
+    { tipo: 'Dessecação', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Herbicida pós-emergente', dapInicio: 15, dapFim: 25 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 20, dapFim: 30 },
+    { tipo: 'Colheita (ponto de silagem)', dapInicio: 60, dapFim: 75 },
+  ],
+  'Aveia Grão': [
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Herbicida pós-emergente', dapInicio: 15, dapFim: 25 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 20, dapFim: 30 },
+    { tipo: 'Fungicida', dapInicio: 40, dapFim: 50 },
+    { tipo: 'Colheita', dapInicio: 100, dapFim: 120 },
+  ],
+  'Aveia Silagem': [
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 20, dapFim: 30 },
+    { tipo: 'Colheita (ponto de silagem)', dapInicio: 60, dapFim: 80 },
+  ],
+  'Cana-de-açúcar': [
+    { tipo: 'Preparo / sulcação', dapInicio: 0, dapFim: 10 },
+    { tipo: 'Plantio (toletes)', dapInicio: 0, dapFim: 15 },
+    { tipo: 'Herbicida pré-emergente', dapInicio: 5, dapFim: 20 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 60, dapFim: 90 },
+    { tipo: 'Herbicida pós-emergente', dapInicio: 90, dapFim: 120 },
+    { tipo: 'Colheita (1º corte)', dapInicio: 360, dapFim: 420 },
+  ],
+  'Capim Capiaçu': [
+    { tipo: 'Preparo / dessecação', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 15 },
+    { tipo: 'Herbicida pós-emergente', dapInicio: 20, dapFim: 35 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 30, dapFim: 50 },
+    { tipo: 'Corte (1º corte / silagem)', dapInicio: 120, dapFim: 180 },
+  ],
+  'Capim Cameroon': [
+    { tipo: 'Preparo / dessecação', dapInicio: 0, dapFim: 5 },
+    { tipo: 'Plantio', dapInicio: 0, dapFim: 15 },
+    { tipo: 'Herbicida pós-emergente', dapInicio: 20, dapFim: 35 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 30, dapFim: 50 },
+    { tipo: 'Corte (1º corte / silagem)', dapInicio: 120, dapFim: 180 },
+  ],
+  'Tifton': [
+    { tipo: 'Preparo / plantio (mudas)', dapInicio: 0, dapFim: 15 },
+    { tipo: 'Adubação de cobertura (N)', dapInicio: 20, dapFim: 35 },
+    { tipo: 'Herbicida pós-emergente', dapInicio: 25, dapFim: 40 },
+    { tipo: 'Corte (feno)', dapInicio: 45, dapFim: 70 },
+  ],
 };
 
 /**
- * Matriz DAP para rebrota — apenas Sorgo Silagem
+ * Matriz DAP para rebrota — culturas com corte/colheita recorrente.
+ * Os DAPs são contados a partir da data do corte/colheita anterior.
  */
 export const MATRIZ_DAP_REBROTA: Record<string, DAPEntry[]> = {
   'Sorgo Silagem': [
     { tipo: 'Adubação de cobertura (N) - rebrota', dapInicio: 5, dapFim: 10 },
     { tipo: 'Colheita rebrota', dapInicio: 55, dapFim: 65 },
+  ],
+  'Capim Capiaçu': [
+    { tipo: 'Adubação de cobertura (N) - rebrota', dapInicio: 5, dapFim: 15 },
+    { tipo: 'Corte rebrota', dapInicio: 90, dapFim: 120 },
+  ],
+  'Capim Cameroon': [
+    { tipo: 'Adubação de cobertura (N) - rebrota', dapInicio: 5, dapFim: 15 },
+    { tipo: 'Corte rebrota', dapInicio: 90, dapFim: 120 },
+  ],
+  'Tifton': [
+    { tipo: 'Adubação de cobertura (N) - rebrota', dapInicio: 3, dapFim: 10 },
+    { tipo: 'Corte rebrota (feno)', dapInicio: 30, dapFim: 45 },
+  ],
+  'Cana-de-açúcar': [
+    { tipo: 'Adubação de cobertura (N) - soca', dapInicio: 15, dapFim: 45 },
+    { tipo: 'Colheita soca', dapInicio: 330, dapFim: 390 },
   ],
 };
 
@@ -229,7 +336,16 @@ export function calcularDiasAposPlantio(dataplantio: string, dataAtual: string):
 export function verificarAlertaSilagem(
   ciclo: CicloAgricola
 ): { ativo: boolean; diasRestantes: number } | null {
-  const culturasSilagem = ['Milho Silagem', 'Sorgo Silagem', 'Trigo Silagem'];
+  const culturasSilagem = [
+    'Milho Silagem',
+    'Sorgo Silagem',
+    'Trigo Silagem',
+    'Girassol Silagem',
+    'Milheto Silagem',
+    'Aveia Silagem',
+    'Capim Capiaçu',
+    'Capim Cameroon',
+  ];
 
   if (!culturasSilagem.includes(ciclo.cultura)) return null;
   if (!ciclo.data_colheita_prevista || ciclo.data_colheita_real) return null;
@@ -303,8 +419,6 @@ export function gerarEventosRebrota(
   cultura: string,
   dataColheitaReal: string
 ): EventoDAPInsert[] {
-  if (cultura !== 'Sorgo Silagem') return [];
-
   const rebrotaEntries = MATRIZ_DAP_REBROTA[cultura] || [];
   if (rebrotaEntries.length === 0) return [];
 
@@ -325,6 +439,30 @@ export function gerarEventosRebrota(
       status: 'Planejado',
     };
   });
+}
+
+/**
+ * Indica se a cultura possui cronograma de operações (matriz DAP).
+ * Culturas sem matriz aparecem no cadastro, mas sem acompanhamento automático.
+ */
+export function culturaPossuiDAP(cultura: string): boolean {
+  return (MATRIZ_DAP[cultura]?.length ?? 0) > 0;
+}
+
+/**
+ * Indica se a cultura é perene/recorrente com geração de eventos de rebrota.
+ */
+export function culturaPossuiRebrota(cultura: string): boolean {
+  return (MATRIZ_DAP_REBROTA[cultura]?.length ?? 0) > 0;
+}
+
+/**
+ * Reconhece se um tipo de operação representa colheita/corte (fecha o ciclo
+ * e dispara rebrota). Capins e Tifton usam o rótulo "Corte" em vez de "Colheita".
+ */
+export function ehOperacaoColheita(tipoOperacao: string): boolean {
+  const t = tipoOperacao.toLowerCase();
+  return t.includes('colheita') || t.includes('corte');
 }
 
 // Constantes exportadas

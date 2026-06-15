@@ -138,7 +138,7 @@ export function QualidadeTab({
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-purple-600" aria-hidden="true" />
             <div>
-              <CardTitle>Análise PSPS</CardTitle>
+              <CardTitle>Análise de Separação de Partículas</CardTitle>
               <CardDescription>Distribuição de tamanho de partículas</CardDescription>
             </div>
           </div>

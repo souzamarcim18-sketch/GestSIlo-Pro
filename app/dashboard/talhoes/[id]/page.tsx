@@ -22,6 +22,7 @@ import {
   TalhaoOperacoesTab,
   TalhaoHistoricoTab,
   TalhaoForm,
+  CicloForm,
 } from '../components';
 
 export default function TalhaoDetailPage() {
@@ -37,6 +38,7 @@ export default function TalhaoDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isCicloOpen, setIsCicloOpen] = useState(false);
 
   const cicloAtivo = ciclos.find((c) => c.ativo);
 
@@ -119,11 +121,12 @@ export default function TalhaoDetailPage() {
           cicloAtivo={cicloAtivo}
           onEdit={() => setIsEditOpen(true)}
           onDelete={() => setIsDeleteOpen(true)}
+          onNovoCiclo={cicloAtivo ? () => setIsCicloOpen(true) : undefined}
           profile={profile}
         />
 
         <div className="w-full space-y-4">
-          <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+          <div className="inline-flex flex-wrap gap-1 rounded-xl bg-muted/50 border border-border p-[3px]">
             {(['resumo', 'operacoes', 'historico'] as const).map((tab) => {
               const labels = { resumo: 'Resumo e Custos', operacoes: 'Operações Agrícolas', historico: 'Histórico e Calendário' };
               return (
@@ -147,10 +150,7 @@ export default function TalhaoDetailPage() {
               talhao={talhao}
               cicloAtivo={cicloAtivo}
               atividades={atividades}
-              onEditTalhao={() => setIsEditOpen(true)}
-              onDeleteTalhao={() => setIsDeleteOpen(true)}
               onRefresh={fetchData}
-              profile={profile}
             />
           )}
           {activeTab === 'operacoes' && (
@@ -175,6 +175,16 @@ export default function TalhaoDetailPage() {
         mode="edit"
         talhao={talhao}
         onSuccess={fetchData}
+      />
+
+      <CicloForm
+        open={isCicloOpen}
+        onOpenChange={setIsCicloOpen}
+        talhaoId={talhaoId}
+        onSuccess={() => {
+          setIsCicloOpen(false);
+          fetchData();
+        }}
       />
 
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

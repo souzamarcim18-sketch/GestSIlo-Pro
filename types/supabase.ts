@@ -2695,6 +2695,7 @@ export type Database = {
           especie_forrageira: string | null
           fazenda_id: string
           id: string
+          nivel_tecnologia: string
           nome: string
           observacoes: string | null
           sistema_pastejo: string
@@ -2707,6 +2708,7 @@ export type Database = {
           especie_forrageira?: string | null
           fazenda_id: string
           id?: string
+          nivel_tecnologia?: string
           nome: string
           observacoes?: string | null
           sistema_pastejo?: string
@@ -2719,6 +2721,7 @@ export type Database = {
           especie_forrageira?: string | null
           fazenda_id?: string
           id?: string
+          nivel_tecnologia?: string
           nome?: string
           observacoes?: string | null
           sistema_pastejo?: string
@@ -3532,6 +3535,7 @@ export type Database = {
       solicitacoes_acesso: {
         Row: {
           aprovado_em: string | null
+          arquivada_em: string | null
           created_at: string
           email: string
           id: string
@@ -3547,6 +3551,7 @@ export type Database = {
         }
         Insert: {
           aprovado_em?: string | null
+          arquivada_em?: string | null
           created_at?: string
           email: string
           id?: string
@@ -3562,6 +3567,7 @@ export type Database = {
         }
         Update: {
           aprovado_em?: string | null
+          arquivada_em?: string | null
           created_at?: string
           email?: string
           id?: string

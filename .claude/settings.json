@@ -139,7 +139,10 @@
       "Bash(echo \"EXIT $?\")",
       "Bash(rm -f shot-mobile.cjs)",
       "Bash(rm -f c:/tmp/shot-mobile.mjs)",
-      "Bash(echo \"---EXIT $?---\")"
+      "Bash(echo \"---EXIT $?---\")",
+      "PowerShell(npm run build 2>&1)",
+      "PowerShell(npm run test -- --run __tests__/balanco-forrageiro/utils.test.ts 2>&1)",
+      "PowerShell(npx eslint \"app/dashboard/talhoes/[id]/page.tsx\" \"app/dashboard/talhoes/components/TalhaoDetailHeader.tsx\" \"app/dashboard/talhoes/components/tabs/TalhaoResumoTab.tsx\")"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -77,7 +77,7 @@ export function BalancoForrageiroClient({
       <div>
         <h1 className="text-2xl font-bold">Balanço Forrageiro</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Quanto tempo seu rebanho está alimentado, somando pasto e silo
+          Quanto tempo seu rebanho está alimentado, somando pasto e silagem
         </p>
       </div>
 
@@ -133,7 +133,7 @@ export function BalancoForrageiroClient({
               {ofertaPasto.epoca === 'verao' ? '☀️ Águas' : '🍂 Seca'}
             </p>
             <p className="text-sm text-muted-foreground">
-              {ofertaPasto.por_piquete.length} piquete{ofertaPasto.por_piquete.length !== 1 ? 's' : ''} em pastejo
+              {ofertaPasto.por_piquete.length} piquete{ofertaPasto.por_piquete.length !== 1 ? 's' : ''} disponíve{ofertaPasto.por_piquete.length !== 1 ? 'is' : 'l'}
             </p>
           </CardContent>
         </Card>
