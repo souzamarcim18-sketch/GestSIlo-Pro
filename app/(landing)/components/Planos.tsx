@@ -10,7 +10,13 @@ export default function Planos() {
   const [planoAnual, setPlanoAnual] = useState(false);
 
   return (
-    <section id="planos" className="bg-bg2 py-24 px-6 scroll-mt-20">
+    <section id="planos" className="relative bg-bg2 pt-32 pb-32 px-6 scroll-mt-20">
+      {/* Wave de entrada — funde com rgb(10,20,13) da seção QuemSomos */}
+      <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ lineHeight: 0 }}>
+        <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: 80 }}>
+          <path d="M0,0 C480,80 960,20 1440,60 L1440,0 Z" fill="rgb(10,20,13)" />
+        </svg>
+      </div>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
           <span className="inline-block text-xs font-bold uppercase tracking-widest mb-4 px-4 py-1.5 rounded-full" style={{ background: 'rgba(0,166,81,0.1)', color: '#00A651', border: '1px solid rgba(0,166,81,0.25)' }}>
@@ -169,6 +175,13 @@ export default function Planos() {
             Clique aqui que te ajudamos!
           </a>
         </div>
+      </div>
+
+      {/* Wave de saída — funde com bg-background da seção FAQ */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ lineHeight: 0 }}>
+        <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: 80 }}>
+          <path d="M0,30 C480,80 960,0 1440,50 L1440,80 L0,80 Z" fill="var(--background)" />
+        </svg>
       </div>
     </section>
   );
