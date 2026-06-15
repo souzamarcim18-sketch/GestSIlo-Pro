@@ -140,6 +140,9 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
                   size="sm"
                   onClick={handleToggleNecessitaReforma}
                   disabled={togglingReforma}
+                  title={pastagem.necessita_reforma
+                    ? 'Remover sinalização de reforma desta pastagem'
+                    : 'Sinalizar que esta pastagem precisa de reforma'}
                   className={`h-7 px-2.5 text-xs gap-1 ${
                     pastagem.necessita_reforma
                       ? 'border-[#f5d000]/40 text-[#f5d000] hover:bg-[#f5d000]/10'
@@ -147,7 +150,7 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
                   }`}
                 >
                   <Hammer className="h-3 w-3" />
-                  {pastagem.necessita_reforma ? 'Reforma sinalizada' : 'Necessita reforma'}
+                  {pastagem.necessita_reforma ? 'Desmarcar reforma' : 'Sinalizar reforma'}
                 </Button>
                 <Button
                   variant="outline"

@@ -297,6 +297,9 @@ export function PiqueteCard({ piquete, pastagemId, isAdmin, onMutate }: PiqueteC
               size="sm"
               onClick={handleToggleNecessitaReforma}
               disabled={togglingReforma}
+              title={piquete.necessita_reforma
+                ? 'Remover sinalização de reforma deste piquete'
+                : 'Sinalizar que este piquete precisa de reforma'}
               className={`w-full h-7 text-xs gap-1 ${
                 piquete.necessita_reforma
                   ? 'border-[#f5d000]/40 text-[#f5d000] hover:bg-[#f5d000]/10'
@@ -304,7 +307,7 @@ export function PiqueteCard({ piquete, pastagemId, isAdmin, onMutate }: PiqueteC
               }`}
             >
               <Hammer className="h-3 w-3" />
-              {piquete.necessita_reforma ? 'Remover sinalização de reforma' : 'Marcar: necessita reforma'}
+              {piquete.necessita_reforma ? 'Desmarcar reforma' : 'Sinalizar reforma'}
             </Button>
           </div>
         )}
