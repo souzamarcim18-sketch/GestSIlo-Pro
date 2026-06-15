@@ -12,7 +12,10 @@ export type TipoEventoManejo =
   | 'irrigacao'
   | 'interdicao'
   | 'rocagem'
+  | 'manutencao_cerca'
   | 'outro';
+
+export type TipoServicoCerca = 'reparo' | 'substituicao' | 'nova';
 
 export type MetodoCalculoUA = 'peso_real' | 'fator_categoria';
 
@@ -28,6 +31,7 @@ export interface Pastagem {
   area_total_ha: number;
   sistema_pastejo: SistemaPastejo;
   nivel_tecnologia: NivelTecnologia;
+  necessita_reforma: boolean;
   observacoes: string | null;
   ativo: boolean;
   created_at: string | null;
@@ -41,6 +45,7 @@ export interface Piquete {
   nome: string;
   area_ha: number;
   status: StatusPiquete;
+  necessita_reforma: boolean;
   ua_suportada: number | null;
   dias_descanso_ideal: number | null;
   altura_entrada_cm: number | null;
@@ -82,6 +87,9 @@ export interface EventoManejoPastagem {
   dose_por_ha: number | null;
   maquina_id: string | null;
   custo_estimado: number | null;
+  tipo_servico_cerca: TipoServicoCerca | null;
+  metragem_cerca_m: number | null;
+  material_cerca: string | null;
   observacoes: string | null;
   created_by: string | null;
   created_at: string | null;
@@ -101,6 +109,8 @@ export interface PiqueteComOcupacaoAtual extends Piquete {
   dias_descanso_acumulado: number | null;
   alerta_pronto_entrada: boolean;
   alerta_superlotacao: boolean;
+  alerta_ocupacao_vencida: boolean;
+  dias_ocupacao_vencida: number | null;
 }
 
 export interface PastagemComResumo extends Pastagem {
@@ -110,6 +120,7 @@ export interface PastagemComResumo extends Pastagem {
   em_descanso: number;
   em_reforma: number;
   interditados: number;
+  necessita_reforma_count: number;
 }
 
 export interface EventoManejoComJoins extends EventoManejoPastagem {

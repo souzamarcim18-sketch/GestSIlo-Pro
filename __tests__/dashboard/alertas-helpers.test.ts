@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { daysBetween, derivarAlertasEtapa1 } from '@/app/dashboard/alertas-helpers';
+import { daysBetween, derivarAlertasEtapa1, derivarAlertasPastagens } from '@/app/dashboard/alertas-helpers';
 import type { ProximaOperacaoComBadge } from '@/app/dashboard/dashboard-data';
 
 // ---------------------------------------------------------------------------
@@ -163,5 +163,84 @@ describe('derivarAlertasEtapa1', () => {
       'silagem_perdas_elevadas',
     ]);
     expect(alertas[1].id).toBe('operacao_atrasada_1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// derivarAlertasPastagens — alertas novos (ocupação vencida + necessita reforma)
+// ---------------------------------------------------------------------------
+
+function diasAtras(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+}
+
+type PiqueteRow = Parameters<typeof derivarAlertasPastagens>[0][number];
+
+const piqueteBase: PiqueteRow = {
+  id: 'pq-1',
+  nome: 'Piquete 1',
+  status: 'Em pastejo',
+  necessita_reforma: false,
+  ua_suportada: null,
+  dias_descanso_ideal: null,
+  updated_at: null,
+  pastagens: { id: 'past-1', nome: 'Pastagem A' },
+  ocupacoes_piquete: [],
+};
+
+describe('derivarAlertasPastagens — ocupação vencida', () => {
+  it('gera alerta urgente quando lote em pastejo passou da data de saída prevista', () => {
+    const piquete: PiqueteRow = {
+      ...piqueteBase,
+      ocupacoes_piquete: [
+        { ua_real: null, data_entrada: diasAtras(20), data_saida_prevista: diasAtras(4), data_saida_real: null },
+      ],
+    };
+    const alertas = derivarAlertasPastagens([piquete]);
+    const vencida = alertas.find((a) => a.tipo === 'piquete_ocupacao_vencida');
+    expect(vencida).toBeDefined();
+    expect(vencida!.severidade).toBe('urgente');
+    expect(vencida!.id).toBe('piquete_ocupacao_vencida_pq-1');
+    expect(vencida!.href).toBe('/dashboard/pastagens/past-1');
+  });
+
+  it('não gera alerta quando a saída prevista ainda não chegou', () => {
+    const piquete: PiqueteRow = {
+      ...piqueteBase,
+      ocupacoes_piquete: [
+        { ua_real: null, data_entrada: diasAtras(2), data_saida_prevista: diasAtras(-5), data_saida_real: null },
+      ],
+    };
+    const alertas = derivarAlertasPastagens([piquete]);
+    expect(alertas.find((a) => a.tipo === 'piquete_ocupacao_vencida')).toBeUndefined();
+  });
+
+  it('não gera alerta de vencida quando a ocupação já foi fechada', () => {
+    const piquete: PiqueteRow = {
+      ...piqueteBase,
+      ocupacoes_piquete: [
+        { ua_real: null, data_entrada: diasAtras(20), data_saida_prevista: diasAtras(4), data_saida_real: diasAtras(2) },
+      ],
+    };
+    const alertas = derivarAlertasPastagens([piquete]);
+    expect(alertas.find((a) => a.tipo === 'piquete_ocupacao_vencida')).toBeUndefined();
+  });
+});
+
+describe('derivarAlertasPastagens — necessita reforma', () => {
+  it('gera alerta aviso quando piquete está sinalizado para reforma', () => {
+    const piquete: PiqueteRow = { ...piqueteBase, status: 'Descanso', necessita_reforma: true };
+    const alertas = derivarAlertasPastagens([piquete]);
+    const reforma = alertas.find((a) => a.tipo === 'piquete_necessita_reforma');
+    expect(reforma).toBeDefined();
+    expect(reforma!.severidade).toBe('aviso');
+    expect(reforma!.id).toBe('piquete_necessita_reforma_pq-1');
+  });
+
+  it('não gera alerta quando o piquete não está sinalizado', () => {
+    const alertas = derivarAlertasPastagens([{ ...piqueteBase, status: 'Descanso', necessita_reforma: false }]);
+    expect(alertas.find((a) => a.tipo === 'piquete_necessita_reforma')).toBeUndefined();
   });
 });

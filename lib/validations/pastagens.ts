@@ -48,7 +48,7 @@ export const eventoManejoFormSchema = z.object({
   tipo:              z.enum([
                        'adubacao_manutencao', 'calagem', 'reforma',
                        'ressemeadura', 'irrigacao', 'interdicao',
-                       'rocagem', 'outro',
+                       'rocagem', 'manutencao_cerca', 'outro',
                      ]),
   data:              z.string().date(),
   insumo_id:         z.string().uuid().optional().nullable(),
@@ -57,8 +57,16 @@ export const eventoManejoFormSchema = z.object({
   dose_por_ha:       z.number().positive().optional().nullable(),
   maquina_id:        z.string().uuid().optional().nullable(),
   custo_estimado:    z.number().nonnegative().optional().nullable(),
+  // Campos específicos de manutenção de cerca
+  tipo_servico_cerca: z.enum(['reparo', 'substituicao', 'nova']).optional().nullable(),
+  metragem_cerca_m:   z.number().positive().optional().nullable(),
+  material_cerca:     z.string().max(200).optional().nullable(),
   observacoes:       z.string().max(500).optional().nullable(),
   colaborador_id:    z.string().uuid().optional(),
+});
+
+export const definirNecessitaReformaSchema = z.object({
+  necessita_reforma: z.boolean(),
 });
 
 export type PastagemFormData     = z.infer<typeof pastagemFormSchema>;
@@ -66,3 +74,4 @@ export type PiqueteFormData      = z.infer<typeof piqueteFormSchema>;
 export type OcupacaoFormData     = z.infer<typeof ocupacaoFormSchema>;
 export type FecharOcupacaoData   = z.infer<typeof fecharOcupacaoSchema>;
 export type EventoManejoFormData = z.infer<typeof eventoManejoFormSchema>;
+export type DefinirNecessitaReformaData = z.infer<typeof definirNecessitaReformaSchema>;

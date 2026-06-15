@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Edit, Trash2, ChevronRight, Leaf } from 'lucide-react';
+import { Edit, Trash2, ChevronRight, Leaf, Hammer } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { PastagemForm } from './PastagemForm';
 import { DeletePastagemDialog } from './DeletePastagemDialog';
+import { definirNecessitaReformaPastagemAction } from '../actions';
 import type { PastagemComResumo } from '@/lib/types/pastagens';
 
 // Espelha os valores do enum sistema_pastejo no banco
@@ -34,10 +36,28 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [togglingReforma, setTogglingReforma] = useState(false);
 
   const temAlertas = pastagem.piquetes.some(
-    (p) => p.alerta_superlotacao || p.alerta_pronto_entrada
+    (p) => p.alerta_superlotacao || p.alerta_pronto_entrada || p.alerta_ocupacao_vencida
   );
+
+  async function handleToggleNecessitaReforma(e: React.MouseEvent) {
+    e.stopPropagation();
+    setTogglingReforma(true);
+    const result = await definirNecessitaReformaPastagemAction(pastagem.id, !pastagem.necessita_reforma);
+    setTogglingReforma(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success(
+      pastagem.necessita_reforma
+        ? 'Sinalização de reforma removida.'
+        : 'Pastagem marcada como "necessita reforma".'
+    );
+    onMutate();
+  }
 
   return (
     <>
@@ -45,7 +65,7 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
         role="article"
         onClick={() => router.push(`/dashboard/pastagens/${pastagem.id}`)}
         className={`p-5 cursor-pointer transition-all hover:shadow-md hover:border-border ${
-          temAlertas ? 'border-l-4 border-l-yellow-500/60' : ''
+          temAlertas || pastagem.necessita_reforma ? 'border-l-4 border-l-yellow-500/60' : ''
         }`}
       >
         {/* Cabeçalho */}
@@ -55,7 +75,18 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
               <Leaf className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-foreground truncate">{pastagem.nome}</h3>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-semibold text-foreground truncate">{pastagem.nome}</h3>
+                {pastagem.necessita_reforma && (
+                  <span
+                    className="text-xs font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0"
+                    style={{ color: '#f5d000', background: 'rgba(245,208,0,0.1)', border: '1px solid rgba(245,208,0,0.25)' }}
+                  >
+                    <Hammer className="h-3 w-3" />
+                    Necessita reforma
+                  </span>
+                )}
+              </div>
               {pastagem.especie_forrageira && (
                 <p className="text-xs text-muted-foreground truncate">{pastagem.especie_forrageira}</p>
               )}
@@ -101,9 +132,23 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
 
         {/* Ações */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-border">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {isAdmin && (
               <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleNecessitaReforma}
+                  disabled={togglingReforma}
+                  className={`h-7 px-2.5 text-xs gap-1 ${
+                    pastagem.necessita_reforma
+                      ? 'border-[#f5d000]/40 text-[#f5d000] hover:bg-[#f5d000]/10'
+                      : ''
+                  }`}
+                >
+                  <Hammer className="h-3 w-3" />
+                  {pastagem.necessita_reforma ? 'Reforma sinalizada' : 'Necessita reforma'}
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

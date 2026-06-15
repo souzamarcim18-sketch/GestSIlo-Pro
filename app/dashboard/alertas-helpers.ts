@@ -6,11 +6,12 @@ type PiqueteAlertaRow = {
   id: string;
   nome: string;
   status: string;
+  necessita_reforma: boolean | null;
   ua_suportada: number | null;
   dias_descanso_ideal: number | null;
   updated_at: string | null;
   pastagens: { id: string; nome: string } | null;
-  ocupacoes_piquete: { ua_real: number | null; data_entrada: string; data_saida_real: string | null }[];
+  ocupacoes_piquete: { ua_real: number | null; data_entrada: string; data_saida_prevista: string | null; data_saida_real: string | null }[];
 };
 
 export function formatarDataBR(iso: string): string {
@@ -143,6 +144,33 @@ export function derivarAlertasPastagens(piquetes: PiqueteAlertaRow[]): AlertaCri
         severidade: 'urgente',
         mensagem: `Superlotação — ${piquete.nome}`,
         detalhe: `Piquete com ${ocupacaoAberta.ua_real.toFixed(1)} UA/ha (suportado: ${piquete.ua_suportada.toFixed(1)} UA/ha)`,
+        href,
+      });
+    }
+
+    // Alerta ocupação vencida (lote em pastejo após data_saida_prevista)
+    if (ocupacaoAberta && ocupacaoAberta.data_saida_prevista) {
+      const diasVencido = daysBetween(ocupacaoAberta.data_saida_prevista, hoje);
+      if (diasVencido > 0) {
+        alertas.push({
+          id: `piquete_ocupacao_vencida_${piquete.id}`,
+          tipo: 'piquete_ocupacao_vencida',
+          severidade: 'urgente',
+          mensagem: `Saída atrasada — ${piquete.nome}`,
+          detalhe: `Lote deveria ter saído há ${diasVencido} dia${diasVencido !== 1 ? 's' : ''}`,
+          href,
+        });
+      }
+    }
+
+    // Alerta necessita reforma (sinalizador de planejamento)
+    if (piquete.necessita_reforma) {
+      alertas.push({
+        id: `piquete_necessita_reforma_${piquete.id}`,
+        tipo: 'piquete_necessita_reforma',
+        severidade: 'aviso',
+        mensagem: `Necessita reforma — ${piquete.nome}`,
+        detalhe: 'Piquete sinalizado como candidato a reforma',
         href,
       });
     }

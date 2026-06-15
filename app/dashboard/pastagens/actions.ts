@@ -17,6 +17,8 @@ import {
   deleteEventoManejo,
   calcularUADoLote,
   getPiqueteById,
+  setNecessitaReformaPiquete,
+  setNecessitaReformaPastagem,
 } from '@/lib/supabase/pastagens';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
@@ -25,6 +27,7 @@ import {
   ocupacaoFormSchema,
   fecharOcupacaoSchema,
   atualizarStatusPiqueteSchema,
+  definirNecessitaReformaSchema,
   eventoManejoFormSchema,
   type PastagemFormData,
   type PiqueteFormData,
@@ -181,6 +184,36 @@ export async function deletarPiqueteAction(id: string): Promise<ActionResult> {
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erro ao excluir piquete.';
+    return { success: false, error: msg };
+  }
+}
+
+export async function definirNecessitaReformaPiqueteAction(
+  id: string,
+  valorInput: unknown,
+): Promise<ActionResult> {
+  try {
+    const { necessita_reforma } = definirNecessitaReformaSchema.parse({ necessita_reforma: valorInput });
+    await setNecessitaReformaPiquete(id, necessita_reforma);
+    revalidate();
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erro ao atualizar sinalização de reforma.';
+    return { success: false, error: msg };
+  }
+}
+
+export async function definirNecessitaReformaPastagemAction(
+  id: string,
+  valorInput: unknown,
+): Promise<ActionResult> {
+  try {
+    const { necessita_reforma } = definirNecessitaReformaSchema.parse({ necessita_reforma: valorInput });
+    await setNecessitaReformaPastagem(id, necessita_reforma);
+    revalidate();
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erro ao atualizar sinalização de reforma.';
     return { success: false, error: msg };
   }
 }
@@ -345,6 +378,9 @@ export async function registrarEventoManejoAction(formData: unknown): Promise<Ac
       dose_por_ha: parsed.dose_por_ha ?? null,
       maquina_id: parsed.maquina_id ?? null,
       custo_estimado: parsed.custo_estimado ?? null,
+      tipo_servico_cerca: parsed.tipo === 'manutencao_cerca' ? (parsed.tipo_servico_cerca ?? null) : null,
+      metragem_cerca_m: parsed.tipo === 'manutencao_cerca' ? (parsed.metragem_cerca_m ?? null) : null,
+      material_cerca: parsed.tipo === 'manutencao_cerca' ? (parsed.material_cerca ?? null) : null,
       observacoes: parsed.observacoes ?? null,
     });
 

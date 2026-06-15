@@ -341,7 +341,7 @@ app/
 │   │   ├── layout.tsx                   # Guard: redireciona Operador → /dashboard (client-side via useAuth)
 │   │   ├── page.tsx                     # RSC hub: KPIs + grid de pastagens
 │   │   ├── PastagensClient.tsx          # Client hub: KPIs, alertas, grid PastagemCard, modal nova pastagem
-│   │   ├── actions.ts                   # 11 Server Actions (pastagem, piquete, ocupação, evento manejo)
+│   │   ├── actions.ts                   # 13 Server Actions (pastagem, piquete, ocupação, evento manejo, flag necessita_reforma)
 │   │   ├── components/
 │   │   │   ├── PastagemCard.tsx         # Card pastagem: nome, espécie, sistema, counters por status, ações
 │   │   │   ├── PastagemForm.tsx         # Modal criar/editar pastagem (RHF + Zod); espécie via dropdown agrupado (CATALOGO_ESPECIES_FORRAGEIRAS) + "Outra" (texto livre); campo nível de tecnologia
@@ -1263,8 +1263,13 @@ As culturas selecionáveis no cadastro de ciclo e seu cronograma de operações 
 - `sistema_pastejo`: `rotacionado`, `continuo`, `semi_intensivo`
 - `status_piquete`: `Em pastejo`, `Descanso`, `Em reforma`, `Interditado`
 - `nivel_tecnologia` (coluna em `pastagens`, migration `20260614000001`): `baixo` | `medio` (default) | `alto` — CHECK `pastagens_nivel_tecnologia_check`; multiplica a produtividade-base no Balanço Forrageiro (0.8 / 1.0 / 1.15)
-- `tipo_evento_manejo`: `adubacao`, `calagem`, `aplicacao_defensivo`, `ressemeadura`, `rocagem`, `irrigacao`, `amostragem_solo`, `reforma_pastagem`, `interdicao`, `liberacao`, `outro`
+- `tipo` (eventos_manejo_pastagem): `adubacao_manutencao`, `calagem`, `reforma`, `ressemeadura`, `irrigacao`, `interdicao`, `rocagem`, `manutencao_cerca`, `outro` — CHECK `eventos_manejo_pastagem_tipo_check`. `manutencao_cerca` (migration `20260614000002`) usa colunas próprias: `tipo_servico_cerca` (`reparo`|`substituicao`|`nova`), `metragem_cerca_m`, `material_cerca`
 - `metodo_calculo_ua`: `peso_real` (pesagem ≤ 90 dias) | `estimativa` (fator fixo por `categorias_rebanho`)
+
+**Flag "necessita reforma"** (migration `20260614000002`):
+- Colunas boolean `necessita_reforma` em `pastagens` **e** `piquetes` (default `false`)
+- **Sinalizador de planejamento** — NÃO altera o status operacional do piquete (diferente do status `Em reforma`, que tira o piquete de operação). Gera alerta e badge dourado na UI.
+- Alternada via `definirNecessitaReformaPastagemAction` / `definirNecessitaReformaPiqueteAction` (botão "Necessita reforma" no `PastagemCard` e `PiqueteCard`)
 
 **Cálculo de UA**:
 - Fórmula: `peso_kg / 450` para animais com pesagem recente
@@ -1274,9 +1279,8 @@ As culturas selecionáveis no cadastro de ciclo e seu cronograma de operações 
 - Cálculo é espelhado client-side em `OcupacaoForm.tsx` para preview antes de salvar
 
 **Status de piquete atualizado por eventos**:
-- `reforma_pastagem` → status muda para `Em reforma`
+- `reforma` → status muda para `Em reforma`
 - `interdicao` → status muda para `Interditado`
-- `liberacao` → status muda para `Descanso`
 - Os demais tipos não alteram status
 - Deletar evento de manejo **não reverte** o status automaticamente — aviso na UI
 
@@ -1290,8 +1294,10 @@ As culturas selecionáveis no cadastro de ciclo e seu cronograma de operações 
 | Tipo | Condição | Severidade |
 |---|---|---|
 | `piquete_superlotacao` | ocupação aberta com `ua_real > ua_suportada` | `urgente` |
+| `piquete_ocupacao_vencida` | ocupação aberta após `data_saida_prevista` (lote não saiu) | `urgente` |
 | `piquete_pronto_entrada` | status `Descanso`, `diasDescanso >= dias_descanso_ideal` | `aviso` |
 | `piquete_reforma_longa` | status `Em reforma` há > 90 dias (baseado em `updated_at`) | `aviso` |
+| `piquete_necessita_reforma` | flag `necessita_reforma = true` no piquete | `aviso` |
 
 **Navegação**:
 - **Sidebar**: item "Pastagens" com ícone `Leaf` (Lucide), posicionado após "Lavouras" em `gerencialRoutes`
@@ -1300,9 +1306,9 @@ As culturas selecionáveis no cadastro de ciclo e seu cronograma de operações 
 
 **Arquivos principais**:
 - `lib/types/pastagens.ts` — tipos: `SistemaPastejo`, `StatusPiquete`, `TipoEventoManejo`, `MetodoCalculoUA`, `NivelTecnologia`, `Pastagem` (com `nivel_tecnologia`), `Piquete`, `OcupacaoPiquete`, `PiqueteComOcupacaoAtual`, `PastagemComResumo`, `FATORES_UA_POR_CATEGORIA`, `UA_FATOR_PADRAO`
-- `lib/validations/pastagens.ts` — 6 schemas Zod: `pastagemFormSchema`, `piqueteFormSchema`, `ocupacaoFormSchema`, `fecharOcupacaoSchema`, `eventoManejoFormSchema`, `atualizarStatusSchema`
+- `lib/validations/pastagens.ts` — 7 schemas Zod: `pastagemFormSchema`, `piqueteFormSchema`, `ocupacaoFormSchema`, `fecharOcupacaoSchema`, `eventoManejoFormSchema` (com campos de cerca), `atualizarStatusPiqueteSchema`, `definirNecessitaReformaSchema`
 - `lib/supabase/pastagens.ts` — todas as queries, incluindo `listPastagensParaAlertas()` (usada no dashboard)
-- `app/dashboard/pastagens/actions.ts` — 11 Server Actions: `criarPastagemAction`, `atualizarPastagemAction`, `deletarPastagemAction`, `criarPiqueteAction`, `atualizarPiqueteAction`, `deletarPiqueteAction`, `atualizarStatusPiqueteAction`, `registrarEntradaLoteAction`, `fecharOcupacaoAction`, `registrarEventoManejoAction`, `deletarEventoManejoAction`
+- `app/dashboard/pastagens/actions.ts` — 13 Server Actions: `criarPastagemAction`, `atualizarPastagemAction`, `deletarPastagemAction`, `criarPiqueteAction`, `atualizarPiqueteAction`, `deletarPiqueteAction`, `atualizarStatusPiqueteAction`, `definirNecessitaReformaPastagemAction`, `definirNecessitaReformaPiqueteAction`, `registrarEntradaLoteAction`, `fecharOcupacaoAction`, `registrarEventoManejoAction`, `deletarEventoManejoAction`
 - `app/dashboard/pastagens/layout.tsx` — guard de perfil (client-side via `useAuth`, redireciona Operador)
 - `app/dashboard/pastagens/page.tsx` — RSC hub com KPIs e grid de pastagens
 - `app/dashboard/pastagens/PastagensClient.tsx` — client hub com estado e modais

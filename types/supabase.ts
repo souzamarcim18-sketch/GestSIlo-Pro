@@ -1314,10 +1314,13 @@ export type Database = {
           id: string
           insumo_id: string | null
           maquina_id: string | null
+          material_cerca: string | null
+          metragem_cerca_m: number | null
           observacoes: string | null
           piquete_id: string
           quantidade_insumo: number | null
           tipo: string
+          tipo_servico_cerca: string | null
           unidade_insumo: string | null
         }
         Insert: {
@@ -1331,10 +1334,13 @@ export type Database = {
           id?: string
           insumo_id?: string | null
           maquina_id?: string | null
+          material_cerca?: string | null
+          metragem_cerca_m?: number | null
           observacoes?: string | null
           piquete_id: string
           quantidade_insumo?: number | null
           tipo: string
+          tipo_servico_cerca?: string | null
           unidade_insumo?: string | null
         }
         Update: {
@@ -1348,10 +1354,13 @@ export type Database = {
           id?: string
           insumo_id?: string | null
           maquina_id?: string | null
+          material_cerca?: string | null
+          metragem_cerca_m?: number | null
           observacoes?: string | null
           piquete_id?: string
           quantidade_insumo?: number | null
           tipo?: string
+          tipo_servico_cerca?: string | null
           unidade_insumo?: string | null
         }
         Relationships: [
@@ -2695,6 +2704,7 @@ export type Database = {
           especie_forrageira: string | null
           fazenda_id: string
           id: string
+          necessita_reforma: boolean
           nivel_tecnologia: string
           nome: string
           observacoes: string | null
@@ -2708,6 +2718,7 @@ export type Database = {
           especie_forrageira?: string | null
           fazenda_id: string
           id?: string
+          necessita_reforma?: boolean
           nivel_tecnologia?: string
           nome: string
           observacoes?: string | null
@@ -2721,6 +2732,7 @@ export type Database = {
           especie_forrageira?: string | null
           fazenda_id?: string
           id?: string
+          necessita_reforma?: boolean
           nivel_tecnologia?: string
           nome?: string
           observacoes?: string | null
@@ -2839,6 +2851,7 @@ export type Database = {
           dias_descanso_ideal: number | null
           fazenda_id: string
           id: string
+          necessita_reforma: boolean
           nome: string
           observacoes: string | null
           pastagem_id: string
@@ -2854,6 +2867,7 @@ export type Database = {
           dias_descanso_ideal?: number | null
           fazenda_id: string
           id?: string
+          necessita_reforma?: boolean
           nome: string
           observacoes?: string | null
           pastagem_id: string
@@ -2869,6 +2883,7 @@ export type Database = {
           dias_descanso_ideal?: number | null
           fazenda_id?: string
           id?: string
+          necessita_reforma?: boolean
           nome?: string
           observacoes?: string | null
           pastagem_id?: string

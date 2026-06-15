@@ -20,6 +20,8 @@ export type AlertaTipo =
   | 'piquete_superlotacao'
   | 'piquete_pronto_entrada'
   | 'piquete_reforma_longa'
+  | 'piquete_ocupacao_vencida'
+  | 'piquete_necessita_reforma'
   | 'silo_aberto_sem_consumo';
 
 export type AlertaSeveridade = 'critico' | 'urgente' | 'aviso';

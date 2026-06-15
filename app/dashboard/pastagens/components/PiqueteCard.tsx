@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit, Trash2, LogIn, LogOut, Wrench } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Edit, Trash2, LogIn, LogOut, Wrench, Hammer, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,6 +22,7 @@ import { DeletePiqueteDialog } from './DeletePiqueteDialog';
 import { OcupacaoForm } from './OcupacaoForm';
 import { FecharOcupacaoDialog } from './FecharOcupacaoDialog';
 import { EventoManejoForm } from './EventoManejoForm';
+import { definirNecessitaReformaPiqueteAction } from '../actions';
 import type { PiqueteComOcupacaoAtual } from '@/lib/types/pastagens';
 
 const STATUS_CONFIG: Record<
@@ -60,11 +63,30 @@ interface PiqueteCardProps {
 }
 
 export function PiqueteCard({ piquete, pastagemId, isAdmin, onMutate }: PiqueteCardProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [ocupacaoOpen, setOcupacaoOpen] = useState(false);
   const [fecharOcupacaoOpen, setFecharOcupacaoOpen] = useState(false);
   const [eventoOpen, setEventoOpen] = useState(false);
+  const [togglingReforma, setTogglingReforma] = useState(false);
+
+  async function handleToggleNecessitaReforma() {
+    setTogglingReforma(true);
+    const result = await definirNecessitaReformaPiqueteAction(piquete.id, !piquete.necessita_reforma);
+    setTogglingReforma(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success(
+      piquete.necessita_reforma
+        ? 'Sinalização de reforma removida.'
+        : 'Piquete marcado como "necessita reforma".'
+    );
+    router.refresh();
+    onMutate();
+  }
 
   const statusCfg = STATUS_CONFIG[piquete.status] ?? STATUS_CONFIG['Descanso'];
   const ocupacao = piquete.ocupacao_atual;
@@ -101,8 +123,19 @@ export function PiqueteCard({ piquete, pastagemId, isAdmin, onMutate }: PiqueteC
       >
         {/* Cabeçalho: nome + status */}
         <div className="flex items-start justify-between gap-2">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">{piquete.nome}</h4>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="text-sm font-semibold text-foreground">{piquete.nome}</h4>
+              {piquete.necessita_reforma && (
+                <span
+                  className="text-xs font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0"
+                  style={{ color: '#f5d000', background: 'rgba(245,208,0,0.1)', border: '1px solid rgba(245,208,0,0.25)' }}
+                >
+                  <Hammer className="h-3 w-3" />
+                  Necessita reforma
+                </span>
+              )}
+            </div>
             <div className="text-xs text-muted-foreground mt-0.5">{piquete.area_ha.toLocaleString('pt-BR')} ha</div>
           </div>
           <span
@@ -193,6 +226,12 @@ export function PiqueteCard({ piquete, pastagemId, isAdmin, onMutate }: PiqueteC
             ⚠ Superlotação detectada
           </div>
         )}
+        {piquete.alerta_ocupacao_vencida && piquete.dias_ocupacao_vencida !== null && (
+          <div className="text-xs text-[#f5d000] font-medium flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            Saída atrasada há {piquete.dias_ocupacao_vencida} dia{piquete.dias_ocupacao_vencida !== 1 ? 's' : ''}
+          </div>
+        )}
 
         {/* Ações Admin */}
         {isAdmin && (
@@ -252,6 +291,21 @@ export function PiqueteCard({ piquete, pastagemId, isAdmin, onMutate }: PiqueteC
                 Excluir
               </Button>
             </div>
+            {/* Sinalizar necessidade de reforma (planejamento) */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleNecessitaReforma}
+              disabled={togglingReforma}
+              className={`w-full h-7 text-xs gap-1 ${
+                piquete.necessita_reforma
+                  ? 'border-[#f5d000]/40 text-[#f5d000] hover:bg-[#f5d000]/10'
+                  : 'border-white/15 text-muted-foreground hover:text-foreground hover:bg-white/8 hover:border-white/25'
+              }`}
+            >
+              <Hammer className="h-3 w-3" />
+              {piquete.necessita_reforma ? 'Remover sinalização de reforma' : 'Marcar: necessita reforma'}
+            </Button>
           </div>
         )}
       </div>
