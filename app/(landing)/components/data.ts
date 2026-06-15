@@ -251,8 +251,7 @@ export const BENEFICIOS: Beneficio[] = [
   { Icon: Zap, title: 'Agilidade no campo', desc: 'Qualquer dado acessado rapidamente, do celular, mesmo com sinal fraco.' },
   { Icon: WifiOff, title: 'Uso offline', desc: 'Faça os registros mesmo sem sinal de internet. Depois só fazer sincronização'},
   { Icon: MapPin, title: 'Rastreabilidade completa', desc: 'Histórico desde o primeiro dia: cada silo, cada retirada, cada lote do rebanho.' },
-  { Icon: ChartBarIncreasing, title: 'Custo real, não estimativa', desc: 'Saiba exatamente o que cada silagem, cada animal e cada talhão está custando.' },
-  { Icon: Speech, title: 'Facilidade de comunicação', desc: 'Termos do dia a dia, sem jargões técnicos desnecessário'},
+  { Icon: ChartBarIncreasing, title: 'Custo real, não estimativa', desc: 'Saiba exatamente para onde vai seu investimento.' },
   { Icon: Phone, title: 'Suporte real', desc: 'Atendimento por WhatsApp, e-mail e telefone'},
   { Icon: Shield, title: 'Seus dados são seus', desc: 'Criptografia, backup semanal automático e isolamento total entre fazendas.' },
 ];

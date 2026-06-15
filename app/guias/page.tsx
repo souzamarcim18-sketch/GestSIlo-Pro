@@ -47,27 +47,6 @@ export default async function GuiasPage({
 
       <main className="flex-1 pt-28 pb-20 px-6">
         <div className="max-w-6xl mx-auto">
-          {/* Banner CTA */}
-          <Link
-            href="/solicitar-acesso"
-            className="group flex items-center justify-between gap-4 mb-10 rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition-all duration-200 hover:border-brand-primary/40 hover:bg-white/[0.07]"
-          >
-            <p className="text-sm text-muted-foreground">
-              <span className="text-foreground font-semibold">
-                Gerencie sua fazenda com dados reais
-              </span>{' '}
-              — e pare de decidir no improviso.
-            </p>
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-brand-primary whitespace-nowrap">
-              Criar conta grátis
-              <ArrowRight
-                size={15}
-                className="transition-transform group-hover:translate-x-0.5"
-                aria-hidden="true"
-              />
-            </span>
-          </Link>
-
           {/* Header */}
           <header className="mb-8">
             <h1 className="text-2xl font-black tracking-tight text-foreground">
@@ -126,6 +105,59 @@ export default async function GuiasPage({
               ))}
             </div>
           )}
+
+          {/* Banner CTA */}
+          <div className="mt-16 rounded-2xl overflow-hidden relative border border-white/10">
+            {/* Fundo com gradiente */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(0,196,90,0.12) 0%, rgba(0,132,61,0.06) 50%, rgba(255,255,255,0.02) 100%)',
+              }}
+              aria-hidden="true"
+            />
+            {/* Orbe decorativo */}
+            <div
+              className="absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-[0.08] blur-3xl pointer-events-none"
+              style={{ background: '#00c45a' }}
+              aria-hidden="true"
+            />
+            <div className="relative px-8 py-10 sm:px-12 sm:py-12 flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
+              <div className="flex-1">
+                <p
+                  className="text-xs font-bold uppercase tracking-widest mb-2"
+                  style={{ color: '#00c45a' }}
+                >
+                  GestSilo — Gestão Agrícola
+                </p>
+                <h2 className="text-xl sm:text-2xl font-black text-foreground leading-snug">
+                  Gerencie sua fazenda com dados reais
+                </h2>
+                <p className="text-sm text-muted-foreground mt-2 max-w-md">
+                  Pare de decidir no improviso. Controle silos, rebanho,
+                  pastagens e finanças em um único lugar — feito para o
+                  produtor rural brasileiro.
+                </p>
+              </div>
+              <Link
+                href="/solicitar-acesso"
+                className="group shrink-0 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
+                style={{
+                  background: 'linear-gradient(135deg, #00c45a, #00843d)',
+                  color: '#fff',
+                  boxShadow: '0 4px 20px rgba(0,196,90,0.25)',
+                }}
+              >
+                Criar conta grátis
+                <ArrowRight
+                  size={15}
+                  className="transition-transform group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </Link>
+            </div>
+          </div>
         </div>
       </main>
     </div>
