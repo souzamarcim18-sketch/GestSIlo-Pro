@@ -36,6 +36,7 @@ export default async function PastagensPage() {
           em_descanso: 0,
           em_reforma: 0,
           interditados: 0,
+          necessita_reforma_count: 0,
         };
       }
       return resumo;

@@ -15,26 +15,35 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { piqueteFormSchema, type PiqueteFormData } from '@/lib/validations/pastagens';
+import { getParametrosManejoPorEspecie } from '@/lib/constants/balanco-forrageiro';
 import { criarPiqueteAction, atualizarPiqueteAction } from '../actions';
 import type { Piquete } from '@/lib/types/pastagens';
 
 interface PiqueteFormProps {
   pastagemId: string;
   piquete?: Piquete;
+  /** Espécie forrageira da pastagem — usada para sugerir parâmetros no cadastro */
+  especie?: string | null;
   onSuccess: () => void;
 }
 
-export function PiqueteForm({ pastagemId, piquete, onSuccess }: PiqueteFormProps) {
+export function PiqueteForm({ pastagemId, piquete, especie, onSuccess }: PiqueteFormProps) {
+  // No cadastro (sem piquete existente), sugere parâmetros de manejo da espécie
+  const sugestoes = !piquete ? getParametrosManejoPorEspecie(especie) : null;
+
   const form = useForm<PiqueteFormData>({
     resolver: zodResolver(piqueteFormSchema),
     defaultValues: {
       pastagem_id: pastagemId,
       nome: piquete?.nome ?? '',
       area_ha: piquete?.area_ha ?? ('' as unknown as number),
-      ua_suportada: piquete?.ua_suportada ?? ('' as unknown as number),
-      dias_descanso_ideal: piquete?.dias_descanso_ideal ?? ('' as unknown as number),
-      altura_entrada_cm: piquete?.altura_entrada_cm ?? ('' as unknown as number),
-      altura_saida_cm: piquete?.altura_saida_cm ?? ('' as unknown as number),
+      ua_suportada: piquete?.ua_suportada ?? sugestoes?.ua_suportada ?? ('' as unknown as number),
+      dias_descanso_ideal:
+        piquete?.dias_descanso_ideal ?? sugestoes?.dias_descanso_ideal ?? ('' as unknown as number),
+      altura_entrada_cm:
+        piquete?.altura_entrada_cm ?? sugestoes?.altura_entrada_cm ?? ('' as unknown as number),
+      altura_saida_cm:
+        piquete?.altura_saida_cm ?? sugestoes?.altura_saida_cm ?? ('' as unknown as number),
       observacoes: piquete?.observacoes ?? '',
     },
   });
@@ -213,6 +222,13 @@ export function PiqueteForm({ pastagemId, piquete, onSuccess }: PiqueteFormProps
             </FormItem>
           )}
         />
+
+        {sugestoes && especie && (
+          <p className="text-xs text-muted-foreground">
+            Valores de UA, descanso e alturas pré-preenchidos como referência para{' '}
+            <span className="text-foreground">{especie}</span>. Ajuste conforme sua fazenda.
+          </p>
+        )}
 
         <p className="text-xs text-muted-foreground">* campos obrigatórios</p>
 

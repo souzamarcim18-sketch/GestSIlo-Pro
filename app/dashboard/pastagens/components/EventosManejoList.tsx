@@ -25,7 +25,14 @@ const TIPO_LABEL: Record<TipoEventoManejo, string> = {
   irrigacao:           'Irrigação',
   interdicao:          'Interdição',
   rocagem:             'Roçagem',
+  manutencao_cerca:    'Manutenção de cerca',
   outro:               'Outro',
+};
+
+const SERVICO_CERCA_LABEL: Record<string, string> = {
+  reparo:       'Reparo',
+  substituicao: 'Substituição',
+  nova:         'Nova cerca',
 };
 
 const TIPOS_ALTERA_STATUS: TipoEventoManejo[] = ['reforma', 'interdicao'];
@@ -104,6 +111,14 @@ export function EventosManejoList({ piqueteId, initialEventos, isAdmin }: Evento
                       Insumo: {evt.insumos.nome}
                       {evt.quantidade_insumo !== null && ` · ${evt.quantidade_insumo} ${evt.unidade_insumo ?? evt.insumos.unidade}`}
                       {evt.dose_por_ha !== null && ` · ${evt.dose_por_ha}/ha`}
+                    </div>
+                  )}
+                  {evt.tipo === 'manutencao_cerca' && (evt.tipo_servico_cerca || evt.metragem_cerca_m !== null || evt.material_cerca) && (
+                    <div>
+                      Cerca:
+                      {evt.tipo_servico_cerca && ` ${SERVICO_CERCA_LABEL[evt.tipo_servico_cerca] ?? evt.tipo_servico_cerca}`}
+                      {evt.metragem_cerca_m !== null && ` · ${evt.metragem_cerca_m} m`}
+                      {evt.material_cerca && ` · ${evt.material_cerca}`}
                     </div>
                   )}
                   {evt.maquinas && <div>Máquina: {evt.maquinas.nome}</div>}

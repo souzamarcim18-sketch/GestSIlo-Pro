@@ -24,19 +24,26 @@ export function PastagensClient({ initialPastagens, isAdmin }: PastagensClientPr
   const router = useRouter();
   const [modalAberto, setModalAberto] = useState(false);
 
+  const totalPastagens = initialPastagens.length;
   const totalPiquetes = initialPastagens.reduce((acc, p) => acc + p.total_piquetes, 0);
   const emPastejo = initialPastagens.reduce((acc, p) => acc + p.em_pastejo, 0);
   const emDescanso = initialPastagens.reduce((acc, p) => acc + p.em_descanso, 0);
-  const alertasSuperlotacao = initialPastagens
-    .flatMap((p) => p.piquetes)
-    .filter((pq) => pq.alerta_superlotacao).length;
-  const alertasProntos = initialPastagens
-    .flatMap((p) => p.piquetes)
-    .filter((pq) => pq.alerta_pronto_entrada).length;
+  const emReforma = initialPastagens.reduce((acc, p) => acc + p.em_reforma, 0);
+  const interditados = initialPastagens.reduce((acc, p) => acc + p.interditados, 0);
+
+  const todosPiquetes = initialPastagens.flatMap((p) => p.piquetes);
+  const alertasSuperlotacao = todosPiquetes.filter((pq) => pq.alerta_superlotacao).length;
+  const alertasProntos = todosPiquetes.filter((pq) => pq.alerta_pronto_entrada).length;
+  const alertasVencidos = todosPiquetes.filter((pq) => pq.alerta_ocupacao_vencida).length;
+  const necessitamReforma =
+    initialPastagens.filter((p) => p.necessita_reforma).length +
+    todosPiquetes.filter((pq) => pq.necessita_reforma).length;
+
+  const totalAlertas = alertasSuperlotacao + alertasProntos + alertasVencidos;
 
   // Primeira pastagem com algum alerta — alvo da âncora da faixa de alertas
   const primeiraPastagemComAlerta = initialPastagens.find((p) =>
-    p.piquetes.some((pq) => pq.alerta_superlotacao || pq.alerta_pronto_entrada)
+    p.piquetes.some((pq) => pq.alerta_superlotacao || pq.alerta_pronto_entrada || pq.alerta_ocupacao_vencida)
   );
 
   function handleSuccess() {
@@ -75,40 +82,75 @@ export function PastagensClient({ initialPastagens, isAdmin }: PastagensClientPr
 
       {/* KPIs resumidos */}
       {initialPastagens.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Piquetes</div>
-              <div className="text-3xl font-bold text-foreground">{totalPiquetes}</div>
-              <div className="text-xs text-muted-foreground mt-1">total cadastrados</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Pastejo</div>
-              <div className="text-3xl font-bold text-green-400">{emPastejo}</div>
-              <div className="text-xs text-muted-foreground mt-1">piquetes ocupados</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Descanso</div>
-              <div className="text-3xl font-bold text-blue-400">{emDescanso}</div>
-              <div className="text-xs text-muted-foreground mt-1">piquetes descansando</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Alertas</div>
-              <div className="text-3xl font-bold text-yellow-400">{alertasSuperlotacao + alertasProntos}</div>
-              <div className="text-xs text-muted-foreground mt-1">requerem atenção</div>
-            </CardContent>
-          </Card>
+        <div className="space-y-3">
+          {/* Linha 1 — inventário */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pastagens</div>
+                <div className="text-3xl font-bold text-foreground">{totalPastagens}</div>
+                <div className="text-xs text-muted-foreground mt-1">total cadastradas</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Piquetes</div>
+                <div className="text-3xl font-bold text-foreground">{totalPiquetes}</div>
+                <div className="text-xs text-muted-foreground mt-1">total cadastrados</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Pastejo</div>
+                <div className="text-3xl font-bold text-green-400">{emPastejo}</div>
+                <div className="text-xs text-muted-foreground mt-1">piquetes ocupados</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Descanso</div>
+                <div className="text-3xl font-bold text-blue-400">{emDescanso}</div>
+                <div className="text-xs text-muted-foreground mt-1">piquetes descansando</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Linha 2 — situação / atenção */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Reforma</div>
+                <div className="text-3xl font-bold text-orange-400">{emReforma}</div>
+                <div className="text-xs text-muted-foreground mt-1">piquetes em reforma</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Interditados</div>
+                <div className="text-3xl font-bold text-red-400">{interditados}</div>
+                <div className="text-xs text-muted-foreground mt-1">piquetes interditados</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Necessitam Reforma</div>
+                <div className="text-3xl font-bold text-yellow-400">{necessitamReforma}</div>
+                <div className="text-xs text-muted-foreground mt-1">sinalizados p/ reforma</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Alertas</div>
+                <div className="text-3xl font-bold text-yellow-400">{totalAlertas}</div>
+                <div className="text-xs text-muted-foreground mt-1">requerem atenção</div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 
       {/* Faixa de alertas — clicável: rola até os piquetes afetados */}
-      {(alertasSuperlotacao > 0 || alertasProntos > 0) && (
+      {totalAlertas > 0 && (
         <button
           type="button"
           onClick={scrollToAlertas}
@@ -124,6 +166,11 @@ export function PastagensClient({ initialPastagens, isAdmin }: PastagensClientPr
             {alertasProntos > 0 && (
               <div>
                 <strong>{alertasProntos}</strong> piquete{alertasProntos !== 1 ? 's' : ''} pronto{alertasProntos !== 1 ? 's' : ''} para entrada de lote
+              </div>
+            )}
+            {alertasVencidos > 0 && (
+              <div>
+                <strong>{alertasVencidos}</strong> piquete{alertasVencidos !== 1 ? 's' : ''} com saída de lote atrasada
               </div>
             )}
             <div className="text-xs text-yellow-400/70 mt-0.5">Toque para ver as pastagens afetadas →</div>

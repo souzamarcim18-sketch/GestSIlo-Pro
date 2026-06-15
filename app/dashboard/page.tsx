@@ -189,9 +189,9 @@ export default async function DashboardPage() {
     supabase
       .from('piquetes')
       .select(`
-        id, nome, status, ua_suportada, dias_descanso_ideal, updated_at,
+        id, nome, status, necessita_reforma, ua_suportada, dias_descanso_ideal, updated_at,
         pastagens!inner(id, nome, ativo, area_total_ha),
-        ocupacoes_piquete(ua_real, data_entrada, data_saida_real)
+        ocupacoes_piquete(ua_real, data_entrada, data_saida_prevista, data_saida_real)
       `)
       .eq('pastagens.ativo', true)
       .eq('fazenda_id', fazendaId),

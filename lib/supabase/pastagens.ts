@@ -27,10 +27,10 @@ type OcupacaoUpdate = Omit<Database['public']['Tables']['ocupacoes_piquete']['Up
 
 type EventoManejoInsert = Omit<Database['public']['Tables']['eventos_manejo_pastagem']['Insert'], 'id' | 'fazenda_id' | 'created_at' | 'created_by'>;
 
-const PASTAGEM_COLS = 'id, fazenda_id, nome, especie_forrageira, area_total_ha, sistema_pastejo, nivel_tecnologia, observacoes, ativo, created_at, updated_at';
-const PIQUETE_COLS = 'id, fazenda_id, pastagem_id, nome, area_ha, status, ua_suportada, dias_descanso_ideal, altura_entrada_cm, altura_saida_cm, observacoes, created_at, updated_at';
+const PASTAGEM_COLS = 'id, fazenda_id, nome, especie_forrageira, area_total_ha, sistema_pastejo, nivel_tecnologia, necessita_reforma, observacoes, ativo, created_at, updated_at';
+const PIQUETE_COLS = 'id, fazenda_id, pastagem_id, nome, area_ha, status, necessita_reforma, ua_suportada, dias_descanso_ideal, altura_entrada_cm, altura_saida_cm, observacoes, created_at, updated_at';
 const OCUPACAO_COLS = 'id, fazenda_id, piquete_id, lote_id, data_entrada, data_saida_prevista, data_saida_real, altura_dossel_entrada_cm, altura_dossel_saida_cm, quantidade_animais, peso_medio_kg, ua_real, metodo_calculo_ua, observacoes, created_by, created_at, updated_at';
-const EVENTO_COLS = 'id, fazenda_id, piquete_id, tipo, data, insumo_id, quantidade_insumo, unidade_insumo, dose_por_ha, maquina_id, custo_estimado, observacoes, created_by, created_at';
+const EVENTO_COLS = 'id, fazenda_id, piquete_id, tipo, data, insumo_id, quantidade_insumo, unidade_insumo, dose_por_ha, maquina_id, custo_estimado, tipo_servico_cerca, metragem_cerca_m, material_cerca, observacoes, created_by, created_at';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -57,12 +57,22 @@ function enrichPiquete(
     piquete.ua_suportada !== null &&
     ocupacaoAtual.ua_real > piquete.ua_suportada;
 
+  // Ocupação vencida: lote ainda em pastejo após a data de saída prevista
+  const dias_ocupacao_vencida =
+    ocupacaoAtual !== null && ocupacaoAtual.data_saida_prevista
+      ? daysBetween(ocupacaoAtual.data_saida_prevista, hoje)
+      : null;
+  const alerta_ocupacao_vencida =
+    dias_ocupacao_vencida !== null && dias_ocupacao_vencida > 0;
+
   return {
     ...piquete,
     ocupacao_atual: ocupacaoAtual,
     dias_descanso_acumulado: diasDescansoAcumulado,
     alerta_pronto_entrada,
     alerta_superlotacao,
+    alerta_ocupacao_vencida,
+    dias_ocupacao_vencida: alerta_ocupacao_vencida ? dias_ocupacao_vencida : null,
   };
 }
 
@@ -107,7 +117,7 @@ export async function getPastagemComResumo(pastagemId: string): Promise<Pastagem
   const { data: piquetesRaw, error: piquetesError } = await supabase
     .from('piquetes')
     .select(`
-      id, fazenda_id, pastagem_id, nome, area_ha, status,
+      id, fazenda_id, pastagem_id, nome, area_ha, status, necessita_reforma,
       ua_suportada, dias_descanso_ideal, altura_entrada_cm, altura_saida_cm,
       observacoes, created_at, updated_at,
       ocupacoes_piquete(
@@ -137,6 +147,7 @@ export async function getPastagemComResumo(pastagemId: string): Promise<Pastagem
       nome: row.nome,
       area_ha: Number(row.area_ha),
       status: row.status as Piquete['status'],
+      necessita_reforma: Boolean(row.necessita_reforma),
       ua_suportada: row.ua_suportada !== null ? Number(row.ua_suportada) : null,
       dias_descanso_ideal: row.dias_descanso_ideal,
       altura_entrada_cm: row.altura_entrada_cm !== null ? Number(row.altura_entrada_cm) : null,
@@ -153,16 +164,19 @@ export async function getPastagemComResumo(pastagemId: string): Promise<Pastagem
   const em_descanso = piquetes.filter((p) => p.status === 'Descanso').length;
   const em_reforma  = piquetes.filter((p) => p.status === 'Em reforma').length;
   const interditados = piquetes.filter((p) => p.status === 'Interditado').length;
+  const necessita_reforma_count = piquetes.filter((p) => p.necessita_reforma).length;
 
   return {
     ...(pastagem as unknown as Pastagem),
     area_total_ha: Number(pastagem.area_total_ha),
+    necessita_reforma: Boolean((pastagem as { necessita_reforma?: boolean }).necessita_reforma),
     piquetes,
     total_piquetes: piquetes.length,
     em_pastejo,
     em_descanso,
     em_reforma,
     interditados,
+    necessita_reforma_count,
   };
 }
 
@@ -282,6 +296,24 @@ export async function updatePiquete(id: string, payload: PiqueteUpdate) {
 export async function deletePiquete(id: string): Promise<void> {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from('piquetes').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function setNecessitaReformaPiquete(id: string, valor: boolean): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from('piquetes')
+    .update({ necessita_reforma: valor })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function setNecessitaReformaPastagem(id: string, valor: boolean): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from('pastagens')
+    .update({ necessita_reforma: valor })
+    .eq('id', id);
   if (error) throw error;
 }
 
@@ -497,9 +529,9 @@ export async function listPastagensParaAlertas(supabase: SupabaseClient<Database
   const { data, error } = await supabase
     .from('piquetes')
     .select(`
-      id, nome, area_ha, status, ua_suportada, dias_descanso_ideal, updated_at,
+      id, nome, area_ha, status, necessita_reforma, ua_suportada, dias_descanso_ideal, updated_at,
       pastagens!inner(id, nome, ativo),
-      ocupacoes_piquete(ua_real, data_entrada, data_saida_real)
+      ocupacoes_piquete(ua_real, data_entrada, data_saida_prevista, data_saida_real)
     `)
     .eq('pastagens.ativo', true);
 

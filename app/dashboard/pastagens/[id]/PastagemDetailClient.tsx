@@ -247,6 +247,7 @@ export function PastagemDetailClient({
           </DialogHeader>
           <PiqueteForm
             pastagemId={pastagem.id}
+            especie={pastagem.especie_forrageira}
             onSuccess={() => {
               setNovoPiqueteOpen(false);
               handleMutate();

@@ -35,13 +35,20 @@ const TIPO_CONFIG: Record<TipoEventoManejo, { label: string; alteraStatus?: stri
   rocagem:             { label: 'Roçagem' },
   ressemeadura:        { label: 'Ressemeadura' },
   irrigacao:           { label: 'Irrigação' },
+  manutencao_cerca:    { label: 'Manutenção de cerca' },
   reforma:             { label: 'Reforma de pastagem', alteraStatus: 'Em reforma' },
   interdicao:          { label: 'Interdição', alteraStatus: 'Interditado' },
   outro:               { label: 'Outro' },
 };
 
 const TIPOS_COM_INSUMO: TipoEventoManejo[] = ['adubacao_manutencao', 'calagem', 'ressemeadura'];
-const TIPOS_COM_MAQUINA: TipoEventoManejo[] = ['adubacao_manutencao', 'calagem', 'ressemeadura', 'rocagem'];
+const TIPOS_COM_MAQUINA: TipoEventoManejo[] = ['adubacao_manutencao', 'calagem', 'ressemeadura', 'rocagem', 'manutencao_cerca'];
+
+const SERVICO_CERCA_LABEL: Record<'reparo' | 'substituicao' | 'nova', string> = {
+  reparo:       'Reparo',
+  substituicao: 'Substituição',
+  nova:         'Nova cerca',
+};
 
 interface Insumo { id: string; nome: string; unidade: string }
 interface Maquina { id: string; nome: string }
@@ -68,6 +75,9 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
       dose_por_ha: undefined,
       maquina_id: undefined,
       custo_estimado: undefined,
+      tipo_servico_cerca: undefined,
+      metragem_cerca_m: undefined,
+      material_cerca: '',
       observacoes: '',
       colaborador_id: undefined,
     },
@@ -77,6 +87,7 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
   const tipo = form.watch('tipo') as TipoEventoManejo;
   const mostraInsumo = TIPOS_COM_INSUMO.includes(tipo);
   const mostraMaquina = TIPOS_COM_MAQUINA.includes(tipo);
+  const mostraCerca = tipo === 'manutencao_cerca';
   const alteraStatus = TIPO_CONFIG[tipo]?.alteraStatus;
 
   useEffect(() => {
@@ -250,6 +261,79 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
                         {...field}
                         value={field.value === undefined || field.value === null ? '' : field.value}
                         onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        className="bg-[#222] border-white/10 text-sm"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Campos de manutenção de cerca */}
+        {mostraCerca && (
+          <>
+            <FormField
+              control={form.control}
+              name="tipo_servico_cerca"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-muted-foreground">Tipo de serviço</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-[#222] border-white/10 text-sm">
+                        <SelectValue placeholder="Selecionar serviço..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-[#222] border-white/10">
+                      {(Object.keys(SERVICO_CERCA_LABEL) as (keyof typeof SERVICO_CERCA_LABEL)[]).map((s) => (
+                        <SelectItem key={s} value={s} className="text-sm">
+                          {SERVICO_CERCA_LABEL[s]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="metragem_cerca_m"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm text-muted-foreground">Metragem (m)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number" step="1" min="1"
+                        placeholder="Ex: 250"
+                        {...field}
+                        value={field.value === undefined || field.value === null ? '' : field.value}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        className="bg-[#222] border-white/10 text-sm"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="material_cerca"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm text-muted-foreground">Material</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ex: mourão, arame liso"
+                        {...field}
+                        value={field.value ?? ''}
                         className="bg-[#222] border-white/10 text-sm"
                       />
                     </FormControl>

@@ -43,13 +43,13 @@ export const OFERTA_MS_POR_ESPECIE = new Map<string, OfertaEspecie>([
   ['Braquiária BRS Ipyporã', { verao: 47, seca: 11 }],
   ['Braquiária Mulato II', { verao: 50, seca: 12 }],
   // Panicum
-  ['Capim Mombaça', { verao: 60, seca: 10 }],
-  ['Capim Tanzânia', { verao: 55, seca: 10 }],
-  ['Capim Massai', { verao: 42, seca: 9 }],
-  ['Capim Zuri / BRS Zuri', { verao: 62, seca: 11 }],
-  ['Capim Quênia / BRS Quênia', { verao: 58, seca: 10 }],
-  ['Capim Miyagi', { verao: 52, seca: 9 }],
-  ['Capim BRS Tamani', { verao: 46, seca: 9 }],
+  ['Mombaça', { verao: 60, seca: 10 }],
+  ['Tanzânia', { verao: 55, seca: 10 }],
+  ['Massai', { verao: 42, seca: 9 }],
+  ['Zuri / BRS Zuri', { verao: 62, seca: 11 }],
+  ['Quênia / BRS Quênia', { verao: 58, seca: 10 }],
+  ['Miyagi', { verao: 52, seca: 9 }],
+  ['BRS Tamani', { verao: 46, seca: 9 }],
   // Cynodon
   ['Tifton 85', { verao: 55, seca: 12 }],
   ['Tifton 68', { verao: 50, seca: 11 }],
@@ -95,13 +95,13 @@ export const CATALOGO_ESPECIES_FORRAGEIRAS: GrupoEspecies[] = [
   {
     grupo: 'Panicum',
     especies: [
-      'Capim Mombaça',
-      'Capim Tanzânia',
-      'Capim Massai',
-      'Capim Zuri / BRS Zuri',
-      'Capim Quênia / BRS Quênia',
-      'Capim Miyagi',
-      'Capim BRS Tamani',
+      'Mombaça',
+      'Tanzânia',
+      'Massai',
+      'Zuri / BRS Zuri',
+      'Quênia / BRS Quênia',
+      'Miyagi',
+      'BRS Tamani',
     ],
   },
   {
@@ -150,3 +150,59 @@ export const NIVEIS_TECNOLOGIA: { value: NivelTecnologia; label: string; descric
 
 // Cobertura mínima do pasto sobre a demanda total para não emitir alerta (20%)
 export const COBERTURA_PASTO_MINIMA_PERC = 0.20;
+
+// ─── Parâmetros de manejo de piquete por espécie (valores de referência) ─────
+// Sugestões agronômicas para pré-preencher o cadastro de piquete a partir da
+// espécie da pastagem. Fontes: Embrapa, literatura zootécnica nacional.
+// IMPORTANTE: são estimativas de referência; o produtor pode ajustar conforme
+// a realidade da fazenda.
+export type ParametrosManejoPiquete = {
+  ua_suportada: number; // UA/ha
+  dias_descanso_ideal: number; // dias
+  altura_entrada_cm: number; // cm
+  altura_saida_cm: number; // cm
+};
+
+export const PARAMETROS_MANEJO_POR_ESPECIE = new Map<string, ParametrosManejoPiquete>([
+  // Braquiárias (manejo de altura — pastejo rotacionado)
+  ['Braquiária Marandu', { ua_suportada: 2.5, dias_descanso_ideal: 30, altura_entrada_cm: 30, altura_saida_cm: 15 }],
+  ['Braquiária Xaraés', { ua_suportada: 2.8, dias_descanso_ideal: 28, altura_entrada_cm: 30, altura_saida_cm: 15 }],
+  ['Braquiária Piatã', { ua_suportada: 2.5, dias_descanso_ideal: 30, altura_entrada_cm: 30, altura_saida_cm: 15 }],
+  ['Braquiária Paiaguás', { ua_suportada: 2.6, dias_descanso_ideal: 28, altura_entrada_cm: 30, altura_saida_cm: 15 }],
+  ['Braquiária Decumbens', { ua_suportada: 2.0, dias_descanso_ideal: 35, altura_entrada_cm: 25, altura_saida_cm: 10 }],
+  ['Braquiária Ruziziensis', { ua_suportada: 2.0, dias_descanso_ideal: 35, altura_entrada_cm: 25, altura_saida_cm: 10 }],
+  ['Braquiária BRS Ipyporã', { ua_suportada: 2.7, dias_descanso_ideal: 28, altura_entrada_cm: 30, altura_saida_cm: 15 }],
+  ['Braquiária Mulato II', { ua_suportada: 3.0, dias_descanso_ideal: 28, altura_entrada_cm: 30, altura_saida_cm: 15 }],
+  // Panicum (porte alto — alturas maiores)
+  ['Mombaça', { ua_suportada: 3.5, dias_descanso_ideal: 30, altura_entrada_cm: 90, altura_saida_cm: 40 }],
+  ['Tanzânia', { ua_suportada: 3.2, dias_descanso_ideal: 30, altura_entrada_cm: 70, altura_saida_cm: 30 }],
+  ['Massai', { ua_suportada: 2.8, dias_descanso_ideal: 28, altura_entrada_cm: 45, altura_saida_cm: 20 }],
+  ['Zuri / BRS Zuri', { ua_suportada: 3.6, dias_descanso_ideal: 30, altura_entrada_cm: 90, altura_saida_cm: 40 }],
+  ['Quênia / BRS Quênia', { ua_suportada: 3.4, dias_descanso_ideal: 30, altura_entrada_cm: 80, altura_saida_cm: 35 }],
+  ['Miyagi', { ua_suportada: 3.0, dias_descanso_ideal: 30, altura_entrada_cm: 70, altura_saida_cm: 30 }],
+  ['BRS Tamani', { ua_suportada: 2.8, dias_descanso_ideal: 28, altura_entrada_cm: 50, altura_saida_cm: 25 }],
+  // Cynodon (porte baixo, denso)
+  ['Tifton 85', { ua_suportada: 3.5, dias_descanso_ideal: 25, altura_entrada_cm: 25, altura_saida_cm: 10 }],
+  ['Tifton 68', { ua_suportada: 3.2, dias_descanso_ideal: 25, altura_entrada_cm: 25, altura_saida_cm: 10 }],
+  ['Estrela Africana', { ua_suportada: 2.8, dias_descanso_ideal: 28, altura_entrada_cm: 25, altura_saida_cm: 10 }],
+  // Capim-elefante / corte (porte muito alto)
+  ['Capiaçu (BRS Capiaçu)', { ua_suportada: 5.0, dias_descanso_ideal: 60, altura_entrada_cm: 200, altura_saida_cm: 50 }],
+  ['BRS Kurumi', { ua_suportada: 4.0, dias_descanso_ideal: 30, altura_entrada_cm: 80, altura_saida_cm: 30 }],
+  // Andropogon
+  ['Andropogon', { ua_suportada: 1.8, dias_descanso_ideal: 35, altura_entrada_cm: 50, altura_saida_cm: 25 }],
+  // Invernais (ciclo curto, manejo mais frequente)
+  ['Aveia', { ua_suportada: 2.5, dias_descanso_ideal: 25, altura_entrada_cm: 25, altura_saida_cm: 10 }],
+  ['Azevém', { ua_suportada: 2.8, dias_descanso_ideal: 25, altura_entrada_cm: 25, altura_saida_cm: 8 }],
+  ['Aveia + Azevém', { ua_suportada: 2.8, dias_descanso_ideal: 25, altura_entrada_cm: 25, altura_saida_cm: 8 }],
+  ['Triticale', { ua_suportada: 2.4, dias_descanso_ideal: 28, altura_entrada_cm: 30, altura_saida_cm: 12 }],
+  // Leguminosas
+  ['Amendoim Forrageiro', { ua_suportada: 2.0, dias_descanso_ideal: 35, altura_entrada_cm: 20, altura_saida_cm: 8 }],
+  ['Estilosantes', { ua_suportada: 1.8, dias_descanso_ideal: 40, altura_entrada_cm: 30, altura_saida_cm: 15 }],
+]);
+
+export function getParametrosManejoPorEspecie(
+  especie?: string | null
+): ParametrosManejoPiquete | null {
+  if (!especie) return null;
+  return PARAMETROS_MANEJO_POR_ESPECIE.get(especie) ?? null;
+}
