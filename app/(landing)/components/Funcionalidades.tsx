@@ -30,7 +30,7 @@ export default function Funcionalidades() {
   };
 
   return (
-    <section id="funcionalidades" className="relative bg-bg2 pt-24 pb-32 px-6">
+    <section id="funcionalidades" className="bg-bg2 py-24 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-foreground">
@@ -133,13 +133,6 @@ export default function Funcionalidades() {
             </svg>
           </button>
         </div>
-      </div>
-
-      {/* Wave de saída — funde com bg-background da seção Benefícios */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ lineHeight: 0 }}>
-        <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: 80 }}>
-          <path d="M0,60 C360,0 1080,80 1440,30 L1440,80 L0,80 Z" fill="var(--background)" />
-        </svg>
       </div>
 
       <style jsx>{`

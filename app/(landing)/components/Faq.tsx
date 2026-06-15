@@ -8,13 +8,7 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative bg-background pt-32 pb-24 px-6 scroll-mt-20">
-      {/* Wave de entrada — funde com bg-bg2 da seção Planos */}
-      <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ lineHeight: 0 }}>
-        <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: 80 }}>
-          <path d="M0,0 C480,80 960,20 1440,60 L1440,0 Z" fill="#1c1c1c" />
-        </svg>
-      </div>
+    <section id="faq" className="bg-background py-24 px-6 scroll-mt-20">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <span className="inline-block text-xs font-bold uppercase tracking-widest mb-4 px-4 py-1.5 rounded-full" style={{ background: 'rgba(0,166,81,0.1)', color: '#00A651', border: '1px solid rgba(0,166,81,0.25)' }}>
