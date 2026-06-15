@@ -142,7 +142,8 @@
       "Bash(echo \"---EXIT $?---\")",
       "PowerShell(npm run build 2>&1)",
       "PowerShell(npm run test -- --run __tests__/balanco-forrageiro/utils.test.ts 2>&1)",
-      "PowerShell(npx eslint \"app/dashboard/talhoes/[id]/page.tsx\" \"app/dashboard/talhoes/components/TalhaoDetailHeader.tsx\" \"app/dashboard/talhoes/components/tabs/TalhaoResumoTab.tsx\")"
+      "PowerShell(npx eslint \"app/dashboard/talhoes/[id]/page.tsx\" \"app/dashboard/talhoes/components/TalhaoDetailHeader.tsx\" \"app/dashboard/talhoes/components/tabs/TalhaoResumoTab.tsx\")",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)"
     ],
     "additionalDirectories": [
       "\\tmp"
