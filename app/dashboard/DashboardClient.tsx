@@ -19,10 +19,6 @@ import {
   Plus,
   CalendarClock,
   ArrowRight,
-  Package,
-  Clock,
-  Wallet,
-  BellRing,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn, formatBRL } from '@/lib/utils';
@@ -161,38 +157,6 @@ function FinanceiroCard({
   );
 }
 
-function ResumoItem({
-  label,
-  value,
-  valueClass,
-  icon: Icon,
-  href,
-}: {
-  label: string;
-  value: string;
-  valueClass?: string;
-  icon: React.ElementType;
-  href: string;
-}) {
-  const router = useRouter();
-  return (
-    <button
-      onClick={() => router.push(href)}
-      className="flex items-center gap-3 px-4 py-3 flex-1 min-w-0 text-left hover:bg-foreground/[0.03] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
-    >
-      <div className="shrink-0 p-2 rounded-lg bg-foreground/[0.07] border border-foreground/10">
-        <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
-      </div>
-      <div className="min-w-0">
-        <p className="uppercase tracking-[0.13em] font-bold text-xs text-muted-foreground truncate">{label}</p>
-        <p className={cn('text-lg md:text-xl font-black tracking-tight truncate', valueClass ?? 'text-foreground')}>
-          {value}
-        </p>
-      </div>
-    </button>
-  );
-}
-
 const ORDEM_SEVERIDADE: Record<AlertaSeveridade, number> = {
   critico: 0,
   urgente: 1,
@@ -254,9 +218,6 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
   // Maior severidade presente define o tom do banner (já ordenado: crítico → urgente → aviso)
   const banner = BANNER_CONFIG[alertasOrdenados[0]?.severidade ?? 'aviso'];
 
-  const saldoMesNum = data.receitaMesNum - data.despesaMesNum;
-  const qtdAlertas = alertasOrdenados.length;
-
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
       {prefetchAt && (
@@ -272,38 +233,6 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </h1>
         <p className="text-sm text-muted-foreground">Visão geral da sua propriedade</p>
       </div>
-
-      {/* Faixa de resumo — panorama da fazenda sem rolar a tela */}
-      <Card className="rounded-2xl p-1 md:p-1.5">
-        <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-border">
-          <ResumoItem
-            label="Estoque de Silagem"
-            value={data.silosGaugeDetalhe}
-            icon={Package}
-            href="/dashboard/silos"
-          />
-          <ResumoItem
-            label="Autonomia"
-            value={data.silosAutonomiaDias}
-            icon={Clock}
-            href="/dashboard/balanco-forrageiro"
-          />
-          <ResumoItem
-            label="Saldo do Mês"
-            value={formatBRL(saldoMesNum)}
-            valueClass={saldoMesNum >= 0 ? 'text-status-success' : 'text-status-danger'}
-            icon={Wallet}
-            href="/dashboard/financeiro"
-          />
-          <ResumoItem
-            label="Alertas Ativos"
-            value={String(qtdAlertas)}
-            valueClass={qtdAlertas > 0 ? 'text-status-warning' : 'text-foreground'}
-            icon={BellRing}
-            href="/dashboard/calendario"
-          />
-        </div>
-      </Card>
 
       {/* Alertas Críticos — banner condicional no topo */}
       {alertasExibidos.length > 0 && (

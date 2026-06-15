@@ -38,6 +38,14 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
   const plano = parsePlanoSlug(planoAtual);
   const limiteAtingido = !planoPermiteMaisRegistros(plano, 'silos', siloCardData.length);
 
+  const handleNovoSilo = useCallback(() => {
+    if (limiteAtingido) {
+      toast.info('Limite de silos do seu plano atingido. Faça upgrade para cadastrar mais.');
+      return;
+    }
+    setIsAddSiloOpen(true);
+  }, [limiteAtingido]);
+
   const fetchData = useCallback(async () => {
     try {
       const silosData = await q.silos.list();
@@ -52,21 +60,26 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Silagens</h2>
-        {limiteAtingido ? (
+        <Button onClick={handleNovoSilo}>
+          {limiteAtingido ? <Lock className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+          Novo Silo
+        </Button>
+      </div>
+
+      {limiteAtingido && (
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            Você atingiu o limite de silos do seu plano atual.
+          </p>
           <Link
             href="/dashboard/configuracoes/plano?origem=silos"
-            className="inline-flex items-center gap-2 text-xs font-semibold rounded-lg border border-border px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all duration-150"
+            className="inline-flex items-center gap-2 text-xs font-semibold rounded-lg border border-border px-3 py-1.5 text-foreground hover:bg-white/[0.04] transition-all duration-150 whitespace-nowrap"
           >
             <Lock className="h-4 w-4" />
-            Limite atingido — Fazer upgrade
+            Fazer upgrade
           </Link>
-        ) : (
-          <Button onClick={() => setIsAddSiloOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Silo
-          </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       <SiloKpiStrip data={siloCardData} />
 

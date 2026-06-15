@@ -163,6 +163,7 @@ export function SiloCard({
   silo,
   estoque,
   msAtual,
+  estoquePara,
   status,
   onClick,
   onEdit,
@@ -186,6 +187,16 @@ export function SiloCard({
           : '#e05454';
 
   const culturaColor = getCulturaColor(silo.cultura_ensilada ?? silo.tipo);
+
+  // Cor da autonomia por faixa (mesma régua do Balanço Forrageiro)
+  const autonomiaColor =
+    estoquePara === null
+      ? 'text-muted-foreground'
+      : estoquePara < 10
+        ? 'text-red-400'
+        : estoquePara < 30
+          ? 'text-yellow-400'
+          : 'text-green-400';
 
   const diasFechado =
     dataFechamento && !dataAberturaReal
@@ -282,6 +293,24 @@ export function SiloCard({
                 <span className="text-muted-foreground">—</span>
               )}
             </div>
+          </div>
+
+          {/* Autonomia — quanto tempo o estoque ainda dura ao ritmo de consumo atual */}
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Autonomia</p>
+            {estoquePara !== null ? (
+              <p className={`text-sm font-semibold ${autonomiaColor}`}>
+                {estoquePara} {estoquePara === 1 ? 'dia' : 'dias'}
+                <span className="text-muted-foreground font-normal"> restantes</span>
+              </p>
+            ) : (
+              <p className="text-sm font-semibold text-muted-foreground">
+                —{' '}
+                <span className="font-normal text-xs">
+                  {status === 'Aberto' ? 'sem consumo registrado' : 'silo fechado'}
+                </span>
+              </p>
+            )}
           </div>
         </div>
       </div>
