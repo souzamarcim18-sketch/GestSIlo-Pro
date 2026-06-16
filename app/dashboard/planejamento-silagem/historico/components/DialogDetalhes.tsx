@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { PlanejamentoSilagem } from '@/lib/types/planejamento-silagem';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { gerarPdfPlanejamento } from '@/lib/pdf/gerarPdfPlanejamento';
 import { CardResumoGeral } from '../../components/resultados/CardResumoGeral';
@@ -18,8 +18,6 @@ import { CardPainelFrontal } from '../../components/resultados/CardPainelFrontal
 import { AlertasFixos } from '../../components/resultados/AlertasFixos';
 import { TabelaDetalhamento } from '../../components/TabelaDetalhamento';
 import { GraficoParticipacao } from '../../components/GraficoParticipacao';
-import { AlertasDinamicos } from '../../components/AlertasDinamicos';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface DialogDetalhesProps {
   planejamento: PlanejamentoSilagem | null;
@@ -60,54 +58,36 @@ export function DialogDetalhes({
     .sort((a, b) => b.participacao - a.participacao);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
-        <DialogHeader>
-          <DialogTitle>{planejamento.nome}</DialogTitle>
-          <DialogDescription>
-            Criado em {new Date(planejamento.created_at).toLocaleDateString('pt-BR')}
-          </DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-2xl lg:max-w-3xl flex flex-col p-0"
+      >
+        {/* Cabeçalho fixo */}
+        <SheetHeader className="px-6 py-4 border-b shrink-0">
+          <SheetTitle className="text-lg">{planejamento.nome}</SheetTitle>
+          <SheetDescription>
+            Criado em{' '}
+            {new Date(planejamento.created_at).toLocaleDateString('pt-BR')}
+          </SheetDescription>
+        </SheetHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Cards de Resumo */}
+        {/* Conteúdo com scroll */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           <CardResumoGeral resultados={planejamento.resultados} />
-
-          {/* Painel Frontal */}
           <CardPainelFrontal
             resultados={planejamento.resultados}
             parametros={planejamento.parametros}
           />
-
-          {/* Tabela Detalhamento */}
           <TabelaDetalhamento
             categorias={planejamento.resultados.categorias_calculo}
           />
-
-          {/* Gráfico Participação */}
           <GraficoParticipacao dados={dadosGrafico} />
-
-          {/* Alertas Fixos */}
           <AlertasFixos parametros={planejamento.parametros} />
-
-          {/* Alertas Dinâmicos - Se houver */}
-          {planejamento.resultados.categorias_calculo.some(
-            (cat) => cat.quantidade_cabecas > 0
-          ) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Referências Técnicas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Baseado em dados do planejamento salvo.
-                </p>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
-        <div className="flex justify-between gap-2 pt-4 border-t">
+        {/* Rodapé fixo */}
+        <div className="px-6 py-4 border-t shrink-0">
           <Button
             onClick={handleExportPDF}
             variant="outline"
@@ -117,17 +97,8 @@ export function DialogDetalhes({
             <Download className="h-4 w-4 mr-2" />
             {isExportando ? 'Gerando PDF...' : 'Exportar PDF'}
           </Button>
-          <Button
-            onClick={() => onOpenChange(false)}
-            variant="outline"
-            disabled={isExportando}
-            size="sm"
-          >
-            <X className="h-4 w-4 mr-2" />
-            Fechar
-          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

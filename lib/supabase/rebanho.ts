@@ -638,6 +638,15 @@ export async function detectarRebanho(): Promise<DeteccaoRebanho> {
   try {
     const supabase = await createSupabaseServerClient();
 
+    // Verificar plano da fazenda — Free não tem acesso ao módulo de rebanho
+    const { data: planoData } = await supabase.rpc('get_plano_fazenda');
+    if (planoData === 'free') {
+      return {
+        rebanho_detectado: false,
+        razao: 'sem_acesso',
+      };
+    }
+
     const { data, error, status } = await supabase
       .from('animais')
       .select('id, created_at, data_nascimento')

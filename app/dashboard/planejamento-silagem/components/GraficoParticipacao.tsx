@@ -32,16 +32,16 @@ export function GraficoParticipacao({ dados }: GraficoParticipacaoProps) {
         <CardDescription>Distribuição da demanda total de MS</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="w-full h-96">
+        <div className="w-full h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={dados}
               layout="vertical"
-              margin={{ top: 5, right: 30, left: 250, bottom: 5 }}
+              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" />
-              <YAxis dataKey="nome" type="category" width={240} />
+              <YAxis dataKey="nome" type="category" width={140} tick={{ fontSize: 12 }} />
               <Tooltip
                 formatter={(value) => formatPercent(Number(value))}
                 contentStyle={TOOLTIP_STYLE}

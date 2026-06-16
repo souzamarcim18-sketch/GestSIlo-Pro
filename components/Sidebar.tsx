@@ -68,7 +68,7 @@ const gerencialRoutes: RouteItem[] = [
 ];
 
 const ferramentasRoutes: RouteItem[] = [
-  { label: 'Calculadoras',            icon: Calculator,    href: '/dashboard/calculadoras'          },
+  { label: 'Calculadoras',            icon: Calculator,    href: '/dashboard/calculadoras',          modulo: 'calculadoras' },
   { label: 'Planejamento de Silagem', icon: NotebookPen,   href: '/dashboard/planejamento-silagem'  },
   { label: 'Planejamento de Compras', icon: ShoppingCart,  href: '/dashboard/planejamento-compras', modulo: 'planejamento_compras' },
   { label: 'Assessoria agronômica',   icon: GraduationCap, href: '/dashboard/assessoria', modulo: 'assessoria' },
