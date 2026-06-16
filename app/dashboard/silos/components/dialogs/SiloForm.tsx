@@ -41,6 +41,7 @@ interface SiloFormProps {
   insumosLona: InsumoSelect[];
   insumosInoculante: InsumoSelect[];
   onSuccess: () => void;
+  isFree?: boolean;
 }
 
 function calcularDensidade(
@@ -71,6 +72,7 @@ export function SiloForm({
   insumosLona,
   insumosInoculante,
   onSuccess,
+  isFree = false,
 }: SiloFormProps) {
   const form = useForm<SiloInput>({
     resolver: zodResolver(siloSchema),
@@ -178,7 +180,7 @@ export function SiloForm({
       form.setError('volume_ensilado_ton_mv', { message: 'Volume é obrigatório para criar um silo' });
       return;
     }
-    if (mode === 'create' && !data.insumo_lona_id) {
+    if (mode === 'create' && !isFree && !data.insumo_lona_id) {
       form.setError('insumo_lona_id', { message: 'Lona é obrigatória' });
       return;
     }
@@ -577,95 +579,157 @@ export function SiloForm({
             </div>
           )}
 
-          {/* Insumos — Lonas */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium">
-              Lonas <span className="text-xs text-muted-foreground font-normal">(cobertura + barreira de O₂ opcional)</span>
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              {/* Lona principal — obrigatória no create */}
-              <div className="space-y-2">
-                <Label htmlFor="silo-lona">
-                  Lona de cobertura {mode === 'create' && <span className="text-destructive">*</span>}
-                </Label>
-                <Controller
-                  control={form.control}
-                  name="insumo_lona_id"
-                  render={({ field }) => (
-                    <Select
-                      onValueChange={(val) => {
-                        field.onChange(val === '' ? null : val);
-                        if (val === '') form.setValue('quantidade_lona', null);
-                      }}
-                      value={field.value ?? ''}
-                    >
-                      <SelectTrigger id="silo-lona">
-                        <SelectValue placeholder={mode === 'create' ? 'Selecione (obrigatório)' : 'Selecione'}>
-                          {field.value
-                            ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                            : (mode === 'create' ? 'Selecione (obrigatório)' : 'Nenhuma')}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mode === 'edit' && <SelectItem value="">Nenhuma</SelectItem>}
-                        {insumosLona.map((i) => (
-                          <SelectItem key={i.id} value={i.id}>
-                            {i.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {form.formState.errors.insumo_lona_id && (
-                  <p className="text-sm text-destructive">{form.formState.errors.insumo_lona_id.message}</p>
-                )}
-                {form.watch('insumo_lona_id') && (
-                  <div className="space-y-1">
-                    <Label htmlFor="silo-qtd-lona" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
-                    <Input
-                      id="silo-qtd-lona"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      placeholder="Ex: 1"
-                      {...form.register('quantidade_lona', {
-                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                      })}
+          {/* Insumos — Lonas e Inoculante (oculto no plano free) */}
+          {isFree ? (
+            <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+              Vinculação de lonas e inoculantes ao estoque requer o plano <span className="font-semibold text-foreground">Starter</span> ou superior.
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <p className="text-sm font-medium">
+                  Lonas <span className="text-xs text-muted-foreground font-normal">(cobertura + barreira de O₂ opcional)</span>
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Lona principal — obrigatória no create */}
+                  <div className="space-y-2">
+                    <Label htmlFor="silo-lona">
+                      Lona de cobertura {mode === 'create' && <span className="text-destructive">*</span>}
+                    </Label>
+                    <Controller
+                      control={form.control}
+                      name="insumo_lona_id"
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={(val) => {
+                            field.onChange(val === '' ? null : val);
+                            if (val === '') form.setValue('quantidade_lona', null);
+                          }}
+                          value={field.value ?? ''}
+                        >
+                          <SelectTrigger id="silo-lona">
+                            <SelectValue placeholder={mode === 'create' ? 'Selecione (obrigatório)' : 'Selecione'}>
+                              {field.value
+                                ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                                : (mode === 'create' ? 'Selecione (obrigatório)' : 'Nenhuma')}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {mode === 'edit' && <SelectItem value="">Nenhuma</SelectItem>}
+                            {insumosLona.map((i) => (
+                              <SelectItem key={i.id} value={i.id}>
+                                {i.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     />
-                    {form.formState.errors.quantidade_lona && (
-                      <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona.message}</p>
+                    {form.formState.errors.insumo_lona_id && (
+                      <p className="text-sm text-destructive">{form.formState.errors.insumo_lona_id.message}</p>
+                    )}
+                    {form.watch('insumo_lona_id') && (
+                      <div className="space-y-1">
+                        <Label htmlFor="silo-qtd-lona" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                        <Input
+                          id="silo-qtd-lona"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          placeholder="Ex: 1"
+                          {...form.register('quantidade_lona', {
+                            setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                          })}
+                        />
+                        {form.formState.errors.quantidade_lona && (
+                          <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona.message}</p>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
+
+                  {/* Lona de barreira de O₂ — opcional */}
+                  <div className="space-y-2">
+                    <Label htmlFor="silo-lona2">
+                      Barreira de oxigênio <span className="text-xs text-muted-foreground">(opcional)</span>
+                    </Label>
+                    <Controller
+                      control={form.control}
+                      name="insumo_lona2_id"
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={(val) => {
+                            field.onChange(val === '' ? null : val);
+                            if (val === '') form.setValue('quantidade_lona2', null);
+                          }}
+                          value={field.value ?? ''}
+                        >
+                          <SelectTrigger id="silo-lona2">
+                            <SelectValue placeholder="Selecione">
+                              {field.value
+                                ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                                : 'Nenhuma'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Nenhuma</SelectItem>
+                            {insumosLona.map((i) => (
+                              <SelectItem key={i.id} value={i.id}>
+                                {i.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {form.watch('insumo_lona2_id') && (
+                      <div className="space-y-1">
+                        <Label htmlFor="silo-qtd-lona2" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                        <Input
+                          id="silo-qtd-lona2"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          placeholder="Ex: 1"
+                          {...form.register('quantidade_lona2', {
+                            setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                          })}
+                        />
+                        {form.formState.errors.quantidade_lona2 && (
+                          <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona2.message}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Lona de barreira de O₂ — opcional */}
+              {/* Inoculante — opcional */}
               <div className="space-y-2">
-                <Label htmlFor="silo-lona2">
-                  Barreira de oxigênio <span className="text-xs text-muted-foreground">(opcional)</span>
+                <Label htmlFor="silo-inoc">
+                  Inoculante <span className="text-xs text-muted-foreground">(opcional — nem todos os produtores utilizam)</span>
                 </Label>
                 <Controller
                   control={form.control}
-                  name="insumo_lona2_id"
+                  name="insumo_inoculante_id"
                   render={({ field }) => (
                     <Select
                       onValueChange={(val) => {
                         field.onChange(val === '' ? null : val);
-                        if (val === '') form.setValue('quantidade_lona2', null);
+                        if (val === '') form.setValue('quantidade_inoculante', null);
                       }}
                       value={field.value ?? ''}
                     >
-                      <SelectTrigger id="silo-lona2">
+                      <SelectTrigger id="silo-inoc">
                         <SelectValue placeholder="Selecione">
                           {field.value
-                            ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                            : 'Nenhuma'}
+                            ? (insumosInoculante.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                            : 'Nenhum'}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma</SelectItem>
-                        {insumosLona.map((i) => (
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {insumosInoculante.map((i) => (
                           <SelectItem key={i.id} value={i.id}>
                             {i.nome}
                           </SelectItem>
@@ -674,81 +738,27 @@ export function SiloForm({
                     </Select>
                   )}
                 />
-                {form.watch('insumo_lona2_id') && (
+                {form.watch('insumo_inoculante_id') && (
                   <div className="space-y-1">
-                    <Label htmlFor="silo-qtd-lona2" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
+                    <Label htmlFor="silo-qtd-inoc" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
                     <Input
-                      id="silo-qtd-lona2"
+                      id="silo-qtd-inoc"
                       type="number"
                       step="0.01"
                       min="0.01"
-                      placeholder="Ex: 1"
-                      {...form.register('quantidade_lona2', {
+                      placeholder={`Ex: ${form.watch('volume_ensilado_ton_mv') ? ((form.watch('volume_ensilado_ton_mv') ?? 0) / 1000).toFixed(3) : '0.001'}`}
+                      {...form.register('quantidade_inoculante', {
                         setValueAs: (v) => (v === '' ? null : parseFloat(v)),
                       })}
                     />
-                    {form.formState.errors.quantidade_lona2 && (
-                      <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona2.message}</p>
+                    {form.formState.errors.quantidade_inoculante && (
+                      <p className="text-sm text-destructive">{form.formState.errors.quantidade_inoculante.message}</p>
                     )}
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Inoculante — opcional */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-inoc">
-              Inoculante <span className="text-xs text-muted-foreground">(opcional — nem todos os produtores utilizam)</span>
-            </Label>
-            <Controller
-              control={form.control}
-              name="insumo_inoculante_id"
-              render={({ field }) => (
-                <Select
-                  onValueChange={(val) => {
-                    field.onChange(val === '' ? null : val);
-                    if (val === '') form.setValue('quantidade_inoculante', null);
-                  }}
-                  value={field.value ?? ''}
-                >
-                  <SelectTrigger id="silo-inoc">
-                    <SelectValue placeholder="Selecione">
-                      {field.value
-                        ? (insumosInoculante.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                        : 'Nenhum'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
-                    {insumosInoculante.map((i) => (
-                      <SelectItem key={i.id} value={i.id}>
-                        {i.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {form.watch('insumo_inoculante_id') && (
-              <div className="space-y-1">
-                <Label htmlFor="silo-qtd-inoc" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
-                <Input
-                  id="silo-qtd-inoc"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder={`Ex: ${form.watch('volume_ensilado_ton_mv') ? ((form.watch('volume_ensilado_ton_mv') ?? 0) / 1000).toFixed(3) : '0.001'}`}
-                  {...form.register('quantidade_inoculante', {
-                    setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                  })}
-                />
-                {form.formState.errors.quantidade_inoculante && (
-                  <p className="text-sm text-destructive">{form.formState.errors.quantidade_inoculante.message}</p>
-                )}
-              </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* Observações */}
           <div className="space-y-2">

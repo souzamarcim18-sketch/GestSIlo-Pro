@@ -57,7 +57,7 @@ export default function QuemSomos() {
             className="text-lg text-foreground leading-relaxed mb-6 pl-4"
             style={{ borderLeft: '3px solid #00A651' }}
           >
-            "Sem número confiável na mão, toda decisão na fazenda vira aposta."
+            &ldquo;Sem número confiável na mão, toda decisão na fazenda vira aposta.&rdquo;
           </blockquote>
 
           <p className="text-sm text-white/75 leading-relaxed mb-4">

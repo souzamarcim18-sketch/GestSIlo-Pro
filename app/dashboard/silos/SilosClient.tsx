@@ -122,6 +122,7 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
         insumosLona={insumosLona}
         insumosInoculante={insumosInoculante}
         onSuccess={fetchData}
+        isFree={plano === 'free'}
       />
 
       {abrirSiloTarget && (
