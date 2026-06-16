@@ -3,7 +3,7 @@ export const PLANOS = {
     nome: 'Free',
     silos: 2,
     planejamentos: 1,
-    modulos: ['silos', 'calculadoras'] as const,
+    modulos: ['silos'] as const,
   },
   starter: {
     nome: 'Starter',

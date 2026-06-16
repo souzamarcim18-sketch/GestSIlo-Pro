@@ -102,14 +102,21 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
           ))}
 
           {siloCardData.length === 0 && (
-            <Card className="col-span-full p-12 flex flex-col items-center justify-center text-center border-dashed">
-              <Database className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-              <CardHeader className="p-0">
-                <CardTitle className="text-muted-foreground">Nenhum silo cadastrado</CardTitle>
-                <CardDescription>Clique em &quot;Novo Silo&quot; para começar.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0" />
-            </Card>
+            <div className="col-span-full flex flex-col items-center justify-center py-20 px-6 text-center">
+              <div className="relative mb-6">
+                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Database className="h-10 w-10 text-primary opacity-70" />
+                </div>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum silo cadastrado ainda</h3>
+              <p className="text-sm text-muted-foreground max-w-xs mb-6">
+                Cadastre seus silos para acompanhar o estoque de silagem, monitorar perdas e controlar a autonomia do rebanho.
+              </p>
+              <Button onClick={() => setIsAddSiloOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Cadastrar primeiro silo
+              </Button>
+            </div>
           )}
         </div>
       </section>

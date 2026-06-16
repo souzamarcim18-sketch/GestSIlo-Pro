@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChevronRight, ChevronLeft, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft, AlertCircle, Loader2, ArrowRight, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,7 @@ export function Etapa2Rebanho({
   const [quantidades, setQuantidades] = useState<Record<string, number>>(
     wizard.rebanho || {}
   );
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [dataAlvo, setDataAlvo] = useState<string>(() => {
     if (wizard.dataAlvo) {
       return wizard.dataAlvo.toISOString().split('T')[0];
@@ -154,12 +155,28 @@ export function Etapa2Rebanho({
     setUsarDadosReais(!usarDadosReais);
   };
 
+  const handleQuantidadeFocus = (catId: string) => {
+    setInputValues((prev) => ({
+      ...prev,
+      [catId]: quantidades[catId] === 0 ? '' : String(quantidades[catId] ?? ''),
+    }));
+  };
+
   const handleQuantidadeChange = (catId: string, value: string) => {
+    setInputValues((prev) => ({ ...prev, [catId]: value }));
     const num = parseInt(value, 10);
     setQuantidades((prev) => ({
       ...prev,
       [catId]: isNaN(num) ? 0 : Math.max(0, num),
     }));
+  };
+
+  const handleQuantidadeBlur = (catId: string) => {
+    setInputValues((prev) => {
+      const updated = { ...prev };
+      delete updated[catId];
+      return updated;
+    });
   };
 
   const validarDataAlvo = (): boolean => {
@@ -328,24 +345,28 @@ export function Etapa2Rebanho({
           </CardContent>
         </Card>
       ) : razaoDeteccao === 'sem_acesso' ? (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle className="text-lg">Acesso não disponível</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              A projeção automática requer que você tenha assinado um plano que
-              inclua a funcionalidade de Gestão de Rebanho.
-            </p>
-            <a
-              href="/dashboard/configuracoes/planos"
-              target="_blank"
-              rel="noopener"
-              className="inline-flex items-center justify-center px-4 py-2 w-full border rounded-md hover:bg-gray-50"
-            >
-              <ArrowRight className="mr-2 h-4 w-4" />
-              Ver planos disponíveis
-            </a>
+        <Card className="border-border">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center text-center gap-4 py-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-sm">Projeção automática disponível a partir do Starter</p>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  No plano Free, informe as quantidades manualmente abaixo. Com o plano <strong>Starter ou superior</strong>, o sistema puxa e projeta seu rebanho cadastrado automaticamente.
+                </p>
+              </div>
+              <a
+                href="/solicitar-acesso?plano=starter"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Conhecer o plano Starter
+                <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
           </CardContent>
         </Card>
       ) : null}
@@ -408,10 +429,10 @@ export function Etapa2Rebanho({
                         type="number"
                         min="0"
                         step="1"
-                        value={quantidades[cat.id] || 0}
-                        onChange={(e) =>
-                          handleQuantidadeChange(cat.id, e.target.value)
-                        }
+                        value={cat.id in inputValues ? inputValues[cat.id] : (quantidades[cat.id] ?? 0)}
+                        onFocus={() => handleQuantidadeFocus(cat.id)}
+                        onChange={(e) => handleQuantidadeChange(cat.id, e.target.value)}
+                        onBlur={() => handleQuantidadeBlur(cat.id)}
                         disabled={usarDadosReais && rebanhoDetectado}
                         className="w-16 text-right"
                         placeholder="0"
