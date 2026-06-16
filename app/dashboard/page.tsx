@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { parsePlanoSlug } from '@/lib/planos';
 import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
 import type { CicloAgricola, ProximaOperacao } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
@@ -53,6 +54,13 @@ export default async function DashboardPage() {
     .single();
   if (!profileFazenda?.fazenda_id) redirect('/dashboard/onboarding');
   const fazendaId = profileFazenda!.fazenda_id!;
+
+  const { data: fazendaData } = await supabase
+    .from('fazendas')
+    .select('plano_atual')
+    .eq('id', fazendaId)
+    .single();
+  const planoAtual = parsePlanoSlug(fazendaData?.plano_atual);
 
   const now = new Date();
   const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
@@ -590,6 +598,7 @@ export default async function DashboardPage() {
     manutencoesPendentesCount,
     alertas,
     atividadesRecentes: atividadesRecentesRes,
+    planoAtual,
   };
 
   return <DashboardClient data={data} userName={userName} />;

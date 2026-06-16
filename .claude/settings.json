@@ -144,7 +144,8 @@
       "PowerShell(npm run test -- --run __tests__/balanco-forrageiro/utils.test.ts 2>&1)",
       "PowerShell(npx eslint \"app/dashboard/talhoes/[id]/page.tsx\" \"app/dashboard/talhoes/components/TalhaoDetailHeader.tsx\" \"app/dashboard/talhoes/components/tabs/TalhaoResumoTab.tsx\")",
       "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)",
-      "Bash(grep -nA30 \"eventos_manejo_pastagem\" supabase/migrations/20260521000001_create_pastagens.sql)"
+      "Bash(grep -nA30 \"eventos_manejo_pastagem\" supabase/migrations/20260521000001_create_pastagens.sql)",
+      "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"DashboardClient|dashboard-data|app.dashboard.page\" })"
     ],
     "additionalDirectories": [
       "\\tmp"

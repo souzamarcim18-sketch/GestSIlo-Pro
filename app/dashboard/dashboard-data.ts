@@ -1,5 +1,6 @@
 import type { ProximaOperacao } from '@/lib/types/talhoes';
 import type { EventoCalendario } from '@/lib/types/calendario';
+import type { PlanoSlug } from '@/lib/planos';
 
 export interface ProximaOperacaoComBadge extends ProximaOperacao {
   janelaColheita?: { ativo: boolean; diasRestantes: number };
@@ -90,4 +91,6 @@ export interface DashboardData {
   alertas: AlertaCritico[];
   // Atividades Recentes (últimas 48h, max 8)
   atividadesRecentes: EventoCalendario[];
+  // Plano da fazenda
+  planoAtual: PlanoSlug;
 }

@@ -14,7 +14,6 @@ import {
   updatePlanejamentoNomeAction,
 } from '../actions';
 import { TabelaHistorico } from './components/TabelaHistorico';
-import { DialogDetalhes } from './components/DialogDetalhes';
 import { DialogExcluir } from './components/DialogExcluir';
 import { DialogEditarNome } from './components/DialogEditarNome';
 
@@ -22,11 +21,6 @@ export default function HistoricoPage() {
   const router = useRouter();
   const [planejamentos, setPlanejamentos] = useState<PlanejamentoSilagem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Dialog Detalhes
-  const [detalhesOpen, setDetalhesOpen] = useState(false);
-  const [planejamentoSelecionado, setPlanejamentoSelecionado] =
-    useState<PlanejamentoSilagem | null>(null);
 
   // Dialog Deletar
   const [excluirOpen, setExcluirOpen] = useState(false);
@@ -63,11 +57,7 @@ export default function HistoricoPage() {
 
   // Handlers
   const handleView = (id: string) => {
-    const planejamento = planejamentos.find((p) => p.id === id);
-    if (planejamento) {
-      setPlanejamentoSelecionado(planejamento);
-      setDetalhesOpen(true);
-    }
+    router.push(`/dashboard/planejamento-silagem/historico/${id}`);
   };
 
   const handleEdit = (id: string) => {
@@ -212,12 +202,6 @@ export default function HistoricoPage() {
       </Card>
 
       {/* Dialogs */}
-      <DialogDetalhes
-        planejamento={planejamentoSelecionado}
-        open={detalhesOpen}
-        onOpenChange={setDetalhesOpen}
-      />
-
       <DialogExcluir
         open={excluirOpen}
         onOpenChange={setExcluirOpen}
