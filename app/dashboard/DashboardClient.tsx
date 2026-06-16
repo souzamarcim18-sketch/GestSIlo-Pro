@@ -22,7 +22,7 @@ import {
   Lock,
   Zap,
 } from 'lucide-react';
-import { planoPermiteModulo, planoMinimoParaModulo, PLANOS } from '@/lib/planos';
+import { planoPermiteModulo, planoMinimoParaModulo } from '@/lib/planos';
 import type { PlanoSlug } from '@/lib/planos';
 import { Card } from '@/components/ui/card';
 import { cn, formatBRL } from '@/lib/utils';
@@ -168,42 +168,52 @@ const PLANO_LABEL: Record<PlanoSlug, string> = {
   max: 'Max',
 };
 
-const PLANO_PRECO: Record<PlanoSlug, string> = {
-  free: 'Grátis',
-  starter: 'R$ 49/mês',
-  pro: 'R$ 74/mês',
-  max: 'R$ 119/mês',
+// Rótulo + ícone amigável de cada módulo bloqueável (para o card de upgrade).
+const MODULO_INFO: Record<string, { label: string; Icon: React.ElementType }> = {
+  financeiro: { label: 'Financeiro', Icon: DollarSign },
+  rebanho: { label: 'Rebanho', Icon: Beef },
+  talhoes: { label: 'Lavouras', Icon: Map },
+  pastagens: { label: 'Pastagens', Icon: Leaf },
+  frota: { label: 'Frota & Maquinário', Icon: Truck },
 };
 
-const PLANO_ORDER: PlanoSlug[] = ['free', 'starter', 'pro', 'max'];
-
-function LockedSectionOverlay({ modulo, planoAtual }: { modulo: string; planoAtual: PlanoSlug }) {
+/**
+ * Card sólido e discreto exibido no lugar do conteúdo de um módulo não incluído no plano atual.
+ * Sem blur, sem dados borrados vazando, sem preços repetidos — só o essencial e um único CTA.
+ * Preenche a altura do contêiner (`h-full`) para alinhar com cards vizinhos no grid.
+ */
+function LockedModuleCard({ modulo, className }: { modulo: string; className?: string }) {
   const router = useRouter();
   const planoMinimo = planoMinimoParaModulo(modulo);
-  const planosQueDesbloqueiam = planoMinimo
-    ? PLANO_ORDER.filter((p) => PLANO_ORDER.indexOf(p) >= PLANO_ORDER.indexOf(planoMinimo))
-    : [];
+  const info = MODULO_INFO[modulo] ?? { label: modulo, Icon: Lock };
+  const Icon = info.Icon;
 
   return (
-    <div className="absolute inset-0 z-10 rounded-2xl flex flex-col items-center justify-center gap-4 p-6 text-center"
-      style={{ backdropFilter: 'blur(6px)', background: 'color-mix(in srgb, var(--card) 80%, transparent)' }}
+    <div
+      className={cn(
+        'rounded-2xl border border-dashed border-border bg-card/40 flex flex-col items-center justify-center text-center gap-4 p-6 min-h-[180px] h-full',
+        className
+      )}
     >
-      <div className="flex flex-col items-center gap-3">
-        <div className="p-3 rounded-xl" style={{ background: 'var(--green-dim)', border: '1px solid var(--green-border)' }}>
-          <Lock className="h-5 w-5 text-primary" aria-hidden="true" />
+      <div className="relative">
+        <div className="p-3 rounded-xl bg-foreground/[0.05] border border-foreground/10">
+          <Icon className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
         </div>
-        <div>
-          <p className="text-sm font-bold text-foreground leading-tight">
-            Disponível a partir do plano{' '}
-            <span className="text-primary">{planoMinimo ? PLANO_LABEL[planoMinimo] : 'Starter'}</span>
-          </p>
-          {planosQueDesbloqueiam.length > 0 && (
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {planosQueDesbloqueiam.map((p) => `${PLANO_LABEL[p]} (${PLANO_PRECO[p]})`).join(' · ')}
-            </p>
-          )}
+        <div className="absolute -bottom-1.5 -right-1.5 p-1 rounded-full bg-card border border-border">
+          <Lock className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
         </div>
       </div>
+
+      <div className="space-y-1">
+        <p className="text-sm font-bold text-foreground leading-tight">{info.label}</p>
+        <p className="text-xs text-muted-foreground">
+          Disponível no plano{' '}
+          <span className="font-semibold text-primary">
+            {planoMinimo ? PLANO_LABEL[planoMinimo] : 'Starter'}
+          </span>
+        </p>
+      </div>
+
       <button
         onClick={() => router.push('/dashboard/configuracoes/plano')}
         className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg text-white transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -406,43 +416,42 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       {/* Financeiro — elevado logo após Silagem por impacto na decisão do produtor */}
       <section aria-label="Financeiro">
         <SectionLabel>Financeiro</SectionLabel>
-        <div className="relative">
-          {!planoPermiteModulo(planoAtual, 'financeiro') && (
-            <LockedSectionOverlay modulo="financeiro" planoAtual={planoAtual} />
-          )}
-          <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 ${!planoPermiteModulo(planoAtual, 'financeiro') ? 'pointer-events-none select-none' : ''}`}>
-          <FinanceiroCard
-            title="RECEITA DO MÊS"
-            value={data.receitaMes}
-            variante="receita"
-            href="/dashboard/financeiro"
-            variacaoPct={data.receitaVariacaoPct}
-            variacaoTipo="receita"
-          />
-          <FinanceiroCard
-            title="DESPESA DO MÊS"
-            value={data.despesaMes}
-            variante="despesa"
-            href="/dashboard/financeiro"
-            variacaoPct={data.despesaVariacaoPct}
-            variacaoTipo="despesa"
-          />
-          <FinanceiroCard
-            title="SALDO LÍQUIDO"
-            value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
-            variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
-            href="/dashboard/financeiro"
-          />
-          <FinanceiroCard
-            title="SALDO ACUMULADO"
-            value={formatBRL(data.saldoAcumuladoNum)}
-            variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
-            href="/dashboard/financeiro"
-            subtitle="Total até hoje"
-            linkLabel="Ver detalhes"
-          />
+        {!planoPermiteModulo(planoAtual, 'financeiro') ? (
+          <LockedModuleCard modulo="financeiro" className="min-h-[140px]" />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <FinanceiroCard
+              title="RECEITA DO MÊS"
+              value={data.receitaMes}
+              variante="receita"
+              href="/dashboard/financeiro"
+              variacaoPct={data.receitaVariacaoPct}
+              variacaoTipo="receita"
+            />
+            <FinanceiroCard
+              title="DESPESA DO MÊS"
+              value={data.despesaMes}
+              variante="despesa"
+              href="/dashboard/financeiro"
+              variacaoPct={data.despesaVariacaoPct}
+              variacaoTipo="despesa"
+            />
+            <FinanceiroCard
+              title="SALDO LÍQUIDO"
+              value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
+              variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+              href="/dashboard/financeiro"
+            />
+            <FinanceiroCard
+              title="SALDO ACUMULADO"
+              value={formatBRL(data.saldoAcumuladoNum)}
+              variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+              href="/dashboard/financeiro"
+              subtitle="Total até hoje"
+              linkLabel="Ver detalhes"
+            />
           </div>
-        </div>
+        )}
       </section>
 
       {/* Próximas Operações — só renderiza quando há operações de campo agendadas */}
@@ -493,11 +502,11 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         <SectionLabel>Campo</SectionLabel>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-stretch">
           {/* Coluna Rebanho */}
-          <div className="relative flex flex-col gap-4">
-            {!planoPermiteModulo(planoAtual, 'rebanho') && (
-              <LockedSectionOverlay modulo="rebanho" planoAtual={planoAtual} />
-            )}
-            <p className={`text-xs font-semibold uppercase tracking-widest text-muted-foreground ${!planoPermiteModulo(planoAtual, 'rebanho') ? 'pointer-events-none select-none' : ''}`}>Rebanho</p>
+          {!planoPermiteModulo(planoAtual, 'rebanho') ? (
+            <LockedModuleCard modulo="rebanho" />
+          ) : (
+          <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rebanho</p>
             {data.totalAnimais === 0 ? (
               <Card className="rounded-2xl p-2 flex-1 flex items-center justify-center">
                 <EmptyState
@@ -524,13 +533,14 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               />
             )}
           </div>
+          )}
 
           {/* Coluna Lavouras */}
-          <div className="relative flex flex-col gap-4">
-            {!planoPermiteModulo(planoAtual, 'talhoes') && (
-              <LockedSectionOverlay modulo="talhoes" planoAtual={planoAtual} />
-            )}
-            <p className={`text-xs font-semibold uppercase tracking-widest text-muted-foreground ${!planoPermiteModulo(planoAtual, 'talhoes') ? 'pointer-events-none select-none' : ''}`}>Lavouras</p>
+          {!planoPermiteModulo(planoAtual, 'talhoes') ? (
+            <LockedModuleCard modulo="talhoes" />
+          ) : (
+          <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Lavouras</p>
             <KpiCard
               title="ÁREA TOTAL"
               value={data.talhaoAreaTotal}
@@ -561,13 +571,14 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               </div>
             </button>
           </div>
+          )}
 
           {/* Coluna Pastagens */}
-          <div className="relative flex flex-col gap-4">
-            {!planoPermiteModulo(planoAtual, 'pastagens') && (
-              <LockedSectionOverlay modulo="pastagens" planoAtual={planoAtual} />
-            )}
-            <p className={`text-xs font-semibold uppercase tracking-widest text-muted-foreground ${!planoPermiteModulo(planoAtual, 'pastagens') ? 'pointer-events-none select-none' : ''}`}>Pastagens</p>
+          {!planoPermiteModulo(planoAtual, 'pastagens') ? (
+            <LockedModuleCard modulo="pastagens" />
+          ) : (
+          <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pastagens</p>
             <button
               onClick={() => router.push('/dashboard/pastagens')}
               className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl flex-1"
@@ -639,21 +650,21 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               </Card>
             </button>
           </div>
+          )}
         </div>
       </section>
 
       {/* Frota */}
       <section aria-label="Frota">
         <SectionLabel>Frota</SectionLabel>
-        <div className="relative">
-          {!planoPermiteModulo(planoAtual, 'frota') && (
-            <LockedSectionOverlay modulo="frota" planoAtual={planoAtual} />
-          )}
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${!planoPermiteModulo(planoAtual, 'frota') ? 'pointer-events-none select-none' : ''}`}>
+        {!planoPermiteModulo(planoAtual, 'frota') ? (
+          <LockedModuleCard modulo="frota" className="min-h-[140px]" />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <KpiCard title="MANUTENÇÃO" value={data.maquinasDetalhe} detail="Status das manutenções" icon={Truck} href="/dashboard/frota" />
             <KpiCard title="FROTA" value={data.maquinasTotal} detail="Máquinas cadastradas" icon={AlertTriangle} href="/dashboard/frota" />
           </div>
-        </div>
+        )}
       </section>
 
       {/* Atividades Recentes — faixa fina quando vazio, bloco completo quando há dados */}
