@@ -29,7 +29,7 @@ export type EntradaFormData = z.infer<typeof entradaFormSchema>;
 export const saidaFormSchema = z.object({
   produto_id:           z.string().uuid('Produto inválido'),
   tipo_saida:           z.enum([
-    'VENDA', 'CONSUMO_PROPRIO', 'PERDA', 'DOACAO', 'TRANSFERENCIA_INSUMO', 'DESCARTE',
+    'VENDA', 'PERDA', 'TRANSFERENCIA_INSUMO', 'DESCARTE',
   ]),
   quantidade:           z.number().positive('Deve ser > 0'),
   valor_unitario:       z.number().positive('Deve ser > 0').optional(),

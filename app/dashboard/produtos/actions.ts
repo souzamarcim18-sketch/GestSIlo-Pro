@@ -132,6 +132,7 @@ export async function criarSaidaProdutoAction(formData: unknown) {
       insumo_id: parsed.insumo_id_destino,
       tipo: 'Entrada',
       quantidade: parsed.quantidade,
+      valor_unitario: parsed.valor_unitario ?? null,
       origem: 'produto',
       produto_id_origem: parsed.produto_id,
       data: parsed.data,

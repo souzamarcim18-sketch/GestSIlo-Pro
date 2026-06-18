@@ -285,9 +285,12 @@ export interface CSVImportResult {
 export interface CSVLinhaValidada {
   linha: number; // número da linha no arquivo (1-based, considerando o header)
   brinco: string;
+  nome?: string;
   sexo: string;
   data_nascimento: string;
   tipo_rebanho: string;
+  categoria?: string;
+  raca?: string;
   lote?: string;
   status: 'valido' | 'erro';
   mensagem?: string;

@@ -35,12 +35,13 @@ interface SaidaFormProps {
 
 const TIPO_SAIDA_LABELS: Record<string, string> = {
   VENDA: 'Venda',
-  CONSUMO_PROPRIO: 'Consumo próprio',
   PERDA: 'Perda',
-  DOACAO: 'Doação',
   TRANSFERENCIA_INSUMO: 'Transferência para Insumo',
   DESCARTE: 'Descarte',
 };
+
+// Tipos que exibem o campo de valor unitário
+const TIPOS_COM_VALOR = ['VENDA', 'TRANSFERENCIA_INSUMO'];
 
 export default function SaidaForm({
   open,
@@ -81,6 +82,13 @@ export default function SaidaForm({
 
   const tipoSaida = form.watch('tipo_saida');
   const produtoSelecionado = produtos.find(p => p.id === form.watch('produto_id'));
+
+  // Limpa o valor unitário quando o tipo de saída não usa esse campo
+  useEffect(() => {
+    if (!TIPOS_COM_VALOR.includes(tipoSaida)) {
+      form.setValue('valor_unitario', undefined);
+    }
+  }, [tipoSaida, form]);
 
   async function onSubmit(data: SaidaFormData) {
     // Validação client-side de estoque disponível
@@ -149,7 +157,7 @@ export default function SaidaForm({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className={TIPOS_COM_VALOR.includes(tipoSaida) ? 'grid grid-cols-2 gap-4' : ''}>
             <div className="space-y-1.5">
               <Label htmlFor="qtd-saida">
                 Quantidade *
@@ -171,21 +179,23 @@ export default function SaidaForm({
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.quantidade.message}</p>
               )}
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="valor-unit-saida">
-                Valor Unit. (R$){tipoSaida === 'VENDA' && ' *'}
-              </Label>
-              <Input
-                id="valor-unit-saida"
-                type="number"
-                step="0.01"
-                placeholder="0,00"
-                {...form.register('valor_unitario', { valueAsNumber: true })}
-              />
-              {form.formState.errors.valor_unitario && (
-                <p className="text-xs text-destructive mt-1">{form.formState.errors.valor_unitario.message}</p>
-              )}
-            </div>
+            {TIPOS_COM_VALOR.includes(tipoSaida) && (
+              <div className="space-y-1.5">
+                <Label htmlFor="valor-unit-saida">
+                  Valor Unit. (R$){tipoSaida === 'VENDA' && ' *'}
+                </Label>
+                <Input
+                  id="valor-unit-saida"
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  {...form.register('valor_unitario', { valueAsNumber: true })}
+                />
+                {form.formState.errors.valor_unitario && (
+                  <p className="text-xs text-destructive mt-1">{form.formState.errors.valor_unitario.message}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Campo condicional: TRANSFERENCIA_INSUMO */}

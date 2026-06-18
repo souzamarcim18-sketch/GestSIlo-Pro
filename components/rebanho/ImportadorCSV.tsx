@@ -211,14 +211,17 @@ brinco;nome;sexo;data_nascimento;tipo_rebanho;categoria;lote;raca;origem;peso_na
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">
             Revisão das linhas
           </h3>
-          <ScrollArea className="max-h-80 w-full">
+          <ScrollArea className="h-80 w-full">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b">
                   <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Linha</th>
                   <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Brinco</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Nome</th>
                   <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Sexo</th>
                   <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Nascimento</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Tipo</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Raça</th>
                   <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Lote</th>
                   <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Situação</th>
                 </tr>
@@ -235,8 +238,11 @@ brinco;nome;sexo;data_nascimento;tipo_rebanho;categoria;lote;raca;origem;peso_na
                   >
                     <td className="px-2 py-2">{l.linha || '-'}</td>
                     <td className="px-2 py-2 font-medium">{l.brinco || '-'}</td>
+                    <td className="px-2 py-2">{l.nome || '-'}</td>
                     <td className="px-2 py-2">{l.sexo || '-'}</td>
                     <td className="px-2 py-2">{l.data_nascimento || '-'}</td>
+                    <td className="px-2 py-2 capitalize">{l.tipo_rebanho || '-'}</td>
+                    <td className="px-2 py-2">{l.raca || '-'}</td>
                     <td className="px-2 py-2">{l.lote || '-'}</td>
                     <td className="px-2 py-2">
                       {l.status === 'valido' ? (
@@ -304,7 +310,7 @@ brinco;nome;sexo;data_nascimento;tipo_rebanho;categoria;lote;raca;origem;peso_na
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">
               {resultado.erros.length} linha(s) não importada(s)
             </h3>
-            <ScrollArea className="max-h-64 w-full">
+            <ScrollArea className="h-64 w-full">
               <div className="space-y-2">
                 {resultado.erros.map((erro, idx) => (
                   <div

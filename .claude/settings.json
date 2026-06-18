@@ -173,7 +173,10 @@
       "PowerShell(npx next lint --file lib/hooks/useSyncOnReconnect.ts 2>&1)",
       "PowerShell(npm run clean 2>&1)",
       "PowerShell(git stash)",
-      "PowerShell(git stash pop)"
+      "PowerShell(git stash pop)",
+      "PowerShell(npm run test -- __tests__/produtos/validations.test.ts)",
+      "PowerShell(npx eslint app/dashboard/produtos/components/SaidaForm.tsx app/dashboard/produtos/actions.ts lib/validations/produtos.ts)",
+      "PowerShell(npx vitest run lib/__tests__/rebanho.validations.test.ts 2>&1)"
     ],
     "additionalDirectories": [
       "\\tmp"

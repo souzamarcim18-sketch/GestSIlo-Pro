@@ -100,9 +100,14 @@ describe('saidaFormSchema', () => {
     }
   });
 
-  it('T08 — aceita CONSUMO_PROPRIO sem valor_unitario (válido)', () => {
-    const r = saidaFormSchema.safeParse({ ...base, tipo_saida: 'CONSUMO_PROPRIO' });
+  it('T08 — aceita PERDA sem valor_unitario (válido)', () => {
+    const r = saidaFormSchema.safeParse({ ...base, tipo_saida: 'PERDA' });
     expect(r.success).toBe(true);
+  });
+
+  it('T08b — rejeita CONSUMO_PROPRIO (tipo removido do enum)', () => {
+    const r = saidaFormSchema.safeParse({ ...base, tipo_saida: 'CONSUMO_PROPRIO' });
+    expect(r.success).toBe(false);
   });
 });
 

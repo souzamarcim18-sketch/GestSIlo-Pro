@@ -504,9 +504,12 @@ export async function validarAnimaisCSV(arquivo: File): Promise<CSVValidacaoResu
   const linhasValidas: CSVLinhaValidada[] = preparadas.map((p) => ({
     linha: p.numeroLinha,
     brinco: p.validado.brinco,
+    nome: p.validado.nome ?? undefined,
     sexo: p.validado.sexo,
     data_nascimento: p.validado.data_nascimento,
     tipo_rebanho: p.validado.tipo_rebanho,
+    categoria: p.validado.categoria ?? undefined,
+    raca: p.validado.raca ?? undefined,
     lote: p.validado.lote ?? undefined,
     status: 'valido',
   }));
