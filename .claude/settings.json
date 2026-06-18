@@ -145,7 +145,11 @@
       "PowerShell(npx eslint \"app/dashboard/talhoes/[id]/page.tsx\" \"app/dashboard/talhoes/components/TalhaoDetailHeader.tsx\" \"app/dashboard/talhoes/components/tabs/TalhaoResumoTab.tsx\")",
       "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)",
       "Bash(grep -nA30 \"eventos_manejo_pastagem\" supabase/migrations/20260521000001_create_pastagens.sql)",
-      "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"DashboardClient|dashboard-data|app.dashboard.page\" })"
+      "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"DashboardClient|dashboard-data|app.dashboard.page\" })",
+      "Bash(python gerar_carrossel_1.py)",
+      "Bash(python -m pip install python-pptx)",
+      "PowerShell($cmds = @\\('py','python','python3'\\); foreach \\($c in $cmds\\) { $r = Get-Command $c -ErrorAction SilentlyContinue; if \\($r\\) { Write-Output \"$c -> $\\($r.Source\\)\" } })",
+      "PowerShell(& \"c:\\\\tmp\\\\build_pptx.ps1\")"
     ],
     "additionalDirectories": [
       "\\tmp"

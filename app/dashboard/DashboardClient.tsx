@@ -344,6 +344,9 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
       )}
 
       {/* Silagem */}
+      {(() => {
+      const temFinanceiro = planoPermiteModulo(planoAtual, 'financeiro');
+      const secaoSilagem = (
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -412,11 +415,12 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
           </div>
         </div>
       </section>
+      );
 
-      {/* Financeiro — elevado logo após Silagem por impacto na decisão do produtor */}
+      const secaoFinanceiro = (
       <section aria-label="Financeiro">
         <SectionLabel>Financeiro</SectionLabel>
-        {!planoPermiteModulo(planoAtual, 'financeiro') ? (
+        {!temFinanceiro ? (
           <LockedModuleCard modulo="financeiro" className="min-h-[140px]" />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -453,6 +457,16 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
           </div>
         )}
       </section>
+      );
+
+      // Pro/Max (com Financeiro): Financeiro acima da Silagem.
+      // Free/Starter (sem Financeiro): mantém a ordem original — Silagem acima.
+      return temFinanceiro ? (
+        <>{secaoFinanceiro}{secaoSilagem}</>
+      ) : (
+        <>{secaoSilagem}{secaoFinanceiro}</>
+      );
+      })()}
 
       {/* Próximas Operações — só renderiza quando há operações de campo agendadas */}
       {data.proximasOperacoes.length > 0 && (
