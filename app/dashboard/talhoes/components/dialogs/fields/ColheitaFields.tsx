@@ -11,29 +11,60 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import type { Maquina } from '@/lib/supabase';
+import { culturaPossuiRebrota } from '../../../helpers';
 
-const MAQUINAS_EXEMPLO = [
-  'Colheitadeira 01',
-  'Colheitadeira 02',
-  'Transporte 01',
-  'Transporte 02',
-  'Compactador 01',
-];
+const NENHUMA = '__none__';
 
 interface ColheitaFieldsProps {
   control: Control<FieldValues>;
   errors: FieldValues;
+  maquinas: Maquina[];
   watch?: (name: string) => unknown;
   culturaAtiva?: string;
+}
+
+interface MaquinaSelectProps {
+  control: Control<FieldValues>;
+  name: string;
+  id: string;
+  maquinas: Maquina[];
+}
+
+function MaquinaSelect({ control, name, id, maquinas }: MaquinaSelectProps) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <Select
+          value={field.value || NENHUMA}
+          onValueChange={(v) => field.onChange(v === NENHUMA ? null : v)}
+        >
+          <SelectTrigger id={id}>
+            <SelectValue placeholder="Opcional" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NENHUMA}>Nenhuma</SelectItem>
+            {maquinas.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+    />
+  );
 }
 
 export function ColheitaFields({
   control,
   errors,
-  watch,
+  maquinas,
   culturaAtiva,
 }: ColheitaFieldsProps) {
-  const ehSorgoSilagem = culturaAtiva?.toLowerCase().includes('sorgo silagem');
+  const permiteRebrota = culturaAtiva ? culturaPossuiRebrota(culturaAtiva) : false;
 
   return (
     <div className="space-y-4">
@@ -49,6 +80,7 @@ export function ColheitaFields({
               step="0.1"
               placeholder="0.0"
               {...field}
+              value={field.value ?? ''}
               onChange={(e) =>
                 field.onChange(e.target.valueAsNumber || undefined)
               }
@@ -72,29 +104,11 @@ export function ColheitaFields({
               <Label htmlFor="maquina_colheita_id" className="text-sm">
                 Colheitadeira
               </Label>
-              <Controller
-                name="maquina_colheita_id"
+              <MaquinaSelect
                 control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger id="maquina_colheita_id">
-                      <SelectValue placeholder="Opcional" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhuma</SelectItem>
-                      {MAQUINAS_EXEMPLO.filter((m) =>
-                        m.toLowerCase().includes('colheita')
-                      ).map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                name="maquina_colheita_id"
+                id="maquina_colheita_id"
+                maquinas={maquinas}
               />
             </div>
             <div className="space-y-2">
@@ -111,6 +125,7 @@ export function ColheitaFields({
                     step="0.1"
                     placeholder="0"
                     {...field}
+                    value={field.value ?? ''}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || undefined)
                     }
@@ -126,31 +141,11 @@ export function ColheitaFields({
               <Label htmlFor="maquina_transporte_id" className="text-sm">
                 Transporte
               </Label>
-              <Controller
-                name="maquina_transporte_id"
+              <MaquinaSelect
                 control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger
-                      id="maquina_transporte_id"
-                    >
-                      <SelectValue placeholder="Opcional" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhuma</SelectItem>
-                      {MAQUINAS_EXEMPLO.filter((m) =>
-                        m.toLowerCase().includes('transporte')
-                      ).map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                name="maquina_transporte_id"
+                id="maquina_transporte_id"
+                maquinas={maquinas}
               />
             </div>
             <div className="space-y-2">
@@ -167,6 +162,7 @@ export function ColheitaFields({
                     step="0.1"
                     placeholder="0"
                     {...field}
+                    value={field.value ?? ''}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || undefined)
                     }
@@ -182,31 +178,11 @@ export function ColheitaFields({
               <Label htmlFor="maquina_compactacao_id" className="text-sm">
                 Compactação
               </Label>
-              <Controller
-                name="maquina_compactacao_id"
+              <MaquinaSelect
                 control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger
-                      id="maquina_compactacao_id"
-                    >
-                      <SelectValue placeholder="Opcional" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhuma</SelectItem>
-                      {MAQUINAS_EXEMPLO.filter((m) =>
-                        m.toLowerCase().includes('compactador')
-                      ).map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                name="maquina_compactacao_id"
+                id="maquina_compactacao_id"
+                maquinas={maquinas}
               />
             </div>
             <div className="space-y-2">
@@ -223,6 +199,7 @@ export function ColheitaFields({
                     step="0.1"
                     placeholder="0"
                     {...field}
+                    value={field.value ?? ''}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || undefined)
                     }
@@ -248,6 +225,7 @@ export function ColheitaFields({
               step="0.01"
               placeholder="0.00"
               {...field}
+              value={field.value ?? ''}
               onChange={(e) =>
                 field.onChange(e.target.valueAsNumber || undefined)
               }
@@ -261,7 +239,7 @@ export function ColheitaFields({
         )}
       </div>
 
-      {ehSorgoSilagem && (
+      {permiteRebrota && (
         <div className="border-t pt-4 space-y-3">
           <Label>Rebrota</Label>
           <div className="flex items-center gap-2">
@@ -277,7 +255,7 @@ export function ColheitaFields({
               )}
             />
             <label htmlFor="permite_rebrota" className="text-sm cursor-pointer">
-              Planeja colher rebrota? (~60 dias)
+              Planeja colher a rebrota deste talhão?
             </label>
           </div>
         </div>

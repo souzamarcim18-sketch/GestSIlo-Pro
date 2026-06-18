@@ -28,6 +28,7 @@ import { AtividadeDialog } from '../dialogs/AtividadeDialog';
 
 interface TalhaoOperacoesTabProps {
   talhaoId: string;
+  talhaoNome?: string;
   talhaoAreaHa?: number;
   cicloAtivo?: CicloAgricola;
   atividades: AtividadeCampo[];
@@ -38,6 +39,7 @@ const ITEMS_PER_PAGE = 20;
 
 export function TalhaoOperacoesTab({
   talhaoId,
+  talhaoNome,
   talhaoAreaHa,
   cicloAtivo,
   atividades,
@@ -68,21 +70,18 @@ export function TalhaoOperacoesTab({
 
   const tipos = Array.from(new Set(atividades.map((a) => a.tipo_operacao))).sort();
 
-  if (!cicloAtivo) {
-    return (
-      <div className="space-y-4">
+  return (
+    <div className="space-y-4">
+      {!cicloAtivo && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Crie um ciclo agrícola antes de registrar atividades.
+            Nenhum ciclo agrícola ativo. Registre um preparo de solo ou plantio para
+            iniciar um novo ciclo automaticamente.
           </AlertDescription>
         </Alert>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="space-y-4">
       {/* Botão e Filtros */}
       <div className="flex justify-between items-start gap-4">
         <Button onClick={() => setIsDialogOpen(true)}>
@@ -234,6 +233,7 @@ export function TalhaoOperacoesTab({
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         talhaoId={talhaoId}
+        talhaoNome={talhaoNome}
         talhaoAreaHa={talhaoAreaHa}
         cicloAtivo={cicloAtivo}
         onSuccess={() => {

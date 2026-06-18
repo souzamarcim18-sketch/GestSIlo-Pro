@@ -12,29 +12,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Insumo } from '@/lib/supabase';
 
-interface CalagemFieldsProps {
+interface AdubacaoFieldsProps {
   control: Control<FieldValues>;
   errors: FieldValues;
   insumos: Insumo[];
   watch?: (name: string) => unknown;
 }
 
-export function CalagemFields({ control, errors, insumos, watch }: CalagemFieldsProps) {
+export function AdubacaoFields({ control, errors, insumos, watch }: AdubacaoFieldsProps) {
   const insumoId = watch?.('insumo_id') as string | undefined;
   const insumoSelecionado = insumos.find((i) => i.id === insumoId);
-  const unidade = insumoSelecionado?.unidade ?? 'ton';
+  const unidade = insumoSelecionado?.unidade ?? 'kg';
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="insumo_id">Calcário (do estoque)</Label>
+        <Label htmlFor="insumo_id">Fertilizante (do estoque)</Label>
         <Controller
           name="insumo_id"
           control={control}
           render={({ field }) => (
             <Select value={field.value || ''} onValueChange={field.onChange}>
               <SelectTrigger id="insumo_id">
-                <SelectValue placeholder="Selecione o insumo" />
+                <SelectValue placeholder="Selecione o adubo" />
               </SelectTrigger>
               <SelectContent>
                 {insumos.length === 0 ? (

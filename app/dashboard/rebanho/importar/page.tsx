@@ -52,7 +52,7 @@ export default async function ImportarPage() {
       </div>
 
       <div className="rounded-lg border bg-card p-6">
-        <ImportadorCSV onSuccess={() => {}} />
+        <ImportadorCSV />
       </div>
 
       <div className="grid gap-4 rounded-lg border bg-card p-6 md:grid-cols-2">

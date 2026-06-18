@@ -22,9 +22,10 @@ export enum TipoOperacao {
   NIVELAMENTO = 'Nivelamento',
   ROCAGEM = 'Roçagem',
   DESTORROAMENTO = 'Destorroamento',
-  // Corretivos
+  // Corretivos e Nutrição
   CALAGEM = 'Calagem',
   GESSAGEM = 'Gessagem',
+  ADUBACAO = 'Adubação',
   // Semeadura
   PLANTIO = 'Plantio',
   // Aplicações

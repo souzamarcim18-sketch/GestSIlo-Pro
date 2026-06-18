@@ -136,6 +136,7 @@ export type Maquina = {
   vida_util_horas?: number | null;
   largura_trabalho_metros?: number | null;
   tratores_compativeis?: string[] | null;
+  custo_hora?: number | null;
 };
 
 export type UsoMaquina = {

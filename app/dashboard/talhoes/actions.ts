@@ -5,10 +5,44 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { upsertRegistroColaborador } from '@/lib/supabase/registros-colaborador';
 import { AtividadeCampoSchema } from '@/lib/validators/atividades-campo';
 import { TipoOperacao } from '@/lib/types/talhoes';
+import {
+  estimarDataColheita,
+  culturaPossuiRebrota,
+  ehOperacaoColheita,
+} from '@/app/dashboard/talhoes/helpers';
 
 type ActionResult =
-  | { success: true; atividadeId: string }
+  | { success: true; atividadeId: string; cicloId: string }
   | { success: false; error: string };
+
+// Operações que consomem insumo do estoque (compõem custo de produção,
+// não geram despesa financeira — custo entrou na compra do estoque).
+const TIPOS_COM_INSUMO: TipoOperacao[] = [
+  TipoOperacao.CALAGEM,
+  TipoOperacao.GESSAGEM,
+  TipoOperacao.PULVERIZACAO,
+  TipoOperacao.ADUBACAO,
+];
+
+// Operações que iniciam um ciclo agrícola quando não há ciclo ativo.
+const TIPOS_INICIAM_CICLO: TipoOperacao[] = [
+  TipoOperacao.ARACAO,
+  TipoOperacao.GRADAGEM,
+  TipoOperacao.SUBSOLAGEM,
+  TipoOperacao.ESCARIFICACAO,
+  TipoOperacao.NIVELAMENTO,
+  TipoOperacao.ROCAGEM,
+  TipoOperacao.DESTORROAMENTO,
+  TipoOperacao.PLANTIO,
+];
+
+/** Dose por hectare da operação (dose_valor para pulverização, senão dose_ton_ha). */
+function doseParaBaixa(parsed: ReturnType<typeof AtividadeCampoSchema.parse>): number | null {
+  if (parsed.tipo_operacao === TipoOperacao.PULVERIZACAO) {
+    return parsed.dose_valor ?? null;
+  }
+  return parsed.dose_ton_ha ?? null;
+}
 
 /**
  * Vincula colaborador a uma atividade de campo (fire-and-forget do client).
@@ -34,7 +68,13 @@ export async function vincularColaboradorAtividadeAction(
  */
 export async function criarAtividadeCampoAction(
   formData: unknown,
-  ctx: { cicloId: string; talhaoId: string; talhaoAreaHa: number; talhaoNome: string },
+  ctx: {
+    cicloId: string | null;
+    talhaoId: string;
+    talhaoAreaHa: number;
+    talhaoNome: string;
+    culturaNovoCiclo?: string | null;
+  },
 ): Promise<ActionResult> {
   try {
     const parsed = AtividadeCampoSchema.parse(formData);
@@ -44,6 +84,45 @@ export async function criarAtividadeCampoAction(
     if (!user) return { success: false, error: 'Sessão inválida.' };
 
     const { data: fazenda_id } = await supabase.rpc('get_minha_fazenda_id');
+
+    // Garantir ciclo agrícola ativo — cria automaticamente no 1º preparo de solo/plantio.
+    let cicloId = ctx.cicloId;
+    if (!cicloId) {
+      if (!TIPOS_INICIAM_CICLO.includes(parsed.tipo_operacao as TipoOperacao)) {
+        return {
+          success: false,
+          error: 'Registre primeiro um preparo de solo ou plantio para iniciar o ciclo agrícola.',
+        };
+      }
+      if (!ctx.culturaNovoCiclo) {
+        return { success: false, error: 'Cultura é obrigatória para iniciar um novo ciclo.' };
+      }
+
+      const cultura = ctx.culturaNovoCiclo;
+      const { data: novoCiclo, error: cicloError } = await supabase
+        .from('ciclos_agricolas')
+        .insert({
+          talhao_id: ctx.talhaoId,
+          fazenda_id,
+          cultura,
+          data_plantio: parsed.data,
+          data_colheita_prevista: estimarDataColheita(cultura, parsed.data),
+          ativo: true,
+        })
+        .select('id')
+        .single();
+
+      if (cicloError || !novoCiclo) {
+        return { success: false, error: cicloError?.message ?? 'Erro ao iniciar o ciclo agrícola.' };
+      }
+      cicloId = novoCiclo.id;
+    }
+
+    // Neste ponto cicloId está garantidamente definido (passado ou recém-criado).
+    if (!cicloId) {
+      return { success: false, error: 'Erro ao resolver o ciclo agrícola.' };
+    }
+    const cicloIdAtivo: string = cicloId;
 
     // Calcular custo_total da atividade
     let custo_total = parsed.custo_manual ?? 0;
@@ -58,21 +137,21 @@ export async function criarAtividadeCampoAction(
     }
 
     // Custo de insumo (compõe custo de produção, mas não gera despesa financeira)
-    if (
-      parsed.insumo_id &&
-      parsed.dose_ton_ha &&
+    const doseBaixa = doseParaBaixa(parsed);
+    const usaInsumo =
+      !!parsed.insumo_id &&
+      !!doseBaixa &&
       ctx.talhaoAreaHa > 0 &&
-      [TipoOperacao.CALAGEM, TipoOperacao.GESSAGEM, TipoOperacao.PULVERIZACAO].includes(
-        parsed.tipo_operacao as TipoOperacao
-      )
-    ) {
+      TIPOS_COM_INSUMO.includes(parsed.tipo_operacao as TipoOperacao);
+
+    if (usaInsumo) {
       const { data: insumo } = await supabase
         .from('insumos')
         .select('custo_medio')
         .eq('id', parsed.insumo_id)
         .single();
       if (insumo?.custo_medio) {
-        custo_total += parsed.dose_ton_ha * ctx.talhaoAreaHa * insumo.custo_medio;
+        custo_total += (doseBaixa as number) * ctx.talhaoAreaHa * insumo.custo_medio;
       }
     }
 
@@ -92,7 +171,7 @@ export async function criarAtividadeCampoAction(
     const { data: atividade, error: atividadeError } = await supabase
       .from('atividades_campo')
       .insert({
-        ciclo_id: ctx.cicloId,
+        ciclo_id: cicloIdAtivo,
         talhao_id: ctx.talhaoId,
         fazenda_id,
         tipo_operacao: parsed.tipo_operacao,
@@ -149,14 +228,7 @@ export async function criarAtividadeCampoAction(
     }
 
     // Saída de insumo do estoque (sem despesa financeira — custo já entrou na compra)
-    if (
-      parsed.insumo_id &&
-      parsed.dose_ton_ha &&
-      ctx.talhaoAreaHa > 0 &&
-      [TipoOperacao.CALAGEM, TipoOperacao.GESSAGEM, TipoOperacao.PULVERIZACAO].includes(
-        parsed.tipo_operacao as TipoOperacao
-      )
-    ) {
+    if (usaInsumo) {
       const { data: insumo } = await supabase
         .from('insumos')
         .select('custo_medio, estoque_atual, nome, unidade')
@@ -164,7 +236,7 @@ export async function criarAtividadeCampoAction(
         .single();
 
       if (insumo) {
-        const quantidade = parsed.dose_ton_ha * ctx.talhaoAreaHa;
+        const quantidade = (doseBaixa as number) * ctx.talhaoAreaHa;
         if (insumo.estoque_atual < quantidade) {
           await supabase.from('atividades_campo').delete().eq('id', atividade.id);
           return {
@@ -229,6 +301,38 @@ export async function criarAtividadeCampoAction(
         .eq('id', atividade.id);
     }
 
+    // Encerramento automático do ciclo na colheita/corte final.
+    // Cultura com rebrota só encerra se o produtor NÃO marcou colher a rebrota;
+    // nesse caso o ciclo segue ativo para a rebrota.
+    if (ehOperacaoColheita(parsed.tipo_operacao)) {
+      const { data: cicloAtual } = await supabase
+        .from('ciclos_agricolas')
+        .select('cultura')
+        .eq('id', cicloIdAtivo)
+        .single();
+
+      const cultura = cicloAtual?.cultura ?? ctx.culturaNovoCiclo ?? '';
+      const seguePorRebrota = culturaPossuiRebrota(cultura) && !!parsed.permite_rebrota;
+
+      if (!seguePorRebrota) {
+        await supabase
+          .from('ciclos_agricolas')
+          .update({
+            data_colheita_real: parsed.data,
+            ativo: false,
+            ...(parsed.produtividade_ton_ha != null
+              ? { produtividade_ton_ha: parsed.produtividade_ton_ha }
+              : {}),
+          })
+          .eq('id', cicloIdAtivo);
+      } else if (parsed.produtividade_ton_ha != null) {
+        await supabase
+          .from('ciclos_agricolas')
+          .update({ produtividade_ton_ha: parsed.produtividade_ton_ha })
+          .eq('id', cicloIdAtivo);
+      }
+    }
+
     // Vincular colaborador (fire-and-forget)
     if (parsed.colaborador_id) {
       upsertRegistroColaborador('atividade_campo', atividade.id, parsed.colaborador_id).catch(
@@ -240,7 +344,7 @@ export async function criarAtividadeCampoAction(
     revalidatePath('/dashboard/financeiro');
     revalidatePath('/dashboard');
 
-    return { success: true, atividadeId: atividade.id };
+    return { success: true, atividadeId: atividade.id, cicloId: cicloIdAtivo };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erro ao registrar atividade.';
     return { success: false, error: msg };

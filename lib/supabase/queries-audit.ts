@@ -1037,7 +1037,7 @@ const maquinas = {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
       .from('maquinas')
-      .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis')
+      .select('id, nome, tipo, marca, modelo, ano, identificacao, fazenda_id, consumo_medio_lh, valor_aquisicao, data_aquisicao, vida_util_anos, status, numero_serie, placa, potencia_cv, horimetro_atual, valor_residual, vida_util_horas, largura_trabalho_metros, tratores_compativeis, custo_hora')
       .eq('fazenda_id', fazendaId)
       .order('nome', { ascending: true });
     if (error) throw error;

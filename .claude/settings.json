@@ -157,7 +157,18 @@
       "PowerShell(npx eslint app/dashboard/DashboardClient.tsx)",
       "PowerShell($out = npm run build 2>&1 | Out-String; $out | Select-String -Pattern \"Error:|error TS|Type error|Failed to compile|Module not found|Cannot find\" -Context 0,3 | Where-Object { $_ -notmatch \"react-hooks|impure|setState|cascading|Effects are|Subscribe|Update external|incompatible-library|Compilation Skipped\" } | Select-Object -First 60)",
       "PowerShell(npm run build 2>&1 | Out-String | Set-Content -Path C:\\\\tmp\\\\build-out.txt -Encoding utf8; Write-Output \"DONE exit=$LASTEXITCODE\")",
-      "PowerShell(npm run build 2>&1 | Out-String | Set-Content -Path C:\\\\tmp\\\\build-out2.txt -Encoding utf8; Write-Output \"DONE exit=$LASTEXITCODE\")"
+      "PowerShell(npm run build 2>&1 | Out-String | Set-Content -Path C:\\\\tmp\\\\build-out2.txt -Encoding utf8; Write-Output \"DONE exit=$LASTEXITCODE\")",
+      "Read(//tmp/**)",
+      "Bash(break)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard/rebanho/importar)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(pkill -f \"next-server\")",
+      "Bash(timeout 480 npm run build)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(curl -s -o /dev/null -w \"no-auth: %{http_code}\\\\n\" -L --max-redirs 0 http://localhost:3100/dashboard/rebanho/importar)",
+      "Bash(timeout 480 npm run build > /tmp/gestsilo-build2.log 2>&1; echo \"EXIT=$?\"; grep -E \"rebanho/importar|Failed|Error|error\" /tmp/gestsilo-build2.log | head -15; echo \"--- tail ---\"; tail -6 /tmp/gestsilo-build2.log)",
+      "Bash(pkill -f \"next\")",
+      "Bash(rm -f /tmp/gestsilo-*.log; echo \"cleaned\"; echo \"=== final page.tsx render block ===\"; sed -n '54,56p' app/dashboard/rebanho/importar/page.tsx)"
     ],
     "additionalDirectories": [
       "\\tmp"

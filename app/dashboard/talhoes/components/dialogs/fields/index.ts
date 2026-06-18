@@ -1,5 +1,6 @@
 export { PreparoSoloFields } from './PreparoSoloFields';
 export { CalagemFields } from './CalagemFields';
+export { AdubacaoFields } from './AdubacaoFields';
 export { GessagemFields } from './GessagemFields';
 export { PlantioFields } from './PlantioFields';
 export { PulverizacaoFields } from './PulverizacaoFields';

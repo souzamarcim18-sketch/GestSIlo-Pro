@@ -156,6 +156,7 @@ export default function TalhaoDetailPage() {
           {activeTab === 'operacoes' && (
             <TalhaoOperacoesTab
               talhaoId={talhaoId}
+              talhaoNome={talhao?.nome}
               talhaoAreaHa={talhao?.area_ha}
               cicloAtivo={cicloAtivo}
               atividades={atividades}

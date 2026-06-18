@@ -276,7 +276,7 @@ export function calcularBreakdownCusto(atividades: AtividadeCampo[]): {
   servicos: number;
   outros: number;
 } {
-  const OPERACOES_INSUMO = ['Calagem', 'Gessagem', 'Pulverização'];
+  const OPERACOES_INSUMO = ['Calagem', 'Gessagem', 'Pulverização', 'Adubação'];
   const OPERACOES_SERVICO = ['Análise de Solo', 'Irrigação'];
 
   let insumos = 0;
@@ -439,6 +439,28 @@ export function gerarEventosRebrota(
       status: 'Planejado',
     };
   });
+}
+
+/**
+ * Estima a data de colheita prevista de um ciclo a partir da cultura e da data
+ * de plantio. Usa o maior `dapFim` da matriz DAP da cultura (fim da janela de
+ * colheita); para culturas sem cronograma, assume um ciclo de 365 dias.
+ *
+ * Usada quando o ciclo agrícola é criado automaticamente no primeiro registro
+ * de preparo de solo/plantio — `data_colheita_prevista` é NOT NULL no banco.
+ *
+ * @param cultura Nome da cultura
+ * @param dataPlantio Data de plantio (YYYY-MM-DD)
+ * @returns Data prevista de colheita (YYYY-MM-DD)
+ */
+export function estimarDataColheita(cultura: string, dataPlantio: string): string {
+  const entries = MATRIZ_DAP[cultura] ?? [];
+  const maiorDapFim = entries.reduce((max, e) => Math.max(max, e.dapFim), 0);
+  const dias = maiorDapFim > 0 ? maiorDapFim : 365;
+
+  const base = new Date(dataPlantio);
+  base.setDate(base.getDate() + dias);
+  return base.toISOString().split('T')[0];
 }
 
 /**

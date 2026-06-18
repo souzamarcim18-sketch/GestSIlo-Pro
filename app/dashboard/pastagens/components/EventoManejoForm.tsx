@@ -186,7 +186,14 @@ export function EventoManejoForm({ piqueteId, onSuccess }: EventoManejoFormProps
                   <FormLabel className="text-sm text-muted-foreground">Insumo</FormLabel>
                   <Select
                     key={loadingOptions ? 'ins-loading' : 'ins-ready'}
-                    onValueChange={field.onChange}
+                    onValueChange={(v) => {
+                      field.onChange(v);
+                      // Unidade herdada do cadastro do insumo (não digitada à mão).
+                      const insumo = insumos.find((i) => i.id === v);
+                      if (insumo?.unidade) {
+                        form.setValue('unidade_insumo', insumo.unidade, { shouldValidate: false });
+                      }
+                    }}
                     value={field.value || undefined}
                     disabled={loadingOptions}
                   >
