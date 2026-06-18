@@ -517,7 +517,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome, entidades }: Relatori
     const resumoColaboradores = nomeColaboradorFiltro
       ? result.resumoColaboradores.filter((c) => c.colaborador_nome === nomeColaboradorFiltro)
       : result.resumoColaboradores;
-    gerarPdf({
+    await gerarPdf({
       fileName: `mao_obra${sufixoEntidade(colaboradorFiltro, entidades.colaboradores)}_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.pdf`,
       titulo: 'Relatório de Mão de Obra',
       orientacao: 'portrait',
@@ -631,7 +631,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome, entidades }: Relatori
   // ─── Balanço Forrageiro ────────────────────────────────────────────────────────
   const exportBalancoForrageiro = () => handleExport('balanco', async () => {
     const result = await getRelatorioBalancoForrageiroAction(periodoBalanco);
-    gerarPdf({
+    await gerarPdf({
       fileName: `balanco_forrageiro_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.pdf`,
       titulo: 'Balanço Forrageiro',
       orientacao: 'portrait',
@@ -679,7 +679,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome, entidades }: Relatori
     const result = await getRelatorioIndicadoresRebanhoAction();
     const hoje2 = new Date();
     const dataInicio = subDays(hoje2, 90);
-    gerarPdfIndicadoresRebanho({
+    await gerarPdfIndicadoresRebanho({
       fazendaNome: result.fazendaNome,
       tipoExploracao: result.tipoExploracao,
       periodo: { dataInicio, dataFim: hoje2 },

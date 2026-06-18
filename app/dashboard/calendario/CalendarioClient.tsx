@@ -16,7 +16,10 @@ import { Badge } from '@/components/ui/badge';
 import {
   type EventoCalendario,
   type ModuloCalendario,
+  type GrupoCalendario,
   MODULO_CONFIG,
+  GRUPO_CONFIG,
+  GRUPOS_CALENDARIO,
 } from '@/lib/types/calendario';
 import { formatarDataBR } from '@/app/dashboard/alertas-helpers';
 
@@ -58,16 +61,15 @@ function EventoPonto({ modulo }: { modulo: ModuloCalendario }) {
   return <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />;
 }
 
-const TODOS_OS_MODULOS: ModuloCalendario[] = [
-  'lavoura_dap', 'lavoura_atividade', 'frota', 'rebanho', 'sanidade',
-  'mao_obra', 'pastagem_manejo', 'pastagem_ocupacao', 'silo', 'insumo', 'produto',
-];
-
 export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
   const router = useRouter();
-  const [viewTab, setViewTab] = useState<ViewTab>('lista');
+  const [viewTab, setViewTab] = useState<ViewTab>('mensal');
+  const [grupo, setGrupo] = useState<GrupoCalendario>('agricolas');
   const [talhaoId, setTalhaoId] = useState('');
   const [modulosSelecionados, setModulosSelecionados] = useState<ModuloCalendario[]>([]);
+
+  // Módulos visíveis dependem do grupo (aba) selecionado
+  const modulosDoGrupo = GRUPO_CONFIG[grupo].modulos;
   const [currentDate, setCurrentDate] = useState(() => {
     const [ano, mes] = mesAtual.split('-').map(Number);
     return new Date(ano, mes - 1, 1);
@@ -96,7 +98,9 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
   }
 
   const eventosFiltrados = useMemo(() => {
-    let resultado = initialEventos;
+    // 1) Restringe ao grupo (aba) selecionado
+    let resultado = initialEventos.filter((e) => modulosDoGrupo.includes(e.modulo));
+    // 2) Filtro individual de módulo dentro do grupo
     if (modulosSelecionados.length > 0) {
       resultado = resultado.filter((e) => modulosSelecionados.includes(e.modulo));
     }
@@ -107,7 +111,12 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
       );
     }
     return resultado;
-  }, [initialEventos, modulosSelecionados, talhaoId]);
+  }, [initialEventos, modulosDoGrupo, modulosSelecionados, talhaoId]);
+
+  function handleGrupoChange(novoGrupo: GrupoCalendario) {
+    setGrupo(novoGrupo);
+    setModulosSelecionados([]); // reset do filtro individual ao trocar de aba
+  }
 
   const renderListView = () => (
     <div className="overflow-x-auto">
@@ -281,8 +290,25 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Calendário de Operações</h2>
-        <p className="text-muted-foreground">Visualize eventos de todos os módulos da fazenda</p>
+        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Calendário</h2>
+        <p className="text-muted-foreground">{GRUPO_CONFIG[grupo].descricao}</p>
+      </div>
+
+      {/* Abas de grupo */}
+      <div className="flex flex-wrap gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+        {GRUPOS_CALENDARIO.map((g) => (
+          <button
+            key={g}
+            onClick={() => handleGrupoChange(g)}
+            className={`flex-1 min-w-[140px] rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+              grupo === g
+                ? 'bg-[#00A651] text-white font-semibold shadow-sm'
+                : 'text-muted-foreground hover:bg-background hover:text-foreground'
+            }`}
+          >
+            {GRUPO_CONFIG[g].label}
+          </button>
+        ))}
       </div>
 
       {/* Filtros */}
@@ -320,7 +346,7 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
           <div className="space-y-2">
             <label className="text-sm font-medium">Módulos</label>
             <div className="flex flex-wrap gap-2">
-              {TODOS_OS_MODULOS.map((modulo) => {
+              {modulosDoGrupo.map((modulo) => {
                 const { label, bgClass, colorClass } = MODULO_CONFIG[modulo];
                 const ativo = modulosSelecionados.includes(modulo);
                 return (
@@ -346,7 +372,7 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
       <Card className="bg-muted/50 border-0">
         <CardContent className="pt-4 pb-4">
           <div className="flex flex-wrap gap-4">
-            {TODOS_OS_MODULOS.map((modulo) => {
+            {modulosDoGrupo.map((modulo) => {
               const { label, dotClass } = MODULO_CONFIG[modulo];
               return (
                 <div key={modulo} className="flex items-center gap-1.5">

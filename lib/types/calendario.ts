@@ -50,6 +50,31 @@ export const MODULO_CONFIG: Record<ModuloCalendario, { label: string; colorClass
   produto:            { label: 'Produto',            colorClass: 'text-indigo-300',      bgClass: 'bg-indigo-900/60',  dotClass: 'bg-indigo-400' },
 };
 
+export type GrupoCalendario = 'agricolas' | 'rebanho' | 'geral';
+
+export const GRUPO_CONFIG: Record<
+  GrupoCalendario,
+  { label: string; descricao: string; modulos: ModuloCalendario[] }
+> = {
+  agricolas: {
+    label: 'Operações Agrícolas',
+    descricao: 'Lavouras, silos e pastagens',
+    modulos: ['lavoura_dap', 'lavoura_atividade', 'silo', 'pastagem_manejo', 'pastagem_ocupacao'],
+  },
+  rebanho: {
+    label: 'Manejo do Rebanho',
+    descricao: 'Eventos zootécnicos e sanitários',
+    modulos: ['rebanho', 'sanidade'],
+  },
+  geral: {
+    label: 'Atividades e Movimentações',
+    descricao: 'Frota, mão de obra, insumos e produtos',
+    modulos: ['frota', 'mao_obra', 'insumo', 'produto'],
+  },
+};
+
+export const GRUPOS_CALENDARIO: GrupoCalendario[] = ['agricolas', 'rebanho', 'geral'];
+
 export const MODULO_ICONE: Record<ModuloCalendario, React.ComponentType<{ className?: string }>> = {
   lavoura_dap:        Sprout,
   lavoura_atividade:  Shovel,

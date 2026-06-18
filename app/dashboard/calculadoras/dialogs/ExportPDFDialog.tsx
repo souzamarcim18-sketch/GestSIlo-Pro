@@ -53,9 +53,9 @@ export function ExportPDFDialog({
       };
 
       if (calculadora === 'calagem' && dadosCalagem) {
-        exportarLaudoCalagem(dadosCalagem.input, dadosCalagem.resultado, options);
+        await exportarLaudoCalagem(dadosCalagem.input, dadosCalagem.resultado, options);
       } else if (calculadora === 'npk' && dadosNPK) {
-        exportarRelatorioNPK(dadosNPK.input, dadosNPK.resultado, options, faseAdubacao);
+        await exportarRelatorioNPK(dadosNPK.input, dadosNPK.resultado, options, faseAdubacao);
       }
 
       toast.success('PDF exportado com sucesso!');

@@ -9,17 +9,24 @@ import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 // Contexto interno para mapear value → label e exibir corretamente no trigger.
 // `hasItems` indica que o caller passou `items` ao <Select>, caso em que o Base UI
 // resolve o label nativamente e o fallback do mapa não deve ser usado.
-type SelectItemsMap = React.MutableRefObject<Map<string, React.ReactNode>> & { hasItems: boolean }
-const SelectItemsMapContext = React.createContext<SelectItemsMap | null>(null)
+type SelectItemsMapContextValue = {
+  mapRef: React.RefObject<Map<string, React.ReactNode>>
+  hasItems: boolean
+}
+const SelectItemsMapContext = React.createContext<SelectItemsMapContextValue | null>(null)
 
 function Select<Value = string, Multiple extends boolean | undefined = false>({
   children,
   ...props
 }: SelectPrimitive.Root.Props<Value, Multiple>) {
-  const mapRef = React.useRef<Map<string, React.ReactNode>>(new Map()) as SelectItemsMap
-  mapRef.hasItems = props.items != null
+  const mapRef = React.useRef<Map<string, React.ReactNode>>(new Map())
+  const hasItems = props.items != null
+  const ctx = React.useMemo<SelectItemsMapContextValue>(
+    () => ({ mapRef, hasItems }),
+    [hasItems]
+  )
   return (
-    <SelectItemsMapContext.Provider value={mapRef}>
+    <SelectItemsMapContext.Provider value={ctx}>
       <SelectPrimitive.Root {...props}>{children}</SelectPrimitive.Root>
     </SelectItemsMapContext.Provider>
   )
@@ -36,12 +43,13 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
 }
 
 function SelectValue({ className, children, placeholder, ...props }: SelectPrimitive.Value.Props) {
-  const mapRef = React.useContext(SelectItemsMapContext)
+  const ctx = React.useContext(SelectItemsMapContext)
   // Quando o caller passa `items` ao <Select> (Select.Root), o Base UI resolve o
   // label nativamente — inclusive com o popup fechado. Nesse caso não sobrescrevemos
   // `children`, para não cair no fallback do mapa (que só popula ao abrir o popup e
   // exibiria o valor cru, ex: UUID). Sem `items`, mantemos o fallback via mapa.
-  const hasItems = mapRef?.hasItems ?? false
+  const hasItems = ctx?.hasItems ?? false
+  const mapRef = ctx?.mapRef
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
@@ -149,7 +157,8 @@ function SelectItem({
   value,
   ...props
 }: SelectPrimitive.Item.Props) {
-  const mapRef = React.useContext(SelectItemsMapContext)
+  const ctx = React.useContext(SelectItemsMapContext)
+  const mapRef = ctx?.mapRef
   React.useEffect(() => {
     if (mapRef && value != null) {
       // Extrai texto simples de children para o mapa (strings e números)

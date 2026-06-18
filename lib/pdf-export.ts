@@ -29,12 +29,13 @@ export interface PDFOptions {
 
 // ── Helpers compartilhados ──────────────────────────────────────────────────
 
-function carregarLogoBase64(): string | undefined {
-  if (typeof window !== 'undefined') return undefined;
+// 'use client' (consumido apenas em Client Components) — logo via fetch no browser
+async function carregarLogoBase64(): Promise<string | undefined> {
   try {
-    const fs = require('fs') as typeof import('fs');
-    const path = require('path') as typeof import('path');
-    return fs.readFileSync(path.join(process.cwd(), 'public', 'logo_verde.png')).toString('base64');
+    const resp = await fetch('/logo_verde.png');
+    if (!resp.ok) return undefined;
+    const buf = await resp.arrayBuffer();
+    return btoa(String.fromCharCode(...new Uint8Array(buf)));
   } catch {
     return undefined;
   }
@@ -118,15 +119,15 @@ function desenharRodape(doc: jsPDF): void {
 
 // ── Calagem ─────────────────────────────────────────────────────────────────
 
-export function exportarLaudoCalagem(
+export async function exportarLaudoCalagem(
   input: CalagemInput,
   resultado: CalagemResult,
   options: PDFOptions = {}
-): void {
+): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
-  const logoBase64 = carregarLogoBase64();
+  const logoBase64 = await carregarLogoBase64();
   const geradoEm = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   const subtitulo = options.nomeFazenda ? `Fazenda: ${options.nomeFazenda}` : 'Calculadora Agronômica';
 
@@ -247,16 +248,16 @@ export function exportarLaudoCalagem(
 
 // ── NPK ─────────────────────────────────────────────────────────────────────
 
-export function exportarRelatorioNPK(
+export async function exportarRelatorioNPK(
   input: NPKInput,
   resultado: NPKResult,
   options: PDFOptions = {},
   faseAdubacao?: 'plantio' | 'cobertura'
-): void {
+): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
-  const logoBase64 = carregarLogoBase64();
+  const logoBase64 = await carregarLogoBase64();
   const geradoEm = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
   const faseLabel = faseAdubacao === 'plantio'

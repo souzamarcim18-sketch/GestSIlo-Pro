@@ -97,29 +97,24 @@ function KpiCard({
   );
 }
 
-function FinanceiroCard({
+/** Uma métrica financeira dentro do card consolidado. */
+function FinanceiroMetrica({
   title,
   value,
   variante,
-  href,
   subtitle = 'Mês corrente',
   variacaoPct,
   variacaoTipo,
-  linkLabel,
 }: {
   title: string;
   value: string;
   variante: 'receita' | 'despesa' | 'saldo_positivo' | 'saldo_negativo';
-  href: string;
   subtitle?: string;
   /** variação % vs mês anterior; null oculta o badge */
   variacaoPct?: number | null;
   /** define se uma variação positiva é "boa" (receita) ou "ruim" (despesa) */
   variacaoTipo?: 'receita' | 'despesa';
-  /** quando presente, exibe um link "ver detalhes" no rodapé do card */
-  linkLabel?: string;
 }) {
-  const router = useRouter();
   const valueColor =
     variante === 'receita'
       ? 'text-status-success'
@@ -135,32 +130,74 @@ function FinanceiroCard({
   const VariacaoIcon = variacaoPct != null && variacaoPct >= 0 ? TrendingUp : TrendingDown;
 
   return (
+    <div className="space-y-1.5">
+      <p className="uppercase tracking-[0.13em] font-bold text-xs text-muted-foreground">{title}</p>
+      <p className={cn('text-xl md:text-2xl font-black tracking-tight truncate', valueColor)}>{value}</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        {variacaoPct != null && (
+          <span
+            className={cn(
+              'inline-flex items-center gap-0.5 text-xs font-semibold',
+              variacaoBom ? 'text-status-success' : 'text-status-danger'
+            )}
+          >
+            <VariacaoIcon className="w-3 h-3" aria-hidden="true" />
+            {Math.abs(variacaoPct)}%
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Card único agregando as 4 métricas financeiras com um único "Ver detalhes". */
+function FinanceiroResumoCard({ data, href }: { data: DashboardData; href: string }) {
+  const router = useRouter();
+  const saldoLiquido = data.receitaMesNum - data.despesaMesNum;
+
+  return (
     <button
       onClick={() => router.push(href)}
       className="text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl"
     >
-      <Card className="rounded-2xl p-4 h-full transition-all duration-300 group-hover:-translate-y-1">
-        <div className="space-y-1.5">
-          <p className="uppercase tracking-[0.13em] font-bold text-xs text-muted-foreground">{title}</p>
-          <p className={cn('text-xl md:text-2xl font-black tracking-tight truncate', valueColor)}>{value}</p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
-            {variacaoPct != null && (
-              <span
-                className={cn(
-                  'inline-flex items-center gap-0.5 text-xs font-semibold',
-                  variacaoBom ? 'text-status-success' : 'text-status-danger'
-                )}
-              >
-                <VariacaoIcon className="w-3 h-3" aria-hidden="true" />
-                {Math.abs(variacaoPct)}%
-              </span>
-            )}
+      <Card className="rounded-2xl p-4 md:p-5 h-full transition-all duration-300 group-hover:-translate-y-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-border">
+          <div className="pt-0">
+            <FinanceiroMetrica
+              title="RECEITA DO MÊS"
+              value={data.receitaMes}
+              variante="receita"
+              variacaoPct={data.receitaVariacaoPct}
+              variacaoTipo="receita"
+            />
           </div>
-          {linkLabel && (
-            <span className="text-xs text-primary group-hover:underline inline-block pt-0.5">{linkLabel} →</span>
-          )}
+          <div className="pt-0 sm:pl-6">
+            <FinanceiroMetrica
+              title="DESPESA DO MÊS"
+              value={data.despesaMes}
+              variante="despesa"
+              variacaoPct={data.despesaVariacaoPct}
+              variacaoTipo="despesa"
+            />
+          </div>
+          <div className="pt-4 sm:pt-0 sm:pl-6">
+            <FinanceiroMetrica
+              title="SALDO LÍQUIDO"
+              value={formatBRL(saldoLiquido)}
+              variante={saldoLiquido >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+            />
+          </div>
+          <div className="pt-4 sm:pt-0 sm:pl-6">
+            <FinanceiroMetrica
+              title="SALDO ACUMULADO"
+              value={formatBRL(data.saldoAcumuladoNum)}
+              variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
+              subtitle="Total até hoje"
+            />
+          </div>
         </div>
+        <span className="text-xs text-primary group-hover:underline inline-block pt-4">Ver detalhes →</span>
       </Card>
     </button>
   );
@@ -425,41 +462,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         {!planoPermiteModulo(planoAtual, 'financeiro') ? (
           <LockedModuleCard modulo="financeiro" className="min-h-[140px]" />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <FinanceiroCard
-              title="RECEITA DO MÊS"
-              value={data.receitaMes}
-              variante="receita"
-              href="/dashboard/financeiro"
-              variacaoPct={data.receitaVariacaoPct}
-              variacaoTipo="receita"
-              linkLabel="Ver detalhes"
-            />
-            <FinanceiroCard
-              title="DESPESA DO MÊS"
-              value={data.despesaMes}
-              variante="despesa"
-              href="/dashboard/financeiro"
-              variacaoPct={data.despesaVariacaoPct}
-              variacaoTipo="despesa"
-              linkLabel="Ver detalhes"
-            />
-            <FinanceiroCard
-              title="SALDO LÍQUIDO"
-              value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
-              variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
-              href="/dashboard/financeiro"
-              linkLabel="Ver detalhes"
-            />
-            <FinanceiroCard
-              title="SALDO ACUMULADO"
-              value={formatBRL(data.saldoAcumuladoNum)}
-              variante={data.saldoAcumuladoNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
-              href="/dashboard/financeiro"
-              subtitle="Total até hoje"
-              linkLabel="Ver detalhes"
-            />
-          </div>
+          <FinanceiroResumoCard data={data} href="/dashboard/financeiro" />
         )}
       </section>
 

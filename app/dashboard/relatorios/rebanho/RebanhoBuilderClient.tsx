@@ -145,7 +145,7 @@ export function RebanhoBuilderClient({ fazendaId, fazendaNome, lotes }: RebanhoB
     try {
       const result = await getRelatorioRebanhoAction(camposValidos, filtros, 500);
       const rows = buildRebanhoRows(result.data, camposParaPdf);
-      gerarPdf({
+      await gerarPdf({
         fileName: `rebanho_${format(new Date(), 'yyyy-MM-dd', { locale: ptBR })}.pdf`,
         titulo: 'Relatório de Rebanho',
         orientacao: camposParaPdf.length > 5 ? 'landscape' : 'portrait',

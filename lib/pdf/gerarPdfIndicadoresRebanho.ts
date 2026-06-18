@@ -31,12 +31,13 @@ interface PdfExportOptions {
   logoBase64?: string;
 }
 
-function carregarLogoBase64(): string | undefined {
-  if (typeof window !== 'undefined') return undefined;
+// 'use client' (consumido apenas em Client Components) — logo via fetch no browser
+async function carregarLogoBase64(): Promise<string | undefined> {
   try {
-    const fs = require('fs') as typeof import('fs');
-    const path = require('path') as typeof import('path');
-    return fs.readFileSync(path.join(process.cwd(), 'public', 'logo_verde.png')).toString('base64');
+    const resp = await fetch('/logo_verde.png');
+    if (!resp.ok) return undefined;
+    const buf = await resp.arrayBuffer();
+    return btoa(String.fromCharCode(...new Uint8Array(buf)));
   } catch {
     return undefined;
   }
@@ -120,9 +121,9 @@ function determinarStatusShort(valor: number | null, benchmark?: { min: number; 
   return '↑';
 }
 
-export function gerarPdfIndicadoresRebanho(options: PdfExportOptions): void {
+export async function gerarPdfIndicadoresRebanho(options: PdfExportOptions): Promise<void> {
   const { fazendaNome, tipoExploracao, periodo, usuarioNome = 'Sistema', indicadores } = options;
-  const logoBase64 = options.logoBase64 ?? carregarLogoBase64();
+  const logoBase64 = options.logoBase64 ?? (await carregarLogoBase64());
 
   const doc = new jsPDF('p', 'mm', 'A4');
   const pageW = doc.internal.pageSize.getWidth();

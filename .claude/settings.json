@@ -153,7 +153,11 @@
       "PowerShell(npx vitest run 2>&1)",
       "PowerShell(npx vitest run __tests__/assessoria/email.test.ts 2>&1)",
       "PowerShell($out = npm run test 2>&1 | Out-String; \\($out -split \"`n\" | Select-String -Pattern \"Test Files|Tests\\\\s+\\\\d|FAIL \"\\) | ForEach-Object { $_.Line })",
-      "PowerShell(npx tsc --noEmit 2>&1)"
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "PowerShell(npx eslint app/dashboard/DashboardClient.tsx)",
+      "PowerShell($out = npm run build 2>&1 | Out-String; $out | Select-String -Pattern \"Error:|error TS|Type error|Failed to compile|Module not found|Cannot find\" -Context 0,3 | Where-Object { $_ -notmatch \"react-hooks|impure|setState|cascading|Effects are|Subscribe|Update external|incompatible-library|Compilation Skipped\" } | Select-Object -First 60)",
+      "PowerShell(npm run build 2>&1 | Out-String | Set-Content -Path C:\\\\tmp\\\\build-out.txt -Encoding utf8; Write-Output \"DONE exit=$LASTEXITCODE\")",
+      "PowerShell(npm run build 2>&1 | Out-String | Set-Content -Path C:\\\\tmp\\\\build-out2.txt -Encoding utf8; Write-Output \"DONE exit=$LASTEXITCODE\")"
     ],
     "additionalDirectories": [
       "\\tmp"

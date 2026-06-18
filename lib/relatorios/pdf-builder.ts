@@ -69,14 +69,13 @@ function geradoEmSP(date: Date): string {
   return date.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 }
 
-/** Tenta carregar a logo como base64 via fs (Node.js). Retorna undefined em browser. */
-function carregarLogoBase64(): string | undefined {
-  if (typeof window !== 'undefined') return undefined;
+/** Carrega a logo como base64 via fetch (browser). Retorna undefined em caso de falha. */
+async function carregarLogoBase64(): Promise<string | undefined> {
   try {
-    const fs = require('fs') as typeof import('fs');
-    const path = require('path') as typeof import('path');
-    const logoPath = path.join(process.cwd(), 'public', 'logo_verde.png');
-    return fs.readFileSync(logoPath).toString('base64');
+    const resp = await fetch('/logo_verde.png');
+    if (!resp.ok) return undefined;
+    const buf = await resp.arrayBuffer();
+    return btoa(String.fromCharCode(...new Uint8Array(buf)));
   } catch {
     return undefined;
   }
@@ -147,14 +146,14 @@ function desenharCabecalho(
   }
 }
 
-export function gerarPdf(config: PdfReportConfig): void {
+export async function gerarPdf(config: PdfReportConfig): Promise<void> {
   const orientacao = config.orientacao ?? 'portrait';
   const doc = new jsPDF(orientacao === 'landscape' ? 'l' : 'p', 'mm', 'A4');
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const larguraPagina = orientacao === 'landscape' ? 267 : 182;
 
-  const logoBase64 = config.logoBase64 ?? carregarLogoBase64();
+  const logoBase64 = config.logoBase64 ?? (await carregarLogoBase64());
 
   // Cabeçalho da primeira página
   desenharCabecalho(doc, config, logoBase64);
