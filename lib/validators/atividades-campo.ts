@@ -32,69 +32,83 @@ export const MetodoEntradaSchema = z.enum(['Manual', 'Upload PDF'], {
   message: 'Método de entrada deve ser Manual ou Upload PDF',
 });
 
+/**
+ * Campo numérico opcional tolerante a entradas vazias.
+ *
+ * React Hook Form com `valueAsNumber: true` converte um input vazio em `NaN`,
+ * e `z.number()` rejeita `NaN` (mensagem "Expected number, received nan"),
+ * bloqueando o submit como se o campo fosse obrigatório. Aqui normalizamos
+ * `NaN` / `''` / `null` / `undefined` para `null` antes da validação.
+ */
+const optionalNumber = () =>
+  z.preprocess(
+    (v) => (v === '' || v === null || v === undefined || (typeof v === 'number' && Number.isNaN(v)) ? null : v),
+    z.number().nullable(),
+  );
+
 // ========== SCHEMA PRINCIPAL ==========
 
 export const AtividadeCampoSchema = z.object({
   tipo_operacao: TipoOperacaoSchema,
   data: z.string().min(1, 'Data é obrigatória'),
   maquina_id: z.string().uuid().optional().nullable(),
-  horas_maquina: z.number().optional().nullable(),
+  horas_maquina: optionalNumber(),
   observacoes: z.string().optional().nullable(),
-  custo_manual: z.number().optional().nullable(),
+  custo_manual: optionalNumber(),
 
   // Preparo de Solo
   tipo_operacao_solo: z.string().optional().nullable(),
 
   // Calagem / Gessagem
   insumo_id: z.string().uuid().optional().nullable(),
-  dose_ton_ha: z.number().optional().nullable(),
+  dose_ton_ha: optionalNumber(),
 
   // Plantio
   semente_id: z.string().uuid().optional().nullable(),
-  populacao_plantas_ha: z.number().optional().nullable(),
-  sacos_ha: z.number().optional().nullable(),
-  espacamento_entre_linhas_cm: z.number().optional().nullable(),
+  populacao_plantas_ha: optionalNumber(),
+  sacos_ha: optionalNumber(),
+  espacamento_entre_linhas_cm: optionalNumber(),
 
   // Pulverização
   categoria_pulverizacao: CategoriaPulverizacaoSchema.optional().nullable(),
-  dose_valor: z.number().optional().nullable(),
+  dose_valor: optionalNumber(),
   dose_unidade: DoseUnidadeSchema.optional().nullable(),
-  volume_calda_l_ha: z.number().optional().nullable(),
+  volume_calda_l_ha: optionalNumber(),
 
   // Colheita
-  produtividade_ton_ha: z.number().optional().nullable(),
+  produtividade_ton_ha: optionalNumber(),
   maquina_colheita_id: z.string().uuid().optional().nullable(),
-  horas_colheita: z.number().optional().nullable(),
+  horas_colheita: optionalNumber(),
   maquina_transporte_id: z.string().uuid().optional().nullable(),
-  horas_transporte: z.number().optional().nullable(),
+  horas_transporte: optionalNumber(),
   maquina_compactacao_id: z.string().uuid().optional().nullable(),
-  horas_compactacao: z.number().optional().nullable(),
-  valor_terceirizacao_r: z.number().optional().nullable(),
+  horas_compactacao: optionalNumber(),
+  valor_terceirizacao_r: optionalNumber(),
   permite_rebrota: z.boolean().optional().nullable(),
 
   // Análise de Solo
-  custo_amostra_r: z.number().optional().nullable(),
+  custo_amostra_r: optionalNumber(),
   metodo_entrada: MetodoEntradaSchema.optional().nullable(),
   url_pdf_analise: z.any().optional().nullable(),
-  ph_cacl2: z.number().optional().nullable(),
-  mo_g_dm3: z.number().optional().nullable(),
-  p_mg_dm3: z.number().optional().nullable(),
-  k_mmolc_dm3: z.number().optional().nullable(),
-  ca_mmolc_dm3: z.number().optional().nullable(),
-  mg_mmolc_dm3: z.number().optional().nullable(),
-  al_mmolc_dm3: z.number().optional().nullable(),
-  h_al_mmolc_dm3: z.number().optional().nullable(),
-  s_mg_dm3: z.number().optional().nullable(),
-  b_mg_dm3: z.number().optional().nullable(),
-  cu_mg_dm3: z.number().optional().nullable(),
-  fe_mg_dm3: z.number().optional().nullable(),
-  mn_mg_dm3: z.number().optional().nullable(),
-  zn_mg_dm3: z.number().optional().nullable(),
+  ph_cacl2: optionalNumber(),
+  mo_g_dm3: optionalNumber(),
+  p_mg_dm3: optionalNumber(),
+  k_mmolc_dm3: optionalNumber(),
+  ca_mmolc_dm3: optionalNumber(),
+  mg_mmolc_dm3: optionalNumber(),
+  al_mmolc_dm3: optionalNumber(),
+  h_al_mmolc_dm3: optionalNumber(),
+  s_mg_dm3: optionalNumber(),
+  b_mg_dm3: optionalNumber(),
+  cu_mg_dm3: optionalNumber(),
+  fe_mg_dm3: optionalNumber(),
+  mn_mg_dm3: optionalNumber(),
+  zn_mg_dm3: optionalNumber(),
 
   // Irrigação
-  lamina_mm: z.number().optional().nullable(),
-  horas_irrigacao: z.number().optional().nullable(),
-  custo_por_hora_r: z.number().optional().nullable(),
+  lamina_mm: optionalNumber(),
+  horas_irrigacao: optionalNumber(),
+  custo_por_hora_r: optionalNumber(),
 
   colaborador_id: z.string().uuid().optional(),
 });

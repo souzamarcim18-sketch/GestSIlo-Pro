@@ -22,13 +22,21 @@ import ProdutoAutocomplete from './ProdutoAutocomplete';
 import type { Database } from '@/types/supabase';
 
 type ProdutoRow = Database['public']['Tables']['produtos']['Row'];
-type InsumoRow = Database['public']['Tables']['insumos']['Row'];
+
+// Forma mínima necessária para o select de insumo de destino.
+interface InsumoOption {
+  id: string;
+  nome: string;
+  unidade: string;
+  estoque_atual: number;
+  ativo: boolean;
+}
 
 interface SaidaFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   produtos: ProdutoRow[];
-  insumos?: InsumoRow[];
+  insumos?: InsumoOption[];
   produtoPredefined?: string;
   onSuccess?: () => void;
 }
@@ -201,21 +209,26 @@ export default function SaidaForm({
           {/* Campo condicional: TRANSFERENCIA_INSUMO */}
           {tipoSaida === 'TRANSFERENCIA_INSUMO' && (
             <div className="space-y-1.5">
-              <Label>Insumo de Destino *</Label>
+              <Label>Insumo de Destino</Label>
               <Controller
                 name="insumo_id_destino"
                 control={form.control}
                 render={({ field }) => {
+                  const insumosAtivos = insumos.filter((i) => i.ativo);
                   const selected = insumos.find((i) => i.id === field.value);
                   return (
-                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value ?? ''}
+                      onValueChange={(v) => field.onChange(v === '__none__' ? undefined : v)}
+                    >
                       <SelectTrigger>
                         <SelectValue>
-                          {selected ? selected.nome : 'Selecione o insumo...'}
+                          {selected ? selected.nome : 'Nenhum (não cadastrado)'}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {insumos.filter((i) => i.ativo).map((insumo) => (
+                        <SelectItem value="__none__">Nenhum (não cadastrado)</SelectItem>
+                        {insumosAtivos.map((insumo) => (
                           <SelectItem key={insumo.id} value={insumo.id}>
                             {insumo.nome} ({insumo.estoque_atual} {insumo.unidade})
                           </SelectItem>
@@ -225,9 +238,9 @@ export default function SaidaForm({
                   );
                 }}
               />
-              {form.formState.errors.insumo_id_destino && (
-                <p className="text-xs text-destructive mt-1">{form.formState.errors.insumo_id_destino.message}</p>
-              )}
+              <p className="text-xs text-muted-foreground">
+                Opcional. Se vincular um insumo, a quantidade será creditada no estoque dele.
+              </p>
             </div>
           )}
 

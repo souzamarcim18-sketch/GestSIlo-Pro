@@ -176,7 +176,10 @@
       "PowerShell(git stash pop)",
       "PowerShell(npm run test -- __tests__/produtos/validations.test.ts)",
       "PowerShell(npx eslint app/dashboard/produtos/components/SaidaForm.tsx app/dashboard/produtos/actions.ts lib/validations/produtos.ts)",
-      "PowerShell(npx vitest run lib/__tests__/rebanho.validations.test.ts 2>&1)"
+      "PowerShell(npx vitest run lib/__tests__/rebanho.validations.test.ts 2>&1)",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json)",
+      "PowerShell(npx tsx _tmp_test_ativ.ts 2>&1)",
+      "PowerShell(Copy-Item C:\\\\tmp\\\\atividades-campo-preexisting.bak lib/validators/atividades-campo.ts -Force)"
     ],
     "additionalDirectories": [
       "\\tmp"

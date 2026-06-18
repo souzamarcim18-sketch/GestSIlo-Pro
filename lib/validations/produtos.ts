@@ -42,10 +42,6 @@ export const saidaFormSchema = z.object({
   .refine(
     (d) => d.tipo_saida !== 'VENDA' || !!d.valor_unitario,
     { message: 'Valor unitário obrigatório para venda', path: ['valor_unitario'] }
-  )
-  .refine(
-    (d) => d.tipo_saida !== 'TRANSFERENCIA_INSUMO' || !!d.insumo_id_destino,
-    { message: 'Insumo de destino obrigatório para transferência', path: ['insumo_id_destino'] }
   );
 
 export type SaidaFormData = z.infer<typeof saidaFormSchema>;

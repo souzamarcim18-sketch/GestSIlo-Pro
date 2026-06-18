@@ -8,6 +8,7 @@ import {
   listProdutos,
   listMovimentacoesProduto,
 } from '@/lib/supabase/produtos';
+import { q } from '@/lib/supabase/queries-audit';
 
 import AlertsSection from './components/AlertsSection';
 import UltimasMovimentacoes from './components/UltimasMovimentacoes';
@@ -47,6 +48,14 @@ export function ProdutosClient({ isAdmin, initialCategorias }: Props) {
   });
 
   const categorias = initialCategorias;
+
+  // Insumos para o select de destino em saídas tipo TRANSFERENCIA_INSUMO.
+  const { data: insumos = [] } = useQuery({
+    queryKey: ['insumos', 'list', 'transferencia'],
+    queryFn: () => q.insumos.list(),
+    staleTime: 1000 * 60,
+    enabled: isAdmin,
+  });
 
   const { data: todasMovs = [] } = useQuery({
     queryKey: ['movimentacoes_produto', 'recentes', produtos.map((p) => p.id).join(',')],
@@ -154,6 +163,7 @@ export function ProdutosClient({ isAdmin, initialCategorias }: Props) {
         open={showSaida}
         onOpenChange={(v) => { setShowSaida(v); if (!v) setSelectedProduto(undefined); }}
         produtos={produtos}
+        insumos={insumos}
         produtoPredefined={selectedProduto?.id}
         onSuccess={handleRefresh}
       />
