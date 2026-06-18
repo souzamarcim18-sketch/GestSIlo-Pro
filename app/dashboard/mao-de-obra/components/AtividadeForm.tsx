@@ -29,6 +29,7 @@ import { criarAtividadeAction, editarAtividadeAction } from '../actions';
 import {
   TIPOS_ATIVIDADE,
   HORAS_POR_DIA,
+  sufixoTipoValor,
   type Colaborador,
   type AtividadeComColaboradores,
 } from '@/lib/types/mao-de-obra';
@@ -92,9 +93,9 @@ export function AtividadeForm({
   const preview = useMemo(() => {
     return colaboradoresSelecionados.map((id) => {
       const c = colaboradores.find((col) => col.id === id);
-      if (!c) return { id, nome: '?', custo: 0 };
+      if (!c) return { id, nome: '?', custo: 0, mensal: false };
       const custo = calcularCustoColaborador(duracaoTipo, duracaoValor, c.tipo_valor, c.valor_ref);
-      return { id, nome: c.nome, custo };
+      return { id, nome: c.nome, custo, mensal: c.tipo_valor === 'mensal' };
     });
   }, [colaboradoresSelecionados, colaboradores, duracaoTipo, duracaoValor]);
 
@@ -252,7 +253,9 @@ export function AtividadeForm({
                           {c.nome}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {c.funcao} · {formatBRL(c.valor_ref)}/{c.tipo_valor === 'diaria' ? 'dia' : 'h'}
+                          {c.funcao} · {c.tipo_valor === 'mensal'
+                            ? 'CLT (salário mensal)'
+                            : `${formatBRL(c.valor_ref)}/${sufixoTipoValor(c.tipo_valor)}`}
                         </span>
                       </button>
                     );
@@ -328,8 +331,15 @@ export function AtividadeForm({
             <div className="space-y-1">
               {preview.map((p) => (
                 <div key={p.id} className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">{p.nome}</span>
-                  <span className="font-semibold text-foreground">{formatBRL(p.custo)}</span>
+                  <span className="text-muted-foreground">
+                    {p.nome}
+                    {p.mensal && (
+                      <span className="ml-1 text-muted-foreground/70">(CLT — salário mensal)</span>
+                    )}
+                  </span>
+                  <span className="font-semibold text-foreground">
+                    {p.mensal ? '—' : formatBRL(p.custo)}
+                  </span>
                 </div>
               ))}
             </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatBRL } from '@/lib/utils';
 import { DeleteColaboradorDialog } from './DeleteColaboradorDialog';
-import type { Colaborador } from '@/lib/types/mao-de-obra';
+import { sufixoTipoValor, type Colaborador } from '@/lib/types/mao-de-obra';
 
 interface ColaboradoresListProps {
   colaboradores: Colaborador[];
@@ -76,7 +76,7 @@ export function ColaboradoresList({ colaboradores, isAdmin, onEdit, onRefresh }:
                   {VINCULO_LABELS[c.vinculo] ?? c.vinculo}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
-                  {formatBRL(c.valor_ref)}/{c.tipo_valor === 'diaria' ? 'dia' : 'h'}
+                  {formatBRL(c.valor_ref)}/{sufixoTipoValor(c.tipo_valor)}
                 </td>
                 <td className="px-4 py-3">
                   <Badge

@@ -30,7 +30,9 @@ import {
 import {
   FUNCOES_COLABORADOR,
   VINCULOS_COLABORADOR,
+  tipoValorPadraoPorVinculo,
   type Colaborador,
+  type VinculoColaborador,
 } from '@/lib/types/mao-de-obra';
 
 interface ColaboradorFormProps {
@@ -54,6 +56,28 @@ export function ColaboradorForm({ colaborador, onSuccess, onCancel }: Colaborado
 
   const { isSubmitting } = form.formState;
   const tipoValor = form.watch('tipo_valor');
+  const vinculo = form.watch('vinculo');
+  const isCLT = vinculo === 'CLT';
+
+  // Ao trocar o vínculo, ajusta o tipo de valor coerente:
+  // CLT → mensal (e oculta o seletor); demais → diária (se vinha de mensal).
+  function handleVinculoChange(novoVinculo: VinculoColaborador) {
+    form.setValue('vinculo', novoVinculo, { shouldValidate: true });
+    const atual = form.getValues('tipo_valor');
+    if (novoVinculo === 'CLT') {
+      form.setValue('tipo_valor', 'mensal', { shouldValidate: true });
+    } else if (atual === 'mensal') {
+      form.setValue('tipo_valor', tipoValorPadraoPorVinculo(novoVinculo), { shouldValidate: true });
+    }
+  }
+
+  // Label/placeholder do campo de valor conforme o tipo.
+  const valorLabel =
+    tipoValor === 'mensal'
+      ? 'Salário mensal (R$)'
+      : tipoValor === 'hora'
+        ? 'Valor por hora (R$)'
+        : 'Valor por diária (R$)';
 
   async function onSubmit(data: ColaboradorFormData) {
     const result = colaborador
@@ -115,7 +139,10 @@ export function ColaboradorForm({ colaborador, onSuccess, onCancel }: Colaborado
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm">Vínculo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={(v) => handleVinculoChange(v as VinculoColaborador)}
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue />
@@ -134,36 +161,47 @@ export function ColaboradorForm({ colaborador, onSuccess, onCancel }: Colaborado
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField
-            control={form.control}
-            name="tipo_valor"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Tipo de valor</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="diaria">Diária</SelectItem>
-                    <SelectItem value="hora">Por hora</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {isCLT ? (
+            // CLT: tipo de valor é sempre mensal — campo informativo, não editável.
+            <FormItem>
+              <FormLabel className="text-sm">Tipo de valor</FormLabel>
+              <div
+                className="flex h-9 items-center rounded-md px-3 text-sm text-muted-foreground"
+                style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                Mensal (salário)
+              </div>
+            </FormItem>
+          ) : (
+            <FormField
+              control={form.control}
+              name="tipo_valor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Tipo de valor</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="diaria">Diária</SelectItem>
+                      <SelectItem value="hora">Por hora</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}
             name="valor_ref"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm">
-                  Valor {tipoValor === 'diaria' ? 'por diária (R$)' : 'por hora (R$)'}
-                </FormLabel>
+                <FormLabel className="text-sm">{valorLabel}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -174,6 +212,11 @@ export function ColaboradorForm({ colaborador, onSuccess, onCancel }: Colaborado
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 </FormControl>
+                {vinculo === 'Familiar' && (
+                  <p className="text-xs text-muted-foreground">
+                    Opcional. Deixe 0 se não houver custo direto.
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}

@@ -6,6 +6,7 @@ import { Plus, Users, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KpisSection } from './components/KpisSection';
 import { ColaboradoresList } from './components/ColaboradoresList';
+import { FolhaMensalCLT } from './components/FolhaMensalCLT';
 import { ColaboradorForm } from './components/ColaboradorForm';
 import { AtividadesList } from './components/AtividadesList';
 import { AtividadeForm } from './components/AtividadeForm';
@@ -173,12 +174,15 @@ export function MaoDeObraClient({
         />
       )}
       {aba === 'colaboradores' && (
-        <ColaboradoresList
-          colaboradores={initialColaboradores}
-          isAdmin={isAdmin}
-          onEdit={handleEditColaborador}
-          onRefresh={() => router.refresh()}
-        />
+        <div className="space-y-6">
+          <FolhaMensalCLT isAdmin={isAdmin} onRefresh={() => router.refresh()} />
+          <ColaboradoresList
+            colaboradores={initialColaboradores}
+            isAdmin={isAdmin}
+            onEdit={handleEditColaborador}
+            onRefresh={() => router.refresh()}
+          />
+        </div>
       )}
 
       {/* Modal Colaborador */}

@@ -5,9 +5,33 @@ export const colaboradorFormSchema = z.object({
                          .max(100, 'Nome deve ter no máximo 100 caracteres'),
   funcao:      z.enum(['Vaqueiro', 'Tratorista', 'Auxiliar', 'Gerente', 'Outros']),
   vinculo:     z.enum(['CLT', 'Diarista', 'Empreiteiro', 'Familiar']),
-  tipo_valor:  z.enum(['diaria', 'hora']),
+  tipo_valor:  z.enum(['diaria', 'hora', 'mensal']),
   valor_ref:   z.number().nonnegative('Valor não pode ser negativo'),
   observacoes: z.string().max(500).optional().nullable(),
+}).superRefine((d, ctx) => {
+  // CLT é sempre mensal (salário); demais vínculos nunca são mensais.
+  if (d.vinculo === 'CLT' && d.tipo_valor !== 'mensal') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Colaborador CLT deve ter valor mensal (salário).',
+      path: ['tipo_valor'],
+    });
+  }
+  if (d.vinculo !== 'CLT' && d.tipo_valor === 'mensal') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Valor mensal é permitido apenas para vínculo CLT.',
+      path: ['tipo_valor'],
+    });
+  }
+  // CLT exige salário > 0; Familiar pode ter valor 0 (sem custo).
+  if (d.vinculo === 'CLT' && d.valor_ref <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Informe o salário mensal do colaborador CLT.',
+      path: ['valor_ref'],
+    });
+  }
 });
 
 export type ColaboradorFormData = z.infer<typeof colaboradorFormSchema>;

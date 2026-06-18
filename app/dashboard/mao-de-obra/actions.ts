@@ -403,6 +403,148 @@ export async function deletarAtividadeAction(id: string): Promise<ActionResult> 
   }
 }
 
+// ─── Folha mensal de salários (CLT) ───────────────────────────────────────────
+
+const REF_TIPO_SALARIO = 'Salário CLT';
+
+/** Normaliza 'YYYY-MM' para o primeiro dia do mês ('YYYY-MM-01'). */
+function primeiroDiaDoMes(mesAno: string): string | null {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(mesAno)) return null;
+  return `${mesAno}-01`;
+}
+
+function fimDoMesExclusivo(mesAno: string): string {
+  const [ano, mes] = mesAno.split('-').map(Number);
+  const proximo = mes === 12 ? `${ano + 1}-01` : `${ano}-${String(mes + 1).padStart(2, '0')}`;
+  return `${proximo}-01`;
+}
+
+export interface LinhaFolhaCLT {
+  colaborador_id: string;
+  nome: string;
+  salario: number;
+  ja_lancado: boolean;
+  despesa_id: string | null;
+}
+
+/**
+ * Retorna o status da folha de um mês: para cada CLT ativo, se o salário já foi
+ * lançado no financeiro naquele mês.
+ */
+export async function getStatusFolhaMensalAction(
+  mesAno: string,
+): Promise<{ linhas: LinhaFolhaCLT[]; total: number } | { error: string }> {
+  const inicio = primeiroDiaDoMes(mesAno);
+  if (!inicio) return { error: 'Mês inválido.' };
+  const fim = fimDoMesExclusivo(mesAno);
+
+  const supabase = await createSupabaseServerClient();
+
+  const colaboradores = await listColaboradores(supabase, { ativo: true });
+  const clt = colaboradores.filter((c) => c.vinculo === 'CLT' && c.tipo_valor === 'mensal');
+
+  const { data: despesas, error } = await supabase
+    .from('financeiro')
+    .select('id, referencia_id, valor')
+    .eq('referencia_tipo', REF_TIPO_SALARIO)
+    .gte('data', inicio)
+    .lt('data', fim);
+
+  if (error) return { error: error.message };
+
+  const lancadosPorColab = new Map(
+    (despesas ?? []).map((d) => [d.referencia_id, { id: d.id }]),
+  );
+
+  const linhas: LinhaFolhaCLT[] = clt.map((c) => {
+    const lancado = lancadosPorColab.get(c.id);
+    return {
+      colaborador_id: c.id,
+      nome: c.nome,
+      salario: c.valor_ref,
+      ja_lancado: !!lancado,
+      despesa_id: lancado?.id ?? null,
+    };
+  });
+
+  const total = linhas.reduce((acc, l) => acc + l.salario, 0);
+  return { linhas, total };
+}
+
+/**
+ * Gera a folha de salários do mês: cria no financeiro 1 despesa por CLT ativo
+ * que ainda não tenha lançamento naquele mês. Idempotente.
+ */
+export async function gerarFolhaMensalAction(
+  mesAno: string,
+): Promise<{ success: true; criados: number } | { success: false; error: string }> {
+  try {
+    const inicio = primeiroDiaDoMes(mesAno);
+    if (!inicio) return { success: false, error: 'Mês inválido.' };
+
+    const status = await getStatusFolhaMensalAction(mesAno);
+    if ('error' in status) return { success: false, error: status.error };
+
+    const pendentes = status.linhas.filter((l) => !l.ja_lancado && l.salario > 0);
+    if (pendentes.length === 0) {
+      return { success: true, criados: 0 };
+    }
+
+    const supabase = await createSupabaseServerClient();
+    const fazenda_id = await getFazendaId(supabase);
+
+    const [ano, mes] = mesAno.split('-');
+    const rotuloMes = `${mes}/${ano}`;
+
+    const { error } = await supabase.from('financeiro').insert(
+      pendentes.map((l) => ({
+        tipo: 'Despesa',
+        categoria: 'Mão de Obra',
+        descricao: `Salário CLT — ${l.nome} (${rotuloMes})`,
+        valor: l.salario,
+        data: inicio,
+        forma_pagamento: null,
+        referencia_id: l.colaborador_id,
+        referencia_tipo: REF_TIPO_SALARIO,
+        natureza: 'fixo',
+        fazenda_id,
+      })),
+    );
+
+    if (error) throw error;
+
+    revalidatePath('/dashboard/mao-de-obra');
+    revalidatePath('/dashboard/financeiro');
+    revalidatePath('/dashboard');
+    return { success: true, criados: pendentes.length };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erro ao gerar folha mensal';
+    return { success: false, error: msg };
+  }
+}
+
+/** Remove o lançamento de salário de um CLT em um mês (desfaz a folha individual). */
+export async function removerSalarioFolhaAction(despesaId: string): Promise<ActionResult> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase
+      .from('financeiro')
+      .delete()
+      .eq('id', despesaId)
+      .eq('referencia_tipo', REF_TIPO_SALARIO);
+
+    if (error) throw error;
+
+    revalidatePath('/dashboard/mao-de-obra');
+    revalidatePath('/dashboard/financeiro');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erro ao remover salário';
+    return { success: false, error: msg };
+  }
+}
+
 // ─── Auxiliares para formulários ──────────────────────────────────────────────
 
 export async function listarColaboradoresAtivosAction() {

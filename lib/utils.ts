@@ -38,9 +38,14 @@ export function daysBetween(de: string, ate: string): number {
 export function calcularCustoColaborador(
   duracaoTipo: 'horas' | 'dias',
   duracaoValor: number,
-  tipoValor: 'hora' | 'diaria',
+  tipoValor: 'hora' | 'diaria' | 'mensal',
   valorRef: number,
 ): number {
+  // Colaborador mensal (CLT): salário é custo fixo recorrente, contabilizado
+  // mensalmente — não compõe o custo de cada atividade. Retorna zero aqui.
+  if (tipoValor === 'mensal') {
+    return 0;
+  }
   if (duracaoTipo === 'horas' && tipoValor === 'hora') {
     return duracaoValor * valorRef;
   }

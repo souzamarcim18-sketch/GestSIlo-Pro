@@ -13,7 +13,7 @@ export type VinculoColaborador =
   | 'Empreiteiro'
   | 'Familiar';
 
-export type TipoValorColaborador = 'diaria' | 'hora';
+export type TipoValorColaborador = 'diaria' | 'hora' | 'mensal';
 
 export type TipoAtividade =
   | 'Trato/alimentação do rebanho'
@@ -43,6 +43,35 @@ export const FUNCOES_COLABORADOR: FuncaoColaborador[] = [
 export const VINCULOS_COLABORADOR: VinculoColaborador[] = [
   'CLT', 'Diarista', 'Empreiteiro', 'Familiar',
 ];
+
+/**
+ * Tipo de valor padrão por vínculo:
+ * - CLT → 'mensal' (salário fixo); o custo é recorrente mensal, não por atividade.
+ * - Diarista/Empreiteiro → 'diaria' (custo lançado na atividade que participa).
+ * - Familiar → 'diaria', porém valor opcional (0 = sem custo).
+ */
+export function tipoValorPadraoPorVinculo(vinculo: VinculoColaborador): TipoValorColaborador {
+  return vinculo === 'CLT' ? 'mensal' : 'diaria';
+}
+
+/** Vínculos cujo custo é mensal/recorrente — não compõe o custo por atividade. */
+export function vinculoEhMensal(vinculo: VinculoColaborador): boolean {
+  return vinculo === 'CLT';
+}
+
+/** Label do valor de referência conforme o tipo de valor. */
+export function labelTipoValor(tipoValor: TipoValorColaborador): string {
+  if (tipoValor === 'mensal') return 'Salário';
+  if (tipoValor === 'hora') return 'Por hora';
+  return 'Diária';
+}
+
+/** Sufixo curto do valor (ex.: R$ X /mês, /dia, /h). */
+export function sufixoTipoValor(tipoValor: TipoValorColaborador): string {
+  if (tipoValor === 'mensal') return 'mês';
+  if (tipoValor === 'hora') return 'h';
+  return 'dia';
+}
 
 export const TIPOS_ATIVIDADE: TipoAtividade[] = [
   'Trato/alimentação do rebanho',
