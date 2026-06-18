@@ -369,7 +369,7 @@ export function EventosLoteClient({ animais, lotes }: Props) {
   return (
     <div className="max-w-5xl mx-auto space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Lançamento em Lote</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Lançamento Múltiplo</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Registre eventos para múltiplos animais de uma vez
         </p>

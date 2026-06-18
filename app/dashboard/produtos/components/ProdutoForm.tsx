@@ -129,7 +129,7 @@ export default function ProdutoForm({
                 name="categoria_id"
                 control={form.control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={(v) => {
+                  <Select items={categorias.map((c) => ({ value: c.id, label: c.nome }))} value={field.value} onValueChange={(v) => {
                     field.onChange(v);
                     const cat = categorias.find((c) => c.id === v);
                     if (cat && !form.getValues('unidade')) {

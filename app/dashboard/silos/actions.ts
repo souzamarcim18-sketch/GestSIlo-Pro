@@ -73,6 +73,18 @@ export async function registrarReceitaVendaSiloAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Não autenticado' };
 
+  // A tabela financeiro NÃO tem trigger de fazenda_id — é obrigatório enviá-lo
+  // no INSERT, senão a policy RLS (WITH CHECK fazenda_id = get_minha_fazenda_id())
+  // rejeita o registro.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('fazenda_id')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.fazenda_id) {
+    return { success: false, error: 'Fazenda não encontrada' };
+  }
+
   const { data: silo, error: siloError } = await supabase
     .from('silos')
     .select('id, nome')
@@ -93,11 +105,13 @@ export async function registrarReceitaVendaSiloAction(
       referencia_tipo: 'Silo',
       referencia_id: siloId,
       natureza: 'variavel' as const,
+      fazenda_id: profile.fazenda_id,
     })
     .select('id')
     .single();
 
   if (receitaError || !receitaData) {
+    console.error('Falha ao registrar receita da venda de silagem', receitaError);
     return { success: false, error: 'Falha ao registrar receita da venda' };
   }
 

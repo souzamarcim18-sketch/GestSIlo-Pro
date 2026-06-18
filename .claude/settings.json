@@ -152,7 +152,8 @@
       "PowerShell(npm run build 2>&1 | Out-Null; \"EXIT CODE: $LASTEXITCODE\")",
       "PowerShell(npx vitest run 2>&1)",
       "PowerShell(npx vitest run __tests__/assessoria/email.test.ts 2>&1)",
-      "PowerShell($out = npm run test 2>&1 | Out-String; \\($out -split \"`n\" | Select-String -Pattern \"Test Files|Tests\\\\s+\\\\d|FAIL \"\\) | ForEach-Object { $_.Line })"
+      "PowerShell($out = npm run test 2>&1 | Out-String; \\($out -split \"`n\" | Select-String -Pattern \"Test Files|Tests\\\\s+\\\\d|FAIL \"\\) | ForEach-Object { $_.Line })",
+      "PowerShell(npx tsc --noEmit 2>&1)"
     ],
     "additionalDirectories": [
       "\\tmp"

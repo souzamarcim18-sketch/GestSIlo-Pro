@@ -4,7 +4,7 @@ import { listAnimaisAtivosParaLote } from '@/lib/supabase/rebanho-lote';
 import { listLotes } from '@/lib/supabase/rebanho';
 import { EventosLoteClient } from './EventosLoteClient';
 
-export const metadata = { title: 'Lançamento em Lote | GestSilo' };
+export const metadata = { title: 'Lançamento Múltiplo | GestSilo' };
 
 export default async function LoteEventosPage() {
   const supabase = await createSupabaseServerClient();

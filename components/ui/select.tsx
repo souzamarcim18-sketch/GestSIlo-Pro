@@ -6,14 +6,18 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-// Contexto interno para mapear value → label e exibir corretamente no trigger
-const SelectItemsMapContext = React.createContext<React.MutableRefObject<Map<string, React.ReactNode>> | null>(null)
+// Contexto interno para mapear value → label e exibir corretamente no trigger.
+// `hasItems` indica que o caller passou `items` ao <Select>, caso em que o Base UI
+// resolve o label nativamente e o fallback do mapa não deve ser usado.
+type SelectItemsMap = React.MutableRefObject<Map<string, React.ReactNode>> & { hasItems: boolean }
+const SelectItemsMapContext = React.createContext<SelectItemsMap | null>(null)
 
 function Select<Value = string, Multiple extends boolean | undefined = false>({
   children,
   ...props
 }: SelectPrimitive.Root.Props<Value, Multiple>) {
-  const mapRef = React.useRef<Map<string, React.ReactNode>>(new Map())
+  const mapRef = React.useRef<Map<string, React.ReactNode>>(new Map()) as SelectItemsMap
+  mapRef.hasItems = props.items != null
   return (
     <SelectItemsMapContext.Provider value={mapRef}>
       <SelectPrimitive.Root {...props}>{children}</SelectPrimitive.Root>
@@ -33,6 +37,11 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
 
 function SelectValue({ className, children, placeholder, ...props }: SelectPrimitive.Value.Props) {
   const mapRef = React.useContext(SelectItemsMapContext)
+  // Quando o caller passa `items` ao <Select> (Select.Root), o Base UI resolve o
+  // label nativamente — inclusive com o popup fechado. Nesse caso não sobrescrevemos
+  // `children`, para não cair no fallback do mapa (que só popula ao abrir o popup e
+  // exibiria o valor cru, ex: UUID). Sem `items`, mantemos o fallback via mapa.
+  const hasItems = mapRef?.hasItems ?? false
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
@@ -40,7 +49,7 @@ function SelectValue({ className, children, placeholder, ...props }: SelectPrimi
       placeholder={placeholder}
       {...props}
     >
-      {children ?? ((value: unknown) => {
+      {children ?? (hasItems ? undefined : (value: unknown) => {
         if (value == null || value === '') return null
         const label = mapRef?.current.get(String(value))
         return label ?? String(value)

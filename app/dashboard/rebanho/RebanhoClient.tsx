@@ -7,7 +7,14 @@ import { supabase } from '@/lib/supabase';
 import { hydrateEventosFromServer } from '@/lib/db/eventosRebanho';
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
-import { Plus, BarChart3, Milk, Scale, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { SelecionarAnimalDialog } from './components/SelecionarAnimalDialog';
+import { Plus, BarChart3, Milk, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -50,6 +57,7 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
   const [filtroSexo, setFiltroSexo] = useState<string>('');
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [selecionarAnimalOpen, setSelecionarAnimalOpen] = useState(false);
 
   // Hidrata o cache IndexedDB com eventos recentes do servidor na montagem inicial
   useEffect(() => {
@@ -129,32 +137,72 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão do Rebanho</h2>
-        <div className="space-x-2">
-          {isAdmin && (
-            <>
-              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/cadastro-rapido')}>
-                <Table2 className="mr-2 h-4 w-4" />
-                Cadastro Rápido
-              </Button>
-              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/importar')}>
-                <Upload className="mr-2 h-4 w-4" />
-                Importar CSV
-              </Button>
-              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/eventos/lote/novo')}>
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Lançamento em Lote
-              </Button>
-              <Button onClick={() => router.push('/dashboard/rebanho/novo')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Animal
-              </Button>
-              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/lotes')}>
-                Lotes
-              </Button>
-            </>
-          )}
-        </div>
+        {isAdmin && (
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Cadastro de animais */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Cadastrar animais
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/novo')}>
+                  <User className="mr-2 h-4 w-4" />
+                  Animal único
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/cadastro-rapido')}>
+                  <Table2 className="mr-2 h-4 w-4" />
+                  Cadastro rápido (vários)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/importar')}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Importar CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Lotes */}
+            <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/lotes')}>
+              <Users className="mr-2 h-4 w-4" />
+              Lotes
+            </Button>
+
+            {/* Lançamento de eventos */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="outline">
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Lançar eventos
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setSelecionarAnimalOpen(true)}>
+                  <FileInput className="mr-2 h-4 w-4" />
+                  Evento em um animal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/eventos/lote/novo')}>
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Lançamento múltiplo
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
+
+      <SelecionarAnimalDialog
+        open={selecionarAnimalOpen}
+        onOpenChange={setSelecionarAnimalOpen}
+        animais={animais}
+      />
 
       {/* Aviso de primeiro cadastro — sem animais e sem lotes */}
       {rebanhoVazio && isAdmin && (
