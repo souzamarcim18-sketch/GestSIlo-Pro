@@ -168,7 +168,12 @@
       "Bash(curl -s -o /dev/null -w \"no-auth: %{http_code}\\\\n\" -L --max-redirs 0 http://localhost:3100/dashboard/rebanho/importar)",
       "Bash(timeout 480 npm run build > /tmp/gestsilo-build2.log 2>&1; echo \"EXIT=$?\"; grep -E \"rebanho/importar|Failed|Error|error\" /tmp/gestsilo-build2.log | head -15; echo \"--- tail ---\"; tail -6 /tmp/gestsilo-build2.log)",
       "Bash(pkill -f \"next\")",
-      "Bash(rm -f /tmp/gestsilo-*.log; echo \"cleaned\"; echo \"=== final page.tsx render block ===\"; sed -n '54,56p' app/dashboard/rebanho/importar/page.tsx)"
+      "Bash(rm -f /tmp/gestsilo-*.log; echo \"cleaned\"; echo \"=== final page.tsx render block ===\"; sed -n '54,56p' app/dashboard/rebanho/importar/page.tsx)",
+      "PowerShell($out = npx tsc --noEmit 2>&1; $talhoes = $out | Select-String -Pattern \"talhoes\" -SimpleMatch; if \\($talhoes\\) { $talhoes } else { Write-Output \"NENHUM erro em arquivos talhoes\" }; Write-Output \"---\"; Write-Output \\(\"Total de linhas de erro tsc: \" + \\($out | Measure-Object -Line\\).Lines\\))",
+      "PowerShell(npx next lint --file lib/hooks/useSyncOnReconnect.ts 2>&1)",
+      "PowerShell(npm run clean 2>&1)",
+      "PowerShell(git stash)",
+      "PowerShell(git stash pop)"
     ],
     "additionalDirectories": [
       "\\tmp"

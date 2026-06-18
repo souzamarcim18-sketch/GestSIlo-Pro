@@ -77,10 +77,14 @@ export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
   );
 
   const handleDownloadTemplate = useCallback(() => {
-    const template = `brinco,nome,sexo,data_nascimento,tipo_rebanho,categoria,lote,raca,origem,peso_nascimento,peso_atual,observacoes
-001,Mimosa,Fêmea,2020-01-15,leiteiro,,Lote A,Holandesa,nascido,38,480,Animal saudável
-002,,Macho,2021-03-20,leiteiro,,Lote A,Holandesa,comprado,40,520,
-003,Estrela,Fêmea,2019-06-10,corte,,Lote B,Nelore,nascido,32,,Matriz`;
+    // Usa ponto e vírgula como separador: é o delimitador que o Excel em
+    // locale pt-BR espera. Com vírgula, o Excel joga tudo na coluna A.
+    // A linha "sep=;" instrui o Excel a usar ";" independente do locale.
+    const template = `sep=;
+brinco;nome;sexo;data_nascimento;tipo_rebanho;categoria;lote;raca;origem;peso_nascimento;peso_atual;observacoes
+001;Mimosa;Fêmea;2020-01-15;leiteiro;;Lote A;Holandesa;nascido;38;480;Animal saudável
+002;;Macho;2021-03-20;leiteiro;;Lote A;Holandesa;comprado;40;520;
+003;Estrela;Fêmea;2019-06-10;corte;;Lote B;Nelore;nascido;32;;Matriz`;
     const blob = new Blob([`﻿${template}`], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

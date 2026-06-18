@@ -371,9 +371,22 @@ export async function registrarEvento(
 // e autodetecta o delimitador (Excel BR exporta com ';'). Substitui o split(',')
 // manual que quebrava com qualquer campo contendo vírgula.
 function parseCSV(conteudo: string): Record<string, string>[] {
-  const { data } = Papa.parse<Record<string, string>>(conteudo, {
+  // Excel (locale pt-BR) só separa colunas corretamente com ';' ou com a
+  // diretiva "sep=;" na primeira linha. Nosso template embute essa diretiva,
+  // então removemos antes de entregar ao PapaParse — e usamos o delimitador
+  // declarado quando presente (PapaParse não entende a convenção "sep=").
+  let texto = conteudo.replace(/^﻿/, '');
+  let delimiter: string | undefined;
+  const sepMatch = texto.match(/^sep=(.)\r?\n/i);
+  if (sepMatch) {
+    delimiter = sepMatch[1];
+    texto = texto.slice(sepMatch[0].length);
+  }
+
+  const { data } = Papa.parse<Record<string, string>>(texto, {
     header: true,
     skipEmptyLines: true,
+    delimiter, // undefined → PapaParse autodetecta (Excel BR exporta com ';')
     transformHeader: (h) => h.trim().toLowerCase(),
     transform: (v) => (typeof v === 'string' ? v.trim() : v),
   });

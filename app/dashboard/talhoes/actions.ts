@@ -245,6 +245,8 @@ export async function criarAtividadeCampoAction(
           };
         }
 
+        // movimentacoes_insumo NÃO possui coluna fazenda_id — isola por JOIN com insumos (RLS).
+        // Enviar fazenda_id aqui faz o PostgREST rejeitar o INSERT (coluna inexistente).
         const { error: insumoError } = await supabase.from('movimentacoes_insumo').insert({
           insumo_id: parsed.insumo_id,
           tipo: 'Saída',
@@ -256,12 +258,14 @@ export async function criarAtividadeCampoAction(
           origem: 'talhao',
           data: parsed.data,
           observacoes: `Aplicado em atividade: ${parsed.tipo_operacao} — ${ctx.talhaoNome}`,
-          fazenda_id,
         });
 
         if (insumoError) {
           await supabase.from('atividades_campo').delete().eq('id', atividade.id);
-          return { success: false, error: 'Falha ao registrar saída de insumo. Operação revertida.' };
+          return {
+            success: false,
+            error: `Falha ao registrar saída de insumo. Operação revertida. (${insumoError.message})`,
+          };
         }
       }
     }
