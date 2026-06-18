@@ -60,6 +60,7 @@ function KpiCard({
   icon: Icon,
   href,
   className,
+  linkLabel = 'Ver detalhes',
 }: {
   title: string;
   value: string;
@@ -67,6 +68,7 @@ function KpiCard({
   icon?: React.ElementType;
   href: string;
   className?: string;
+  linkLabel?: string;
 }) {
   const router = useRouter();
   return (
@@ -87,6 +89,9 @@ function KpiCard({
             </div>
           )}
         </div>
+        {linkLabel && (
+          <span className="text-xs text-primary group-hover:underline inline-block pt-2">{linkLabel} →</span>
+        )}
       </Card>
     </button>
   );
@@ -391,6 +396,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                 ) : (
                   <p className="text-xs text-muted-foreground text-center">Nenhum silo aberto</p>
                 )}
+                <span className="text-xs text-primary group-hover:underline inline-block">Ver detalhes →</span>
               </div>
             </button>
           </div>
@@ -427,6 +433,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               href="/dashboard/financeiro"
               variacaoPct={data.receitaVariacaoPct}
               variacaoTipo="receita"
+              linkLabel="Ver detalhes"
             />
             <FinanceiroCard
               title="DESPESA DO MÊS"
@@ -435,12 +442,14 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
               href="/dashboard/financeiro"
               variacaoPct={data.despesaVariacaoPct}
               variacaoTipo="despesa"
+              linkLabel="Ver detalhes"
             />
             <FinanceiroCard
               title="SALDO LÍQUIDO"
               value={formatBRL(data.receitaMesNum - data.despesaMesNum)}
               variante={data.receitaMesNum - data.despesaMesNum >= 0 ? 'saldo_positivo' : 'saldo_negativo'}
               href="/dashboard/financeiro"
+              linkLabel="Ver detalhes"
             />
             <FinanceiroCard
               title="SALDO ACUMULADO"
@@ -530,6 +539,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                 chart={<PieCategoriasRebanho data={data.categoriasRebanho} total={data.totalAnimais} />}
                 className="flex-1"
                 onClick={() => router.push('/dashboard/rebanho')}
+                linkLabel="Ver detalhes"
               />
             )}
           </div>
@@ -568,6 +578,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                     ))}
                   </div>
                 )}
+                <span className="text-xs text-primary group-hover:underline inline-block">Ver detalhes →</span>
               </div>
             </button>
           </div>
@@ -617,7 +628,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-primary mt-4 group-hover:underline">Ver pastagens →</p>
+                <p className="text-xs text-primary mt-4 group-hover:underline">Ver detalhes →</p>
               </Card>
             </button>
             <button
@@ -647,24 +658,12 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                     <Leaf className="h-4 w-4 text-primary" />
                   </div>
                 </div>
+                <span className="text-xs text-primary group-hover:underline inline-block pt-2">Ver detalhes →</span>
               </Card>
             </button>
           </div>
           )}
         </div>
-      </section>
-
-      {/* Frota */}
-      <section aria-label="Frota">
-        <SectionLabel>Frota</SectionLabel>
-        {!planoPermiteModulo(planoAtual, 'frota') ? (
-          <LockedModuleCard modulo="frota" className="min-h-[140px]" />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <KpiCard title="MANUTENÇÃO" value={data.maquinasDetalhe} detail="Status das manutenções" icon={Truck} href="/dashboard/frota" />
-            <KpiCard title="FROTA" value={data.maquinasTotal} detail="Máquinas cadastradas" icon={AlertTriangle} href="/dashboard/frota" />
-          </div>
-        )}
       </section>
 
       {/* Atividades Recentes — faixa fina quando vazio, bloco completo quando há dados */}

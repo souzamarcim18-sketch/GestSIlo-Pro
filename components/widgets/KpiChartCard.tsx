@@ -8,14 +8,16 @@ interface KpiChartCardProps {
   chart: React.ReactNode
   className?: string
   onClick?: () => void
+  /** quando presente, exibe um link "ver detalhes" no rodapé do card */
+  linkLabel?: string
 }
 
-export function KpiChartCard({ label, sublabel, chart, className, onClick }: KpiChartCardProps) {
+export function KpiChartCard({ label, sublabel, chart, className, onClick, linkLabel }: KpiChartCardProps) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        'text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]',
+        'text-left w-full group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00c45a] focus-visible:ring-offset-2 rounded-[13px]',
         className
       )}
     >
@@ -28,6 +30,9 @@ export function KpiChartCard({ label, sublabel, chart, className, onClick }: Kpi
         </div>
         {sublabel && (
           <p className="text-sm text-muted-foreground text-center">{sublabel}</p>
+        )}
+        {linkLabel && (
+          <span className="text-xs text-primary group-hover:underline inline-block">{linkLabel} →</span>
         )}
       </div>
     </button>
