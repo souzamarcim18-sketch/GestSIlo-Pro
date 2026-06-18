@@ -248,58 +248,17 @@ const movimentacoesSilo = {
       }
     }
 
-    // Integração financeiro: registrar receita em vendas de silagem
-    if (payload.subtipo === 'Venda' && payload.valor_unitario != null) {
-      const { createSupabaseServerClient } = await import('./server');
-      const supabaseServer = await createSupabaseServerClient();
-      try {
-        const receitaPayload = {
-          tipo: 'Receita' as const,
-          categoria: 'Silagem',
-          descricao: `Venda de silagem — Silo: ${(silo as { nome: string }).nome}`,
-          valor: payload.quantidade * payload.valor_unitario,
-          data: payload.data,
-          referencia_tipo: 'Silo',
-          referencia_id: payload.silo_id,
-          natureza: 'variavel' as const,
-        };
-        const { data: receitaData, error: receitaError } = await supabaseServer
-          .from('financeiro')
-          .insert(receitaPayload)
-          .select('id')
-          .single();
-        if (receitaError) throw receitaError;
-
-        await supabaseServer
-          .from('movimentacoes_silo')
-          .update({ receita_id: receitaData.id })
-          .eq('id', mov.id);
-      } catch {
-        // Rollback: remover a movimentação criada
-        await supabase.from('movimentacoes_silo').delete().eq('id', mov.id);
-        throw new Error('Falha ao registrar receita da venda');
-      }
-    }
-
+    // A integração financeiro (receita da venda de silagem) é feita pelo
+    // chamador via Server Action registrarReceitaVendaSiloAction — o cliente
+    // server (next/headers) não pode ser usado a partir do browser.
     return mov;
   },
 
   async remove(id: string): Promise<void> {
     await getFazendaId(); // garante sessão ativa antes de deletar
 
-    // Cleanup: remover receita financeira vinculada (se existir)
-    const { data: mov } = await supabase
-      .from('movimentacoes_silo')
-      .select('id, receita_id')
-      .eq('id', id)
-      .single();
-
-    if (mov?.receita_id) {
-      const { createSupabaseServerClient } = await import('./server');
-      const supabaseServer = await createSupabaseServerClient();
-      await supabaseServer.from('financeiro').delete().eq('id', mov.receita_id);
-    }
-
+    // Cleanup do financeiro: o chamador deve invocar removerReceitaVendaSiloAction
+    // (Server Action) antes de remover, caso a movimentação tenha receita_id.
     const { error } = await supabase
       .from('movimentacoes_silo')
       .delete()

@@ -13,7 +13,7 @@ import { type SiloStatus } from '../helpers';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MoreVertical, Pencil, Eye, TrendingUp, TrendingDown, Minus, DoorOpen } from 'lucide-react';
-import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts';
+import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 
 interface SiloCardProps {
   silo: Silo;
@@ -113,6 +113,12 @@ function MiniGauge({ percentual, color }: { percentual: number; color: string })
           data={data}
           barSize={8}
         >
+          <PolarAngleAxis
+            type="number"
+            domain={[0, 100]}
+            angleAxisId={0}
+            tick={false}
+          />
           <RadialBar
             dataKey="value"
             cornerRadius={4}

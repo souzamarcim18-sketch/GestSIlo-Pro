@@ -34,6 +34,7 @@ import { z } from 'zod';
 import { type Silo } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
+import { registrarReceitaVendaSiloAction } from '../../actions';
 import { AlertTriangle } from 'lucide-react';
 
 const movimentacaoDialogSchema = movimentacaoSiloSchema.and(
@@ -126,7 +127,8 @@ export function MovimentacaoDialog({
 
   const handleSubmit = async (data: MovimentacaoDialogInput) => {
     try {
-      await q.movimentacoesSilo.create({
+      const ehVenda = data.subtipo === 'Venda' && data.valor_unitario != null;
+      const mov = await q.movimentacoesSilo.create({
         silo_id: data.silo_id,
         tipo: data.tipo,
         subtipo: data.tipo === 'Saída' ? (data.subtipo ?? null) : null,
@@ -138,6 +140,26 @@ export function MovimentacaoDialog({
         valor_unitario: data.subtipo === 'Venda' ? (data.valor_unitario ?? null) : null,
         comprador: data.subtipo === 'Venda' ? (data.comprador || null) : null,
       });
+
+      // Integração financeiro: registrar receita da venda via Server Action
+      if (ehVenda && data.valor_unitario != null) {
+        const res = await registrarReceitaVendaSiloAction(
+          mov.id,
+          data.silo_id,
+          data.quantidade,
+          data.valor_unitario,
+          data.data,
+        );
+        if (!res.success) {
+          toast.warning(
+            'Saída registrada, mas houve falha ao lançar a receita no financeiro. Registre manualmente.',
+          );
+          onOpenChange(false);
+          onSuccess();
+          return;
+        }
+      }
+
       toast.success('Movimentação registrada com sucesso!');
       onOpenChange(false);
       onSuccess();

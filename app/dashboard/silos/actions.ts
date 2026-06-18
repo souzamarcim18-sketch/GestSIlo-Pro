@@ -56,6 +56,81 @@ export async function vincularColaboradorSiloAction(
 }
 
 /**
+ * Registra a receita financeira de uma venda de silagem e vincula à movimentação.
+ * Chamado do Client Component MovimentacaoDialog após q.movimentacoesSilo.create().
+ *
+ * Substitui a antiga integração inline em queries-audit.ts, que falhava porque
+ * o cliente server (next/headers) não pode ser usado a partir do browser.
+ */
+export async function registrarReceitaVendaSiloAction(
+  movimentacaoId: string,
+  siloId: string,
+  quantidade: number,
+  valorUnitario: number,
+  data: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Não autenticado' };
+
+  const { data: silo, error: siloError } = await supabase
+    .from('silos')
+    .select('id, nome')
+    .eq('id', siloId)
+    .single();
+  if (siloError || !silo) {
+    return { success: false, error: 'Silo não encontrado' };
+  }
+
+  const { data: receitaData, error: receitaError } = await supabase
+    .from('financeiro')
+    .insert({
+      tipo: 'Receita' as const,
+      categoria: 'Silagem',
+      descricao: `Venda de silagem — Silo: ${silo.nome}`,
+      valor: quantidade * valorUnitario,
+      data,
+      referencia_tipo: 'Silo',
+      referencia_id: siloId,
+      natureza: 'variavel' as const,
+    })
+    .select('id')
+    .single();
+
+  if (receitaError || !receitaData) {
+    return { success: false, error: 'Falha ao registrar receita da venda' };
+  }
+
+  const { error: updateError } = await supabase
+    .from('movimentacoes_silo')
+    .update({ receita_id: receitaData.id })
+    .eq('id', movimentacaoId);
+
+  if (updateError) {
+    // Receita criada mas vínculo falhou — recuperável via referencia_id no financeiro
+    console.error('Falha ao vincular receita_id à movimentação', updateError);
+  }
+
+  return { success: true };
+}
+
+/**
+ * Remove a receita financeira vinculada a uma movimentação de silo (cleanup).
+ * Chamado do Client Component antes de deletar a movimentação.
+ */
+export async function removerReceitaVendaSiloAction(
+  receitaId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Não autenticado' };
+
+  const { error } = await supabase.from('financeiro').delete().eq('id', receitaId);
+  if (error) return { success: false, error: 'Erro ao remover receita' };
+  return { success: true };
+}
+
+/**
  * Registra manualmente a abertura de um silo (data_abertura_real).
  * Complementa o fluxo automático que ocorre na primeira saída registrada.
  */
