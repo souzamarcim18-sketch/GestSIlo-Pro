@@ -9,7 +9,7 @@ import {
   PaginationLink, PaginationNext, PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUpRight, ArrowDownRight, Trash2, History } from 'lucide-react';
+import { Plus, Minus, SlidersHorizontal, Trash2, History } from 'lucide-react';
 import type { Insumo, CategoriaInsumo } from '@/types/insumos';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -22,6 +22,7 @@ interface InsumosListProps {
     tipo_id: string;
   };
   loading: boolean;
+  onEntradaClick: (insumo: Insumo) => void;
   onSaidaClick: (insumo: Insumo) => void;
   onAjusteClick: (insumo: Insumo) => void;
   onDeleteClick?: (insumo: Insumo) => void;
@@ -35,6 +36,7 @@ export default function InsumosList({
   categorias = [],
   filters,
   loading,
+  onEntradaClick,
   onSaidaClick,
   onAjusteClick,
   onDeleteClick,
@@ -152,10 +154,18 @@ export default function InsumosList({
                             <Button
                               size="sm"
                               variant="ghost"
+                              onClick={() => onEntradaClick(insumo)}
+                              title="Registrar entrada"
+                            >
+                              <Plus className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
                               onClick={() => onSaidaClick(insumo)}
                               title="Registrar saída"
                             >
-                              <ArrowUpRight className="h-4 w-4" />
+                              <Minus className="h-4 w-4 text-red-500" />
                             </Button>
                             <Button
                               size="sm"
@@ -163,7 +173,7 @@ export default function InsumosList({
                               onClick={() => onAjusteClick(insumo)}
                               title="Ajustar estoque"
                             >
-                              <ArrowDownRight className="h-4 w-4" />
+                              <SlidersHorizontal className="h-4 w-4" />
                             </Button>
                             {onDeleteClick && (
                               <Button

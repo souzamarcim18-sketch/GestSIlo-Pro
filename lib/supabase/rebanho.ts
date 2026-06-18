@@ -1,5 +1,6 @@
 'use server';
 
+import Papa from 'papaparse';
 import { createSupabaseServerClient } from './server';
 import { sou_admin, getCurrentUserId } from '@/lib/auth/helpers';
 import type {
@@ -9,6 +10,9 @@ import type {
   PesoAnimal,
   LoteInput,
   CSVImportResult,
+  CSVValidacaoResult,
+  CSVLinhaValidada,
+  AnimalCSVValidationResult,
   DeteccaoRebanho,
   RebanhoProjetado,
   CategoriaProjetada,
@@ -16,6 +20,7 @@ import type {
 } from '@/lib/types/rebanho';
 import {
   animalCSVRowSchema,
+  type AnimalCSVRowInput,
   type CriarAnimalInput,
   type EditarAnimalInput,
   type CriarLoteInput,
@@ -64,14 +69,15 @@ const queryAnimais = {
     return JSON.parse(JSON.stringify(data as Animal));
   },
 
-  async create(payload: CriarAnimalInput): Promise<Animal> {
+  async create(payload: CriarAnimalInput & { peso_atual?: number | null }): Promise<Animal> {
     const supabase = await createSupabaseServerClient();
+    const { peso_atual = null, ...resto } = payload;
     const { data, error } = await supabase
       .from('animais')
       .insert({
-        ...payload,
+        ...resto,
         status: 'Ativo',
-        peso_atual: null,
+        peso_atual,
       })
       .select(
         'id, fazenda_id, brinco, nome, sexo, tipo_rebanho, data_nascimento, data_nascimento_estimada, categoria, status, lote_id, peso_atual, peso_nascimento, mae_id, pai_id, raca, observacoes, sisbov_crbio, origem, foto_url, status_reprodutivo, data_ultimo_parto, data_parto_previsto, data_proxima_secagem, escore_condicao_corporal, flag_repetidora, is_reprodutor, reprodutor_vinculado_id, deleted_at, created_at, updated_at'
@@ -361,25 +367,253 @@ export async function registrarEvento(
 // FUNÇÕES DE DOMÍNIO — IMPORTAÇÃO CSV
 // ---------------------------------------------------------------------------
 
-function parseCSV(csv: string): Record<string, string>[] {
-  const linhas = csv.trim().split('\n');
-  if (linhas.length < 2) return [];
+// Parser robusto via PapaParse: lida com aspas, vírgulas dentro de campos, BOM
+// e autodetecta o delimitador (Excel BR exporta com ';'). Substitui o split(',')
+// manual que quebrava com qualquer campo contendo vírgula.
+function parseCSV(conteudo: string): Record<string, string>[] {
+  const { data } = Papa.parse<Record<string, string>>(conteudo, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (h) => h.trim().toLowerCase(),
+    transform: (v) => (typeof v === 'string' ? v.trim() : v),
+  });
+  return data;
+}
 
-  const headers = linhas[0].split(',').map((h) => h.trim());
-  const resultado: Record<string, string>[] = [];
+// Linha já validada e pronta para inserção (resultado do parsing + Zod).
+interface LinhaPreparada {
+  numeroLinha: number;
+  validado: AnimalCSVRowInput;
+}
 
-  for (let i = 1; i < linhas.length; i++) {
-    const linha = linhas[i].trim();
-    if (!linha) continue;
+// Núcleo compartilhado entre a pré-validação (dry-run), a importação por CSV e o
+// cadastro em grade. Valida cada linha com Zod, detecta duplicados DENTRO do
+// conjunto e duplicados no BANCO numa única query (.in), evitando o N+1 anterior.
+// `offsetLinha` permite ajustar a numeração exibida (CSV usa header → +2).
+async function analisarLinhas(
+  linhas: Record<string, string>[],
+  offsetLinha: number
+): Promise<{
+  total: number;
+  preparadas: LinhaPreparada[];
+  erros: AnimalCSVValidationResult[];
+}> {
+  const preparadas: LinhaPreparada[] = [];
+  const erros: AnimalCSVValidationResult[] = [];
+  const brincosNoArquivo = new Set<string>();
 
-    const valores = linha.split(',').map((v) => v.trim());
-    const obj: Record<string, string> = {};
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i];
+    const numeroLinha = i + offsetLinha;
 
-    headers.forEach((header, idx) => {
-      obj[header] = valores[idx] || '';
+    try {
+      const validado = animalCSVRowSchema.parse(linha);
+
+      if (brincosNoArquivo.has(validado.brinco)) {
+        erros.push({
+          linha: numeroLinha,
+          brinco: validado.brinco,
+          status: 'erro',
+          mensagem: `Brinco ${validado.brinco} duplicado dentro do arquivo.`,
+        });
+        continue;
+      }
+      brincosNoArquivo.add(validado.brinco);
+      preparadas.push({ numeroLinha, validado });
+    } catch (erro) {
+      const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido';
+      erros.push({
+        linha: numeroLinha,
+        brinco: (linha.brinco as string) || '?',
+        status: 'erro',
+        mensagem,
+      });
+    }
+  }
+
+  // Duplicados no banco — uma única query para todos os brincos válidos.
+  if (preparadas.length > 0) {
+    const supabase = await createSupabaseServerClient();
+    const brincos = preparadas.map((p) => p.validado.brinco);
+    const { data, error } = await supabase
+      .from('animais')
+      .select('brinco')
+      .in('brinco', brincos)
+      .is('deleted_at', null);
+
+    if (error) throw error;
+
+    const existentes = new Set((data ?? []).map((r) => (r as { brinco: string }).brinco));
+    if (existentes.size > 0) {
+      const aindaValidas: LinhaPreparada[] = [];
+      for (const p of preparadas) {
+        if (existentes.has(p.validado.brinco)) {
+          erros.push({
+            linha: p.numeroLinha,
+            brinco: p.validado.brinco,
+            status: 'erro',
+            mensagem: `Animal com brinco ${p.validado.brinco} já existe na fazenda.`,
+          });
+        } else {
+          aindaValidas.push(p);
+        }
+      }
+      preparadas.length = 0;
+      preparadas.push(...aindaValidas);
+    }
+  }
+
+  return { total: linhas.length, preparadas, erros };
+}
+
+// Wrapper que faz o parsing do arquivo CSV e delega ao núcleo de análise.
+async function analisarCSV(arquivo: File) {
+  const conteudo = await arquivo.text();
+  const linhas = parseCSV(conteudo);
+  return analisarLinhas(linhas, 2); // +1 header, +1 base-1
+}
+
+/**
+ * Pré-validação (dry-run): valida o arquivo inteiro SEM gravar nada.
+ * Alimenta a tela de revisão antes da confirmação.
+ */
+export async function validarAnimaisCSV(arquivo: File): Promise<CSVValidacaoResult> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem importar animais.');
+  }
+
+  const { total, preparadas, erros } = await analisarCSV(arquivo);
+
+  const dupArquivo = erros.filter((e) => e.mensagem?.includes('duplicado dentro do arquivo')).length;
+  const dupBanco = erros.filter((e) => e.mensagem?.includes('já existe na fazenda')).length;
+
+  const linhasValidas: CSVLinhaValidada[] = preparadas.map((p) => ({
+    linha: p.numeroLinha,
+    brinco: p.validado.brinco,
+    sexo: p.validado.sexo,
+    data_nascimento: p.validado.data_nascimento,
+    tipo_rebanho: p.validado.tipo_rebanho,
+    lote: p.validado.lote ?? undefined,
+    status: 'valido',
+  }));
+
+  const linhasComErro: CSVLinhaValidada[] = erros.map((e) => ({
+    linha: e.linha,
+    brinco: e.brinco,
+    sexo: '',
+    data_nascimento: '',
+    tipo_rebanho: '',
+    status: 'erro',
+    mensagem: e.mensagem,
+  }));
+
+  const linhas = [...linhasValidas, ...linhasComErro].sort((a, b) => a.linha - b.linha);
+
+  return {
+    total_linhas: total,
+    validos: preparadas.length,
+    com_erro: erros.length,
+    duplicados_arquivo: dupArquivo,
+    duplicados_banco: dupBanco,
+    linhas,
+  };
+}
+
+// Resolve lotes (com cache + criação automática) e insere animais + evento de
+// nascimento. Compartilhado entre a importação por CSV e o cadastro em grade.
+async function persistirAnimaisPreparados(
+  preparadas: LinhaPreparada[],
+  errosIniciais: AnimalCSVValidationResult[],
+  total: number,
+  origem: 'CSV' | 'grade',
+  criarLoteAutomatico: boolean
+): Promise<CSVImportResult> {
+  const userId = await getCurrentUserId();
+
+  const resultado: CSVImportResult = {
+    total_linhas: total,
+    importados: 0,
+    erros: errosIniciais,
+  };
+
+  // Resolve lotes referenciados: cache por nome para não recriar nem reconsultar.
+  const cacheLotes = new Map<string, Lote>();
+  let loteAutomatico: Lote | null = null;
+
+  const animaisParaInserir: Array<{
+    payload: CriarAnimalInput & { peso_atual?: number | null };
+    pesoAtual: number | null;
+  }> = [];
+
+  for (const { numeroLinha, validado } of preparadas) {
+    let loteId: string | null = null;
+    if (validado.lote) {
+      const chave = validado.lote;
+      let lote = cacheLotes.get(chave) ?? (await queryLotes.getByNome(chave));
+      if (!lote) {
+        if (criarLoteAutomatico) {
+          if (!loteAutomatico) {
+            const dataHoje = new Date().toISOString().split('T')[0];
+            loteAutomatico = await queryLotes.create({
+              nome: `Importação ${dataHoje}`,
+              descricao: `Lote criado automaticamente durante cadastro via ${origem}`,
+            });
+          }
+          lote = loteAutomatico;
+        } else {
+          resultado.erros.push({
+            linha: numeroLinha,
+            brinco: validado.brinco,
+            status: 'erro',
+            mensagem: `Lote "${validado.lote}" não existe.`,
+          });
+          continue;
+        }
+      }
+      cacheLotes.set(chave, lote);
+      loteId = lote.id;
+    }
+
+    const { lote: _lote, peso_atual, ...dadosAnimal } = validado;
+    void _lote;
+    animaisParaInserir.push({
+      payload: {
+        ...dadosAnimal,
+        data_nascimento_estimada: validado.data_nascimento_estimada ?? false,
+        lote_id: loteId,
+      },
+      pesoAtual: peso_atual ?? null,
     });
+  }
 
-    resultado.push(obj);
+  for (const { payload, pesoAtual } of animaisParaInserir) {
+    try {
+      const animal = await queryAnimais.create({ ...payload, peso_atual: pesoAtual });
+
+      await queryEventos.create({
+        animal_id: animal.id,
+        tipo: TipoEvento.NASCIMENTO,
+        data_evento: animal.data_nascimento,
+        observacoes: `Evento de nascimento importado via ${origem}`,
+        usuario_id: userId,
+      });
+
+      resultado.importados++;
+    } catch (erro) {
+      const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido';
+      resultado.erros.push({
+        linha: 0,
+        brinco: payload.brinco,
+        status: 'erro',
+        mensagem: `Falha ao inserir ${payload.brinco}: ${mensagem}`,
+      });
+    }
+  }
+
+  if (loteAutomatico) {
+    resultado.lote_criado_id = loteAutomatico.id;
+    resultado.lote_criado_nome = loteAutomatico.nome;
   }
 
   return resultado;
@@ -394,107 +628,25 @@ export async function importarAnimaisCSV(
     throw new Error('Apenas administradores podem importar animais.');
   }
 
-  const userId = await getCurrentUserId();
-  const conteudoArquivo = await arquivo.text();
-  const linhas = parseCSV(conteudoArquivo);
+  const { total, preparadas, erros } = await analisarCSV(arquivo);
+  return persistirAnimaisPreparados(preparadas, erros, total, 'CSV', criarLoteAutomatico);
+}
 
-  const resultado: CSVImportResult = {
-    total_linhas: linhas.length,
-    importados: 0,
-    erros: [],
-  };
-
-  const animaisParaInserir: CriarAnimalInput[] = [];
-  let loteAutomatico: Lote | null = null;
-
-  for (let i = 0; i < linhas.length; i++) {
-    const linha = linhas[i];
-    const numeroLinha = i + 2;
-
-    try {
-      const validado = animalCSVRowSchema.parse(linha);
-
-      const existente = await queryAnimais.getByBrinco(validado.brinco);
-      if (existente) {
-        resultado.erros.push({
-          linha: numeroLinha,
-          brinco: validado.brinco,
-          status: 'erro',
-          mensagem: `Animal com brinco ${validado.brinco} já existe.`,
-        });
-        continue;
-      }
-
-      let loteId: string | null = null;
-      if (validado.lote) {
-        let lote = await queryLotes.getByNome(validado.lote);
-        if (!lote) {
-          if (criarLoteAutomatico) {
-            if (!loteAutomatico) {
-              const dataHoje = new Date().toISOString().split('T')[0];
-              loteAutomatico = await queryLotes.create({
-                nome: `Importação ${dataHoje}`,
-                descricao: 'Lote criado automaticamente durante importação CSV',
-              });
-            }
-            lote = loteAutomatico;
-          } else {
-            resultado.erros.push({
-              linha: numeroLinha,
-              brinco: validado.brinco,
-              status: 'erro',
-              mensagem: `Lote "${validado.lote}" não existe.`,
-            });
-            continue;
-          }
-        }
-        loteId = lote.id;
-      }
-
-      animaisParaInserir.push({
-        ...validado,
-        data_nascimento_estimada: validado.data_nascimento_estimada ?? false,
-        lote_id: loteId,
-      });
-    } catch (erro) {
-      const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido';
-      resultado.erros.push({
-        linha: numeroLinha,
-        brinco: linha.brinco || '?',
-        status: 'erro',
-        mensagem,
-      });
-    }
+/**
+ * Cadastro em massa via grade editável (sem planilha). Recebe as linhas já
+ * digitadas pelo usuário, reaproveita o mesmo núcleo de validação/duplicados
+ * e inserção da importação CSV.
+ */
+export async function cadastrarAnimaisLote(
+  linhas: Record<string, string>[]
+): Promise<CSVImportResult> {
+  const admin = await sou_admin();
+  if (!admin) {
+    throw new Error('Apenas administradores podem cadastrar animais.');
   }
 
-  if (animaisParaInserir.length > 0) {
-    try {
-      for (const animalPayload of animaisParaInserir) {
-        const animal = await queryAnimais.create(animalPayload);
-
-        await queryEventos.create({
-          animal_id: animal.id,
-          tipo: TipoEvento.NASCIMENTO,
-          data_evento: animal.data_nascimento,
-          observacoes: 'Evento de nascimento importado via CSV',
-          usuario_id: userId,
-        });
-
-        resultado.importados++;
-      }
-
-      if (loteAutomatico) {
-        resultado.lote_criado_id = loteAutomatico.id;
-        resultado.lote_criado_nome = loteAutomatico.nome;
-      }
-    } catch (erro) {
-      throw new Error(
-        `Falha ao inserir animais: ${erro instanceof Error ? erro.message : 'Erro desconhecido'}`
-      );
-    }
-  }
-
-  return resultado;
+  const { total, preparadas, erros } = await analisarLinhas(linhas, 1);
+  return persistirAnimaisPreparados(preparadas, erros, total, 'grade', true);
 }
 
 // ---------------------------------------------------------------------------

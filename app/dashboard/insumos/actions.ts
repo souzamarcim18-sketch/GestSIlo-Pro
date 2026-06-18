@@ -2,7 +2,7 @@
 
 import { qServer } from '@/lib/supabase/queries-audit';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { insumoFormSchema, saidaFormSchema, ajusteInventarioSchema } from '@/lib/validations/insumos';
+import { insumoFormSchema, saidaFormSchema, ajusteInventarioSchema, entradaInsumoSchema } from '@/lib/validations/insumos';
 import { revalidatePath } from 'next/cache';
 
 /**
@@ -205,6 +205,70 @@ export async function criarSaidaAction(formData: unknown) {
     return { success: true, despesa_id };
   } catch (error) {
     console.error('Erro ao registrar saída:', error);
+    throw error;
+  }
+}
+
+/**
+ * Registra uma entrada de estoque para um insumo já existente.
+ * Se registrar_como_despesa for true, cria automaticamente um lançamento financeiro.
+ */
+export async function criarEntradaInsumoAction(formData: unknown) {
+  const parsed = entradaInsumoSchema.parse(formData);
+
+  try {
+    // Buscar insumo para validar existência e obter dados
+    const insumo = await qServer.insumos.getById(parsed.insumo_id);
+
+    const movimentacao = await qServer.movimentacoesInsumo.create({
+      insumo_id: parsed.insumo_id,
+      tipo: 'Entrada',
+      quantidade: parsed.quantidade,
+      valor_unitario: parsed.valor_unitario || insumo.custo_medio,
+      responsavel: parsed.responsavel,
+      data: parsed.data,
+      observacoes: parsed.observacoes,
+      origem: 'manual',
+    });
+
+    // Integração Financeiro: Se marcado, criar despesa automática
+    let despesa_id: string | null = null;
+    if (parsed.registrar_como_despesa) {
+      try {
+        const despesa = await qServer.financeiro.create({
+          categoria: 'Insumos',
+          descricao: `Entrada de ${insumo.nome}: ${parsed.quantidade} ${insumo.unidade}`,
+          valor: parsed.quantidade * (parsed.valor_unitario || insumo.custo_medio),
+          data: parsed.data,
+          tipo: 'Despesa',
+          forma_pagamento: null,
+          referencia_id: movimentacao.id,
+          referencia_tipo: null,
+          natureza: 'variavel',
+        });
+
+        despesa_id = despesa.id;
+
+        // Linkar despesa à movimentação
+        const supabaseServer = await createSupabaseServerClient();
+        await supabaseServer
+          .from('movimentacoes_insumo')
+          .update({ despesa_id })
+          .eq('id', movimentacao.id);
+      } catch (despesaError) {
+        // Se falhar ao criar despesa, reverter movimentação (transação atômica)
+        console.error('Erro ao criar despesa. Revertendo movimentação.', despesaError);
+        await qServer.movimentacoesInsumo.remove(movimentacao.id);
+        throw new Error(
+          'Falha ao registrar como despesa. Operação revertida. Tente novamente.'
+        );
+      }
+    }
+
+    revalidatePath('/dashboard/insumos');
+    return { success: true, despesa_id };
+  } catch (error) {
+    console.error('Erro ao registrar entrada:', error);
     throw error;
   }
 }

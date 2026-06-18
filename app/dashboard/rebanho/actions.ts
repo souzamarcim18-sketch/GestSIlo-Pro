@@ -25,11 +25,13 @@ import {
   deletarLote,
   registrarEvento,
   importarAnimaisCSV,
+  validarAnimaisCSV,
+  cadastrarAnimaisLote,
   mudarCategoriaAnimalAction as mudarCategoriaAnimal,
 } from '@/lib/supabase/rebanho';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { TipoEvento } from '@/lib/types/rebanho';
-import type { CSVImportResult } from '@/lib/types/rebanho';
+import type { CSVImportResult, CSVValidacaoResult } from '@/lib/types/rebanho';
 
 // ========== ANIMAIS ==========
 
@@ -211,6 +213,67 @@ export async function registrarEventoAction(
 
 // ========== IMPORTAÇÃO CSV ==========
 
+/**
+ * Pré-valida o CSV sem gravar nada (dry-run) para alimentar a tela de revisão.
+ * Em caso de falha geral, retorna um resultado com erro na linha 0.
+ */
+export async function validarCSVAction(
+  formData: FormData
+): Promise<CSVValidacaoResult> {
+  try {
+    const arquivo = formData.get('arquivo') as File | null;
+
+    if (!arquivo) {
+      return {
+        total_linhas: 0,
+        validos: 0,
+        com_erro: 1,
+        duplicados_arquivo: 0,
+        duplicados_banco: 0,
+        linhas: [
+          {
+            linha: 0,
+            brinco: '',
+            sexo: '',
+            data_nascimento: '',
+            tipo_rebanho: '',
+            status: 'erro',
+            mensagem: 'Arquivo não fornecido',
+          },
+        ],
+      };
+    }
+
+    const arquivoValido = importarCSVSchema.shape.arquivo.parse(arquivo);
+    return await validarAnimaisCSV(arquivoValido);
+  } catch (error) {
+    const mensagem =
+      error instanceof z.ZodError
+        ? error.issues.map((e) => e.message).join('; ')
+        : error instanceof Error
+          ? error.message
+          : 'Erro desconhecido';
+    return {
+      total_linhas: 0,
+      validos: 0,
+      com_erro: 1,
+      duplicados_arquivo: 0,
+      duplicados_banco: 0,
+      linhas: [
+        {
+          linha: 0,
+          brinco: '',
+          sexo: '',
+          data_nascimento: '',
+          tipo_rebanho: '',
+          status: 'erro',
+          mensagem,
+        },
+      ],
+    };
+  }
+}
+
 export async function importarCSVAction(
   formData: FormData
 ): Promise<CSVImportResult> {
@@ -258,6 +321,42 @@ export async function importarCSVAction(
           mensagem,
         },
       ],
+    };
+  }
+}
+
+// ========== CADASTRO EM LOTE (GRADE) ==========
+
+const cadastroGradeSchema = z.object({
+  linhas: z
+    .array(z.record(z.string(), z.string()))
+    .min(1, 'Adicione ao menos uma linha')
+    .max(500, 'Máximo 500 animais por vez'),
+});
+
+/**
+ * Cadastro em massa via grade editável (sem planilha). Recebe as linhas
+ * digitadas na tela e reaproveita o núcleo de validação/inserção do CSV.
+ */
+export async function cadastrarAnimaisLoteAction(
+  input: unknown
+): Promise<CSVImportResult> {
+  try {
+    const { linhas } = cadastroGradeSchema.parse(input);
+    const resultado = await cadastrarAnimaisLote(linhas);
+    revalidatePath('/dashboard/rebanho');
+    return resultado;
+  } catch (error) {
+    const mensagem =
+      error instanceof z.ZodError
+        ? error.issues.map((e) => e.message).join('; ')
+        : error instanceof Error
+          ? error.message
+          : 'Erro desconhecido';
+    return {
+      total_linhas: 0,
+      importados: 0,
+      erros: [{ linha: 0, brinco: '', status: 'erro', mensagem }],
     };
   }
 }

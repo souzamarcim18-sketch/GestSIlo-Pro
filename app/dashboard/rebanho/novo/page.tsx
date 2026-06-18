@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,22 +18,55 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { Upload } from 'lucide-react';
 import { criarAnimalAction } from '../actions';
 import { listLotes } from '@/lib/supabase/rebanho';
 import type { Lote } from '@/lib/types/rebanho';
 import { CATEGORIAS_POR_TIPO } from '@/lib/types/rebanho';
 
+// Sentinel para "Sem lote" — Radix Select não aceita value="" (causa erro).
+const SEM_LOTE = '__none__';
+
+type Origem = 'nascido' | 'comprado';
+type TipoRebanho = 'leiteiro' | 'corte' | 'dupla_aptidao';
+
+const hoje = () => new Date().toISOString().split('T')[0];
+
+// Incrementa a parte numérica de um brinco preservando zeros à esquerda.
+// "001" -> "002", "VACA-09" -> "VACA-10", "abc" -> "abc" (inalterado)
+function incrementarBrinco(brinco: string): string {
+  const match = brinco.match(/^(.*?)(\d+)(\D*)$/);
+  if (!match) return brinco;
+  const [, prefixo, numero, sufixo] = match;
+  const proximo = String(Number(numero) + 1).padStart(numero.length, '0');
+  return `${prefixo}${proximo}${sufixo}`;
+}
+
 export default function NovoAnimalPage() {
   const router = useRouter();
   const { loading: authLoading, profile } = useAuth();
+  const brincoRef = useRef<HTMLInputElement>(null);
 
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [origem, setOrigem] = useState<'nascido' | 'comprado'>('nascido');
-  const [dataEstimada, setDataEstimada] = useState(false);
-  const [loteId, setLoteId] = useState<string>('');
-  const [tipoRebanho, setTipoRebanho] = useState<string>('leiteiro');
+
+  // Campos "fixos" (mantidos entre cadastros sequenciais)
+  const [tipoRebanho, setTipoRebanho] = useState<TipoRebanho>('leiteiro');
   const [categoria, setCategoria] = useState<string>('');
+  const [raca, setRaca] = useState<string>('');
+  const [origem, setOrigem] = useState<Origem>('nascido');
+  const [loteId, setLoteId] = useState<string>(SEM_LOTE);
+  const [dataNascimento, setDataNascimento] = useState<string>(hoje());
+  const [dataEstimada, setDataEstimada] = useState(false);
+
+  // Campos por animal
+  const [brinco, setBrinco] = useState('');
+  const [nome, setNome] = useState('');
+  const [sexo, setSexo] = useState<'Macho' | 'Fêmea'>('Fêmea');
+  const [pesoNascimento, setPesoNascimento] = useState('');
+  const [observacoes, setObservacoes] = useState('');
+
+  const [contadorSessao, setContadorSessao] = useState(0);
 
   useEffect(() => {
     if (authLoading) return;
@@ -53,81 +87,168 @@ export default function NovoAnimalPage() {
     carregarLotes();
   }, [authLoading, profile, router]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const salvar = useCallback(
+    async (continuar: boolean): Promise<boolean> => {
+      if (!brinco.trim()) {
+        toast.error('Informe o brinco do animal');
+        brincoRef.current?.focus();
+        return false;
+      }
 
-    const formData = new FormData(e.currentTarget);
-    const dados: Record<string, unknown> = Object.fromEntries(formData);
+      setIsSubmitting(true);
 
-    if (dados.peso_nascimento) {
-      const peso = String(dados.peso_nascimento).replace(',', '.');
-      dados.peso_nascimento = Number(peso);
-    }
+      const dados: Record<string, unknown> = {
+        brinco: brinco.trim(),
+        nome: nome.trim(),
+        sexo,
+        tipo_rebanho: tipoRebanho,
+        categoria,
+        data_nascimento: dataNascimento,
+        data_nascimento_estimada: dataEstimada,
+        lote_id: loteId === SEM_LOTE ? '' : loteId,
+        raca: raca.trim(),
+        origem,
+        peso_nascimento:
+          origem === 'nascido' && pesoNascimento
+            ? Number(pesoNascimento.replace(',', '.'))
+            : '',
+        observacoes: observacoes.trim(),
+      };
 
-    try {
-      const result = await criarAnimalAction(dados);
-      if (result.success) {
+      try {
+        const result = await criarAnimalAction(dados);
+        if (!result.success) {
+          toast.error(result.error || 'Erro ao criar animal');
+          return false;
+        }
+
+        if (continuar) {
+          // Mantém os campos fixos; limpa os por-animal e prepara o próximo brinco.
+          toast.success(`${brinco.trim()} cadastrado`);
+          setContadorSessao((c) => c + 1);
+          setBrinco(incrementarBrinco(brinco.trim()));
+          setNome('');
+          setPesoNascimento('');
+          setObservacoes('');
+          // refoco no brinco para digitar/conferir o próximo
+          setTimeout(() => brincoRef.current?.select(), 0);
+          return true;
+        }
+
         toast.success('Animal criado com sucesso');
         router.push(`/dashboard/rebanho/${result.animal_id}`);
-      } else {
-        toast.error(result.error || 'Erro ao criar animal');
+        return true;
+      } catch {
+        toast.error('Erro ao criar animal');
+        return false;
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (err) {
-      toast.error('Erro ao criar animal');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    [
+      brinco,
+      nome,
+      sexo,
+      tipoRebanho,
+      categoria,
+      dataNascimento,
+      dataEstimada,
+      loteId,
+      raca,
+      origem,
+      pesoNascimento,
+      observacoes,
+      router,
+    ]
+  );
+
+  const categoriasDisponiveis = CATEGORIAS_POR_TIPO[tipoRebanho] ?? [];
 
   return (
     <div className="p-6 md:p-8">
-      <div className="space-y-6 max-w-2xl">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Novo Animal</h1>
+      <div className="space-y-6 max-w-3xl">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Novo Animal</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {contadorSessao > 0
+                ? `${contadorSessao} animal(is) cadastrado(s) nesta sessão`
+                : 'Cadastre um animal por vez ou use a importação em lote'}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/dashboard/rebanho/importar')}
+          >
+            <Upload className="size-4" aria-hidden="true" />
+            Importar planilha (CSV)
+          </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados do Animal</CardTitle>
-            <CardDescription>Preencha as informações do novo animal</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Brinco e Nome */}
+        {/* Aviso de produtividade para grandes volumes */}
+        <div className="rounded-lg border border-border bg-surface px-4 py-3 text-sm text-muted-foreground">
+          <span className="text-foreground font-medium">Muitos animais para cadastrar?</span>{' '}
+          Use <span className="text-foreground">Salvar e cadastrar próximo</span> — os campos fixos
+          (tipo, categoria, raça, lote, origem e data) são mantidos e o brinco avança
+          automaticamente. Para centenas de animais, prefira a{' '}
+          <Link href="/dashboard/rebanho/importar" className="text-primary underline underline-offset-2">
+            importação por planilha
+          </Link>
+          .
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void salvar(false);
+          }}
+          className="space-y-5"
+        >
+          {/* SEÇÃO: Identificação */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Identificação</CardTitle>
+              <CardDescription>Como o animal é reconhecido no rebanho</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="brinco">Brinco *</Label>
                   <Input
                     id="brinco"
-                    name="brinco"
+                    ref={brincoRef}
+                    value={brinco}
+                    onChange={(e) => setBrinco(e.target.value)}
                     placeholder="Ex: 001"
+                    autoFocus
                     required
                     disabled={isSubmitting}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="nome">Nome</Label>
+                  <Label htmlFor="nome">Nome (opcional)</Label>
                   <Input
                     id="nome"
-                    name="nome"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
                     placeholder="Ex: Princesa"
                     disabled={isSubmitting}
                   />
                 </div>
               </div>
 
-              {/* Sexo e Data de Nascimento */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="sexo">Sexo *</Label>
-                  <Select name="sexo" defaultValue="Macho" required>
+                  <Select value={sexo} onValueChange={(v) => setSexo(v as 'Macho' | 'Fêmea')}>
                     <SelectTrigger id="sexo" disabled={isSubmitting}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Macho">Macho</SelectItem>
                       <SelectItem value="Fêmea">Fêmea</SelectItem>
+                      <SelectItem value="Macho">Macho</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -136,8 +257,10 @@ export default function NovoAnimalPage() {
                   <div className="flex gap-2 items-center">
                     <Input
                       id="data_nascimento"
-                      name="data_nascimento"
                       type="date"
+                      value={dataNascimento}
+                      onChange={(e) => setDataNascimento(e.target.value)}
+                      max={hoje()}
                       required
                       disabled={isSubmitting}
                       className="flex-1"
@@ -145,30 +268,39 @@ export default function NovoAnimalPage() {
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Checkbox
                         id="data_nascimento_estimada"
-                        name="data_nascimento_estimada"
                         checked={dataEstimada}
                         onCheckedChange={(checked) => setDataEstimada(checked === true)}
                         disabled={isSubmitting}
                       />
-                      <Label htmlFor="data_nascimento_estimada" className="text-sm cursor-pointer whitespace-nowrap">
+                      <Label
+                        htmlFor="data_nascimento_estimada"
+                        className="text-sm cursor-pointer whitespace-nowrap"
+                      >
                         Estimada
                       </Label>
                     </div>
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Tipo de Rebanho e Raça */}
+          {/* SEÇÃO: Classificação */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Classificação</CardTitle>
+              <CardDescription>Tipo, categoria, raça e lote do animal</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="tipo_rebanho">Tipo de Rebanho *</Label>
                   <Select
                     value={tipoRebanho}
                     onValueChange={(val) => {
-                      setTipoRebanho(val ?? 'leiteiro');
+                      setTipoRebanho((val as TipoRebanho) ?? 'leiteiro');
                       setCategoria('');
                     }}
-                    required
                   >
                     <SelectTrigger id="tipo_rebanho" disabled={isSubmitting}>
                       <SelectValue />
@@ -179,131 +311,127 @@ export default function NovoAnimalPage() {
                       <SelectItem value="dupla_aptidao">Dupla Aptidão</SelectItem>
                     </SelectContent>
                   </Select>
-                  <input type="hidden" name="tipo_rebanho" value={tipoRebanho} />
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="categoria">Categoria</Label>
+                  <Select value={categoria} onValueChange={(val) => setCategoria(val ?? '')}>
+                    <SelectTrigger id="categoria" disabled={isSubmitting}>
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoriasDisponiveis.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="raca">Raça</Label>
                   <Input
                     id="raca"
-                    name="raca"
+                    value={raca}
+                    onChange={(e) => setRaca(e.target.value)}
                     placeholder="Ex: Holandês"
                     disabled={isSubmitting}
                   />
                 </div>
-              </div>
-
-              {/* Categoria */}
-              <div className="space-y-1.5">
-                <Label htmlFor="categoria">Categoria</Label>
-                <Select
-                  value={categoria}
-                  onValueChange={(val) => setCategoria(val ?? '')}
-                >
-                  <SelectTrigger id="categoria" disabled={isSubmitting}>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(CATEGORIAS_POR_TIPO[tipoRebanho] ?? []).map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <input type="hidden" name="categoria" value={categoria} />
-              </div>
-
-              {/* Origem */}
-              <div className="space-y-1.5">
-                <Label htmlFor="origem">Origem *</Label>
-                <Select value={origem} onValueChange={(val) => setOrigem(val as 'nascido' | 'comprado')}>
-                  <SelectTrigger id="origem" disabled={isSubmitting}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="nascido">Nascido na propriedade</SelectItem>
-                    <SelectItem value="comprado">Comprado</SelectItem>
-                  </SelectContent>
-                </Select>
-                <input type="hidden" name="origem" value={origem} />
-              </div>
-
-              {/* Peso ao Nascimento (se nascido) */}
-              {origem === 'nascido' && (
                 <div className="space-y-1.5">
-                  <Label htmlFor="peso_nascimento">Peso ao Nascimento (kg)</Label>
-                  <Input
-                    id="peso_nascimento"
-                    name="peso_nascimento"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Ex: 35.5"
-                    disabled={isSubmitting}
-                  />
+                  <Label htmlFor="lote_id">Lote</Label>
+                  <Select value={loteId} onValueChange={(value) => setLoteId(value || SEM_LOTE)}>
+                    <SelectTrigger id="lote_id" disabled={isSubmitting}>
+                      <SelectValue placeholder="Sem lote" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={SEM_LOTE}>Sem lote</SelectItem>
+                      {lotes.map((l) => (
+                        <SelectItem key={l.id} value={l.id}>
+                          {l.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
+              </div>
+            </CardContent>
+          </Card>
 
-              {/* SISBOV/CRBIO */}
-              <div className="space-y-1.5">
-                <Label htmlFor="sisbov_crbio">Código SISBOV/CRBIO</Label>
-                <Input
-                  id="sisbov_crbio"
-                  name="sisbov_crbio"
-                  placeholder="Ex: 12345678901234"
-                  disabled={isSubmitting}
-                />
+          {/* SEÇÃO: Origem */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Origem</CardTitle>
+              <CardDescription>Procedência do animal</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="origem">Origem *</Label>
+                  <Select value={origem} onValueChange={(val) => setOrigem(val as Origem)}>
+                    <SelectTrigger id="origem" disabled={isSubmitting}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="nascido">Nascido na propriedade</SelectItem>
+                      <SelectItem value="comprado">Comprado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {origem === 'nascido' && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="peso_nascimento">Peso ao Nascimento (kg)</Label>
+                    <Input
+                      id="peso_nascimento"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={pesoNascimento}
+                      onChange={(e) => setPesoNascimento(e.target.value)}
+                      placeholder="Ex: 35.5"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                )}
               </div>
 
-              {/* Lote */}
-              <div className="space-y-1.5">
-                <Label htmlFor="lote_id">Lote</Label>
-                <Select
-                  value={loteId}
-                  onValueChange={(value) => setLoteId(value || '')}
-                >
-                  <SelectTrigger id="lote_id" disabled={isSubmitting}>
-                    <SelectValue placeholder="Sem lote" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Sem lote</SelectItem>
-                    {lotes.map((l) => (
-                      <SelectItem key={l.id} value={l.id}>
-                        {l.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <input type="hidden" name="lote_id" value={loteId} />
-              </div>
-
-              {/* Observações */}
               <div className="space-y-1.5">
                 <Label htmlFor="observacoes">Observações</Label>
                 <Textarea
                   id="observacoes"
-                  name="observacoes"
+                  value={observacoes}
+                  onChange={(e) => setObservacoes(e.target.value)}
                   placeholder="Adicione informações extras sobre o animal"
                   disabled={isSubmitting}
                 />
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Criando...' : 'Criar Animal'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+          <div className="flex flex-wrap gap-2 justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void salvar(true)}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Salvando...' : 'Salvar e cadastrar próximo'}
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Criando...' : 'Salvar e finalizar'}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

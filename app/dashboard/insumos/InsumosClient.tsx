@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Plus, ArrowDownRight } from 'lucide-react';
+import { AlertTriangle, Plus, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useInsumosComRelacoes, useInsumosAbaixoMinimo } from '@/lib/hooks/useInsumos';
 import { useUltimasEntradas, useUltimasSaidas } from '@/lib/hooks/useMovimentacoes';
@@ -14,6 +14,7 @@ import InsumosFilters from './components/InsumosFilters';
 import InsumosList from './components/InsumosList';
 import InsumoForm from './components/InsumoForm';
 import SaidaForm from './components/SaidaForm';
+import EntradaForm from './components/EntradaForm';
 import AjusteInventario from './components/AjusteInventario';
 import DeleteInsumoDialog from './components/DeleteInsumoDialog';
 import HistoricoInsumoDialog from './components/HistoricoInsumoDialog';
@@ -21,11 +22,12 @@ import type { Insumo } from '@/types/insumos';
 
 export function InsumosClient() {
   const [showNovoInsumo, setShowNovoInsumo] = useState(false);
+  const [showEntrada, setShowEntrada] = useState(false);
   const [showSaida, setShowSaida] = useState(false);
   const [showAjuste, setShowAjuste] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showHistorico, setShowHistorico] = useState(false);
-  const [selectedInsumoPara, setSelectedInsumoPara] = useState<{ tipo: 'saida' | 'ajuste' | 'delete'; id?: string }>({ tipo: 'saida' });
+  const [selectedInsumoPara, setSelectedInsumoPara] = useState<{ tipo: 'entrada' | 'saida' | 'ajuste' | 'delete'; id?: string }>({ tipo: 'saida' });
   const [insumoHistorico, setInsumoHistorico] = useState<Insumo | null>(null);
 
   const [filters, setFilters] = useState({ busca: '', categoria_id: '', tipo_id: '' });
@@ -42,6 +44,11 @@ export function InsumosClient() {
   const { data: categorias = [] } = useCategorias();
 
   const totalCriticos = criticos.length;
+
+  const handleEntradaClick = (insumoId: string) => {
+    setSelectedInsumoPara({ tipo: 'entrada', id: insumoId });
+    setShowEntrada(true);
+  };
 
   const handleSaidaClick = (insumoId: string) => {
     setSelectedInsumoPara({ tipo: 'saida', id: insumoId });
@@ -76,9 +83,13 @@ export function InsumosClient() {
           )}
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <Button variant="outline" onClick={() => setShowSaida(true)} className="flex-1 sm:flex-none">
+          <Button variant="outline" onClick={() => { setSelectedInsumoPara({ tipo: 'entrada' }); setShowEntrada(true); }} className="flex-1 sm:flex-none">
             <ArrowDownRight className="mr-2 h-4 w-4" />
-            Saídas
+            Entrada
+          </Button>
+          <Button variant="outline" onClick={() => { setSelectedInsumoPara({ tipo: 'saida' }); setShowSaida(true); }} className="flex-1 sm:flex-none">
+            <ArrowUpRight className="mr-2 h-4 w-4" />
+            Saída
           </Button>
           <Button onClick={() => setShowNovoInsumo(true)} className="flex-1 sm:flex-none">
             <Plus className="mr-2 h-4 w-4" />
@@ -103,6 +114,7 @@ export function InsumosClient() {
         categorias={categorias}
         filters={filters}
         loading={loadingInsumos}
+        onEntradaClick={(insumo) => handleEntradaClick(insumo.id)}
         onSaidaClick={(insumo) => handleSaidaClick(insumo.id)}
         onAjusteClick={(insumo) => handleAjusteClick(insumo.id)}
         onDeleteClick={handleDeleteClick}
@@ -113,6 +125,14 @@ export function InsumosClient() {
         open={showNovoInsumo}
         onOpenChange={setShowNovoInsumo}
         categorias={categorias}
+        onSuccess={invalidateInsumos}
+      />
+
+      <EntradaForm
+        open={showEntrada}
+        onOpenChange={setShowEntrada}
+        insumos={insumos}
+        insumoPredefined={selectedInsumoPara.tipo === 'entrada' ? selectedInsumoPara.id : undefined}
         onSuccess={invalidateInsumos}
       />
 

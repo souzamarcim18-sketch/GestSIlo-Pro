@@ -3,6 +3,17 @@ import { TipoEvento } from '@/lib/types/rebanho';
 
 // ========== ANIMAL ==========
 
+// Trata string vazia como ausência de valor (null) — usado em campos opcionais
+// preenchidos por selects/inputs que enviam "" quando o usuário não escolhe nada.
+// Mantém o tipo de entrada como string para não quebrar zodResolver dos formulários.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const optionalUuid = z
+  .string()
+  .refine((v) => v === '' || UUID_RE.test(v), 'Identificador inválido')
+  .transform((v) => (v === '' ? null : v))
+  .nullable()
+  .optional();
+
 export const criarAnimalSchema = z.object({
   brinco: z.string().min(1, 'Brinco obrigatório').max(255),
   nome: z.string().max(255).optional().nullable(),
@@ -18,13 +29,19 @@ export const criarAnimalSchema = z.object({
     return !isNaN(d.getTime()) && d <= new Date();
   }, 'Data deve ser válida e não futura'),
   data_nascimento_estimada: z.boolean().default(false),
-  lote_id: z.string().uuid().nullable().optional(),
-  mae_id: z.string().uuid().nullable().optional(),
-  pai_id: z.string().uuid().nullable().optional(),
+  lote_id: optionalUuid,
+  mae_id: optionalUuid,
+  pai_id: optionalUuid,
   raca: z.string().max(255).optional().nullable(),
-  origem: z.enum(['nascido', 'comprado']).optional().nullable(),
-  peso_nascimento: z.coerce.number().positive().max(200).optional().nullable(),
-  sisbov_crbio: z.string().max(100).optional().nullable(),
+  origem: z
+    .enum(['nascido', 'comprado'])
+    .or(z.literal('').transform(() => null))
+    .nullable()
+    .optional(),
+  peso_nascimento: z
+    .union([z.coerce.number().positive().max(200), z.literal('').transform(() => null)])
+    .nullable()
+    .optional(),
   observacoes: z.string().optional().nullable(),
 });
 
@@ -366,11 +383,19 @@ export type CriarEventoSanitarioInput = z.infer<typeof criarEventoSanitarioSchem
 
 // ========== CSV IMPORT ==========
 
+// Normaliza valores numéricos opcionais vindos do CSV (string vazia → null).
+const csvNumeroOpcional = (max: number) =>
+  z
+    .union([z.coerce.number().positive().max(max), z.literal('').transform(() => null)])
+    .nullable()
+    .optional();
+
 export const animalCSVRowSchema = z.object({
   brinco: z
     .string()
     .min(1, 'Número do animal obrigatório')
     .max(255),
+  nome: z.string().max(255).optional().nullable(),
   sexo: z.enum(['Macho', 'Fêmea'], { message: 'Sexo deve ser Macho ou Fêmea' }),
   data_nascimento: z
     .string()
@@ -400,6 +425,13 @@ export const animalCSVRowSchema = z.object({
   categoria: z.string().max(100).optional().nullable(),
   lote: z.string().optional().nullable(),
   raca: z.string().max(255).optional().nullable(),
+  origem: z
+    .enum(['nascido', 'comprado'])
+    .or(z.literal('').transform(() => null))
+    .nullable()
+    .optional(),
+  peso_nascimento: csvNumeroOpcional(200),
+  peso_atual: csvNumeroOpcional(2000),
   observacoes: z.string().optional().nullable(),
 });
 

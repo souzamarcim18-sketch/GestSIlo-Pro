@@ -39,8 +39,15 @@ export default async function ImportarPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Importar Animais</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Faça upload de um arquivo CSV para importar múltiplos animais de uma vez.
-          Linhas com erros serão exibidas, enquanto animais válidos serão importados.
+          Faça upload de um arquivo CSV para importar múltiplos animais de uma vez. Você revisa
+          tudo antes de confirmar — linhas com erro são sinalizadas e só as válidas são importadas.
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Não tem os dados em planilha?{' '}
+          <a href="/dashboard/rebanho/cadastro-rapido" className="font-medium text-primary underline">
+            Use o cadastro rápido em grade
+          </a>
+          .
         </p>
       </div>
 
@@ -62,13 +69,15 @@ export default async function ImportarPage() {
               <strong>data_nascimento</strong>: ISO ou DD/MM/YYYY (obrigatório)
             </li>
             <li>
-              <strong>tipo_rebanho</strong>: leiteiro ou corte (opcional, padrão: leiteiro)
+              <strong>nome</strong>, <strong>tipo_rebanho</strong> (leiteiro/corte/dupla_aptidao),
+              <strong> categoria</strong>, <strong>raca</strong> (opcionais)
             </li>
             <li>
               <strong>lote</strong>: Nome do lote (opcional, criado se não existir)
             </li>
             <li>
-              <strong>raca</strong>: Raça do animal (opcional)
+              <strong>origem</strong> (nascido/comprado), <strong>peso_nascimento</strong>,
+              <strong> peso_atual</strong> (opcionais)
             </li>
             <li>
               <strong>observacoes</strong>: Observações livres (opcional)
@@ -81,8 +90,9 @@ export default async function ImportarPage() {
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             <li>✓ Baixe o template para ver um exemplo</li>
             <li>✓ Máximo 10MB por arquivo</li>
-            <li>✓ Brincos duplicados serão reportados como erro</li>
-            <li>✓ Importação é atômica (tudo ou nada por lote)</li>
+            <li>✓ Aceita separador vírgula (,) ou ponto e vírgula (;)</li>
+            <li>✓ Você revisa tudo antes de confirmar a importação</li>
+            <li>✓ Brincos duplicados (no arquivo ou já existentes) são sinalizados</li>
             <li>✓ Lotes são criados automaticamente se necessário</li>
             <li>✓ Categoria é calculada automaticamente</li>
           </ul>

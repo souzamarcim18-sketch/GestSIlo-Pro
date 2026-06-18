@@ -27,7 +27,7 @@ const contactOptions = [
     title: 'Chat via WhatsApp',
     description: 'Atendimento rápido para problemas urgentes.',
     action: '+55 (31) 99087-5346',
-    href: '#',
+    href: 'https://wa.me/5531990875346',
     label: 'Abrir WhatsApp',
     badge: 'Seg–Sex, 8h–18h',
     badgeVariant: 'secondary' as const,

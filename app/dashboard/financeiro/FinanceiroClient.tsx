@@ -28,7 +28,7 @@ import {
 } from 'recharts';
 import type { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import {
-  Plus, TrendingUp, TrendingDown, Wallet, Pencil, Trash2,
+  Plus, Pencil, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Financeiro } from '@/lib/supabase';
@@ -588,9 +588,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
         <h2 id="resumo-heading" className="sr-only">Resumo financeiro</h2>
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="rounded-2xl bg-card shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="pb-2">
               <CardTitle className="text-base font-medium" id="card-receitas">Total Receitas</CardTitle>
-              <TrendingUp className="h-4 w-4 text-primary dark:text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary dark:text-primary" aria-labelledby="card-receitas" aria-live="polite">
@@ -603,9 +602,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
           </Card>
 
           <Card className="rounded-2xl bg-card shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="pb-2">
               <CardTitle className="text-base font-medium" id="card-despesas">Total Despesas</CardTitle>
-              <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive" aria-labelledby="card-despesas" aria-live="polite">
@@ -618,9 +616,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
           </Card>
 
           <Card className="rounded-2xl bg-card shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="pb-2">
               <CardTitle className="text-base font-medium" id="card-saldo">Saldo Líquido</CardTitle>
-              <Wallet className="h-4 w-4 text-primary" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div
@@ -638,9 +635,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
           {(custoFixo > 0 || custoVariavel > 0) && (
           <div className="grid gap-4 md:grid-cols-2 mt-4">
             <Card className="rounded-2xl bg-card shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground" id="card-fixo">Custos Fixos</CardTitle>
-                <Badge variant="outline" className="text-xs">Fixo</Badge>
               </CardHeader>
               <CardContent>
                 <div className="text-xl font-bold text-destructive" aria-labelledby="card-fixo" aria-live="polite">
@@ -650,9 +646,8 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
               </CardContent>
             </Card>
             <Card className="rounded-2xl bg-card shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground" id="card-variavel">Custos Variáveis</CardTitle>
-                <Badge variant="outline" className="text-xs">Variável</Badge>
               </CardHeader>
               <CardContent>
                 <div className="text-xl font-bold text-destructive" aria-labelledby="card-variavel" aria-live="polite">

@@ -9,7 +9,7 @@ import {
   Pagination, PaginationContent, PaginationItem,
   PaginationLink, PaginationNext, PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ArrowDownRight, ArrowUpRight, SlidersHorizontal, Trash2, Pencil } from 'lucide-react';
+import { Plus, Minus, SlidersHorizontal, Trash2, Pencil } from 'lucide-react';
 import type { Database } from '@/types/supabase';
 import type { ProdutosFiltersState } from './ProdutosFilters';
 
@@ -136,7 +136,7 @@ export default function ProdutosList({
                                 onClick={() => onEntradaClick(produto)}
                                 title="Registrar entrada"
                               >
-                                <ArrowDownRight className="h-4 w-4 text-green-600" />
+                                <Plus className="h-4 w-4 text-green-600" />
                               </Button>
                             )}
                             {isAdmin && (
@@ -145,7 +145,7 @@ export default function ProdutosList({
                                 onClick={() => onSaidaClick(produto)}
                                 title="Registrar saída"
                               >
-                                <ArrowUpRight className="h-4 w-4 text-red-500" />
+                                <Minus className="h-4 w-4 text-red-500" />
                               </Button>
                             )}
                             {isAdmin && (

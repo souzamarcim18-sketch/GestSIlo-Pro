@@ -146,7 +146,13 @@
       "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)",
       "Bash(grep -nA30 \"eventos_manejo_pastagem\" supabase/migrations/20260521000001_create_pastagens.sql)",
       "PowerShell(cd \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"DashboardClient|dashboard-data|app.dashboard.page\" })",
-      "PowerShell(npm run lint 2>&1)"
+      "PowerShell(npm run lint 2>&1)",
+      "PowerShell($out = npm run build 2>&1 | Out-String; $idx = $out.IndexOf\\(\"Failed to compile\"\\); if \\($idx -ge 0\\) { $out.Substring\\($idx, [Math]::Min\\(2500, $out.Length - $idx\\)\\) } else { $out.Substring\\([Math]::Max\\(0,$out.Length-2500\\)\\) })",
+      "PowerShell(npx vitest run lib/__tests__/rebanho.validations.test.ts __tests__/rebanho 2>&1)",
+      "PowerShell(npm run build 2>&1 | Out-Null; \"EXIT CODE: $LASTEXITCODE\")",
+      "PowerShell(npx vitest run 2>&1)",
+      "PowerShell(npx vitest run __tests__/assessoria/email.test.ts 2>&1)",
+      "PowerShell($out = npm run test 2>&1 | Out-String; \\($out -split \"`n\" | Select-String -Pattern \"Test Files|Tests\\\\s+\\\\d|FAIL \"\\) | ForEach-Object { $_.Line })"
     ],
     "additionalDirectories": [
       "\\tmp"

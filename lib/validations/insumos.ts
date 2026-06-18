@@ -46,6 +46,19 @@ export const saidaFormSchema = z.object({
 
 export type SaidaFormData = z.infer<typeof saidaFormSchema>;
 
+// Schema para entrada de insumo já existente
+export const entradaInsumoSchema = z.object({
+  insumo_id: z.string().uuid('Insumo inválido'),
+  quantidade: z.number().positive('Deve ser > 0'),
+  valor_unitario: z.number().nonnegative('Não pode ser negativo'),
+  data: z.string().min(1, 'Data obrigatória'),
+  responsavel: z.string().optional(),
+  registrar_como_despesa: z.boolean(),
+  observacoes: z.string().optional(),
+});
+
+export type EntradaInsumoData = z.infer<typeof entradaInsumoSchema>;
+
 // Schema para ajuste de inventário
 export const ajusteInventarioSchema = z.object({
   insumo_id: z.string().uuid('Insumo inválido'),

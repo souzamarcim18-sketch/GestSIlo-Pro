@@ -1,66 +1,69 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import Papa from 'papaparse';
-import { Upload, Download, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Upload, Download, AlertCircle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { importarCSVAction } from '@/app/dashboard/rebanho/actions';
-import type { CSVImportResult, AnimalCSVRow } from '@/lib/types/rebanho';
+import {
+  validarCSVAction,
+  importarCSVAction,
+} from '@/app/dashboard/rebanho/actions';
+import type { CSVImportResult, CSVValidacaoResult } from '@/lib/types/rebanho';
 
 interface ImportadorCSVProps {
   onSuccess?: () => void;
 }
 
+type Etapa = 'selecionar' | 'revisar' | 'concluido';
+
 export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [arquivo, setArquivo] = useState<File | null>(null);
-  const [preview, setPreview] = useState<AnimalCSVRow[]>([]);
-  const [carregando, setCarregando] = useState(false);
+  const [etapa, setEtapa] = useState<Etapa>('selecionar');
+  const [validacao, setValidacao] = useState<CSVValidacaoResult | null>(null);
   const [resultado, setResultado] = useState<CSVImportResult | null>(null);
+  const [validando, setValidando] = useState(false);
+  const [importando, setImportando] = useState(false);
 
-  const handleFileSelect = useCallback(async (file: File) => {
-    if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
-      toast.error('Por favor, selecione um arquivo CSV válido');
-      return;
+  const validarArquivo = useCallback(async (file: File) => {
+    setValidando(true);
+    try {
+      const formData = new FormData();
+      formData.append('arquivo', file);
+      const res = await validarCSVAction(formData);
+      setValidacao(res);
+      setEtapa('revisar');
+      if (res.validos === 0) {
+        toast.warning('Nenhuma linha válida encontrada — revise os erros.');
+      } else {
+        toast.success(`${res.validos} linha(s) pronta(s) para importar.`);
+      }
+    } catch {
+      toast.error('Erro ao validar o arquivo CSV');
+    } finally {
+      setValidando(false);
     }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Arquivo muito grande (máximo 10MB)');
-      return;
-    }
-
-    setArquivo(file);
-    setResultado(null);
-
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const linhas = (results.data as Record<string, string>[]).slice(0, 5);
-        setPreview(
-          linhas.map((linha) => ({
-            brinco: linha.brinco || '',
-            sexo: (linha.sexo as 'Macho' | 'Fêmea') || 'Macho',
-            data_nascimento: linha.data_nascimento || '',
-            tipo_rebanho: (linha.tipo_rebanho as 'leiteiro' | 'corte') || 'leiteiro',
-            lote: linha.lote || undefined,
-            raca: linha.raca || undefined,
-            observacoes: linha.observacoes || undefined,
-          }))
-        );
-        toast.success(`Arquivo carregado: ${linhas.length} linhas de preview`);
-      },
-      error: () => {
-        toast.error('Erro ao analisar CSV');
-        setArquivo(null);
-        setPreview([]);
-      },
-    });
   }, []);
+
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+        toast.error('Por favor, selecione um arquivo CSV válido');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Arquivo muito grande (máximo 10MB)');
+        return;
+      }
+      setArquivo(file);
+      setResultado(null);
+      await validarArquivo(file);
+    },
+    [validarArquivo]
+  );
 
   const handleDropZone = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -74,11 +77,11 @@ export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
   );
 
   const handleDownloadTemplate = useCallback(() => {
-    const template = `brinco,sexo,data_nascimento,tipo_rebanho,lote,raca,observacoes
-001,Fêmea,2020-01-15,leiteiro,Lote A,Holandesa,Animal saudável
-002,Macho,2021-03-20,leiteiro,Lote A,Holandesa,
-003,Fêmea,2019-06-10,corte,Lote B,Nelore,Reprodutor`;
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
+    const template = `brinco,nome,sexo,data_nascimento,tipo_rebanho,categoria,lote,raca,origem,peso_nascimento,peso_atual,observacoes
+001,Mimosa,Fêmea,2020-01-15,leiteiro,,Lote A,Holandesa,nascido,38,480,Animal saudável
+002,,Macho,2021-03-20,leiteiro,,Lote A,Holandesa,comprado,40,520,
+003,Estrela,Fêmea,2019-06-10,corte,,Lote B,Nelore,nascido,32,,Matriz`;
+    const blob = new Blob([`﻿${template}`], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -92,8 +95,7 @@ export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
       toast.error('Selecione um arquivo CSV');
       return;
     }
-
-    setCarregando(true);
+    setImportando(true);
     try {
       const formData = new FormData();
       formData.append('arquivo', arquivo);
@@ -101,186 +103,253 @@ export function ImportadorCSV({ onSuccess }: ImportadorCSVProps) {
 
       const res = await importarCSVAction(formData);
       setResultado(res);
+      setEtapa('concluido');
 
       if (res.importados > 0) {
         toast.success(`${res.importados} animal(is) importado(s) com sucesso!`);
       }
-
       if (res.erros.length > 0) {
-        toast.warning(`${res.erros.length} erro(s) encontrado(s)`);
+        toast.warning(`${res.erros.length} linha(s) não importada(s)`);
       }
-
       onSuccess?.();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao importar CSV');
     } finally {
-      setCarregando(false);
+      setImportando(false);
     }
   }, [arquivo, onSuccess]);
 
-  const handleClearResultado = useCallback(() => {
-    setResultado(null);
+  const reiniciar = useCallback(() => {
     setArquivo(null);
-    setPreview([]);
+    setValidacao(null);
+    setResultado(null);
+    setEtapa('selecionar');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   }, []);
 
-  return (
-    <div className="w-full space-y-6">
-      {!resultado ? (
-        <>
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDropZone}
-            className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-6 py-12 text-center transition-colors hover:border-muted-foreground/50"
+  // ---- Etapa: seleção do arquivo ----
+  if (etapa === 'selecionar') {
+    return (
+      <div className="w-full space-y-6">
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDropZone}
+          className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-6 py-12 text-center transition-colors hover:border-muted-foreground/50"
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                handleFileSelect(e.target.files[0]);
+              }
+            }}
+          />
+          {validando ? (
+            <>
+              <Loader2 className="mb-2 h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="text-sm font-semibold uppercase tracking-[0.13em]">Validando arquivo…</p>
+            </>
+          ) : (
+            <>
+              <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+              <p className="mb-2 text-sm font-semibold uppercase tracking-[0.13em]">
+                Arraste um arquivo CSV aqui ou
+              </p>
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                Selecionar Arquivo
+              </Button>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Máximo 10MB • Aceita separador vírgula ou ponto e vírgula
+              </p>
+            </>
+          )}
+        </div>
+
+        <Button variant="outline" size="sm" onClick={handleDownloadTemplate} className="w-full sm:w-auto">
+          <Download className="mr-2 h-4 w-4" />
+          Baixar Template
+        </Button>
+      </div>
+    );
+  }
+
+  // ---- Etapa: revisão (preview validado antes de confirmar) ----
+  if (etapa === 'revisar' && validacao) {
+    const podeImportar = validacao.validos > 0;
+    return (
+      <div className="w-full space-y-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ResumoCard label="Total" valor={validacao.total_linhas} />
+          <ResumoCard label="Válidos" valor={validacao.validos} tom="ok" />
+          <ResumoCard label="Com erro" valor={validacao.com_erro} tom={validacao.com_erro ? 'erro' : undefined} />
+          <ResumoCard
+            label="Duplicados"
+            valor={validacao.duplicados_arquivo + validacao.duplicados_banco}
+            tom={validacao.duplicados_arquivo + validacao.duplicados_banco ? 'aviso' : undefined}
+          />
+        </div>
+
+        {!podeImportar && (
+          <Alert className="border-red-500/20 bg-red-50 dark:bg-red-950/30">
+            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-red-800 dark:text-red-200">
+              Nenhuma linha válida para importar. Corrija o arquivo e tente novamente.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Card className="p-4">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">
+            Revisão das linhas
+          </h3>
+          <ScrollArea className="max-h-80 w-full">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b">
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Linha</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Brinco</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Sexo</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Nascimento</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Lote</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Situação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {validacao.linhas.map((l, idx) => (
+                  <tr
+                    key={idx}
+                    className={
+                      l.status === 'erro'
+                        ? 'border-b bg-red-50/50 dark:bg-red-950/20'
+                        : 'border-b'
+                    }
+                  >
+                    <td className="px-2 py-2">{l.linha || '-'}</td>
+                    <td className="px-2 py-2 font-medium">{l.brinco || '-'}</td>
+                    <td className="px-2 py-2">{l.sexo || '-'}</td>
+                    <td className="px-2 py-2">{l.data_nascimento || '-'}</td>
+                    <td className="px-2 py-2">{l.lote || '-'}</td>
+                    <td className="px-2 py-2">
+                      {l.status === 'valido' ? (
+                        <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <CheckCircle2 className="h-3 w-3" /> OK
+                        </span>
+                      ) : (
+                        <span className="text-red-600 dark:text-red-400">{l.mensagem}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </ScrollArea>
+        </Card>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button variant="outline" onClick={reiniciar} className="w-full sm:w-auto">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Escolher outro arquivo
+          </Button>
+          <Button
+            onClick={handleImportar}
+            disabled={!podeImportar || importando}
+            className="w-full sm:w-auto"
           >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files?.[0]) {
-                  handleFileSelect(e.target.files[0]);
-                }
-              }}
-            />
-            <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
-            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.13em]">Arraste um arquivo CSV aqui ou</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Selecionar Arquivo
-            </Button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Máximo 10MB • Formato: brinco, sexo, data_nascimento, tipo_rebanho, lote, raça, observações
-            </p>
-          </div>
+            {importando ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Importando…
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Confirmar importação ({validacao.validos})
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadTemplate}
-              className="w-full sm:w-auto"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Baixar Template
-            </Button>
-            <Button
-              onClick={handleImportar}
-              disabled={!arquivo || carregando}
-              className="w-full sm:w-auto"
-            >
-              {carregando ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Importando...
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Importar
-                </>
+  // ---- Etapa: concluído ----
+  if (etapa === 'concluido' && resultado) {
+    return (
+      <div className="w-full space-y-6">
+        {resultado.importados > 0 && (
+          <Alert className="border-green-500/20 bg-green-50 dark:bg-green-950/30">
+            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              <strong>{resultado.importados} animal(is) importado(s) com sucesso!</strong>
+              {resultado.lote_criado_nome && (
+                <p className="mt-1 text-sm">
+                  Lote criado: <strong>{resultado.lote_criado_nome}</strong>
+                </p>
               )}
-            </Button>
-          </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
-          {preview.length > 0 && (
-            <Card className="p-4">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">Preview (primeiras 5 linhas)</h3>
-              <ScrollArea className="w-full">
-                <div className="inline-block w-full min-w-fit">
-                  <table className="text-xs">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Brinco</th>
-                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Sexo</th>
-                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Data Nascimento</th>
-                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Tipo Rebanho</th>
-                        <th className="px-3 py-2 text-left text-sm font-semibold uppercase tracking-[0.13em]">Lote</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {preview.map((linha, idx) => (
-                        <tr key={idx} className="border-b">
-                          <td className="px-3 py-2">{linha.brinco}</td>
-                          <td className="px-3 py-2">{linha.sexo}</td>
-                          <td className="px-3 py-2">{linha.data_nascimento}</td>
-                          <td className="px-3 py-2">{linha.tipo_rebanho}</td>
-                          <td className="px-3 py-2">{linha.lote || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </ScrollArea>
-            </Card>
-          )}
-        </>
-      ) : (
-        <>
-          <div className="space-y-4">
-            {resultado.importados > 0 && (
-              <Alert className="border-green-500/20 bg-green-50 dark:bg-green-950/30">
-                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertDescription className="text-green-800 dark:text-green-200">
-                  <strong>{resultado.importados} animal(is) importado(s) com sucesso!</strong>
-                  {resultado.lote_criado_nome && (
-                    <p className="mt-1 text-sm">
-                      Lote criado: <strong>{resultado.lote_criado_nome}</strong>
-                    </p>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {resultado.erros.length > 0 && (
-              <Alert className="border-red-500/20 bg-red-50 dark:bg-red-950/30">
-                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <AlertDescription className="text-red-800 dark:text-red-200">
-                  <strong>{resultado.erros.length} erro(s) encontrado(s)</strong>
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-
-          {resultado.erros.length > 0 && (
-            <Card className="p-4">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">Detalhes dos Erros</h3>
-              <ScrollArea className="w-full">
-                <div className="space-y-2">
-                  {resultado.erros.map((erro, idx) => (
-                    <div
-                      key={idx}
-                      className="flex flex-col gap-1 border-l-4 border-red-500 bg-red-50/50 px-3 py-2 text-xs dark:bg-red-950/20"
-                    >
-                      <div className="font-semibold text-red-700 dark:text-red-300">
-                        Linha {erro.linha} {erro.brinco && `• Brinco: ${erro.brinco}`}
-                      </div>
-                      <div className="text-red-600 dark:text-red-400">{erro.mensagem}</div>
+        {resultado.erros.length > 0 && (
+          <Card className="p-4">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.13em]">
+              {resultado.erros.length} linha(s) não importada(s)
+            </h3>
+            <ScrollArea className="max-h-64 w-full">
+              <div className="space-y-2">
+                {resultado.erros.map((erro, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col gap-1 border-l-4 border-red-500 bg-red-50/50 px-3 py-2 text-xs dark:bg-red-950/20"
+                  >
+                    <div className="font-semibold text-red-700 dark:text-red-300">
+                      {erro.linha ? `Linha ${erro.linha} • ` : ''}
+                      {erro.brinco && `Brinco: ${erro.brinco}`}
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </Card>
-          )}
+                    <div className="text-red-600 dark:text-red-400">{erro.mensagem}</div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </Card>
+        )}
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              variant="outline"
-              onClick={handleClearResultado}
-              className="w-full sm:w-auto"
-            >
-              Importar Novo Arquivo
-            </Button>
-          </div>
-        </>
-      )}
-    </div>
+        <Button variant="outline" onClick={reiniciar} className="w-full sm:w-auto">
+          Importar Novo Arquivo
+        </Button>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function ResumoCard({
+  label,
+  valor,
+  tom,
+}: {
+  label: string;
+  valor: number;
+  tom?: 'ok' | 'erro' | 'aviso';
+}) {
+  const cor =
+    tom === 'ok'
+      ? 'text-green-600 dark:text-green-400'
+      : tom === 'erro'
+        ? 'text-red-600 dark:text-red-400'
+        : tom === 'aviso'
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-foreground';
+  return (
+    <Card className="p-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted-foreground">{label}</p>
+      <p className={`mt-1 text-3xl font-bold ${cor}`}>{valor}</p>
+    </Card>
   );
 }

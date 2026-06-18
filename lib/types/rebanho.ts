@@ -250,11 +250,16 @@ export type PesoAnimalInput = Omit<PesoAnimal, 'id' | 'fazenda_id' | 'created_at
 
 export interface AnimalCSVRow {
   brinco: string;
+  nome?: string;
   sexo: 'Macho' | 'Fêmea';
   data_nascimento: string; // ISO date ou DD/MM/YYYY
-  tipo_rebanho?: 'leiteiro' | 'corte';
+  tipo_rebanho?: 'leiteiro' | 'corte' | 'dupla_aptidao';
+  categoria?: string;
   lote?: string; // nome do lote (será criado se não existir)
   raca?: string;
+  origem?: 'nascido' | 'comprado';
+  peso_nascimento?: number;
+  peso_atual?: number;
   observacoes?: string;
 }
 
@@ -273,6 +278,28 @@ export interface CSVImportResult {
   erros: AnimalCSVValidationResult[];
   lote_criado_id?: string;
   lote_criado_nome?: string;
+}
+
+// Resultado do passo de pré-validação (dry-run): valida tudo sem gravar nada.
+// Alimenta a tela de revisão antes da confirmação da importação.
+export interface CSVLinhaValidada {
+  linha: number; // número da linha no arquivo (1-based, considerando o header)
+  brinco: string;
+  sexo: string;
+  data_nascimento: string;
+  tipo_rebanho: string;
+  lote?: string;
+  status: 'valido' | 'erro';
+  mensagem?: string;
+}
+
+export interface CSVValidacaoResult {
+  total_linhas: number;
+  validos: number;
+  com_erro: number;
+  duplicados_arquivo: number; // brincos repetidos dentro do próprio arquivo
+  duplicados_banco: number; // brincos que já existem na fazenda
+  linhas: CSVLinhaValidada[];
 }
 
 // ========== OFFLINE SYNC ==========

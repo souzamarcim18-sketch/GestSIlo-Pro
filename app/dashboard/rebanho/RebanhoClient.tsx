@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { hydrateEventosFromServer } from '@/lib/db/eventosRebanho';
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
-import { Plus, BarChart3, Milk, Scale, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList } from 'lucide-react';
+import { Plus, BarChart3, Milk, Scale, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -123,6 +123,8 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
     ? animais.filter(a => a.categoria === filtroCategoria)
     : animais;
 
+  const rebanhoVazio = initialAnimais.length === 0 && initialLotes.length === 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -130,6 +132,14 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
         <div className="space-x-2">
           {isAdmin && (
             <>
+              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/cadastro-rapido')}>
+                <Table2 className="mr-2 h-4 w-4" />
+                Cadastro Rápido
+              </Button>
+              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/importar')}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar CSV
+              </Button>
               <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/eventos/lote/novo')}>
                 <ClipboardList className="mr-2 h-4 w-4" />
                 Lançamento em Lote
@@ -145,6 +155,35 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
           )}
         </div>
       </div>
+
+      {/* Aviso de primeiro cadastro — sem animais e sem lotes */}
+      {rebanhoVazio && isAdmin && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Beef className="h-5 w-5 text-primary" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-semibold">Comece a gerir seu rebanho</p>
+                <p className="text-sm text-muted-foreground">
+                  Você ainda não tem animais nem lotes cadastrados. Crie um lote para organizar
+                  o rebanho e cadastre seu primeiro animal.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:shrink-0">
+              <Button variant="outline" onClick={() => router.push('/dashboard/rebanho/lotes')}>
+                Criar primeiro lote
+              </Button>
+              <Button onClick={() => router.push('/dashboard/rebanho/novo')}>
+                <Plus className="mr-2 h-4 w-4" />
+                Cadastrar primeiro animal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Acesso Rápido */}
       <div>
