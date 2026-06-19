@@ -114,3 +114,7 @@ export const AtividadeCampoSchema = z.object({
 });
 
 export type AtividadeCampoInput = z.infer<typeof AtividadeCampoSchema>;
+// Tipo de entrada do schema (antes do preprocess) — os campos numéricos
+// opcionais chegam como `unknown` no resolver. Usado como TFieldValues do
+// useForm para casar com o tipo que o zodResolver espera.
+export type AtividadeCampoFormInput = z.input<typeof AtividadeCampoSchema>;

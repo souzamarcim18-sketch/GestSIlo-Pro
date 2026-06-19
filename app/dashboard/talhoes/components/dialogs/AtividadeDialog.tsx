@@ -27,7 +27,7 @@ import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
 import { type CicloAgricola, TipoOperacao } from '@/lib/types/talhoes';
 import type { Insumo, Maquina } from '@/lib/supabase';
-import { AtividadeCampoSchema, type AtividadeCampoInput as AtividadeCampoInputType } from '@/lib/validators/atividades-campo';
+import { AtividadeCampoSchema, type AtividadeCampoInput as AtividadeCampoInputType, type AtividadeCampoFormInput } from '@/lib/validators/atividades-campo';
 import {
   CalagemFields,
   AdubacaoFields,
@@ -128,7 +128,7 @@ export function AtividadeDialog({
     };
   }, [open]);
 
-  const methods = useForm<AtividadeInput>({
+  const methods = useForm<AtividadeCampoFormInput, unknown, AtividadeInput>({
     resolver: zodResolver(AtividadeCampoSchema),
     defaultValues: {
       tipo_operacao: '' as TipoOperacao,
@@ -162,19 +162,27 @@ export function AtividadeDialog({
   const precisaCultura = !cicloAtivo && TIPOS_INICIAM_CICLO.includes(tipoOperacao as TipoOperacao);
   const culturaContexto = cicloAtivo?.cultura ?? culturaNovoCiclo;
 
-  // Cálculo de custo em tempo real
-  const custoEstimado = useMemo(() => {
-    if (custoManual && custoManual > 0) return custoManual;
+  // Cálculo de custo em tempo real.
+  // Os campos numéricos passam por z.preprocess, então o tipo de entrada do
+  // form é `unknown`; coagimos para number aqui antes de qualquer aritmética.
+  const custoEstimado = useMemo<number>(() => {
+    const custoManualNum = Number(custoManual);
+    const horasIrrigacaoNum = Number(horasIrrigacao);
+    const custoPorHoraIrrigacaoNum = Number(custoPorHoraIrrigacao);
+    const valorTerceirizacaoNum = Number(valorTerceirizacao);
+    const horasMaquinaNum = Number(horasMaquina);
+
+    if (custoManualNum > 0) return custoManualNum;
 
     let custo = 0;
-    if (tipoOperacao === 'Irrigação' && horasIrrigacao && custoPorHoraIrrigacao) {
-      custo = horasIrrigacao * custoPorHoraIrrigacao;
-    } else if (tipoOperacao === 'Colheita' && valorTerceirizacao) {
-      custo = valorTerceirizacao;
-    } else if (maquinaId && horasMaquina) {
+    if (tipoOperacao === 'Irrigação' && horasIrrigacaoNum && custoPorHoraIrrigacaoNum) {
+      custo = horasIrrigacaoNum * custoPorHoraIrrigacaoNum;
+    } else if (tipoOperacao === 'Colheita' && valorTerceirizacaoNum) {
+      custo = valorTerceirizacaoNum;
+    } else if (maquinaId && horasMaquinaNum) {
       const maquina = maquinas.find((m) => m.id === maquinaId);
       const custoHora = (maquina as (Maquina & { custo_hora?: number | null }) | undefined)?.custo_hora;
-      if (custoHora) custo = horasMaquina * custoHora;
+      if (custoHora) custo = horasMaquinaNum * custoHora;
     }
 
     return custo;
