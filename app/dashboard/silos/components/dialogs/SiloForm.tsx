@@ -33,17 +33,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type Silo, type Talhao } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
-import { Layers, Container, Package, Boxes, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type InsumoSelect = { id: string; nome: string };
-
-const TIPO_SILO_META: Record<(typeof TIPOS_SILO)[number], { icon: typeof Layers; descricao: string }> = {
-  Superfície: { icon: Layers, descricao: 'Monte ao ar livre' },
-  Trincheira: { icon: Container, descricao: 'Escavado no solo' },
-  Bag: { icon: Package, descricao: 'Silo bolsa' },
-  Outros: { icon: Boxes, descricao: 'Outra estrutura' },
-};
 
 // Sugestões de cultura para preenchimento rápido (modo create, sem talhão vinculado)
 const CULTURAS_SUGERIDAS = ['Milho', 'Sorgo', 'Capim', 'Trigo'] as const;
@@ -392,8 +384,6 @@ export function SiloForm({
                   className="grid grid-cols-2 sm:grid-cols-4 gap-2"
                 >
                   {TIPOS_SILO.map((t) => {
-                    const meta = TIPO_SILO_META[t];
-                    const Icon = meta.icon;
                     const selected = field.value === t;
                     return (
                       <button
@@ -403,25 +393,14 @@ export function SiloForm({
                         aria-checked={selected}
                         onClick={() => field.onChange(t)}
                         className={cn(
-                          'relative flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-colors',
+                          'rounded-lg border px-3 py-2.5 text-center text-sm font-medium transition-colors',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                           selected
                             ? 'border-primary bg-primary/10 text-foreground'
                             : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
                         )}
                       >
-                        {selected && (
-                          <Check
-                            className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-primary"
-                            aria-hidden="true"
-                          />
-                        )}
-                        <Icon
-                          className={cn('h-5 w-5', selected ? 'text-primary' : 'text-muted-foreground')}
-                          aria-hidden="true"
-                        />
-                        <span className="text-sm font-medium">{t}</span>
-                        <span className="text-xs text-muted-foreground leading-tight">{meta.descricao}</span>
+                        {t}
                       </button>
                     );
                   })}
@@ -652,14 +631,28 @@ export function SiloForm({
             )}
           </div>
 
-          {/* Seções B/C/D — Dimensões, qualidade e custo (recolhível, opcional) */}
-          <Accordion className="border-t border-border">
-            <AccordionItem value="dimensoes-qualidade" className="border-b-0">
-              <AccordionTrigger className="text-sm font-medium">
-                Dimensões e qualidade
+          {/* Matéria Seca — sempre visível */}
+          <div className="space-y-2">
+            <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
+            <Input
+              id="silo-ms"
+              type="number"
+              step="0.1"
+              placeholder="Ex: 32.5"
+              {...form.register('materia_seca_percent', {
+                setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+              })}
+            />
+          </div>
+
+          {/* Seções B/D — Dimensões e custo (recolhível, opcional) */}
+          <Accordion className="rounded-lg border border-border">
+            <AccordionItem value="dimensoes-custo" className="border-b-0">
+              <AccordionTrigger className="px-4 py-3 text-sm font-medium rounded-lg hover:bg-white/5 hover:no-underline **:data-[slot=accordion-trigger-icon]:size-5 **:data-[slot=accordion-trigger-icon]:text-foreground">
+                Dimensões e custo
                 <span className="text-xs text-muted-foreground font-normal ml-2">(opcional)</span>
               </AccordionTrigger>
-              <AccordionContent className="space-y-4 pt-1">
+              <AccordionContent className="space-y-4 px-4 pt-1">
                 {/* Dimensões */}
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-3">
@@ -710,20 +703,6 @@ export function SiloForm({
                       </span>
                     </div>
                   )}
-                </div>
-
-                {/* Qualidade */}
-                <div className="space-y-2">
-                  <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
-                  <Input
-                    id="silo-ms"
-                    type="number"
-                    step="0.1"
-                    placeholder="Ex: 32.5"
-                    {...form.register('materia_seca_percent', {
-                      setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                    })}
-                  />
                 </div>
 
                 {/* Custo de aquisição (apenas para silos sem talhão) */}
