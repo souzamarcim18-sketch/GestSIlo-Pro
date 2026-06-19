@@ -22,7 +22,6 @@ import {
   TalhaoOperacoesTab,
   TalhaoHistoricoTab,
   TalhaoForm,
-  CicloForm,
 } from '../components';
 
 export default function TalhaoDetailPage() {
@@ -38,7 +37,6 @@ export default function TalhaoDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isCicloOpen, setIsCicloOpen] = useState(false);
 
   const cicloAtivo = ciclos.find((c) => c.ativo);
 
@@ -121,7 +119,6 @@ export default function TalhaoDetailPage() {
           cicloAtivo={cicloAtivo}
           onEdit={() => setIsEditOpen(true)}
           onDelete={() => setIsDeleteOpen(true)}
-          onNovoCiclo={cicloAtivo ? () => setIsCicloOpen(true) : undefined}
           profile={profile}
         />
 
@@ -176,16 +173,6 @@ export default function TalhaoDetailPage() {
         mode="edit"
         talhao={talhao}
         onSuccess={fetchData}
-      />
-
-      <CicloForm
-        open={isCicloOpen}
-        onOpenChange={setIsCicloOpen}
-        talhaoId={talhaoId}
-        onSuccess={() => {
-          setIsCicloOpen(false);
-          fetchData();
-        }}
       />
 
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

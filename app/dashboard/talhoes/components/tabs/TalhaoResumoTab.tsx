@@ -1,16 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { type Talhao, type CicloAgricola, type AtividadeCampo } from '@/lib/types/talhoes';
-import { AlertCircle, Plus } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import {
   Alert,
   AlertDescription,
 } from '@/components/ui/alert';
-import { CicloForm } from '../dialogs/CicloForm';
 import { calcularCustoTotalEstimado, calcularCustoPorHectare, calcularBreakdownCusto, verificarAlertaSilagem } from '../../helpers';
 
 interface TalhaoResumoTabProps {
@@ -24,10 +21,7 @@ export function TalhaoResumoTab({
   talhao,
   cicloAtivo,
   atividades,
-  onRefresh,
 }: TalhaoResumoTabProps) {
-  const [isAddCicloOpen, setIsAddCicloOpen] = useState(false);
-
   const custoTotal = calcularCustoTotalEstimado(atividades);
   const custoPorHa = calcularCustoPorHectare(custoTotal, talhao.area_ha);
   const breakdown = calcularBreakdownCusto(atividades);
@@ -123,15 +117,13 @@ export function TalhaoResumoTab({
               )}
             </div>
           ) : (
-            <div className="py-8 text-center">
+            <div className="py-8 text-center space-y-1">
               <div className="text-muted-foreground">Nenhum ciclo agrícola ativo</div>
-              <Button
-                className="mt-4"
-                onClick={() => setIsAddCicloOpen(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Ciclo Agrícola
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Registre um preparo de solo ou plantio na aba{' '}
+                <strong>Operações Agrícolas</strong> para iniciar um ciclo
+                automaticamente.
+              </p>
             </div>
           )}
         </CardContent>
@@ -194,17 +186,6 @@ export function TalhaoResumoTab({
           </CardContent>
         </Card>
       )}
-
-      {/* Dialogs */}
-      <CicloForm
-        open={isAddCicloOpen}
-        onOpenChange={setIsAddCicloOpen}
-        talhaoId={talhao.id}
-        onSuccess={() => {
-          setIsAddCicloOpen(false);
-          onRefresh?.();
-        }}
-      />
     </div>
   );
 }

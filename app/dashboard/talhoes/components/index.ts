@@ -5,4 +5,3 @@ export { TalhaoResumoTab } from './tabs/TalhaoResumoTab';
 export { TalhaoOperacoesTab } from './tabs/TalhaoOperacoesTab';
 export { TalhaoHistoricoTab } from './tabs/TalhaoHistoricoTab';
 export { AtividadeDialog } from './dialogs/AtividadeDialog';
-export { CicloForm } from './dialogs/CicloForm';

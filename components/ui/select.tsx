@@ -15,6 +15,12 @@ type SelectItemsMapContextValue = {
 }
 const SelectItemsMapContext = React.createContext<SelectItemsMapContextValue | null>(null)
 
+// Valores-sentinela que representam "nenhuma seleção". Nunca devem aparecer crus
+// no trigger — quando selecionados, exibimos o placeholder. (Sentinelas de "Todos",
+// como '__todos__'/'__all__', são seleções legítimas e NÃO entram aqui: o label
+// correto vem do mapa de items.)
+const SENTINEL_VALUES = new Set(['__none__', '__nenhum__', '__empty__'])
+
 function Select<Value = string, Multiple extends boolean | undefined = false>({
   children,
   ...props
@@ -59,8 +65,13 @@ function SelectValue({ className, children, placeholder, ...props }: SelectPrimi
     >
       {children ?? (hasItems ? undefined : (value: unknown) => {
         if (value == null || value === '') return null
-        const label = mapRef?.current.get(String(value))
-        return label ?? String(value)
+        const key = String(value)
+        // Valores-sentinela internos (ex: '__none__', '__todos__') representam
+        // "nenhuma seleção" e nunca devem aparecer crus no trigger — exibe o
+        // placeholder em vez do sentinela.
+        if (SENTINEL_VALUES.has(key)) return null
+        const label = mapRef?.current.get(key)
+        return label ?? key
       })}
     </SelectPrimitive.Value>
   )

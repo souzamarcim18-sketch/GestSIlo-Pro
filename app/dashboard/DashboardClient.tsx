@@ -300,6 +300,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
   const router = useRouter();
   const isOnline = useOnlineStatus();
   const planoAtual = data.planoAtual;
+  const temFinanceiro = planoPermiteModulo(planoAtual, 'financeiro');
   const alertShownRef = useRef(false);
   const prefetchAt = useMemo(
     () => (!isOnline ? getPrefetchTimestamp() : null),
@@ -385,6 +386,14 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </Card>
       )}
 
+      {/* Financeiro — para planos com acesso (Pro/Max), exibido acima da Silagem por impacto na decisão do produtor */}
+      {temFinanceiro && (
+        <section aria-label="Financeiro">
+          <SectionLabel>Financeiro</SectionLabel>
+          <FinanceiroResumoCard data={data} href="/dashboard/financeiro" />
+        </section>
+      )}
+
       {/* Silagem */}
       <section aria-label="Silagem">
         <SectionLabel>Silagem</SectionLabel>
@@ -456,15 +465,13 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </div>
       </section>
 
-      {/* Financeiro — elevado logo após Silagem por impacto na decisão do produtor */}
-      <section aria-label="Financeiro">
-        <SectionLabel>Financeiro</SectionLabel>
-        {!planoPermiteModulo(planoAtual, 'financeiro') ? (
+      {/* Financeiro — planos sem acesso (Free/Starter) veem o card bloqueado abaixo da Silagem */}
+      {!temFinanceiro && (
+        <section aria-label="Financeiro">
+          <SectionLabel>Financeiro</SectionLabel>
           <LockedModuleCard modulo="financeiro" className="min-h-[140px]" />
-        ) : (
-          <FinanceiroResumoCard data={data} href="/dashboard/financeiro" />
-        )}
-      </section>
+        </section>
+      )}
 
       {/* Próximas Operações — só renderiza quando há operações de campo agendadas */}
       {data.proximasOperacoes.length > 0 && (

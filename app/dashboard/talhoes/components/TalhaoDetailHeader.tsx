@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Talhao, type CicloAgricola } from '@/lib/types/talhoes';
 import { type Profile } from '@/lib/supabase';
-import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
 import { getStatusDisplay } from '../helpers';
 
 interface TalhaoDetailHeaderProps {
@@ -13,7 +13,6 @@ interface TalhaoDetailHeaderProps {
   cicloAtivo?: CicloAgricola;
   onEdit?: () => void;
   onDelete?: () => void;
-  onNovoCiclo?: () => void;
   profile?: Profile | null;
 }
 
@@ -22,7 +21,6 @@ export function TalhaoDetailHeader({
   cicloAtivo,
   onEdit,
   onDelete,
-  onNovoCiclo,
   profile,
 }: TalhaoDetailHeaderProps) {
   const router = useRouter();
@@ -59,12 +57,6 @@ export function TalhaoDetailHeader({
         </div>
 
         <div className="flex gap-2">
-          {onNovoCiclo && (
-            <Button size="sm" onClick={onNovoCiclo}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Ciclo
-            </Button>
-          )}
           <Button variant="outline" size="sm" onClick={onEdit}>
             <Edit2 className="w-4 h-4 mr-2" />
             Editar
