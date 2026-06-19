@@ -94,6 +94,13 @@ function getCapacidade(silo: Silo): number {
   return 0;
 }
 
+function rotuloNivel(percentual: number): string {
+  if (percentual <= 0) return 'vazio';
+  if (percentual >= 75) return 'cheio';
+  if (percentual >= 40) return 'parcial';
+  return 'baixo';
+}
+
 function MiniGauge({ percentual, color }: { percentual: number; color: string }) {
   const data = [{ value: Math.min(percentual, 100), fill: color }];
   return (
@@ -130,7 +137,7 @@ function MiniGauge({ percentual, color }: { percentual: number; color: string })
         <span className="text-base font-extrabold leading-none" style={{ color }}>
           {percentual}%
         </span>
-        <span className="text-xs text-muted-foreground mt-0.5">cheio</span>
+        <span className="text-xs text-muted-foreground mt-0.5">{rotuloNivel(percentual)}</span>
       </div>
     </div>
   );

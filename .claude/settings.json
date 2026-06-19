@@ -179,7 +179,9 @@
       "PowerShell(npx vitest run lib/__tests__/rebanho.validations.test.ts 2>&1)",
       "PowerShell(npx tsc --noEmit -p tsconfig.json)",
       "PowerShell(npx tsx _tmp_test_ativ.ts 2>&1)",
-      "PowerShell(Copy-Item C:\\\\tmp\\\\atividades-campo-preexisting.bak lib/validators/atividades-campo.ts -Force)"
+      "PowerShell(Copy-Item C:\\\\tmp\\\\atividades-campo-preexisting.bak lib/validators/atividades-campo.ts -Force)",
+      "Bash(grep -ivE \"^\\\\s*$\")",
+      "Bash(echo \"---build exit: $?---\")"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -22,13 +22,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { siloSchema, type SiloInput, TIPOS_SILO } from '@/lib/validations/silos';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type Silo, type Talhao } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
+import { Layers, Container, Package, Boxes, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type InsumoSelect = { id: string; nome: string };
+
+const TIPO_SILO_META: Record<(typeof TIPOS_SILO)[number], { icon: typeof Layers; descricao: string }> = {
+  Superfície: { icon: Layers, descricao: 'Monte ao ar livre' },
+  Trincheira: { icon: Container, descricao: 'Escavado no solo' },
+  Bag: { icon: Package, descricao: 'Silo bolsa' },
+  Outros: { icon: Boxes, descricao: 'Outra estrutura' },
+};
+
+// Sugestões de cultura para preenchimento rápido (modo create, sem talhão vinculado)
+const CULTURAS_SUGERIDAS = ['Milho', 'Sorgo', 'Capim', 'Trigo'] as const;
+
+// Data local de hoje em YYYY-MM-DD (sem shift de fuso)
+function hojeLocalISO(): string {
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+}
+
+// Acima desse número de talhões, usa dropdown em vez de botões
+const MAX_TALHOES_BOTOES = 6;
 
 interface SiloFormProps {
   open: boolean;
@@ -107,7 +135,7 @@ export function SiloForm({
           cultura_ensilada: '',
           materia_seca_percent: null,
           talhao_id: null,
-          data_fechamento: undefined,
+          data_fechamento: hojeLocalISO(),
           data_abertura_prevista: undefined,
           data_abertura_real: undefined,
           observacoes_gerais: '',
@@ -135,7 +163,7 @@ export function SiloForm({
         cultura_ensilada: '',
         materia_seca_percent: null,
         talhao_id: null,
-        data_fechamento: undefined,
+        data_fechamento: hojeLocalISO(),
         data_abertura_prevista: undefined,
         observacoes_gerais: '',
         custo_aquisicao_rs_ton: null,
@@ -155,6 +183,20 @@ export function SiloForm({
   const volumeWatch = form.watch('volume_ensilado_ton_mv');
   const talhaoId = form.watch('talhao_id');
   const dataFechamento = form.watch('data_fechamento');
+  const culturaWatch = form.watch('cultura_ensilada');
+
+  // Modo "Outros" do seletor rápido de cultura: revela campo de texto livre.
+  // Em edit, abre como texto livre se a cultura salva não for uma das sugestões.
+  const [culturaLivre, setCulturaLivre] = useState(
+    mode === 'edit' && !!silo?.cultura_ensilada
+      ? !(CULTURAS_SUGERIDAS as readonly string[]).includes(silo.cultura_ensilada)
+      : false
+  );
+
+  // Ao abrir em create, reseta o modo de texto livre da cultura
+  useEffect(() => {
+    if (open && mode === 'create') setCulturaLivre(false);
+  }, [open, mode]);
 
   // No create, abertura prevista é sempre fechamento + 60 dias (prazo mínimo de fermentação)
   // No edit, sobrescreve apenas se o usuário mudar a data de fechamento
@@ -339,23 +381,51 @@ export function SiloForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="silo-tipo">Tipo de Estrutura</Label>
+            <Label id="silo-tipo-label">Tipo de Estrutura</Label>
             <Controller
               control={form.control}
               name="tipo"
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger id="silo-tipo">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIPOS_SILO.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div
+                  role="radiogroup"
+                  aria-labelledby="silo-tipo-label"
+                  className="grid grid-cols-2 sm:grid-cols-4 gap-2"
+                >
+                  {TIPOS_SILO.map((t) => {
+                    const meta = TIPO_SILO_META[t];
+                    const Icon = meta.icon;
+                    const selected = field.value === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => field.onChange(t)}
+                        className={cn(
+                          'relative flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-colors',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                          selected
+                            ? 'border-primary bg-primary/10 text-foreground'
+                            : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                        )}
+                      >
+                        {selected && (
+                          <Check
+                            className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-primary"
+                            aria-hidden="true"
+                          />
+                        )}
+                        <Icon
+                          className={cn('h-5 w-5', selected ? 'text-primary' : 'text-muted-foreground')}
+                          aria-hidden="true"
+                        />
+                        <span className="text-sm font-medium">{t}</span>
+                        <span className="text-xs text-muted-foreground leading-tight">{meta.descricao}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
             />
           </div>
@@ -363,7 +433,7 @@ export function SiloForm({
           {/* Datas */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="silo-fechamento">
+              <Label htmlFor="silo-fechamento" className="h-5">
                 Data de Fechamento {mode === 'create' && <span className="text-destructive">*</span>}
               </Label>
               <Input
@@ -379,11 +449,8 @@ export function SiloForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="silo-abertura-prevista">
+              <Label htmlFor="silo-abertura-prevista" className="h-5">
                 Abertura Prevista
-                {mode === 'create' && (
-                  <span className="text-xs text-muted-foreground ml-1">(60 dias após fechamento)</span>
-                )}
               </Label>
               <Input
                 id="silo-abertura-prevista"
@@ -394,7 +461,7 @@ export function SiloForm({
               />
               {mode === 'create' && (
                 <p className="text-xs text-muted-foreground">
-                  Prazo mínimo de fermentação — calculado automaticamente
+                  Calculada: fechamento + 60 dias (fermentação)
                 </p>
               )}
             </div>
@@ -425,41 +492,138 @@ export function SiloForm({
 
           {/* Talhão */}
           <div className="space-y-2">
-            <Label htmlFor="silo-talhao">Talhão</Label>
+            <Label id="silo-talhao-label" htmlFor="silo-talhao">
+              Talhão <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+            </Label>
             <Controller
               control={form.control}
               name="talhao_id"
-              render={({ field }) => (
-                <Select
-                  onValueChange={(val) => field.onChange(val === '' ? null : val)}
-                  value={field.value ?? ''}
-                >
-                  <SelectTrigger id="silo-talhao">
-                    <SelectValue placeholder="Selecione um talhão (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
-                    {talhoes.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              render={({ field }) =>
+                talhoes.length > 0 && talhoes.length <= MAX_TALHOES_BOTOES ? (
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="silo-talhao-label"
+                    className="flex flex-wrap gap-2"
+                  >
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={!field.value}
+                      onClick={() => field.onChange(null)}
+                      className={cn(
+                        'rounded-md border px-3 py-1.5 text-sm transition-colors',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                        !field.value
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                      )}
+                    >
+                      Nenhum
+                    </button>
+                    {talhoes.map((t) => {
+                      const selected = field.value === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => field.onChange(t.id)}
+                          className={cn(
+                            'rounded-md border px-3 py-1.5 text-sm transition-colors',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                            selected
+                              ? 'border-primary bg-primary/10 text-foreground'
+                              : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                          )}
+                        >
+                          {t.nome}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Select
+                    onValueChange={(val) => field.onChange(val === '' ? null : val)}
+                    value={field.value ?? ''}
+                  >
+                    <SelectTrigger id="silo-talhao">
+                      <SelectValue placeholder="Selecione um talhão (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum</SelectItem>
+                      {talhoes.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )
+              }
             />
           </div>
 
           {/* Cultura Ensilada */}
           <div className="space-y-2">
             <Label htmlFor="silo-cultura">Cultura Ensilada</Label>
-            <Input
-              id="silo-cultura"
-              placeholder="Ex: Milho, Sorgo"
-              readOnly={!!talhaoId}
-              className={talhaoId ? 'bg-muted cursor-not-allowed' : ''}
-              {...form.register('cultura_ensilada')}
-            />
+
+            {/* Seletor rápido de cultura — só quando não há talhão vinculado */}
+            {!talhaoId && (
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Sugestões de cultura">
+                {CULTURAS_SUGERIDAS.map((c) => {
+                  const selected = !culturaLivre && culturaWatch === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => {
+                        setCulturaLivre(false);
+                        form.setValue('cultura_ensilada', c, { shouldValidate: true });
+                      }}
+                      className={cn(
+                        'rounded-full border px-3 py-1 text-sm transition-colors',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                        selected
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                      )}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  aria-pressed={culturaLivre}
+                  onClick={() => {
+                    setCulturaLivre(true);
+                    form.setValue('cultura_ensilada', '', { shouldValidate: true });
+                  }}
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-sm transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                    culturaLivre
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                  )}
+                >
+                  Outros
+                </button>
+              </div>
+            )}
+
+            {/* Campo de texto: sempre visível quando há talhão (readonly) ou quando "Outros" foi escolhido */}
+            {(talhaoId || culturaLivre) && (
+              <Input
+                id="silo-cultura"
+                placeholder="Ex: Milheto, Aveia"
+                readOnly={!!talhaoId}
+                className={talhaoId ? 'bg-muted cursor-not-allowed' : ''}
+                {...form.register('cultura_ensilada')}
+              />
+            )}
             {talhaoId && (
               <p className="text-sm text-muted-foreground">
                 Cultura vinculada ao talhão selecionado
@@ -488,88 +652,98 @@ export function SiloForm({
             )}
           </div>
 
-          {/* Seção B — Dimensões */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Dimensões (opcional)</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="silo-comp">Comprimento (m)</Label>
-                <Input
-                  id="silo-comp"
-                  type="number"
-                  step="0.1"
-                  placeholder="Ex: 10.5"
-                  {...form.register('comprimento_m', {
-                    setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
-                  })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="silo-larg">Largura (m)</Label>
-                <Input
-                  id="silo-larg"
-                  type="number"
-                  step="0.1"
-                  placeholder="Ex: 5.0"
-                  {...form.register('largura_m', {
-                    setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
-                  })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="silo-alt">Altura (m)</Label>
-                <Input
-                  id="silo-alt"
-                  type="number"
-                  step="0.1"
-                  placeholder="Ex: 3.0"
-                  {...form.register('altura_m', {
-                    setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
-                  })}
-                />
-              </div>
-            </div>
+          {/* Seções B/C/D — Dimensões, qualidade e custo (recolhível, opcional) */}
+          <Accordion className="border-t border-border">
+            <AccordionItem value="dimensoes-qualidade" className="border-b-0">
+              <AccordionTrigger className="text-sm font-medium">
+                Dimensões e qualidade
+                <span className="text-xs text-muted-foreground font-normal ml-2">(opcional)</span>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-1">
+                {/* Dimensões */}
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="silo-comp">Comprimento (m)</Label>
+                      <Input
+                        id="silo-comp"
+                        type="number"
+                        step="0.1"
+                        placeholder="Ex: 10.5"
+                        {...form.register('comprimento_m', {
+                          setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="silo-larg">Largura (m)</Label>
+                      <Input
+                        id="silo-larg"
+                        type="number"
+                        step="0.1"
+                        placeholder="Ex: 5.0"
+                        {...form.register('largura_m', {
+                          setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
+                        })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="silo-alt">Altura (m)</Label>
+                      <Input
+                        id="silo-alt"
+                        type="number"
+                        step="0.1"
+                        placeholder="Ex: 3.0"
+                        {...form.register('altura_m', {
+                          setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
+                        })}
+                      />
+                    </div>
+                  </div>
 
-            {/* Indicador de densidade */}
-            {densidadeBadge && (
-              <div className={`text-sm font-medium ${densidadeBadge.cls}`}>
-                Densidade estimada: {densidadeBadge.label}
-                <span className="text-xs text-muted-foreground ml-2">
-                  (ideal ≥ 650 kg/m³)
-                </span>
-              </div>
-            )}
-          </div>
+                  {/* Indicador de densidade */}
+                  {densidadeBadge && (
+                    <div className={`text-sm font-medium ${densidadeBadge.cls}`}>
+                      Densidade estimada: {densidadeBadge.label}
+                      <span className="text-xs text-muted-foreground ml-2">
+                        (ideal ≥ 650 kg/m³)
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-          {/* Seção C — Qualidade */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
-            <Input
-              id="silo-ms"
-              type="number"
-              step="0.1"
-              placeholder="Ex: 32.5"
-              {...form.register('materia_seca_percent', {
-                setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-              })}
-            />
-          </div>
+                {/* Qualidade */}
+                <div className="space-y-2">
+                  <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
+                  <Input
+                    id="silo-ms"
+                    type="number"
+                    step="0.1"
+                    placeholder="Ex: 32.5"
+                    {...form.register('materia_seca_percent', {
+                      setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                    })}
+                  />
+                </div>
 
-          {/* Seção D — Custo de aquisição (apenas para silos sem talhão) */}
-          {showCustoAquisicao && (
-            <div className="space-y-2">
-              <Label htmlFor="silo-custo">Custo de aquisição da silagem (R$/ton)</Label>
-              <Input
-                id="silo-custo"
-                type="number"
-                step="0.01"
-                placeholder="Ex: 180.00"
-                {...form.register('custo_aquisicao_rs_ton', {
-                  setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                })}
-              />
-            </div>
-          )}
+                {/* Custo de aquisição (apenas para silos sem talhão) */}
+                {showCustoAquisicao && (
+                  <div className="space-y-2">
+                    <Label htmlFor="silo-custo">Custo de aquisição da silagem (R$/ton)</Label>
+                    <Input
+                      id="silo-custo"
+                      type="number"
+                      step="0.01"
+                      placeholder="Ex: 180.00"
+                      {...form.register('custo_aquisicao_rs_ton', {
+                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                      })}
+                    />
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           {/* Insumos — Lonas e Inoculante (oculto no plano free) */}
           {isFree ? (
@@ -699,7 +873,7 @@ export function SiloForm({
               {/* Inoculante — opcional */}
               <div className="space-y-2">
                 <Label htmlFor="silo-inoc">
-                  Inoculante <span className="text-xs text-muted-foreground">(opcional — nem todos os produtores utilizam)</span>
+                  Inoculante <span className="text-xs text-muted-foreground">(opcional)</span>
                 </Label>
                 <Controller
                   control={form.control}
