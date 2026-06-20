@@ -19,13 +19,13 @@ interface SiloDetailHeaderProps {
   talhaoNome?: string | null;
 }
 
-const statusConfig: Record<SiloStatus, { emoji: string; color: string; label: string }> = {
-  Enchendo: { emoji: '🔵', color: 'bg-blue-500', label: 'Enchendo' },
-  Fechado: { emoji: '🟡', color: 'bg-yellow-500', label: 'Fechado' },
-  Aberto: { emoji: '🟢', color: 'bg-green-500', label: 'Aberto' },
-  Vazio: { emoji: '⚫', color: 'bg-gray-500', label: 'Vazio' },
-  Crítico: { emoji: '🔴', color: 'bg-red-500', label: 'Crítico' },
-  Esgotado: { emoji: '⚫', color: 'bg-gray-800', label: 'Esgotado' },
+const statusConfig: Record<SiloStatus, { dot: string; badge: string; label: string }> = {
+  Enchendo: { dot: 'bg-blue-400', badge: 'border-blue-500/30 bg-blue-500/10 text-blue-300', label: 'Enchendo' },
+  Fechado: { dot: 'bg-yellow-400', badge: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300', label: 'Fechado' },
+  Aberto: { dot: 'bg-primary', badge: 'border-green-border bg-green-dim text-primary', label: 'Aberto' },
+  Vazio: { dot: 'bg-muted-foreground', badge: 'border-border bg-muted/50 text-muted-foreground', label: 'Vazio' },
+  Crítico: { dot: 'bg-red-400', badge: 'border-red-500/30 bg-red-500/10 text-red-300', label: 'Crítico' },
+  Esgotado: { dot: 'bg-muted-foreground', badge: 'border-border bg-muted/50 text-muted-foreground', label: 'Esgotado' },
 };
 
 export function SiloDetailHeader({
@@ -54,21 +54,23 @@ export function SiloDetailHeader({
         Voltar
       </Button>
 
-      {/* Linha 2: nome + ações */}
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-3">
-        {/* Nome + status (abaixo) + talhão */}
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight text-[#00A651]">{silo.nome}</h1>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <Badge className={`text-xs text-white ${statusInfo.color}`}>
-              {statusInfo.emoji} {statusInfo.label}
-            </Badge>
-            {talhaoNome && (
-              <span className="text-sm text-muted-foreground">
-                • Talhão: <span className="font-medium text-foreground">{talhaoNome}</span>
-              </span>
-            )}
-          </div>
+      {/* Linha 2: nome + status (mesma linha) + ações à direita */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        {/* Nome + status badge inline */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-primary">{silo.nome}</h1>
+          <Badge
+            variant="outline"
+            className={`gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusInfo.badge}`}
+          >
+            <span className={`h-2 w-2 rounded-full ${statusInfo.dot}`} aria-hidden="true" />
+            {statusInfo.label}
+          </Badge>
+          {talhaoNome && (
+            <span className="text-sm text-muted-foreground">
+              • Talhão: <span className="font-medium text-foreground">{talhaoNome}</span>
+            </span>
+          )}
         </div>
 
         {/* Ações */}
