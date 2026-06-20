@@ -78,6 +78,8 @@ export async function GET(request: NextRequest) {
       type === 'recovery' ? '/reset-password'
       : type === 'invite' ? '/auth/set-password'
       : '/dashboard/onboarding';
+    // Nota: recovery normalmente chega via hash em /auth/callback (fluxo implícito).
+    // Mantemos o caso aqui para o eventual fluxo PKCE (token_hash na query string).
 
     const response = NextResponse.redirect(new URL(redirectTo, request.url));
     cookieStore.getAll().forEach(({ name, value }) => {

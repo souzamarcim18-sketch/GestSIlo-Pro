@@ -58,7 +58,7 @@ export function SiloDetailHeader({
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-3">
         {/* Nome + status (abaixo) + talhão */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-[#00A651]">{silo.nome}</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-[#00A651]">{silo.nome}</h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <Badge className={`text-xs text-white ${statusInfo.color}`}>
               {statusInfo.emoji} {statusInfo.label}
