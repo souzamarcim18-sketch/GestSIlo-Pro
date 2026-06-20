@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { type Talhao } from '@/lib/types/talhoes';
 import { type Profile } from '@/lib/supabase';
-import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
 
 interface TalhaoDetailHeaderProps {
   talhao: Talhao;
   onEdit?: () => void;
   onDelete?: () => void;
+  onRegistrarOperacao?: () => void;
   profile?: Profile | null;
 }
 
@@ -17,6 +18,7 @@ export function TalhaoDetailHeader({
   talhao,
   onEdit,
   onDelete,
+  onRegistrarOperacao,
   profile,
 }: TalhaoDetailHeaderProps) {
   const router = useRouter();
@@ -39,7 +41,13 @@ export function TalhaoDetailHeader({
           <p className="text-sm text-muted-foreground mt-0.5">{talhao.area_ha} ha</p>
         </div>
 
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex flex-wrap gap-2">
+          {onRegistrarOperacao && (
+            <Button size="sm" onClick={onRegistrarOperacao}>
+              <Plus className="w-4 h-4 mr-2" />
+              Registrar Operação
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={onEdit}>
             <Edit2 className="w-4 h-4 mr-2" />
             Editar

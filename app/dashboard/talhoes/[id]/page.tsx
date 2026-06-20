@@ -36,6 +36,7 @@ export default function TalhaoDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isAtividadeOpen, setIsAtividadeOpen] = useState(false);
 
   const cicloAtivo = ciclos.find((c) => c.ativo);
 
@@ -117,6 +118,9 @@ export default function TalhaoDetailPage() {
           talhao={talhao}
           onEdit={() => setIsEditOpen(true)}
           onDelete={() => setIsDeleteOpen(true)}
+          onRegistrarOperacao={
+            activeTab === 'visaoGeral' ? () => setIsAtividadeOpen(true) : undefined
+          }
           profile={profile}
         />
 
@@ -147,6 +151,8 @@ export default function TalhaoDetailPage() {
               cicloAtivo={cicloAtivo}
               atividades={atividades}
               onRefresh={fetchData}
+              isDialogOpen={isAtividadeOpen}
+              onDialogOpenChange={setIsAtividadeOpen}
             />
           )}
           {activeTab === 'historico' && (

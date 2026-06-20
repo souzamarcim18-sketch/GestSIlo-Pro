@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { type Talhao, type CicloAgricola, type AtividadeCampo } from '@/lib/types/talhoes';
-import { Plus, AlertCircle, AlertTriangle } from 'lucide-react';
+import { AlertCircle, AlertTriangle } from 'lucide-react';
 import { AtividadeDialog } from '../dialogs/AtividadeDialog';
 import {
   calcularCustoTotalEstimado,
@@ -38,6 +38,9 @@ interface TalhaoVisaoGeralTabProps {
   cicloAtivo?: CicloAgricola;
   atividades: AtividadeCampo[];
   onRefresh?: () => void;
+  /** Controle externo do dialog de registrar operação (botão no header) */
+  isDialogOpen: boolean;
+  onDialogOpenChange: (open: boolean) => void;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -51,8 +54,9 @@ export function TalhaoVisaoGeralTab({
   cicloAtivo,
   atividades,
   onRefresh,
+  isDialogOpen,
+  onDialogOpenChange,
 }: TalhaoVisaoGeralTabProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [tipoFiltro, setTipoFiltro] = useState<string>('');
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataFim, setDataFim] = useState<string>('');
@@ -237,14 +241,6 @@ export function TalhaoVisaoGeralTab({
             </Alert>
           )}
 
-          {/* Botão — alinhado ao topo da coluna, acima do card de operações */}
-          <div className="flex justify-end">
-            <Button onClick={() => setIsDialogOpen(true)} className="h-9 w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Registrar Operação Agrícola
-            </Button>
-          </div>
-
           {/* Card de Operações Agrícolas com filtros no cabeçalho */}
           <Card>
             <CardHeader className="pb-3 space-y-4">
@@ -381,13 +377,13 @@ export function TalhaoVisaoGeralTab({
       {/* Dialog */}
       <AtividadeDialog
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={onDialogOpenChange}
         talhaoId={talhaoId}
         talhaoNome={talhao.nome}
         talhaoAreaHa={talhao.area_ha}
         cicloAtivo={cicloAtivo}
         onSuccess={() => {
-          setIsDialogOpen(false);
+          onDialogOpenChange(false);
           onRefresh?.();
         }}
       />
