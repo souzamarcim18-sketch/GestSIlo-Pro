@@ -94,22 +94,23 @@ export function FrotaClient({ profile }: Props) {
               abastecimentos={abastecimentos}
               planosManutencao={planos}
               loading={loading}
-            />
-
-            <MaquinasList
-              maquinas={maquinas}
-              usos={usos}
-              loading={loading}
-              profile={profile}
-              onNova={() => setNovaOpen(true)}
-              onEditar={(m) => setEditMaquina(m)}
-              onRegistrarUso={(m) => setUsoTarget(m)}
-              onRegistrarManutencao={(m) => setManutencaoTarget(m)}
-              onRegistrarAbastecimento={(m) => setAbastecimentoTarget(m)}
-              onRefresh={async () => {
-                await refreshMaquinas();
-                await refreshUsos();
-              }}
+              listaMaquinas={
+                <MaquinasList
+                  maquinas={maquinas}
+                  usos={usos}
+                  loading={loading}
+                  profile={profile}
+                  onNova={() => setNovaOpen(true)}
+                  onEditar={(m) => setEditMaquina(m)}
+                  onRegistrarUso={(m) => setUsoTarget(m)}
+                  onRegistrarManutencao={(m) => setManutencaoTarget(m)}
+                  onRegistrarAbastecimento={(m) => setAbastecimentoTarget(m)}
+                  onRefresh={async () => {
+                    await refreshMaquinas();
+                    await refreshUsos();
+                  }}
+                />
+              }
             />
           </TabsContent>
 

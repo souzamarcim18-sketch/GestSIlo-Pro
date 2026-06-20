@@ -52,7 +52,7 @@ export function SiloDetailHeader({
 
       {/* Linha 2: nome + badges + ações */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">{silo.nome}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[#00A651]">{silo.nome}</h1>
 
         <Badge variant="outline" className="text-sm">{silo.tipo}</Badge>
         <Badge className={`text-sm text-white ${statusInfo.color}`}>

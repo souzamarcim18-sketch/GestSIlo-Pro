@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ToggleButtonGroup } from '@/components/ui/toggle-button-group';
 import { toast } from 'sonner';
 import { Upload } from 'lucide-react';
 import { criarAnimalAction } from '../actions';
@@ -29,6 +30,22 @@ const SEM_LOTE = '__none__';
 
 type Origem = 'nascido' | 'comprado';
 type TipoRebanho = 'leiteiro' | 'corte' | 'dupla_aptidao';
+
+const SEXO_OPTIONS = [
+  { value: 'Fêmea' as const, label: 'Fêmea' },
+  { value: 'Macho' as const, label: 'Macho' },
+];
+
+const TIPO_REBANHO_OPTIONS = [
+  { value: 'leiteiro' as const, label: 'Leiteiro' },
+  { value: 'corte' as const, label: 'Corte' },
+  { value: 'dupla_aptidao' as const, label: 'Dupla Aptidão' },
+];
+
+const ORIGEM_OPTIONS = [
+  { value: 'nascido' as const, label: 'Nascido na propriedade' },
+  { value: 'comprado' as const, label: 'Comprado' },
+];
 
 const hoje = () => new Date().toISOString().split('T')[0];
 
@@ -241,16 +258,14 @@ export default function NovoAnimalPage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="sexo">Sexo *</Label>
-                  <Select value={sexo} onValueChange={(v) => setSexo(v as 'Macho' | 'Fêmea')}>
-                    <SelectTrigger id="sexo" disabled={isSubmitting}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Fêmea">Fêmea</SelectItem>
-                      <SelectItem value="Macho">Macho</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Sexo *</Label>
+                  <ToggleButtonGroup
+                    aria-label="Sexo"
+                    options={SEXO_OPTIONS}
+                    value={sexo}
+                    onChange={setSexo}
+                    disabled={isSubmitting}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="data_nascimento">Data de Nascimento *</Label>
@@ -294,23 +309,17 @@ export default function NovoAnimalPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="tipo_rebanho">Tipo de Rebanho *</Label>
-                  <Select
+                  <Label>Tipo de Rebanho *</Label>
+                  <ToggleButtonGroup
+                    aria-label="Tipo de Rebanho"
+                    options={TIPO_REBANHO_OPTIONS}
                     value={tipoRebanho}
-                    onValueChange={(val) => {
-                      setTipoRebanho((val as TipoRebanho) ?? 'leiteiro');
+                    onChange={(val) => {
+                      setTipoRebanho(val);
                       setCategoria('');
                     }}
-                  >
-                    <SelectTrigger id="tipo_rebanho" disabled={isSubmitting}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="leiteiro">Leiteiro</SelectItem>
-                      <SelectItem value="corte">Corte</SelectItem>
-                      <SelectItem value="dupla_aptidao">Dupla Aptidão</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    disabled={isSubmitting}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="categoria">Categoria</Label>
@@ -369,16 +378,14 @@ export default function NovoAnimalPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="origem">Origem *</Label>
-                  <Select value={origem} onValueChange={(val) => setOrigem(val as Origem)}>
-                    <SelectTrigger id="origem" disabled={isSubmitting}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="nascido">Nascido na propriedade</SelectItem>
-                      <SelectItem value="comprado">Comprado</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Origem *</Label>
+                  <ToggleButtonGroup
+                    aria-label="Origem"
+                    options={ORIGEM_OPTIONS}
+                    value={origem}
+                    onChange={setOrigem}
+                    disabled={isSubmitting}
+                  />
                 </div>
                 {origem === 'nascido' && (
                   <div className="space-y-1.5">

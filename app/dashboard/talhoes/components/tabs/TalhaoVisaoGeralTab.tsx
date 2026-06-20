@@ -215,10 +215,15 @@ export function TalhaoVisaoGeralTab({
 
           {/* Botão e Filtros */}
           <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-            <Button onClick={() => setIsDialogOpen(true)} className="h-9 shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
-              Registrar Atividade
-            </Button>
+            <div className="space-y-2 shrink-0">
+              <Label className="text-sm invisible select-none hidden sm:block" aria-hidden>
+                &nbsp;
+              </Label>
+              <Button onClick={() => setIsDialogOpen(true)} className="h-9 w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Registrar Operação Agrícola
+              </Button>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
               <div className="space-y-2">

@@ -606,7 +606,7 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
           >
             {isCollapsed ? (
               <Image
-                src="/icon-192.png"
+                src="/logo_verde_symbol.png"
                 alt="GestSilo"
                 width={36}
                 height={36}

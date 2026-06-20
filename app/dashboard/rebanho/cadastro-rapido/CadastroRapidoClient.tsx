@@ -7,20 +7,44 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ToggleButtonGroup } from '@/components/ui/toggle-button-group';
 import { toast } from 'sonner';
 import { cadastrarAnimaisLoteAction } from '@/app/dashboard/rebanho/actions';
 import type { CSVImportResult } from '@/lib/types/rebanho';
 
 type Sexo = 'Fêmea' | 'Macho';
 type TipoRebanho = 'leiteiro' | 'corte' | 'dupla_aptidao';
+type Origem = 'nascido' | 'comprado';
+
+const TIPO_REBANHO_OPTIONS = [
+  { value: 'leiteiro' as const, label: 'Leiteiro' },
+  { value: 'corte' as const, label: 'Corte' },
+  { value: 'dupla_aptidao' as const, label: 'Dupla aptidão' },
+];
+
+const SEXO_OPTIONS = [
+  { value: 'Fêmea' as const, label: 'Fêmea' },
+  { value: 'Macho' as const, label: 'Macho' },
+];
+
+const ORIGEM_OPTIONS = [
+  { value: 'nascido' as const, label: 'Nascido' },
+  { value: 'comprado' as const, label: 'Comprado' },
+];
 
 interface LinhaGrade {
   brinco: string;
   nome: string;
   sexo: Sexo;
   data_nascimento: string; // YYYY-MM-DD
+  data_nascimento_estimada: boolean;
+  origem: Origem;
+  raca: string;
+  lote: string;
+  peso_nascimento: string;
   peso_atual: string;
 }
 
@@ -29,11 +53,12 @@ interface Padrao {
   lote: string;
   raca: string;
   sexo: Sexo;
+  origem: Origem;
   data_nascimento: string;
 }
 
 const NATIVE_SELECT =
-  'h-9 w-full rounded-md border border-border bg-surface px-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring/30';
+  'h-8 w-full rounded-md border border-border bg-surface px-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring/30';
 
 function novaLinha(padrao: Padrao): LinhaGrade {
   return {
@@ -41,6 +66,11 @@ function novaLinha(padrao: Padrao): LinhaGrade {
     nome: '',
     sexo: padrao.sexo,
     data_nascimento: padrao.data_nascimento,
+    data_nascimento_estimada: false,
+    origem: padrao.origem,
+    raca: padrao.raca,
+    lote: padrao.lote,
+    peso_nascimento: '',
     peso_atual: '',
   };
 }
@@ -54,6 +84,7 @@ export function CadastroRapidoClient() {
     lote: '',
     raca: '',
     sexo: 'Fêmea',
+    origem: 'nascido',
     data_nascimento: '',
   });
 
@@ -81,7 +112,7 @@ export function CadastroRapidoClient() {
   }, []);
 
   const atualizarCampo = useCallback(
-    (idx: number, campo: keyof LinhaGrade, valor: string) => {
+    <K extends keyof LinhaGrade>(idx: number, campo: K, valor: LinhaGrade[K]) => {
       setLinhas((prev) =>
         prev.map((l, i) => (i === idx ? { ...l, [campo]: valor } : l))
       );
@@ -126,9 +157,13 @@ export function CadastroRapidoClient() {
         nome: l.nome.trim(),
         sexo: l.sexo,
         data_nascimento: l.data_nascimento,
+        data_nascimento_estimada: l.data_nascimento_estimada ? 'true' : 'false',
         tipo_rebanho: padrao.tipo_rebanho,
-        lote: padrao.lote.trim(),
-        raca: padrao.raca.trim(),
+        lote: l.lote.trim(),
+        raca: l.raca.trim(),
+        origem: l.origem,
+        // Peso ao nascimento só faz sentido para animal nascido na propriedade.
+        peso_nascimento: l.origem === 'nascido' ? l.peso_nascimento.trim() : '',
         peso_atual: l.peso_atual.trim(),
       }));
 
@@ -158,36 +193,52 @@ export function CadastroRapidoClient() {
   // ---- Etapa 1: dados em comum ----
   if (etapa === 'padrao') {
     return (
-      <Card className="max-w-2xl space-y-4 p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.13em]">Dados em comum</h2>
-        <p className="text-sm text-muted-foreground">
-          Valem para todos os animais cadastrados agora (podem ser ajustados linha a linha depois).
-        </p>
+      <Card className="max-w-2xl space-y-5 p-6">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.13em]">Dados em comum</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Valem para todos os animais cadastrados agora (podem ser ajustados linha a linha depois).
+          </p>
+        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Tipo de rebanho</Label>
-            <select
-              className={NATIVE_SELECT}
+            <ToggleButtonGroup
+              aria-label="Tipo de rebanho"
+              options={TIPO_REBANHO_OPTIONS}
               value={padrao.tipo_rebanho}
-              onChange={(e) => setPadrao((p) => ({ ...p, tipo_rebanho: e.target.value as TipoRebanho }))}
-            >
-              <option value="leiteiro">Leiteiro</option>
-              <option value="corte">Corte</option>
-              <option value="dupla_aptidao">Dupla aptidão</option>
-            </select>
+              onChange={(v) => setPadrao((p) => ({ ...p, tipo_rebanho: v }))}
+            />
           </div>
 
           <div className="space-y-1.5">
             <Label>Sexo predominante</Label>
-            <select
-              className={NATIVE_SELECT}
+            <ToggleButtonGroup
+              aria-label="Sexo predominante"
+              options={SEXO_OPTIONS}
               value={padrao.sexo}
-              onChange={(e) => setPadrao((p) => ({ ...p, sexo: e.target.value as Sexo }))}
-            >
-              <option value="Fêmea">Fêmea</option>
-              <option value="Macho">Macho</option>
-            </select>
+              onChange={(v) => setPadrao((p) => ({ ...p, sexo: v }))}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Origem predominante</Label>
+            <ToggleButtonGroup
+              aria-label="Origem predominante"
+              options={ORIGEM_OPTIONS}
+              value={padrao.origem}
+              onChange={(v) => setPadrao((p) => ({ ...p, origem: v }))}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Data de nascimento padrão (opcional)</Label>
+            <Input
+              type="date"
+              value={padrao.data_nascimento}
+              onChange={(e) => setPadrao((p) => ({ ...p, data_nascimento: e.target.value }))}
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -205,15 +256,6 @@ export function CadastroRapidoClient() {
               value={padrao.raca}
               onChange={(e) => setPadrao((p) => ({ ...p, raca: e.target.value }))}
               placeholder="Ex.: Nelore"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Data de nascimento padrão (opcional)</Label>
-            <Input
-              type="date"
-              value={padrao.data_nascimento}
-              onChange={(e) => setPadrao((p) => ({ ...p, data_nascimento: e.target.value }))}
             />
           </div>
         </div>
@@ -271,14 +313,19 @@ export function CadastroRapidoClient() {
             </Button>
           </div>
 
-          <ScrollArea className="max-h-[420px] w-full">
-            <table className="w-full text-sm">
+          <ScrollArea className="max-h-[460px] w-full">
+            <table className="w-full min-w-[1100px] text-sm">
               <thead>
                 <tr className="border-b text-left">
                   <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Brinco *</th>
                   <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Nome</th>
                   <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Sexo</th>
                   <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Nascimento *</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Estimada</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Origem</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Raça</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Lote</th>
+                  <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Peso nasc. (kg)</th>
                   <th className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.13em]">Peso atual (kg)</th>
                   <th className="px-2 py-2" />
                 </tr>
@@ -290,21 +337,21 @@ export function CadastroRapidoClient() {
                       <Input
                         value={linha.brinco}
                         onChange={(e) => atualizarCampo(idx, 'brinco', e.target.value)}
-                        className="h-8"
+                        className="h-8 min-w-[110px]"
                       />
                     </td>
                     <td className="px-1 py-1">
                       <Input
                         value={linha.nome}
                         onChange={(e) => atualizarCampo(idx, 'nome', e.target.value)}
-                        className="h-8"
+                        className="h-8 min-w-[120px]"
                       />
                     </td>
                     <td className="px-1 py-1">
                       <select
-                        className={`${NATIVE_SELECT} h-8`}
+                        className={`${NATIVE_SELECT} min-w-[90px]`}
                         value={linha.sexo}
-                        onChange={(e) => atualizarCampo(idx, 'sexo', e.target.value)}
+                        onChange={(e) => atualizarCampo(idx, 'sexo', e.target.value as Sexo)}
                       >
                         <option value="Fêmea">Fêmea</option>
                         <option value="Macho">Macho</option>
@@ -315,7 +362,50 @@ export function CadastroRapidoClient() {
                         type="date"
                         value={linha.data_nascimento}
                         onChange={(e) => atualizarCampo(idx, 'data_nascimento', e.target.value)}
-                        className="h-8"
+                        className="h-8 min-w-[140px]"
+                      />
+                    </td>
+                    <td className="px-1 py-1 text-center">
+                      <Checkbox
+                        checked={linha.data_nascimento_estimada}
+                        onCheckedChange={(checked) =>
+                          atualizarCampo(idx, 'data_nascimento_estimada', checked === true)
+                        }
+                        aria-label="Data estimada"
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <select
+                        className={`${NATIVE_SELECT} min-w-[110px]`}
+                        value={linha.origem}
+                        onChange={(e) => atualizarCampo(idx, 'origem', e.target.value as Origem)}
+                      >
+                        <option value="nascido">Nascido</option>
+                        <option value="comprado">Comprado</option>
+                      </select>
+                    </td>
+                    <td className="px-1 py-1">
+                      <Input
+                        value={linha.raca}
+                        onChange={(e) => atualizarCampo(idx, 'raca', e.target.value)}
+                        className="h-8 min-w-[110px]"
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <Input
+                        value={linha.lote}
+                        onChange={(e) => atualizarCampo(idx, 'lote', e.target.value)}
+                        className="h-8 min-w-[110px]"
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <Input
+                        value={linha.peso_nascimento}
+                        onChange={(e) => atualizarCampo(idx, 'peso_nascimento', e.target.value)}
+                        inputMode="decimal"
+                        disabled={linha.origem !== 'nascido'}
+                        placeholder={linha.origem !== 'nascido' ? '—' : ''}
+                        className="h-8 min-w-[100px]"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -323,7 +413,7 @@ export function CadastroRapidoClient() {
                         value={linha.peso_atual}
                         onChange={(e) => atualizarCampo(idx, 'peso_atual', e.target.value)}
                         inputMode="decimal"
-                        className="h-8"
+                        className="h-8 min-w-[100px]"
                       />
                     </td>
                     <td className="px-1 py-1 text-right">

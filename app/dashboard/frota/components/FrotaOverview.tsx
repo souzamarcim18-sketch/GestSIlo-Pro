@@ -29,6 +29,8 @@ interface FrotaOverviewProps {
   abastecimentos: Abastecimento[];
   planosManutencao: PlanoManutencao[];
   loading: boolean;
+  /** Lista de máquinas — renderizada logo abaixo da seção de alertas. */
+  listaMaquinas?: React.ReactNode;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,6 +93,7 @@ export function FrotaOverview({
   abastecimentos,
   planosManutencao,
   loading,
+  listaMaquinas,
 }: FrotaOverviewProps) {
   const hoje = useMemo(() => new Date(), []);
   const inicioMes = useMemo(() => startOfMonth(hoje), [hoje]);
@@ -282,6 +285,9 @@ export function FrotaOverview({
           )}
         </CardContent>
       </Card>
+
+      {/* ── Lista de máquinas ──────────────────────────────────────────────── */}
+      {listaMaquinas}
 
       {/* ── Gráficos ───────────────────────────────────────────────────────── */}
       {!temDados && !loading ? (

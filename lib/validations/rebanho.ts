@@ -418,7 +418,12 @@ export const animalCSVRowSchema = z.object({
       const [d, m, y] = val.split('/');
       return `${y}-${m}-${d}`;
     }),
-  data_nascimento_estimada: z.boolean().default(false).optional(),
+  // Aceita boolean (CSV interno) ou string ('true'/'false'/'1'/'') vinda da
+  // grade de cadastro rápido, onde todas as células são strings.
+  data_nascimento_estimada: z
+    .union([z.boolean(), z.string()])
+    .transform((v) => (typeof v === 'boolean' ? v : v === 'true' || v === '1'))
+    .default(false),
   tipo_rebanho: z
     .enum(['leiteiro', 'corte', 'dupla_aptidao'])
     .default('leiteiro'),
