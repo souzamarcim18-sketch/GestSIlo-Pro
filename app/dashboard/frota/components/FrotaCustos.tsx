@@ -134,7 +134,7 @@ export function FrotaCustos({
           <DollarSign className="h-10 w-10 text-muted-foreground opacity-30" aria-hidden="true" />
           <p className="text-lg font-semibold text-muted-foreground">Nenhuma máquina cadastrada</p>
           <p className="text-sm text-muted-foreground max-w-xs">
-            Cadastre máquinas na aba Cadastro para ver a análise de custos.
+            Cadastre máquinas na Visão Geral para ver a análise de custos.
           </p>
         </CardContent>
       </Card>

@@ -184,7 +184,11 @@
       "Bash(echo \"---build exit: $?---\")",
       "PowerShell(npm run test -- --run 2>&1)",
       "PowerShell(npx eslint components/Sidebar.tsx components/SidebarContext.tsx app/dashboard/layout.tsx 2>&1)",
-      "PowerShell($out = npx tsc --noEmit -p tsconfig.json 2>&1; \\($out | Select-String -Pattern \"components/Sidebar|components/SidebarContext|app/dashboard/layout\"\\).Count)"
+      "PowerShell($out = npx tsc --noEmit -p tsconfig.json 2>&1; \\($out | Select-String -Pattern \"components/Sidebar|components/SidebarContext|app/dashboard/layout\"\\).Count)",
+      "PowerShell($out = npx tsc --noEmit -p tsconfig.json 2>&1 | Out-String; $out -split \"`n\" | Where-Object { $_ -match \"Sidebar|error TS\" } | Select-Object -First 40)",
+      "PowerShell($out = npx tsc --noEmit -p tsconfig.json 2>&1 | Out-String; $hits = $out -split \"`n\" | Where-Object { $_ -match \"^components/\" }; if \\($hits\\) { $hits } else { \"NENHUM erro em components/\" })",
+      "Bash(awk '{printf \"%dx%d\\\\n\", \\($1*16777216+$2*65536+$3*256+$4\\), \\($5*16777216+$6*65536+$7*256+$8\\)}')",
+      "PowerShell(if \\($?\\) { \"TYPECHECK OK\" })"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -32,6 +32,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +43,7 @@ import { CowIcon } from '@/components/icons/CowIcon';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { parsePlanoSlug, planoPermiteModulo, planoMinimoParaModulo, PLANOS, PlanoSlug } from '@/lib/planos';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useSidebarOptional } from '@/components/SidebarContext';
 
@@ -58,12 +59,17 @@ type RouteItem = {
 type RouteGroup = {
   /** Subtítulo do grupo dentro do bloco Gerencial. */
   titulo: string;
+  /** Chave estável usada para persistir o estado de expansão. */
+  key: GroupKeyGerencial;
   routes: RouteItem[];
 };
+
+type GroupKeyGerencial = 'producao' | 'suprimentos' | 'gestao';
 
 const gerencialGroups: RouteGroup[] = [
   {
     titulo: 'Produção',
+    key: 'producao',
     routes: [
       { label: 'Silos',              icon: Database,    href: '/dashboard/silos',              badge: null },
       { label: 'Pastagens',          icon: Leaf,        href: '/dashboard/pastagens',          badge: null, modulo: 'pastagens' },
@@ -74,6 +80,7 @@ const gerencialGroups: RouteGroup[] = [
   },
   {
     titulo: 'Suprimentos',
+    key: 'suprimentos',
     routes: [
       { label: 'Insumos',            icon: Package,     href: '/dashboard/insumos',            badge: null, modulo: 'insumos' },
       { label: 'Produtos',           icon: PackageOpen, href: '/dashboard/produtos',           badge: null, modulo: 'produtos' },
@@ -83,6 +90,7 @@ const gerencialGroups: RouteGroup[] = [
   },
   {
     titulo: 'Gestão',
+    key: 'gestao',
     routes: [
       { label: 'Financeiro',         icon: DollarSign,  href: '/dashboard/financeiro',         badge: null, modulo: 'financeiro' },
       { label: 'Calendário',         icon: Calendar,    href: '/dashboard/calendario',         badge: null },
@@ -117,6 +125,107 @@ const sincronizacaoRoute: RouteItem = {
   href: '/dashboard/configuracoes/sincronizacao',
   badge: null,
 };
+
+/**
+ * Chaves estáveis dos grupos recolhíveis. Servem de id no localStorage e de
+ * `aria-controls`/`id` para acessibilidade. Não dependem do label traduzido.
+ */
+const GROUP_KEYS = ['producao', 'suprimentos', 'gestao', 'ferramentas', 'sistema'] as const;
+type GroupKey = (typeof GROUP_KEYS)[number];
+
+const COLLAPSE_STORAGE_KEY = 'gestsilo:sidebar:groups';
+
+/** Apenas Produção começa aberto na primeira visita; o resto recolhido. */
+const DEFAULT_OPEN: Record<GroupKey, boolean> = {
+  producao: true,
+  suprimentos: false,
+  gestao: false,
+  ferramentas: false,
+  sistema: false,
+};
+
+function readGroupPreference(): Record<GroupKey, boolean> {
+  if (typeof window === 'undefined') return { ...DEFAULT_OPEN };
+  try {
+    const raw = window.localStorage.getItem(COLLAPSE_STORAGE_KEY);
+    if (!raw) return { ...DEFAULT_OPEN };
+    const parsed = JSON.parse(raw) as Partial<Record<GroupKey, boolean>>;
+    const merged = { ...DEFAULT_OPEN };
+    for (const key of GROUP_KEYS) {
+      if (typeof parsed[key] === 'boolean') merged[key] = parsed[key] as boolean;
+    }
+    return merged;
+  } catch {
+    return { ...DEFAULT_OPEN };
+  }
+}
+
+/**
+ * Estado de expansão dos grupos: cada grupo abre/fecha independentemente,
+ * persistido em localStorage. Retorna o mapa e um toggle por chave.
+ */
+function useCollapsibleGroups() {
+  const [open, setOpen] = useState<Record<GroupKey, boolean>>(readGroupPreference);
+
+  const toggle = useCallback((key: GroupKey) => {
+    setOpen((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        window.localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignora falha de persistência (modo privado)
+      }
+      return next;
+    });
+  }, []);
+
+  /** Garante que um grupo esteja aberto (usado para revelar a rota ativa). */
+  const ensureOpen = useCallback((key: GroupKey) => {
+    setOpen((prev) => {
+      if (prev[key]) return prev;
+      const next = { ...prev, [key]: true };
+      try {
+        window.localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignora falha de persistência
+      }
+      return next;
+    });
+  }, []);
+
+  return { open, toggle, ensureOpen };
+}
+
+function GroupHeader({
+  title,
+  groupKey,
+  isOpen,
+  onToggle,
+}: {
+  title: string;
+  groupKey: GroupKey;
+  isOpen: boolean;
+  onToggle: (key: GroupKey) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(groupKey)}
+      aria-expanded={isOpen}
+      aria-controls={`sidebar-group-${groupKey}`}
+      className="group/gh w-full flex items-center justify-between px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] rounded-md hover:text-muted-foreground hover:bg-white/[0.03] transition-colors group-data-[collapsed=true]/sb:hidden"
+    >
+      <span>{title}</span>
+      <ChevronDown
+        aria-hidden="true"
+        className={cn(
+          'h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200',
+          isOpen ? 'rotate-0' : '-rotate-90',
+        )}
+      />
+    </button>
+  );
+}
 
 // const rebanhoSubRoutes: RouteItem[] = [
 //   { label: 'Indicadores',    icon: BarChart3,          href: '/dashboard/rebanho/indicadores'             },
@@ -421,6 +530,8 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
   const expanded = collapsible ? (sidebarCtx?.expanded ?? false) : true;
   const isCollapsed = collapsible && !expanded;
 
+  const { open: groupsOpen, toggle: toggleGroup, ensureOpen: ensureGroupOpen } = useCollapsibleGroups();
+
   const plano = parsePlanoSlug(planoAtual);
 
   const handleOpenUpgrade = (label: string, modulo: string) => {
@@ -437,6 +548,26 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
           : group.routes,
     }))
     .filter((group) => group.routes.length > 0);
+
+  // Descobre a qual grupo a rota ativa pertence, para revelá-lo automaticamente.
+  const activeGroupKey = useMemo<GroupKey | null>(() => {
+    for (const group of gerencialGroups) {
+      if (group.routes.some((r) => pathname.startsWith(r.href))) return group.key;
+    }
+    if (ferramentasRoutes.some((r) => pathname.startsWith(r.href))) return 'ferramentas';
+    if (
+      sistemaRoutes.some((r) => pathname === r.href) ||
+      pathname === sincronizacaoRoute.href
+    ) {
+      return 'sistema';
+    }
+    return null;
+  }, [pathname]);
+
+  // Abre o grupo da rota ativa quando ela muda (sem fechar os demais).
+  useEffect(() => {
+    if (activeGroupKey) ensureGroupOpen(activeGroupKey);
+  }, [activeGroupKey, ensureGroupOpen]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -541,11 +672,17 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
 
           {/* Bloco 2 — Gerencial (sub-agrupado em Produção / Suprimentos / Gestão) */}
           <nav role="navigation" aria-label="Gerencial">
-            {visibleGerencialGroups.map((group, groupIndex) => (
+            {visibleGerencialGroups.map((group, groupIndex) => {
+              // Recolhida (só ícones): sempre mostra os itens — não há subtítulo/toggle.
+              const itemsVisible = isCollapsed || groupsOpen[group.key];
+              return (
               <div key={group.titulo} className={cn('pb-2', groupIndex > 0 && 'pt-1')}>
-                <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
-                  {group.titulo}
-                </div>
+                <GroupHeader
+                  title={group.titulo}
+                  groupKey={group.key}
+                  isOpen={groupsOpen[group.key]}
+                  onToggle={toggleGroup}
+                />
                 {/* Quando recolhida, um divisor fino substitui o subtítulo entre grupos */}
                 {groupIndex > 0 && (
                   <div
@@ -553,7 +690,10 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
                     style={{ borderTop: '1px solid var(--border)' }}
                   />
                 )}
-                <ul className="space-y-0.5 list-none">
+                <ul
+                  id={`sidebar-group-${group.key}`}
+                  className={cn('space-y-0.5 list-none', !itemsVisible && 'hidden')}
+                >
                   {group.routes.map((route) => {
                     const isLocked =
                       profile?.perfil !== 'Operador' &&
@@ -583,7 +723,8 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
                   })}
                 </ul>
               </div>
-            ))}
+              );
+            })}
           </nav>
 
           {/* Separador */}
@@ -592,10 +733,16 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
           {/* Bloco 3 — Ferramentas */}
           <nav role="navigation" aria-label="Ferramentas">
             <div className="pb-2">
-              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
-                Ferramentas
-              </div>
-              <ul className="space-y-0.5 list-none">
+              <GroupHeader
+                title="Ferramentas"
+                groupKey="ferramentas"
+                isOpen={groupsOpen.ferramentas}
+                onToggle={toggleGroup}
+              />
+              <ul
+                id="sidebar-group-ferramentas"
+                className={cn('space-y-0.5 list-none', !(isCollapsed || groupsOpen.ferramentas) && 'hidden')}
+              >
                 {ferramentasRoutes.map((route) => {
                   const isAssessoria = route.href === '/dashboard/assessoria';
                   // Assessoria só aparece para Admin (independente do plano)
@@ -659,10 +806,16 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
           {/* Bloco 4 — Sistema */}
           <nav role="navigation" aria-label="Sistema">
             <div className="pb-2">
-              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
-                Sistema
-              </div>
-              <ul className="space-y-0.5 list-none">
+              <GroupHeader
+                title="Sistema"
+                groupKey="sistema"
+                isOpen={groupsOpen.sistema}
+                onToggle={toggleGroup}
+              />
+              <ul
+                id="sidebar-group-sistema"
+                className={cn('space-y-0.5 list-none', !(isCollapsed || groupsOpen.sistema) && 'hidden')}
+              >
                 {sistemaRoutes.map((route) => (
                   <NavItem
                     key={route.href}

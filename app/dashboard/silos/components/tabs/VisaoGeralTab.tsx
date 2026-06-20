@@ -278,8 +278,6 @@ export function VisaoGeralTab({
         </CardContent>
       </Card>
 
-      </div>{/* fim grid 2 colunas */}
-
       {/* 4. Insumos */}
       <Card className="rounded-2xl bg-card shadow-sm">
         <CardHeader className="pb-3">
@@ -321,7 +319,7 @@ export function VisaoGeralTab({
       </Card>
 
       {/* 5. Observações */}
-      <Card className="rounded-2xl bg-card shadow-sm">
+      <Card className="rounded-2xl bg-card shadow-sm lg:col-span-2">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Observações</CardTitle>
           <CardDescription>Anotações e detalhes adicionais</CardDescription>
@@ -332,6 +330,8 @@ export function VisaoGeralTab({
           </p>
         </CardContent>
       </Card>
+
+      </div>{/* fim grid 2 colunas */}
     </div>
   );
 }

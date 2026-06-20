@@ -18,10 +18,6 @@ export function GaugeOcupacaoSilos({ percentual }: Props) {
 
   return (
     <div className="relative w-44 h-44">
-      <div
-        className="absolute inset-0 rounded-full blur-xl opacity-25 pointer-events-none"
-        style={{ background: 'var(--chart-1)' }}
-      />
       {/* Background arc (track) */}
       <ResponsiveContainer width="100%" height="100%">
         <RadialBarChart

@@ -170,6 +170,15 @@
   --chart-4: #e05454;
   --chart-5: #688070;
 
+  /* Escala monocromática (verde da marca) — para séries categóricas
+     onde a cor é só um rótulo, não um status. Mantém o dashboard calmo:
+     vermelho/amarelo ficam reservados a status real. Clara → saturada. */
+  --cat-green-1: #2f5641;
+  --cat-green-2: #3f7a59;
+  --cat-green-3: #4f9e6e;
+  --cat-green-4: #38c47e;
+  --cat-green-5: #00c45a;
+
   /* Sidebar — mantém identidade verde */
   --sidebar: #0a140d;
   --sidebar-foreground: #dceede;

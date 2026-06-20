@@ -14,12 +14,9 @@ import { toast } from 'sonner';
 
 export type FrotaTab =
   | 'visao-geral'
-  | 'cadastro'
-  | 'uso'
   | 'manutencoes'
   | 'abastecimento'
-  | 'custos'
-  | 'relatorios';
+  | 'custos';
 
 export interface UseFrotaDataReturn {
   maquinas: Maquina[];
@@ -163,15 +160,15 @@ export function useFrotaData(activeTab: FrotaTab): UseFrotaDataReturn {
         const tasks: Promise<void>[] = [];
 
         const needsUsos =
-          (activeTab === 'visao-geral' || activeTab === 'cadastro' || activeTab === 'uso' || activeTab === 'custos' || activeTab === 'relatorios') &&
+          (activeTab === 'visao-geral' || activeTab === 'custos') &&
           !fetchedRef.current.has('usos');
 
         const needsManutencoes =
-          (activeTab === 'visao-geral' || activeTab === 'manutencoes' || activeTab === 'custos' || activeTab === 'relatorios') &&
+          (activeTab === 'visao-geral' || activeTab === 'manutencoes' || activeTab === 'custos') &&
           !fetchedRef.current.has('manutencoes');
 
         const needsAbastecimentos =
-          (activeTab === 'visao-geral' || activeTab === 'abastecimento' || activeTab === 'custos' || activeTab === 'relatorios') &&
+          (activeTab === 'visao-geral' || activeTab === 'abastecimento' || activeTab === 'custos') &&
           !fetchedRef.current.has('abastecimentos');
 
         const needsPlanos =

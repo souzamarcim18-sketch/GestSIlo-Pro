@@ -72,8 +72,8 @@ type RawAbastecimento = {
 };
 
 type RawUso = {
-  id: string; maquina_id: string; data_uso: string; horas_trabalhadas: number;
-  operacao: string | null; operador: string | null; observacoes: string | null;
+  id: string; maquina_id: string; data: string; horas: number | null;
+  tipo_operacao: string | null;
   maquinas: { nome: string } | null;
 };
 
@@ -112,11 +112,11 @@ export async function getRelatorioFrota(
 
     supabase
       .from('uso_maquinas')
-      .select('id, maquina_id, data_uso, horas_trabalhadas, operacao, operador, observacoes, maquinas(nome)')
+      .select('id, maquina_id, data, horas, tipo_operacao, maquinas(nome)')
       .eq('fazenda_id', fazendaId)
-      .gte('data_uso', gte)
-      .lte('data_uso', lte)
-      .order('data_uso', { ascending: false })
+      .gte('data', gte)
+      .lte('data', lte)
+      .order('data', { ascending: false })
       .limit(10000),
   ]);
 
@@ -152,8 +152,8 @@ export async function getRelatorioFrota(
 
   const usos: FrotaUsoRow[] = ((usosRes.data ?? []) as unknown as RawUso[]).map((u) => ({
     id: u.id, maquina_id: u.maquina_id, maquina_nome: u.maquinas?.nome ?? '',
-    data_uso: u.data_uso, horas_trabalhadas: u.horas_trabalhadas,
-    operacao: u.operacao, operador: u.operador, observacoes: u.observacoes,
+    data_uso: u.data, horas_trabalhadas: u.horas ?? 0,
+    operacao: u.tipo_operacao, operador: null, observacoes: null,
   }));
 
   return { maquinas, manutencoes, abastecimentos, usos };

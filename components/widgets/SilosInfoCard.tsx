@@ -14,9 +14,11 @@ interface Props {
   culturas: CulturaItem[]
 }
 
+// Escala monocromática de verde: a cor aqui é só rótulo de categoria, não
+// status. Mantém o card calmo e reserva vermelho/amarelo para alertas reais.
 const CHART_COLORS = [
-  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)',
-  'var(--chart-4)', 'var(--chart-5)',
+  'var(--cat-green-5)', 'var(--cat-green-4)', 'var(--cat-green-3)',
+  'var(--cat-green-2)', 'var(--cat-green-1)',
 ]
 
 export function SilosInfoCard({

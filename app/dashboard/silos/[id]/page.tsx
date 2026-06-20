@@ -44,7 +44,7 @@ export default function SiloDetailPage() {
   const { loading: authLoading, profile } = useAuth();
 
   const siloId = params.id as string;
-  const [activeTab, setActiveTab] = useState<'visao-geral' | 'estoque' | 'qualidade'>('visao-geral');
+  const [activeTab, setActiveTab] = useState<'visao-geral' | 'qualidade'>('visao-geral');
   const [silo, setSilo] = useState<Silo | null>(null);
   const [talhao, setTalhao] = useState<Talhao | null>(null);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoSilo[]>([]);
@@ -209,8 +209,8 @@ export default function SiloDetailPage() {
       {/* Tabs */}
       <div className="w-full space-y-6">
         <div className="inline-flex flex-wrap gap-1 rounded-xl bg-muted/50 border border-border p-[3px]">
-          {(['visao-geral', 'estoque', 'qualidade'] as const).map((tab) => {
-            const labels = { 'visao-geral': 'Visão Geral', estoque: 'Estoque', qualidade: 'Qualidade' };
+          {(['visao-geral', 'qualidade'] as const).map((tab) => {
+            const labels = { 'visao-geral': 'Visão Geral', qualidade: 'Qualidade' };
             return (
               <button
                 key={tab}
@@ -228,26 +228,26 @@ export default function SiloDetailPage() {
         </div>
 
         {activeTab === 'visao-geral' && (
-          <VisaoGeralTab
-            silo={silo}
-            talhao={talhao}
-            custo={custo}
-            densidade={null}
-            insumoLona={insumoLona}
-            insumoInoculante={insumoInoculante}
-          />
-        )}
-        {activeTab === 'estoque' && (
-          <EstoqueTab
-            siloId={siloId}
-            volumeTotal={volumeTotal ?? 0}
-            movimentacoes={movimentacoes}
-            estoque={estoque}
-            consumoDiario={consumoDiario}
-            estoquePara={estoquePara}
-            onNovaMovimentacao={() => setIsMovOpen(true)}
-            onRefresh={fetchData}
-          />
+          <div className="space-y-6">
+            <EstoqueTab
+              siloId={siloId}
+              volumeTotal={volumeTotal ?? 0}
+              movimentacoes={movimentacoes}
+              estoque={estoque}
+              consumoDiario={consumoDiario}
+              estoquePara={estoquePara}
+              onNovaMovimentacao={() => setIsMovOpen(true)}
+              onRefresh={fetchData}
+            />
+            <VisaoGeralTab
+              silo={silo}
+              talhao={talhao}
+              custo={custo}
+              densidade={null}
+              insumoLona={insumoLona}
+              insumoInoculante={insumoInoculante}
+            />
+          </div>
         )}
         {activeTab === 'qualidade' && (
           <QualidadeTab

@@ -215,7 +215,7 @@ export function TalhaoVisaoGeralTab({
 
           {/* Botão e Filtros */}
           <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-            <Button onClick={() => setIsDialogOpen(true)} className="shrink-0">
+            <Button onClick={() => setIsDialogOpen(true)} className="h-9 shrink-0">
               <Plus className="w-4 h-4 mr-2" />
               Registrar Atividade
             </Button>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart2, BookOpen, Truck, Fuel, Settings, Wrench, LayoutDashboard } from 'lucide-react';
+import { BarChart2, Fuel, Settings, Wrench, LayoutDashboard } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFrotaData, type FrotaTab } from './hooks/useFrotaData';
@@ -11,13 +11,15 @@ const FrotaOverview = dynamic(
   () => import('./components/FrotaOverview').then((m) => ({ default: m.FrotaOverview })),
   { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> },
 );
-import { FrotaCadastro } from './components/FrotaCadastro';
-import { FrotaDiarioBordo } from './components/FrotaDiarioBordo';
+import { MaquinasList } from './components/MaquinasList';
 import { FrotaManutencoes } from './components/FrotaManutencoes';
 import { FrotaAbastecimento } from './components/FrotaAbastecimento';
 import { FrotaCustos } from './components/FrotaCustos';
-import { FrotaRelatorios } from './components/FrotaRelatorios';
-import type { Profile } from '@/lib/supabase';
+import { MaquinaDialog } from './components/dialogs/MaquinaDialog';
+import { UsoDialog } from './components/dialogs/UsoDialog';
+import { ManutencaoDialog } from './components/dialogs/ManutencaoDialog';
+import { AbastecimentoDialog } from './components/dialogs/AbastecimentoDialog';
+import type { Maquina, Profile } from '@/lib/supabase';
 
 interface Props {
   profile: Profile | null;
@@ -39,8 +41,14 @@ export function FrotaClient({ profile }: Props) {
     refreshManutencoes,
     refreshAbastecimentos,
     refreshPlanos,
-    refreshAll,
   } = useFrotaData(activeTab);
+
+  // Estado dos diálogos do hub (Visão Geral)
+  const [novaOpen, setNovaOpen] = useState(false);
+  const [editMaquina, setEditMaquina] = useState<Maquina | undefined>(undefined);
+  const [usoTarget, setUsoTarget] = useState<Maquina | undefined>(undefined);
+  const [manutencaoTarget, setManutencaoTarget] = useState<Maquina | undefined>(undefined);
+  const [abastecimentoTarget, setAbastecimentoTarget] = useState<Maquina | undefined>(undefined);
 
   return (
     <div className="space-y-6">
@@ -57,18 +65,10 @@ export function FrotaClient({ profile }: Props) {
         className="w-full flex-1 flex flex-col"
       >
         <div className="pt-2 pb-4">
-          <TabsList className="grid grid-cols-4 sm:grid-cols-7 gap-2 h-auto rounded-xl bg-muted/50 border border-border p-[3px] w-full">
+          <TabsList className="grid grid-cols-4 gap-2 h-auto rounded-xl bg-muted/50 border border-border p-[3px] w-full">
             <TabsTrigger value="visao-geral" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
               <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="hidden sm:inline">Visão Geral</span>
-            </TabsTrigger>
-            <TabsTrigger value="cadastro" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
-              <Truck className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Cadastro</span>
-            </TabsTrigger>
-            <TabsTrigger value="uso" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
-              <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Diário</span>
             </TabsTrigger>
             <TabsTrigger value="manutencoes" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
               <Wrench className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -82,15 +82,11 @@ export function FrotaClient({ profile }: Props) {
               <Settings className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="hidden sm:inline">Custos</span>
             </TabsTrigger>
-            <TabsTrigger value="relatorios" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
-              <BarChart2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Relatórios</span>
-            </TabsTrigger>
           </TabsList>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <TabsContent value="visao-geral" className="mt-6">
+          <TabsContent value="visao-geral" className="mt-6 space-y-6">
             <FrotaOverview
               maquinas={maquinas}
               usos={usos}
@@ -99,28 +95,21 @@ export function FrotaClient({ profile }: Props) {
               planosManutencao={planos}
               loading={loading}
             />
-          </TabsContent>
 
-          <TabsContent value="cadastro" className="mt-6">
-            <FrotaCadastro
+            <MaquinasList
               maquinas={maquinas}
               usos={usos}
               loading={loading}
+              profile={profile}
+              onNova={() => setNovaOpen(true)}
+              onEditar={(m) => setEditMaquina(m)}
+              onRegistrarUso={(m) => setUsoTarget(m)}
+              onRegistrarManutencao={(m) => setManutencaoTarget(m)}
+              onRegistrarAbastecimento={(m) => setAbastecimentoTarget(m)}
               onRefresh={async () => {
                 await refreshMaquinas();
                 await refreshUsos();
               }}
-              profile={profile}
-            />
-          </TabsContent>
-
-          <TabsContent value="uso" className="mt-6">
-            <FrotaDiarioBordo
-              maquinas={maquinas}
-              usos={usos}
-              talhoes={talhoes}
-              loading={loading}
-              onRefresh={refreshUsos}
             />
           </TabsContent>
 
@@ -155,18 +144,56 @@ export function FrotaClient({ profile }: Props) {
               loading={loading}
             />
           </TabsContent>
-
-          <TabsContent value="relatorios" className="mt-6">
-            <FrotaRelatorios
-              maquinas={maquinas}
-              usos={usos}
-              manutencoes={manutencoes}
-              abastecimentos={abastecimentos}
-              loading={loading}
-            />
-          </TabsContent>
         </div>
       </Tabs>
+
+      {/* ── Diálogos do hub ──────────────────────────────────────────────────── */}
+      <MaquinaDialog
+        open={novaOpen}
+        onOpenChange={setNovaOpen}
+        onSuccess={async () => {
+          setNovaOpen(false);
+          await refreshMaquinas();
+        }}
+      />
+      <MaquinaDialog
+        open={!!editMaquina}
+        onOpenChange={(open) => { if (!open) setEditMaquina(undefined); }}
+        maquina={editMaquina}
+        onSuccess={async () => {
+          setEditMaquina(undefined);
+          await refreshMaquinas();
+        }}
+      />
+      <UsoDialog
+        open={!!usoTarget}
+        onOpenChange={(open) => { if (!open) setUsoTarget(undefined); }}
+        maquinas={usoTarget ? [usoTarget] : []}
+        talhoes={talhoes}
+        onSuccess={async () => {
+          setUsoTarget(undefined);
+          await refreshUsos();
+        }}
+      />
+      <ManutencaoDialog
+        open={!!manutencaoTarget}
+        onOpenChange={(open) => { if (!open) setManutencaoTarget(undefined); }}
+        maquinas={manutencaoTarget ? [manutencaoTarget] : []}
+        onSuccess={async () => {
+          setManutencaoTarget(undefined);
+          await refreshManutencoes();
+        }}
+        onMaquinaStatusChange={() => refreshMaquinas()}
+      />
+      <AbastecimentoDialog
+        open={!!abastecimentoTarget}
+        onOpenChange={(open) => { if (!open) setAbastecimentoTarget(undefined); }}
+        maquinas={abastecimentoTarget ? [abastecimentoTarget] : []}
+        onSuccess={async () => {
+          setAbastecimentoTarget(undefined);
+          await refreshAbastecimentos();
+        }}
+      />
     </div>
   );
 }

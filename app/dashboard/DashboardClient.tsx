@@ -136,13 +136,11 @@ function FinanceiroMetrica({
       <div className="flex items-center gap-2 flex-wrap">
         <p className="text-xs text-muted-foreground">{subtitle}</p>
         {variacaoPct != null && (
-          <span
-            className={cn(
-              'inline-flex items-center gap-0.5 text-xs font-semibold',
-              variacaoBom ? 'text-status-success' : 'text-status-danger'
-            )}
-          >
-            <VariacaoIcon className="w-3 h-3" aria-hidden="true" />
+          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground">
+            <VariacaoIcon
+              className={cn('w-3 h-3', variacaoBom ? 'text-status-success' : 'text-status-danger')}
+              aria-hidden="true"
+            />
             {Math.abs(variacaoPct)}%
           </span>
         )}
@@ -425,15 +423,8 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                         </div>
                         <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${data.silosOcupacaoPctNum}%`,
-                              background: data.silosOcupacaoPctNum > 90
-                                ? 'var(--chart-1)'
-                                : data.silosOcupacaoPctNum > 50
-                                ? 'var(--chart-2)'
-                                : 'var(--chart-3)',
-                            }}
+                            className="h-full rounded-full transition-all bg-primary"
+                            style={{ width: `${data.silosOcupacaoPctNum}%` }}
                           />
                         </div>
                       </div>
@@ -470,49 +461,6 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         <section aria-label="Financeiro">
           <SectionLabel>Financeiro</SectionLabel>
           <LockedModuleCard modulo="financeiro" className="min-h-[140px]" />
-        </section>
-      )}
-
-      {/* Próximas Operações — só renderiza quando há operações de campo agendadas */}
-      {data.proximasOperacoes.length > 0 && (
-        <section aria-label="Próximas Operações">
-          <SectionLabel>Próximas Operações</SectionLabel>
-          <Card className="rounded-2xl p-4 md:p-5">
-            <div className="space-y-2">
-              {data.proximasOperacoes.slice(0, 5).map((op) => {
-                const janelaAtiva = op.janelaColheita?.ativo;
-                return (
-                  <button
-                    key={op.id}
-                    onClick={() => router.push('/dashboard/talhoes')}
-                    className="w-full text-left p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                  >
-                    <div className="shrink-0 w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center">
-                      <CalendarClock className="w-4 h-4 text-brand-primary" aria-hidden="true" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground leading-tight truncate">
-                        {op.tipo_operacao}
-                        {op.cultura ? ` — ${op.cultura}` : ''}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {op.talhao_nome}
-                        {op.data_esperada
-                          ? ` · ${new Date(op.data_esperada).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
-                          : ''}
-                      </p>
-                    </div>
-                    {janelaAtiva && (
-                      <span className="shrink-0 text-xs font-semibold text-status-warning bg-status-warning/10 rounded-full px-2 py-0.5">
-                        Janela em {op.janelaColheita!.diasRestantes}d
-                      </span>
-                    )}
-                    <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
-                  </button>
-                );
-              })}
-            </div>
-          </Card>
         </section>
       )}
 
@@ -676,6 +624,49 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </div>
       </section>
 
+      {/* Próximas Operações — abaixo de Campo; só renderiza quando há operações de campo agendadas */}
+      {data.proximasOperacoes.length > 0 && (
+        <section aria-label="Próximas Operações">
+          <SectionLabel>Próximas Operações</SectionLabel>
+          <Card className="rounded-2xl p-4 md:p-5">
+            <div className="space-y-2">
+              {data.proximasOperacoes.slice(0, 5).map((op) => {
+                const janelaAtiva = op.janelaColheita?.ativo;
+                return (
+                  <button
+                    key={op.id}
+                    onClick={() => router.push('/dashboard/talhoes')}
+                    className="w-full text-left p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  >
+                    <div className="shrink-0 w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center">
+                      <CalendarClock className="w-4 h-4 text-brand-primary" aria-hidden="true" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground leading-tight truncate">
+                        {op.tipo_operacao}
+                        {op.cultura ? ` — ${op.cultura}` : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {op.talhao_nome}
+                        {op.data_esperada
+                          ? ` · ${new Date(op.data_esperada).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
+                          : ''}
+                      </p>
+                    </div>
+                    {janelaAtiva && (
+                      <span className="shrink-0 text-xs font-semibold text-status-warning bg-status-warning/10 rounded-full px-2 py-0.5">
+                        Janela em {op.janelaColheita!.diasRestantes}d
+                      </span>
+                    )}
+                    <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        </section>
+      )}
+
       {/* Atividades Recentes — faixa fina quando vazio, bloco completo quando há dados */}
       <section aria-label="Atividades Recentes">
         {data.atividadesRecentes.length === 0 ? (
@@ -702,7 +693,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
                 Ver tudo
               </Link>
             </div>
-            <AtividadesRecentesList eventos={data.atividadesRecentes} />
+            <AtividadesRecentesList eventos={data.atividadesRecentes.slice(0, 3)} />
           </Card>
         )}
       </section>

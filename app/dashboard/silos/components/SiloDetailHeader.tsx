@@ -37,7 +37,8 @@ export function SiloDetailHeader({
   const statusInfo = statusConfig[status];
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2">
+    <div className="space-y-3 mb-2">
+      {/* Linha 1: botão voltar */}
       <Button
         variant="ghost"
         size="sm"
@@ -49,41 +50,44 @@ export function SiloDetailHeader({
         Voltar
       </Button>
 
-      <h1 className="text-2xl font-bold tracking-tight">{silo.nome}</h1>
+      {/* Linha 2: nome + badges + ações */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">{silo.nome}</h1>
 
-      <Badge variant="outline" className="text-sm">{silo.tipo}</Badge>
-      <Badge className={`text-sm text-white ${statusInfo.color}`}>
-        {statusInfo.emoji} {statusInfo.label}
-      </Badge>
-      {talhaoNome && (
-        <span className="text-sm text-muted-foreground">
-          • Talhão: <span className="font-medium text-foreground">{talhaoNome}</span>
-        </span>
-      )}
-
-      <div className="ml-auto flex items-center gap-2">
-        <Button
-          onClick={onEdit}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          aria-label="Editar dados do silo"
-        >
-          <Edit2 className="h-4 w-4" />
-          Editar Dados
-        </Button>
-        {onDelete && (
-          <Button
-            onClick={onDelete}
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            aria-label="Deletar silo"
-          >
-            <Trash2 className="h-4 w-4" />
-            Deletar
-          </Button>
+        <Badge variant="outline" className="text-sm">{silo.tipo}</Badge>
+        <Badge className={`text-sm text-white ${statusInfo.color}`}>
+          {statusInfo.emoji} {statusInfo.label}
+        </Badge>
+        {talhaoNome && (
+          <span className="text-sm text-muted-foreground">
+            • Talhão: <span className="font-medium text-foreground">{talhaoNome}</span>
+          </span>
         )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            onClick={onEdit}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            aria-label="Editar dados do silo"
+          >
+            <Edit2 className="h-4 w-4" />
+            Editar Dados
+          </Button>
+          {onDelete && (
+            <Button
+              onClick={onDelete}
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              aria-label="Deletar silo"
+            >
+              <Trash2 className="h-4 w-4" />
+              Deletar
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
