@@ -464,6 +464,26 @@ export function estimarDataColheita(cultura: string, dataPlantio: string): strin
 }
 
 /**
+ * Culturas propagadas por muda/tolete (plantio vegetativo) em vez de semente.
+ * No plantio dessas culturas, o produtor seleciona uma muda da categoria de
+ * insumo "Mudas" — não uma semente.
+ */
+const CULTURAS_PROPAGADAS_POR_MUDA = new Set<string>([
+  'Cana-de-açúcar',
+  'Capim Capiaçu',
+  'Capim Cameroon',
+  'Tifton',
+]);
+
+/**
+ * Indica se a cultura é propagada por muda/tolete (plantio vegetativo).
+ * Quando true, o formulário de plantio exibe o seletor de Mudas no lugar de Sementes.
+ */
+export function culturaUsaMudas(cultura: string): boolean {
+  return CULTURAS_PROPAGADAS_POR_MUDA.has(cultura);
+}
+
+/**
  * Indica se a cultura possui cronograma de operações (matriz DAP).
  * Culturas sem matriz aparecem no cadastro, mas sem acompanhamento automático.
  */

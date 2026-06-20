@@ -1210,6 +1210,13 @@ As culturas selecionáveis no cadastro de ciclo e seu cronograma de operações 
 - **Perenes com rebrota automática**: Sorgo Silagem, Capim Capiaçu, Capim Cameroon, Tifton, Cana-de-açúcar (soca) — usam rótulo "Corte" nos eventos
 - **Sem DAP** (cadastráveis, `CicloForm` exibe aviso "sem acompanhamento"): Algodão, Amendoim, Mandioca, Café, Pastagem, Outra
 
+**Plantio por muda (propagação vegetativa)** — implementado 2026-06-19:
+- Culturas propagadas por muda/tolete: **Cana-de-açúcar, Capim Capiaçu, Capim Cameroon, Tifton** — definidas no set `CULTURAS_PROPAGADAS_POR_MUDA` em `helpers.ts`, expostas via `culturaUsaMudas(cultura)`
+- Mudas são **insumos** da categoria global **"Mudas"** (`categorias_insumo`, seed em `supabase/migrations/20260619000001_add_categoria_mudas_insumo.sql`) — aparecem automaticamente no estoque de Insumos e no dropdown de criar insumo (categorias vêm do banco)
+- No `PlantioFields.tsx`, prop `usaMudas`: quando `true`, o seletor é rotulado "Muda" e filtrado pela categoria Mudas (não Sementes), o campo "Sacos/ha" vira "Mudas/toletes por ha" e "População (plantas/ha)" é ocultado
+- `AtividadeDialog.tsx` carrega `mudas` (categoria cujo nome contém "muda") junto com `sementes` e passa a lista certa conforme `culturaUsaMudas(culturaContexto)`
+- **Sem mudança de schema no plantio**: `atividades_campo.semente_id` é FK genérica para `insumos` — armazena o id da muda; gera saída de estoque pelo mesmo fluxo de qualquer insumo
+
 **Como a estimativa funciona**:
 - A data de colheita prevista é **digitada à mão** no `CicloForm.tsx` (não é calculada automaticamente)
 - O cronograma de operações (eventos DAP) só é gerado quando o produtor registra uma atividade do tipo **"Plantio"** em `AtividadeDialog.tsx` → `q.eventosDAP.generate()`. `gerarEventosDAP` usa o ponto médio de cada janela DAP; descarta eventos posteriores à colheita prevista
@@ -1402,6 +1409,7 @@ E atualizar `AtividadeForm.tsx` (4ª opção no RadioGroup de vínculo) e o `ref
 - Controle de estoque com níveis mínimos
 - Movimentações com integração financeira automática
 - Alertas de estoque crítico
+- **Categorias** (tabela global `categorias_insumo`, seed via migration): Fertilizantes/Corretivos, Defensivos, Sementes, Combustíveis, Nutrição Animal, Inoculantes, Lonas, Peças e Manutenções, **Mudas** (add 2026-06-19, para plantio vegetativo de cana/capiaçu/cameroon/tifton — ver seção Talhões), Outros
 
 ### 📊 Financeiro
 - DRE, fluxo de caixa, análise de lucratividade

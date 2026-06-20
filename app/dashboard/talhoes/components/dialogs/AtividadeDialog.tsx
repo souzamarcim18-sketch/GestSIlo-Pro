@@ -44,6 +44,7 @@ import {
   CULTURAS_SUPORTADAS,
   culturaPossuiDAP,
   culturaPossuiRebrota,
+  culturaUsaMudas,
   ehOperacaoColheita,
 } from '@/app/dashboard/talhoes/helpers';
 
@@ -98,6 +99,7 @@ export function AtividadeDialog({
 }: AtividadeDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [sementes, setSementes] = useState<Insumo[]>([]);
+  const [mudas, setMudas] = useState<Insumo[]>([]);
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [maquinas, setMaquinas] = useState<Maquina[]>([]);
 
@@ -116,10 +118,14 @@ export function AtividadeDialog({
       setMaquinas(allMaquinas);
 
       const catSemente = cats.find((c) => c.nome.toLowerCase().includes('sement'));
-      if (catSemente) {
-        const sem = await q.insumos.list({ categoria_id: catSemente.id });
-        if (!cancelled) setSementes(sem);
-      }
+      const catMuda = cats.find((c) => c.nome.toLowerCase().includes('muda'));
+      const [sem, mud] = await Promise.all([
+        catSemente ? q.insumos.list({ categoria_id: catSemente.id }) : Promise.resolve([]),
+        catMuda ? q.insumos.list({ categoria_id: catMuda.id }) : Promise.resolve([]),
+      ]);
+      if (cancelled) return;
+      setSementes(sem);
+      setMudas(mud);
     };
 
     load().catch((e) => console.error('Erro ao carregar opções da atividade:', e));
@@ -161,6 +167,9 @@ export function AtividadeDialog({
   // Quando não há ciclo ativo, só preparo de solo / plantio podem iniciar um.
   const precisaCultura = !cicloAtivo && TIPOS_INICIAM_CICLO.includes(tipoOperacao as TipoOperacao);
   const culturaContexto = cicloAtivo?.cultura ?? culturaNovoCiclo;
+
+  // Culturas vegetativas (cana, capins, tifton) usam mudas em vez de sementes.
+  const usaMudas = culturaUsaMudas(culturaContexto);
 
   // Cálculo de custo em tempo real.
   // Os campos numéricos passam por z.preprocess, então o tipo de entrada do
@@ -385,7 +394,12 @@ export function AtividadeDialog({
 
             {tipoOperacao === 'Plantio' && (
               <div className="border-t pt-4">
-                <PlantioFields control={control as unknown as Control<FieldValues>} errors={errors} sementes={sementes} />
+                <PlantioFields
+                  control={control as unknown as Control<FieldValues>}
+                  errors={errors}
+                  sementes={usaMudas ? mudas : sementes}
+                  usaMudas={usaMudas}
+                />
               </div>
             )}
 

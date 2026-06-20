@@ -30,6 +30,8 @@ import {
   ArrowRight,
   BookOpen,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +44,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { parsePlanoSlug, planoPermiteModulo, planoMinimoParaModulo, PLANOS, PlanoSlug } from '@/lib/planos';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSidebarOptional } from '@/components/SidebarContext';
 
 
 type RouteItem = {
@@ -52,20 +55,48 @@ type RouteItem = {
   modulo?: string;
 };
 
-const gerencialRoutes: RouteItem[] = [
-  { label: 'Silos',              icon: Database,    href: '/dashboard/silos',              badge: null },
-  { label: 'Pastagens',          icon: Leaf,        href: '/dashboard/pastagens',          badge: null, modulo: 'pastagens' },
-  { label: 'Balanço Forrageiro', icon: Scale,       href: '/dashboard/balanco-forrageiro', badge: null, modulo: 'balanco_forrageiro' },
-  { label: 'Lavouras',           icon: Sprout,      href: '/dashboard/talhoes',            badge: null, modulo: 'talhoes' },
-  { label: 'Rebanho',            icon: CowIcon,     href: '/dashboard/rebanho',            badge: null, modulo: 'rebanho' },
-  { label: 'Insumos',            icon: Package,     href: '/dashboard/insumos',            badge: null, modulo: 'insumos' },
-  { label: 'Produtos',           icon: PackageOpen, href: '/dashboard/produtos',           badge: null, modulo: 'produtos' },
-  { label: 'Frota',              icon: Tractor,     href: '/dashboard/frota',              badge: null, modulo: 'frota' },
-  { label: 'Equipe',             icon: Users,       href: '/dashboard/mao-de-obra',        badge: null, modulo: 'mao_de_obra' },
-  { label: 'Financeiro',         icon: DollarSign,  href: '/dashboard/financeiro',         badge: null, modulo: 'financeiro' },
-  { label: 'Calendário',         icon: Calendar,    href: '/dashboard/calendario',         badge: null },
-  { label: 'Relatórios',         icon: BarChart3,   href: '/dashboard/relatorios',         badge: null },
+type RouteGroup = {
+  /** Subtítulo do grupo dentro do bloco Gerencial. */
+  titulo: string;
+  routes: RouteItem[];
+};
+
+const gerencialGroups: RouteGroup[] = [
+  {
+    titulo: 'Produção',
+    routes: [
+      { label: 'Silos',              icon: Database,    href: '/dashboard/silos',              badge: null },
+      { label: 'Pastagens',          icon: Leaf,        href: '/dashboard/pastagens',          badge: null, modulo: 'pastagens' },
+      { label: 'Balanço Forrageiro', icon: Scale,       href: '/dashboard/balanco-forrageiro', badge: null, modulo: 'balanco_forrageiro' },
+      { label: 'Lavouras',           icon: Sprout,      href: '/dashboard/talhoes',            badge: null, modulo: 'talhoes' },
+      { label: 'Rebanho',            icon: CowIcon,     href: '/dashboard/rebanho',            badge: null, modulo: 'rebanho' },
+    ],
+  },
+  {
+    titulo: 'Suprimentos',
+    routes: [
+      { label: 'Insumos',            icon: Package,     href: '/dashboard/insumos',            badge: null, modulo: 'insumos' },
+      { label: 'Produtos',           icon: PackageOpen, href: '/dashboard/produtos',           badge: null, modulo: 'produtos' },
+      { label: 'Frota',              icon: Tractor,     href: '/dashboard/frota',              badge: null, modulo: 'frota' },
+      { label: 'Equipe',             icon: Users,       href: '/dashboard/mao-de-obra',        badge: null, modulo: 'mao_de_obra' },
+    ],
+  },
+  {
+    titulo: 'Gestão',
+    routes: [
+      { label: 'Financeiro',         icon: DollarSign,  href: '/dashboard/financeiro',         badge: null, modulo: 'financeiro' },
+      { label: 'Calendário',         icon: Calendar,    href: '/dashboard/calendario',         badge: null },
+      { label: 'Relatórios',         icon: BarChart3,   href: '/dashboard/relatorios',         badge: null },
+    ],
+  },
 ];
+
+/** Rotas que o Operador não pode ver no bloco Gerencial. */
+const OPERADOR_HIDDEN_HREFS = new Set([
+  '/dashboard/mao-de-obra',
+  '/dashboard/balanco-forrageiro',
+  '/dashboard/relatorios',
+]);
 
 const ferramentasRoutes: RouteItem[] = [
   { label: 'Calculadoras',            icon: Calculator,    href: '/dashboard/calculadoras',          modulo: 'calculadoras' },
@@ -383,10 +414,12 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
   const router = useRouter();
   const { profile, planoAtual } = useAuth();
   const [upgradeModal, setUpgradeModal] = useState<{ label: string; modulo: string } | null>(null);
-  const [hovered, setHovered] = useState(false);
 
-  // Recolhida apenas quando é colapsável e o mouse não está sobre ela.
-  const isCollapsed = collapsible && !hovered;
+  // Estado de expansão vem do contexto (compartilhado com o <main> para o push).
+  // Fora do provider (Sheet mobile), o contexto é null → sidebar sempre expandida.
+  const sidebarCtx = useSidebarOptional();
+  const expanded = collapsible ? (sidebarCtx?.expanded ?? false) : true;
+  const isCollapsed = collapsible && !expanded;
 
   const plano = parsePlanoSlug(planoAtual);
 
@@ -394,14 +427,16 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
     setUpgradeModal({ label, modulo });
   };
 
-  const visibleGerencialRoutes = profile?.perfil === 'Operador'
-    ? gerencialRoutes.filter(
-        (r) =>
-          r.href !== '/dashboard/mao-de-obra' &&
-          r.href !== '/dashboard/balanco-forrageiro' &&
-          r.href !== '/dashboard/relatorios'
-      )
-    : gerencialRoutes;
+  // Aplica a visibilidade do Operador por grupo, descartando grupos vazios.
+  const visibleGerencialGroups = gerencialGroups
+    .map((group) => ({
+      ...group,
+      routes:
+        profile?.perfil === 'Operador'
+          ? group.routes.filter((r) => !OPERADOR_HIDDEN_HREFS.has(r.href))
+          : group.routes,
+    }))
+    .filter((group) => group.routes.length > 0);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -411,8 +446,8 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
   return (
     <div
       data-collapsed={isCollapsed ? 'true' : undefined}
-      onMouseEnter={collapsible ? () => setHovered(true) : undefined}
-      onMouseLeave={collapsible ? () => setHovered(false) : undefined}
+      onMouseEnter={collapsible ? () => sidebarCtx?.setHovered(true) : undefined}
+      onMouseLeave={collapsible ? () => sidebarCtx?.setHovered(false) : undefined}
       className={cn(
         'group/sb flex flex-col h-full relative transition-[width] duration-200 ease-in-out',
         isCollapsed ? 'w-[68px]' : 'w-64',
@@ -431,34 +466,59 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
 
       <div className="py-6 flex-1 flex flex-col min-h-0 px-3 group-data-[collapsed=true]/sb:px-2 relative z-10 transition-[padding] duration-200">
 
-        {/* Logo — completa quando expandida, só o símbolo quando recolhida */}
-        <Link
-          href="/dashboard"
-          className="flex items-center justify-center mb-6 group transition-all h-[43px]"
-          aria-label="GestSilo — ir para o Dashboard"
-        >
-          {isCollapsed ? (
-            <Image
-              src="/icon-192.png"
-              alt="GestSilo"
-              width={36}
-              height={36}
-              className="object-contain group-hover:opacity-90 transition-opacity"
-              priority
-              aria-hidden="true"
-            />
-          ) : (
-            <Image
-              src="/logo_verde.png"
-              alt="GestSilo"
-              width={170}
-              height={43}
-              className="object-contain group-hover:opacity-90 transition-opacity"
-              priority
-              aria-hidden="true"
-            />
+        {/* Logo + botão de fixar — completa quando expandida, só o símbolo quando recolhida */}
+        <div className="flex items-center mb-6 h-[43px]">
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center flex-1 min-w-0 group transition-all"
+            aria-label="GestSilo — ir para o Dashboard"
+          >
+            {isCollapsed ? (
+              <Image
+                src="/icon-192.png"
+                alt="GestSilo"
+                width={36}
+                height={36}
+                className="object-contain group-hover:opacity-90 transition-opacity"
+                priority
+                aria-hidden="true"
+              />
+            ) : (
+              <Image
+                src="/logo_verde.png"
+                alt="GestSilo"
+                width={170}
+                height={43}
+                className="object-contain group-hover:opacity-90 transition-opacity"
+                priority
+                aria-hidden="true"
+              />
+            )}
+          </Link>
+
+          {/* Pin: só no desktop colapsável e quando expandida (hover ou já fixada) */}
+          {collapsible && sidebarCtx && expanded && (
+            <button
+              type="button"
+              onClick={sidebarCtx.togglePinned}
+              title={sidebarCtx.pinned ? 'Liberar menu (recolher no hover)' : 'Fixar menu aberto'}
+              aria-label={sidebarCtx.pinned ? 'Liberar menu' : 'Fixar menu aberto'}
+              aria-pressed={sidebarCtx.pinned}
+              className={cn(
+                'ml-1 flex-shrink-0 rounded-md p-1.5 transition-colors',
+                sidebarCtx.pinned
+                  ? 'text-primary hover:bg-white/[0.06]'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.06]',
+              )}
+            >
+              {sidebarCtx.pinned ? (
+                <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
+              )}
+            </button>
           )}
-        </Link>
+        </div>
 
         {/* Navegação */}
         <ScrollArea className="-mx-2 px-2 flex-1 min-h-0 h-full">
@@ -479,42 +539,51 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
           {/* Separador */}
           <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
 
-          {/* Bloco 2 — Gerencial */}
+          {/* Bloco 2 — Gerencial (sub-agrupado em Produção / Suprimentos / Gestão) */}
           <nav role="navigation" aria-label="Gerencial">
-            <div className="pb-2">
-              <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
-                Gerencial
+            {visibleGerencialGroups.map((group, groupIndex) => (
+              <div key={group.titulo} className={cn('pb-2', groupIndex > 0 && 'pt-1')}>
+                <div className="px-3 py-1 text-text-faint uppercase text-xs font-bold tracking-[0.15em] group-data-[collapsed=true]/sb:hidden">
+                  {group.titulo}
+                </div>
+                {/* Quando recolhida, um divisor fino substitui o subtítulo entre grupos */}
+                {groupIndex > 0 && (
+                  <div
+                    className="hidden group-data-[collapsed=true]/sb:block mx-auto my-1 w-4"
+                    style={{ borderTop: '1px solid var(--border)' }}
+                  />
+                )}
+                <ul className="space-y-0.5 list-none">
+                  {group.routes.map((route) => {
+                    const isLocked =
+                      profile?.perfil !== 'Operador' &&
+                      !!route.modulo &&
+                      !planoPermiteModulo(plano, route.modulo);
+                    return (
+                      <div key={route.href}>
+                        {isLocked ? (
+                          <LockedNavItem
+                            icon={route.icon}
+                            label={route.label}
+                            modulo={route.modulo!}
+                            onOpenUpgrade={handleOpenUpgrade}
+                          />
+                        ) : (
+                          <NavItem
+                            href={route.href}
+                            icon={route.icon}
+                            label={route.label}
+                            isActive={pathname.startsWith(route.href)}
+                            onNavigate={onNavigate}
+                            badge={route.badge}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </ul>
               </div>
-              <ul className="space-y-0.5 list-none">
-                {visibleGerencialRoutes.map((route) => {
-                  const isLocked =
-                    profile?.perfil !== 'Operador' &&
-                    !!route.modulo &&
-                    !planoPermiteModulo(plano, route.modulo);
-                  return (
-                    <div key={route.href}>
-                      {isLocked ? (
-                        <LockedNavItem
-                          icon={route.icon}
-                          label={route.label}
-                          modulo={route.modulo!}
-                          onOpenUpgrade={handleOpenUpgrade}
-                        />
-                      ) : (
-                        <NavItem
-                          href={route.href}
-                          icon={route.icon}
-                          label={route.label}
-                          isActive={pathname === route.href}
-                          onNavigate={onNavigate}
-                          badge={route.badge}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </ul>
-            </div>
+            ))}
           </nav>
 
           {/* Separador */}
@@ -573,7 +642,7 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
                     title="Materiais"
                     className="text-xs group flex items-center justify-between font-semibold cursor-pointer rounded-lg py-1.5 px-3 mr-2 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors group-data-[collapsed=true]/sb:justify-center group-data-[collapsed=true]/sb:px-0 group-data-[collapsed=true]/sb:mr-0"
                   >
-                    <span className="flex items-center gap-3 min-w-0">
+                    <span className="flex items-center gap-2 min-w-0">
                       <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
                       <span className="truncate group-data-[collapsed=true]/sb:hidden">Materiais</span>
                     </span>

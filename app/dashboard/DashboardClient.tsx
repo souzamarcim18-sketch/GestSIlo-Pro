@@ -332,7 +332,7 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
   const banner = BANNER_CONFIG[alertasOrdenados[0]?.severidade ?? 'aviso'];
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
+    <div className="px-4 md:px-6 lg:px-8 pt-3 md:pt-4 pb-4 md:pb-6 lg:pb-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
       {prefetchAt && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 border border-border rounded-lg px-3 py-2 w-fit">
           <Info className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
@@ -340,8 +340,8 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
         </div>
       )}
       {/* Cabeçalho */}
-      <div className="space-y-1 mb-2">
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
+      <div className="space-y-0.5">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
           {greeting}, {userName}!
         </h1>
         <p className="text-sm text-muted-foreground">Visão geral da sua propriedade</p>
@@ -712,9 +712,9 @@ export function DashboardClient({ data, userName }: { data: DashboardData; userN
 
 export function DashboardSkeleton() {
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
+    <div className="px-4 md:px-6 lg:px-8 pt-3 md:pt-4 pb-4 md:pb-6 lg:pb-8 space-y-6 md:space-y-8 min-h-screen bg-muted/30">
       <div className="space-y-2 mb-8">
-        <Skeleton className="h-8 md:h-10 w-56 md:w-64" />
+        <Skeleton className="h-7 md:h-9 w-56 md:w-64" />
         <Skeleton className="h-4 w-48" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

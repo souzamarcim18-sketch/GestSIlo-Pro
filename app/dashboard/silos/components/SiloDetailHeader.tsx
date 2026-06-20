@@ -37,63 +37,52 @@ export function SiloDetailHeader({
   const statusInfo = statusConfig[status];
 
   return (
-    <div className="space-y-4 mb-6">
-      {/* Botão Voltar */}
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2">
       <Button
         variant="ghost"
         size="sm"
         onClick={onBack}
-        className="gap-2"
+        className="gap-2 -ml-2 shrink-0"
         aria-label="Voltar para lista de silos"
       >
         <ArrowLeft className="h-4 w-4" />
         Voltar
       </Button>
 
-      {/* Header Principal */}
-      <div className="space-y-3">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">{silo.nome}</h1>
-            <div className="flex flex-wrap gap-2 mt-3">
-              <Badge variant="outline" className="text-sm">{silo.tipo}</Badge>
-              <Badge className={`text-sm text-white ${statusInfo.color}`}>
-                {statusInfo.emoji} {statusInfo.label}
-              </Badge>
-            </div>
-          </div>
+      <h1 className="text-2xl font-bold tracking-tight">{silo.nome}</h1>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              onClick={onEdit}
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              aria-label="Editar dados do silo"
-            >
-              <Edit2 className="h-4 w-4" />
-              Editar Dados
-            </Button>
-            {onDelete && (
-              <Button
-                onClick={onDelete}
-                variant="ghost"
-                size="sm"
-                className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                aria-label="Deletar silo"
-              >
-                <Trash2 className="h-4 w-4" />
-                Deletar
-              </Button>
-            )}
-          </div>
-        </div>
+      <Badge variant="outline" className="text-sm">{silo.tipo}</Badge>
+      <Badge className={`text-sm text-white ${statusInfo.color}`}>
+        {statusInfo.emoji} {statusInfo.label}
+      </Badge>
+      {talhaoNome && (
+        <span className="text-sm text-muted-foreground">
+          • Talhão: <span className="font-medium text-foreground">{talhaoNome}</span>
+        </span>
+      )}
 
-        {/* Informações de talhão */}
-        {talhaoNome && (
-          <div className="text-sm text-muted-foreground">
-            <p>Talhão: <span className="font-medium text-foreground">{talhaoNome}</span></p>
-          </div>
+      <div className="ml-auto flex items-center gap-2">
+        <Button
+          onClick={onEdit}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          aria-label="Editar dados do silo"
+        >
+          <Edit2 className="h-4 w-4" />
+          Editar Dados
+        </Button>
+        {onDelete && (
+          <Button
+            onClick={onDelete}
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            aria-label="Deletar silo"
+          >
+            <Trash2 className="h-4 w-4" />
+            Deletar
+          </Button>
         )}
       </div>
     </div>

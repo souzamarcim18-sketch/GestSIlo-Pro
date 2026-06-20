@@ -15,26 +15,38 @@ import type { Insumo } from '@/lib/supabase';
 interface PlantioFieldsProps {
   control: Control<FieldValues>;
   errors: FieldValues;
+  /** Insumos selecionáveis no plantio: sementes (padrão) ou mudas (culturas vegetativas). */
   sementes?: Insumo[];
+  /** Quando true, a cultura é propagada por muda/tolete — rótulos e campos se adaptam. */
+  usaMudas?: boolean;
 }
 
-export function PlantioFields({ control, errors, sementes = [] }: PlantioFieldsProps) {
+export function PlantioFields({ control, errors, sementes = [], usaMudas = false }: PlantioFieldsProps) {
+  const rotuloInsumo = usaMudas ? 'Muda' : 'Semente';
+  const placeholderVazio = usaMudas
+    ? 'Nenhuma muda no estoque'
+    : 'Nenhuma semente no estoque';
+  const placeholderSelecionar = usaMudas ? 'Selecione a muda' : 'Selecione a semente';
+  const mensagemVazio = usaMudas
+    ? 'Nenhuma muda cadastrada no estoque'
+    : 'Nenhuma semente cadastrada no estoque';
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="semente_id">Semente</Label>
+        <Label htmlFor="semente_id">{rotuloInsumo}</Label>
         <Controller
           name="semente_id"
           control={control}
           render={({ field }) => (
             <Select value={field.value || ''} onValueChange={field.onChange}>
               <SelectTrigger id="semente_id">
-                <SelectValue placeholder={sementes.length === 0 ? 'Nenhuma semente no estoque' : 'Selecione a semente'} />
+                <SelectValue placeholder={sementes.length === 0 ? placeholderVazio : placeholderSelecionar} />
               </SelectTrigger>
               <SelectContent>
                 {sementes.length === 0 ? (
                   <SelectItem value="_empty" disabled>
-                    Nenhuma semente cadastrada no estoque
+                    {mensagemVazio}
                   </SelectItem>
                 ) : (
                   sementes.map((s) => (
@@ -53,33 +65,36 @@ export function PlantioFields({ control, errors, sementes = [] }: PlantioFieldsP
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="populacao_plantas_ha">População (plantas/ha)</Label>
-          <Controller
-            name="populacao_plantas_ha"
-            control={control}
-            render={({ field }) => (
-              <Input
-                id="populacao_plantas_ha"
-                type="number"
-                step="1000"
-                placeholder="0"
-                {...field}
-                onChange={(e) =>
-                  field.onChange(e.target.valueAsNumber || undefined)
-                }
-              />
+        {/* População de plantas/ha não se aplica ao plantio vegetativo (mudas). */}
+        {!usaMudas && (
+          <div className="space-y-2">
+            <Label htmlFor="populacao_plantas_ha">População (plantas/ha)</Label>
+            <Controller
+              name="populacao_plantas_ha"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="populacao_plantas_ha"
+                  type="number"
+                  step="1000"
+                  placeholder="0"
+                  {...field}
+                  onChange={(e) =>
+                    field.onChange(e.target.valueAsNumber || undefined)
+                  }
+                />
+              )}
+            />
+            {errors.populacao_plantas_ha && (
+              <p className="text-sm text-destructive">
+                {errors.populacao_plantas_ha.message}
+              </p>
             )}
-          />
-          {errors.populacao_plantas_ha && (
-            <p className="text-sm text-destructive">
-              {errors.populacao_plantas_ha.message}
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="space-y-2">
-          <Label htmlFor="sacos_ha">Sacos/ha</Label>
+          <Label htmlFor="sacos_ha">{usaMudas ? 'Mudas/toletes por ha' : 'Sacos/ha'}</Label>
           <Controller
             name="sacos_ha"
             control={control}
@@ -87,8 +102,8 @@ export function PlantioFields({ control, errors, sementes = [] }: PlantioFieldsP
               <Input
                 id="sacos_ha"
                 type="number"
-                step="0.1"
-                placeholder="0.0"
+                step={usaMudas ? '1' : '0.1'}
+                placeholder={usaMudas ? '0' : '0.0'}
                 {...field}
                 onChange={(e) =>
                   field.onChange(e.target.valueAsNumber || undefined)

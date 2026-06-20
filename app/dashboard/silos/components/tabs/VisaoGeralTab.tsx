@@ -76,7 +76,7 @@ export function VisaoGeralTab({
       {/* 1. Dados do Silo */}
       <Card className="rounded-2xl bg-card shadow-sm lg:col-span-2">
         <CardHeader className="pb-3">
-          <CardTitle>Dados do Silo</CardTitle>
+          <CardTitle className="text-base">Dados do Silo</CardTitle>
           <CardDescription>Informações básicas de estrutura e capacidade</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -135,8 +135,8 @@ export function VisaoGeralTab({
 
       {/* 2. Rastreabilidade & Custo */}
       <Card className={`rounded-2xl bg-card shadow-sm ${temGrafico ? 'lg:col-span-2' : ''}`}>
-        <CardHeader>
-          <CardTitle>Rastreabilidade & Custo</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Rastreabilidade & Custo</CardTitle>
           <CardDescription>Informações de produção e economia</CardDescription>
         </CardHeader>
         <CardContent>
@@ -237,8 +237,8 @@ export function VisaoGeralTab({
 
       {/* 3. Datas */}
       <Card className="rounded-2xl bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle>Datas Importantes</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Datas Importantes</CardTitle>
           <CardDescription>Ciclos de armazenamento</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -282,8 +282,8 @@ export function VisaoGeralTab({
 
       {/* 4. Insumos */}
       <Card className="rounded-2xl bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle>Insumos Utilizados</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Insumos Utilizados</CardTitle>
           <CardDescription>Materiais consumidos no processo de silagem</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -322,8 +322,8 @@ export function VisaoGeralTab({
 
       {/* 5. Observações */}
       <Card className="rounded-2xl bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle>Observações</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Observações</CardTitle>
           <CardDescription>Anotações e detalhes adicionais</CardDescription>
         </CardHeader>
         <CardContent>

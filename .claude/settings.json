@@ -181,7 +181,10 @@
       "PowerShell(npx tsx _tmp_test_ativ.ts 2>&1)",
       "PowerShell(Copy-Item C:\\\\tmp\\\\atividades-campo-preexisting.bak lib/validators/atividades-campo.ts -Force)",
       "Bash(grep -ivE \"^\\\\s*$\")",
-      "Bash(echo \"---build exit: $?---\")"
+      "Bash(echo \"---build exit: $?---\")",
+      "PowerShell(npm run test -- --run 2>&1)",
+      "PowerShell(npx eslint components/Sidebar.tsx components/SidebarContext.tsx app/dashboard/layout.tsx 2>&1)",
+      "PowerShell($out = npx tsc --noEmit -p tsconfig.json 2>&1; \\($out | Select-String -Pattern \"components/Sidebar|components/SidebarContext|app/dashboard/layout\"\\).Count)"
     ],
     "additionalDirectories": [
       "\\tmp"

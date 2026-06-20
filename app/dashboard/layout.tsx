@@ -3,7 +3,9 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
+import { SidebarProvider, useSidebar } from '@/components/SidebarContext';
 import { Header } from '@/components/Header';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { AUTH_PROFILE_FETCH_TIMEOUT_MS } from '@/lib/auth/constants';
 import { authLog } from '@/lib/auth/logger';
@@ -119,6 +121,20 @@ export default function DashboardLayout({
 
   // Layout normal
   return (
+    <SidebarProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </SidebarProvider>
+  );
+}
+
+/**
+ * Shell do dashboard: a sidebar (desktop) expande no hover ou quando fixada,
+ * e o conteúdo principal é empurrado junto (push) para nunca ficar coberto.
+ */
+function DashboardShell({ children }: { children: React.ReactNode }) {
+  const { expanded } = useSidebar();
+
+  return (
     <div className="h-screen relative overflow-hidden">
       <nav
         aria-label="Menu principal"
@@ -127,14 +143,19 @@ export default function DashboardLayout({
         <Sidebar collapsible />
       </nav>
 
-      <main className="h-full overflow-y-auto flex flex-col bg-muted/30 md:pl-[68px]">
+      <main
+        className={cn(
+          'h-full overflow-y-auto flex flex-col bg-muted/30 transition-[padding] duration-200 ease-in-out',
+          expanded ? 'md:pl-64' : 'md:pl-[68px]',
+        )}
+      >
         <header role="banner">
           <Header />
         </header>
 
         <div className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-  {children}
-</div>
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -18,8 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
 import {
   TalhaoDetailHeader,
-  TalhaoResumoTab,
-  TalhaoOperacoesTab,
+  TalhaoVisaoGeralTab,
   TalhaoHistoricoTab,
   TalhaoForm,
 } from '../components';
@@ -30,7 +29,7 @@ export default function TalhaoDetailPage() {
   const { profile } = useAuth();
   const talhaoId = params.id as string;
 
-  const [activeTab, setActiveTab] = useState<'resumo' | 'operacoes' | 'historico'>('resumo');
+  const [activeTab, setActiveTab] = useState<'visaoGeral' | 'historico'>('visaoGeral');
   const [talhao, setTalhao] = useState<Talhao | null>(null);
   const [ciclos, setCiclos] = useState<CicloAgricola[]>([]);
   const [atividades, setAtividades] = useState<AtividadeCampo[]>([]);
@@ -124,8 +123,8 @@ export default function TalhaoDetailPage() {
 
         <div className="w-full space-y-4">
           <div className="inline-flex flex-wrap gap-1 rounded-xl bg-muted/50 border border-border p-[3px]">
-            {(['resumo', 'operacoes', 'historico'] as const).map((tab) => {
-              const labels = { resumo: 'Resumo e Custos', operacoes: 'Operações Agrícolas', historico: 'Histórico e Calendário' };
+            {(['visaoGeral', 'historico'] as const).map((tab) => {
+              const labels = { visaoGeral: 'Visão Geral & Operações', historico: 'Histórico' };
               return (
                 <button
                   key={tab}
@@ -142,19 +141,10 @@ export default function TalhaoDetailPage() {
             })}
           </div>
 
-          {activeTab === 'resumo' && (
-            <TalhaoResumoTab
+          {activeTab === 'visaoGeral' && (
+            <TalhaoVisaoGeralTab
               talhao={talhao}
-              cicloAtivo={cicloAtivo}
-              atividades={atividades}
-              onRefresh={fetchData}
-            />
-          )}
-          {activeTab === 'operacoes' && (
-            <TalhaoOperacoesTab
               talhaoId={talhaoId}
-              talhaoNome={talhao?.nome}
-              talhaoAreaHa={talhao?.area_ha}
               cicloAtivo={cicloAtivo}
               atividades={atividades}
               onRefresh={fetchData}

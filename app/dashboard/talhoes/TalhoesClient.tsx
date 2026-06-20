@@ -8,7 +8,7 @@ import { Plus, Map } from 'lucide-react';
 import { toast } from 'sonner';
 import { type Talhao, type CicloAgricola } from '@/lib/types/talhoes';
 import { q } from '@/lib/supabase/queries-audit';
-import { TalhaoCard, TalhaoForm } from './components';
+import { TalhaoCard, TalhaoForm, TalhaoKpiStrip } from './components';
 
 interface Props {
   initialTalhoes: Talhao[];
@@ -63,16 +63,20 @@ export function TalhoesClient({ initialTalhoes, initialCiclosAtivos }: Props) {
           <CardDescription>Clique em &quot;Novo Talhão&quot; para começar a gerenciar suas áreas de cultivo.</CardDescription>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {talhoes.map((talhao) => (
-            <TalhaoCard
-              key={talhao.id}
-              talhao={talhao}
-              cicloAtivo={ciclosAtivos[talhao.id]}
-              onClick={() => router.push(`/dashboard/talhoes/${talhao.id}`)}
-            />
-          ))}
-        </div>
+        <>
+          <TalhaoKpiStrip talhoes={talhoes} ciclosAtivos={ciclosAtivos} />
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {talhoes.map((talhao) => (
+              <TalhaoCard
+                key={talhao.id}
+                talhao={talhao}
+                cicloAtivo={ciclosAtivos[talhao.id]}
+                onClick={() => router.push(`/dashboard/talhoes/${talhao.id}`)}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <TalhaoForm
