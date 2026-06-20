@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { parsePlanoSlug } from '@/lib/planos';
-import { verificarAlertaSilagem } from '@/app/dashboard/talhoes/helpers';
+import { verificarAlertaSilagem, verificarAlertaColheita } from '@/app/dashboard/talhoes/helpers';
 import type { CicloAgricola, ProximaOperacao } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
 import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
@@ -145,7 +145,7 @@ export default async function DashboardPage() {
       .is('deleted_at', null),
     supabase
       .from('ciclos_agricolas')
-      .select('id, cultura, data_colheita_prevista, data_colheita_real')
+      .select('id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, talhao_id, talhoes(id, nome, fazenda_id)')
       .eq('ativo', true),
     supabase
       .from('animais')
@@ -320,10 +320,26 @@ export default async function DashboardPage() {
       : '—';
   const talhaoTotalCadastrados = talhoesData.length > 0 ? talhoesData.length.toString() : '—';
 
-  const ciclosData = ciclosRes.data ?? [];
+  type CicloAtivoRow = {
+    id: string;
+    cultura: string | null;
+    data_plantio: string | null;
+    data_colheita_prevista: string | null;
+    data_colheita_real: string | null;
+    talhao_id: string | null;
+    talhoes: { id: string; nome: string; fazenda_id: string } | null;
+  };
+  // O join do Supabase infere `talhoes` como array, mas a relação é many-to-one
+  const ciclosData = ((ciclosRes.data ?? []) as unknown as (Omit<CicloAtivoRow, 'talhoes'> & {
+    talhoes: { id: string; nome: string; fazenda_id: string }[] | { id: string; nome: string; fazenda_id: string } | null;
+  })[]).map((c) => ({
+    ...c,
+    talhoes: Array.isArray(c.talhoes) ? (c.talhoes[0] ?? null) : c.talhoes,
+  })) satisfies CicloAtivoRow[];
+
   const contagemCult: Record<string, number> = {};
   for (const c of ciclosData) {
-    const cult = (c.cultura as string | null) ?? 'Sem cultura';
+    const cult = c.cultura ?? 'Sem cultura';
     contagemCult[cult] = (contagemCult[cult] ?? 0) + 1;
   }
   const culturasAtivas = Object.entries(contagemCult).map(([name, value]) => ({ name, value }));
@@ -403,11 +419,15 @@ export default async function DashboardPage() {
       const cicloCorrespondente = ciclosData.find(
         (c) =>
           c.data_colheita_prevista === evento.data_esperada &&
-          (c.cultura as string).includes('Silagem')
+          (c.cultura ?? '').includes('Silagem')
       );
       let janelaColheita: { ativo: boolean; diasRestantes: number } | undefined;
       if (cicloCorrespondente) {
-        const alerta = verificarAlertaSilagem(cicloCorrespondente as CicloAgricola);
+        const alerta = verificarAlertaSilagem({
+          cultura: cicloCorrespondente.cultura ?? '',
+          data_colheita_prevista: cicloCorrespondente.data_colheita_prevista ?? '',
+          data_colheita_real: cicloCorrespondente.data_colheita_real,
+        } as CicloAgricola);
         if (alerta?.ativo && (evento.tipo_operacao as string).toLowerCase().includes('colheita')) {
           janelaColheita = alerta;
         }
@@ -496,6 +516,35 @@ export default async function DashboardPage() {
     href: '/dashboard/produtos',
   }));
 
+  // Etapa 2 — alertas de colheita pendente/atrasada (ciclo ativo sem colheita registrada)
+  const alertasColheita: AlertaCritico[] = ciclosData
+    .filter((c) => c.talhoes?.fazenda_id === fazendaId && c.data_colheita_prevista)
+    .flatMap((c) => {
+      const alerta = verificarAlertaColheita({
+        data_colheita_prevista: c.data_colheita_prevista ?? '',
+        data_colheita_real: c.data_colheita_real,
+      } as CicloAgricola);
+      if (!alerta) return [];
+      const cultura = c.cultura ?? 'Cultura';
+      const talhaoNome = c.talhoes?.nome ?? 'Talhão';
+      const href = c.talhao_id ? `/dashboard/talhoes/${c.talhao_id}` : '/dashboard/talhoes';
+      const alertaCritico: AlertaCritico = {
+        id: `colheita_pendente_${c.id}`,
+        tipo: 'colheita_pendente',
+        severidade: alerta.severidade,
+        mensagem: alerta.atrasado
+          ? `Colheita atrasada — ${cultura} (${talhaoNome})`
+          : alerta.diasRestantes === 0
+            ? `Colheita hoje — ${cultura} (${talhaoNome})`
+            : `Colheita em ${alerta.diasRestantes} dia(s) — ${cultura} (${talhaoNome})`,
+        detalhe: alerta.atrasado
+          ? `Prevista para ${formatarDataBR(c.data_colheita_prevista!)} — ainda não registrada`
+          : `Prevista para ${formatarDataBR(c.data_colheita_prevista!)}`,
+        href,
+      };
+      return [alertaCritico];
+    });
+
   // --- Pastagens: área e count derivados do join ---
   type PiqueteComPastagem = {
     pastagens: { id: string; area_total_ha: number } | null;
@@ -539,6 +588,7 @@ export default async function DashboardPage() {
 
   const alertas: AlertaCritico[] = [
     ...alertasEtapa1,
+    ...alertasColheita,
     ...alertasInsumos,
     ...alertasManutencao,
     ...alertasVacinacao,

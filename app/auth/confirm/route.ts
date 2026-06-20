@@ -74,8 +74,9 @@ export async function GET(request: NextRequest) {
       await ensureProfile(confirmedUser.id, confirmedUser.email ?? '', confirmedUser.user_metadata ?? {});
     }
 
-    const redirectTo = type === 'invite' || type === 'recovery'
-      ? '/auth/set-password'
+    const redirectTo =
+      type === 'recovery' ? '/reset-password'
+      : type === 'invite' ? '/auth/set-password'
       : '/dashboard/onboarding';
 
     const response = NextResponse.redirect(new URL(redirectTo, request.url));

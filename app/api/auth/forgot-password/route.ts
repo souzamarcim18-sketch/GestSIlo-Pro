@@ -43,12 +43,14 @@ export async function POST(request: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const emailNorm = email.trim().toLowerCase();
 
-    // Gera o link de recovery via service role (retorna o link diretamente)
+    // Gera o link de recovery via service role (retorna o link diretamente).
+    // Aponta para /auth/confirm (route handler de servidor que troca o token_hash
+    // por sessão via verifyOtp) — /auth/callback é client-only e não faz essa troca.
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: emailNorm,
       options: {
-        redirectTo: `${siteUrl}/auth/callback`,
+        redirectTo: `${siteUrl}/auth/confirm`,
       },
     });
 

@@ -19,8 +19,13 @@ import {
 import { SiloDetailHeader } from '../components/SiloDetailHeader';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { VisaoGeralTab } from '../components/tabs/VisaoGeralTab';
-import { EstoqueTab } from '../components/tabs/EstoqueTab';
+import {
+  DadosSiloCard,
+  RastreabilidadeCustoCard,
+  InsumosCard,
+  ObservacoesCard,
+} from '../components/tabs/VisaoGeralTab';
+import { EstoqueCards, HistoricoMovimentacoes } from '../components/tabs/EstoqueTab';
 import { QualidadeTab } from '../components/tabs/QualidadeTab';
 import { SiloForm } from '../components/dialogs/SiloForm';
 import { MovimentacaoDialog } from '../components/dialogs/MovimentacaoDialog';
@@ -179,12 +184,6 @@ export default function SiloDetailPage() {
   const cardData = calcularDadosSilos([silo], movimentacoes)[0];
   const { estoque, consumoDiario, estoquePara, status } = cardData;
 
-  // Volume total calculado pelas dimensões do silo
-  const volumeTotal =
-    silo.comprimento_m && silo.largura_m && silo.altura_m
-      ? silo.comprimento_m * silo.largura_m * silo.altura_m
-      : null;
-
   return (
     <div className="p-6 md:p-8">
       <div className="space-y-6">
@@ -194,6 +193,8 @@ export default function SiloDetailPage() {
           status={status}
           onBack={() => router.back()}
           onEdit={() => setIsEditOpen(true)}
+          onRefresh={fetchData}
+          onNovaMovimentacao={() => setIsMovOpen(true)}
           talhaoNome={talhao?.nome}
           onDelete={
             profile?.perfil === 'Administrador'
@@ -229,24 +230,28 @@ export default function SiloDetailPage() {
 
         {activeTab === 'visao-geral' && (
           <div className="space-y-6">
-            <EstoqueTab
-              siloId={siloId}
-              volumeTotal={volumeTotal ?? 0}
-              movimentacoes={movimentacoes}
-              estoque={estoque}
-              consumoDiario={consumoDiario}
-              estoquePara={estoquePara}
-              onNovaMovimentacao={() => setIsMovOpen(true)}
-              onRefresh={fetchData}
-            />
-            <VisaoGeralTab
-              silo={silo}
-              talhao={talhao}
-              custo={custo}
-              densidade={null}
-              insumoLona={insumoLona}
-              insumoInoculante={insumoInoculante}
-            />
+            {/* Linha 1: Dados do Silo (esquerda) + 4 cards de estoque (direita) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              <DadosSiloCard silo={silo} />
+              <EstoqueCards
+                movimentacoes={movimentacoes}
+                estoque={estoque}
+                consumoDiario={consumoDiario}
+                estoquePara={estoquePara}
+              />
+            </div>
+
+            {/* Linha 2: Rastreabilidade & Custo + Insumos lado a lado */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              <RastreabilidadeCustoCard silo={silo} talhao={talhao} custo={custo} />
+              <InsumosCard insumoLona={insumoLona} insumoInoculante={insumoInoculante} />
+            </div>
+
+            {/* Observações (largura total) */}
+            <ObservacoesCard silo={silo} />
+
+            {/* Histórico de movimentações (largura total) */}
+            <HistoricoMovimentacoes movimentacoes={movimentacoes} estoque={estoque} />
           </div>
         )}
         {activeTab === 'qualidade' && (

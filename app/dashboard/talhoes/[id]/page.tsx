@@ -115,7 +115,6 @@ export default function TalhaoDetailPage() {
       <div className="space-y-6">
         <TalhaoDetailHeader
           talhao={talhao}
-          cicloAtivo={cicloAtivo}
           onEdit={() => setIsEditOpen(true)}
           onDelete={() => setIsDeleteOpen(true)}
           profile={profile}

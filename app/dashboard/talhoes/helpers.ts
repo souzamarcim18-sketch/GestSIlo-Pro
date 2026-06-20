@@ -364,6 +364,70 @@ export function verificarAlertaSilagem(
 }
 
 /**
+ * Severidade do alerta de colheita de um ciclo agrícola.
+ * - `aviso`: colheita se aproxima (faltam ≤ 7 dias)
+ * - `urgente`: colheita prevista é hoje ou venceu há até 7 dias
+ * - `critico`: colheita venceu há mais de 7 dias sem registro
+ */
+export type SeveridadeColheita = 'aviso' | 'urgente' | 'critico';
+
+export interface AlertaColheita {
+  severidade: SeveridadeColheita;
+  /** Dias até a colheita (positivo = futuro) ou desde o vencimento (negativo = atrasado) */
+  diasRestantes: number;
+  /** true quando a data prevista já passou sem colheita registrada */
+  atrasado: boolean;
+}
+
+const JANELA_AVISO_COLHEITA_DIAS = 7;
+
+/**
+ * Converte uma string de data (YYYY-MM-DD ou ISO) em um Date à meia-noite LOCAL.
+ * Datas no formato `YYYY-MM-DD` são interpretadas pelo JS como UTC; parseá-las
+ * como local evita o deslocamento de 1 dia em fusos negativos (ex.: Brasil).
+ */
+function parseDataLocal(data: string): Date {
+  const soData = data.slice(0, 10);
+  const [ano, mes, dia] = soData.split('-').map(Number);
+  return new Date(ano, (mes ?? 1) - 1, dia ?? 1);
+}
+
+/**
+ * Verifica se um ciclo agrícola ativo merece um alerta de colheita — tanto pela
+ * aproximação da janela quanto, principalmente, pelo vencimento sem registro.
+ *
+ * Diferente de `verificarAlertaSilagem` (restrito a silagens e à janela futura),
+ * cobre QUALQUER cultura com `data_colheita_prevista` e inclui o caso de atraso.
+ *
+ * Retorna `null` quando: não há data prevista, a colheita já foi registrada, ou
+ * a colheita está a mais de 7 dias no futuro (ainda não é alerta).
+ */
+export function verificarAlertaColheita(ciclo: CicloAgricola): AlertaColheita | null {
+  if (!ciclo.data_colheita_prevista || ciclo.data_colheita_real) return null;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const colheita = parseDataLocal(ciclo.data_colheita_prevista);
+
+  const diasRestantes = Math.round((colheita.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Ainda longe (mais de 7 dias no futuro) — sem alerta
+  if (diasRestantes > JANELA_AVISO_COLHEITA_DIAS) return null;
+
+  if (diasRestantes >= 0) {
+    return { severidade: 'aviso', diasRestantes, atrasado: false };
+  }
+
+  // Atrasado (diasRestantes negativo)
+  const diasAtraso = Math.abs(diasRestantes);
+  return {
+    severidade: diasAtraso > JANELA_AVISO_COLHEITA_DIAS ? 'critico' : 'urgente',
+    diasRestantes,
+    atrasado: true,
+  };
+}
+
+/**
  * Gera eventos DAP para um ciclo agrícola baseado na matriz DAP
  * @param cultura Nome da cultura
  * @param dataplantio Data de plantio (formato YYYY-MM-DD)

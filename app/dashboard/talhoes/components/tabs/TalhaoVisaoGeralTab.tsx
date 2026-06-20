@@ -23,13 +23,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { type Talhao, type CicloAgricola, type AtividadeCampo } from '@/lib/types/talhoes';
-import { Plus, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle, AlertTriangle } from 'lucide-react';
 import { AtividadeDialog } from '../dialogs/AtividadeDialog';
 import {
   calcularCustoTotalEstimado,
   calcularCustoPorHectare,
   calcularBreakdownCusto,
-  verificarAlertaSilagem,
+  verificarAlertaColheita,
 } from '../../helpers';
 
 interface TalhaoVisaoGeralTabProps {
@@ -61,7 +61,7 @@ export function TalhaoVisaoGeralTab({
   const custoTotal = calcularCustoTotalEstimado(atividades);
   const custoPorHa = calcularCustoPorHectare(custoTotal, talhao.area_ha);
   const breakdown = calcularBreakdownCusto(atividades);
-  const alertaSilagem = cicloAtivo ? verificarAlertaSilagem(cicloAtivo) : null;
+  const alertaColheita = cicloAtivo ? verificarAlertaColheita(cicloAtivo) : null;
 
   const atividadesFiltradas = useMemo(() => {
     return atividades.filter((atividade) => {
@@ -82,13 +82,55 @@ export function TalhaoVisaoGeralTab({
 
   return (
     <div className="space-y-4">
-      {/* Alerta de Silagem */}
-      {alertaSilagem?.ativo && (
-        <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-          <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-          <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-            ⚠️ Atenção: janela de colheita de silagem se aproxima em{' '}
-            <strong>{alertaSilagem.diasRestantes} dias</strong>
+      {/* Alerta de Colheita — aproximação ou vencimento sem registro */}
+      {alertaColheita && cicloAtivo && (
+        <Alert
+          className={
+            alertaColheita.severidade === 'critico'
+              ? 'border-red-500 bg-red-50 dark:bg-red-950'
+              : alertaColheita.severidade === 'urgente'
+                ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
+                : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950'
+          }
+        >
+          {alertaColheita.atrasado ? (
+            <AlertTriangle
+              className={
+                alertaColheita.severidade === 'critico'
+                  ? 'h-4 w-4 text-red-600 dark:text-red-400'
+                  : 'h-4 w-4 text-orange-600 dark:text-orange-400'
+              }
+            />
+          ) : (
+            <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+          )}
+          <AlertDescription
+            className={
+              alertaColheita.severidade === 'critico'
+                ? 'text-red-800 dark:text-red-200'
+                : alertaColheita.severidade === 'urgente'
+                  ? 'text-orange-800 dark:text-orange-200'
+                  : 'text-yellow-800 dark:text-yellow-200'
+            }
+          >
+            {alertaColheita.atrasado ? (
+              <>
+                Colheita de <strong>{cicloAtivo.cultura}</strong> atrasada há{' '}
+                <strong>{Math.abs(alertaColheita.diasRestantes)} dia(s)</strong> — prevista para{' '}
+                {new Date(cicloAtivo.data_colheita_prevista).toLocaleDateString('pt-BR')} e ainda não
+                registrada.
+              </>
+            ) : alertaColheita.diasRestantes === 0 ? (
+              <>
+                Colheita de <strong>{cicloAtivo.cultura}</strong> prevista para{' '}
+                <strong>hoje</strong>.
+              </>
+            ) : (
+              <>
+                Janela de colheita de <strong>{cicloAtivo.cultura}</strong> se aproxima em{' '}
+                <strong>{alertaColheita.diasRestantes} dia(s)</strong>.
+              </>
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -174,25 +216,7 @@ export function TalhaoVisaoGeralTab({
                     <div className="text-xl font-bold text-primary">{formatBRL(custoPorHa)}</div>
                   </div>
                 </div>
-                <div className="pt-2 border-t space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Composição do custo
-                  </div>
-                  <div className="grid grid-cols-1 gap-1">
-                    {breakdown.insumos > 0 && (
-                      <CustoRow label="Insumos (custo médio)" value={breakdown.insumos} />
-                    )}
-                    {breakdown.maquinas > 0 && (
-                      <CustoRow label="Máquinas (custo/hora)" value={breakdown.maquinas} />
-                    )}
-                    {breakdown.servicos > 0 && (
-                      <CustoRow label="Serviços terceirizados" value={breakdown.servicos} />
-                    )}
-                    {breakdown.outros > 0 && (
-                      <CustoRow label="Outros" value={breakdown.outros} />
-                    )}
-                  </div>
-                </div>
+                <CustoComposicao breakdown={breakdown} custoTotal={custoTotal} />
                 <div className="text-xs text-muted-foreground pt-1 border-t">
                   Baseado em {atividades.length} atividades registradas
                 </div>
@@ -213,80 +237,79 @@ export function TalhaoVisaoGeralTab({
             </Alert>
           )}
 
-          {/* Botão e Filtros */}
-          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-            <div className="space-y-2 shrink-0">
-              <Label className="text-sm invisible select-none hidden sm:block" aria-hidden>
-                &nbsp;
-              </Label>
-              <Button onClick={() => setIsDialogOpen(true)} className="h-9 w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Registrar Operação Agrícola
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
-              <div className="space-y-2">
-                <Label className="text-sm">Tipo de Operação</Label>
-                <Select value={tipoFiltro || ''} onValueChange={(v) => setTipoFiltro(v as string)}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
-                    {tipos.map((tipo) => (
-                      <SelectItem key={tipo} value={tipo}>
-                        {tipo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm">Data Início</Label>
-                <Input
-                  type="date"
-                  value={dataInicio}
-                  onChange={(e) => {
-                    setDataInicio(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="h-9"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm">Data Fim</Label>
-                <Input
-                  type="date"
-                  value={dataFim}
-                  onChange={(e) => {
-                    setDataFim(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="h-9"
-                />
-              </div>
-            </div>
+          {/* Botão — alinhado ao topo da coluna, acima do card de operações */}
+          <div className="flex justify-end">
+            <Button onClick={() => setIsDialogOpen(true)} className="h-9 w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              Registrar Operação Agrícola
+            </Button>
           </div>
 
-          {/* Tabela */}
+          {/* Card de Operações Agrícolas com filtros no cabeçalho */}
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-3 space-y-4">
               <CardTitle className="text-base">
-                Atividades Registradas
+                Operações Agrícolas
                 {atividadesFiltradas.length > 0 && (
                   <span className="text-sm text-muted-foreground ml-2">
                     ({atividadesFiltradas.length})
                   </span>
                 )}
               </CardTitle>
+
+              {/* Filtros dentro do card */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm">Tipo de Operação</Label>
+                  <Select
+                    value={tipoFiltro || ''}
+                    onValueChange={(v) => setTipoFiltro(v as string)}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      {tipos.map((tipo) => (
+                        <SelectItem key={tipo} value={tipo}>
+                          {tipo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm">Data Início</Label>
+                  <Input
+                    type="date"
+                    value={dataInicio}
+                    onChange={(e) => {
+                      setDataInicio(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="h-9"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm">Data Fim</Label>
+                  <Input
+                    type="date"
+                    value={dataFim}
+                    onChange={(e) => {
+                      setDataFim(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="h-9"
+                  />
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {atividadesFiltradas.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Nenhuma atividade registrada.
+                  Nenhuma operação registrada.
                 </div>
               ) : (
                 <>
@@ -381,11 +404,69 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function CustoRow({ label, value }: { label: string; value: number }) {
+type Breakdown = { insumos: number; maquinas: number; servicos: number; outros: number };
+
+const COMPONENTES_CUSTO: { key: keyof Breakdown; label: string; color: string }[] = [
+  { key: 'insumos', label: 'Insumos', color: '#00A651' },
+  { key: 'maquinas', label: 'Máquinas', color: '#3B82F6' },
+  { key: 'servicos', label: 'Serviços terceirizados', color: '#F59E0B' },
+  { key: 'outros', label: 'Outros', color: '#A78BFA' },
+];
+
+function CustoComposicao({
+  breakdown,
+  custoTotal,
+}: {
+  breakdown: Breakdown;
+  custoTotal: number;
+}) {
+  const segmentos = COMPONENTES_CUSTO.map((c) => ({
+    ...c,
+    value: breakdown[c.key],
+    pct: custoTotal > 0 ? (breakdown[c.key] / custoTotal) * 100 : 0,
+  })).filter((s) => s.value > 0);
+
+  if (segmentos.length === 0) return null;
+
   return (
-    <div className="flex justify-between text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{formatBRL(value)}</span>
+    <div className="pt-2 border-t space-y-3">
+      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        Composição do custo
+      </div>
+
+      {/* Barra empilhada */}
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted">
+        {segmentos.map((s) => (
+          <div
+            key={s.key}
+            className="h-full first:rounded-l-full last:rounded-r-full"
+            style={{ width: `${s.pct}%`, backgroundColor: s.color }}
+            title={`${s.label}: ${formatBRL(s.value)} (${s.pct.toFixed(0)}%)`}
+          />
+        ))}
+      </div>
+
+      {/* Legenda detalhada */}
+      <div className="grid grid-cols-1 gap-1.5">
+        {segmentos.map((s) => (
+          <div key={s.key} className="flex items-center justify-between gap-2 text-sm">
+            <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: s.color }}
+                aria-hidden
+              />
+              <span className="truncate">{s.label}</span>
+            </span>
+            <span className="flex shrink-0 items-baseline gap-1.5">
+              <span className="font-medium">{formatBRL(s.value)}</span>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {s.pct.toFixed(0)}%
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

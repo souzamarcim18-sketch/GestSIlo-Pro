@@ -8,6 +8,7 @@ export interface ProximaOperacaoComBadge extends ProximaOperacao {
 
 export type AlertaTipo =
   | 'operacao_atrasada'
+  | 'colheita_pendente'
   | 'silagem_baixa_autonomia'
   | 'silagem_perdas_elevadas'
   | 'manutencao_pendente'

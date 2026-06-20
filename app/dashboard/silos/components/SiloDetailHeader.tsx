@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Silo } from '@/lib/supabase';
-import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Trash2, RotateCw, Plus } from 'lucide-react';
 
 type SiloStatus = 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
 
@@ -14,6 +14,8 @@ interface SiloDetailHeaderProps {
   onBack: () => void;
   onEdit: () => void;
   onDelete?: () => void;
+  onRefresh?: () => void;
+  onNovaMovimentacao?: () => void;
   talhaoNome?: string | null;
 }
 
@@ -32,6 +34,8 @@ export function SiloDetailHeader({
   onBack,
   onEdit,
   onDelete,
+  onRefresh,
+  onNovaMovimentacao,
   talhaoNome,
 }: SiloDetailHeaderProps) {
   const statusInfo = statusConfig[status];
@@ -50,21 +54,48 @@ export function SiloDetailHeader({
         Voltar
       </Button>
 
-      {/* Linha 2: nome + badges + ações */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-[#00A651]">{silo.nome}</h1>
+      {/* Linha 2: nome + ações */}
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-3">
+        {/* Nome + status (abaixo) + talhão */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-[#00A651]">{silo.nome}</h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <Badge className={`text-xs text-white ${statusInfo.color}`}>
+              {statusInfo.emoji} {statusInfo.label}
+            </Badge>
+            {talhaoNome && (
+              <span className="text-sm text-muted-foreground">
+                • Talhão: <span className="font-medium text-foreground">{talhaoNome}</span>
+              </span>
+            )}
+          </div>
+        </div>
 
-        <Badge variant="outline" className="text-sm">{silo.tipo}</Badge>
-        <Badge className={`text-sm text-white ${statusInfo.color}`}>
-          {statusInfo.emoji} {statusInfo.label}
-        </Badge>
-        {talhaoNome && (
-          <span className="text-sm text-muted-foreground">
-            • Talhão: <span className="font-medium text-foreground">{talhaoNome}</span>
-          </span>
-        )}
-
-        <div className="ml-auto flex items-center gap-2">
+        {/* Ações */}
+        <div className="flex flex-wrap items-center gap-2">
+          {onRefresh && (
+            <Button
+              onClick={onRefresh}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              aria-label="Atualizar dados do silo"
+            >
+              <RotateCw className="h-4 w-4" />
+              Atualizar
+            </Button>
+          )}
+          {onNovaMovimentacao && (
+            <Button
+              onClick={onNovaMovimentacao}
+              size="sm"
+              className="gap-2"
+              aria-label="Registrar movimentação"
+            >
+              <Plus className="h-4 w-4" />
+              Registrar Movimentação
+            </Button>
+          )}
           <Button
             onClick={onEdit}
             variant="outline"

@@ -191,7 +191,10 @@
       "PowerShell(if \\($?\\) { \"TYPECHECK OK\" })",
       "Bash(node -e \"console.log\\('sharp ico support:', !!require\\('sharp'\\).format.ico\\)\")",
       "Bash(node -e \"require.resolve\\('png-to-ico'\\); console.log\\('png-to-ico: yes'\\)\")",
-      "Read(//c/tmp/**)"
+      "Read(//c/tmp/**)",
+      "Bash(grep -E \"app/auth/confirm|app/api/auth/forgot-password|app[\\\\\\\\\\\\\\\\/]auth[\\\\\\\\\\\\\\\\/]confirm|app[\\\\\\\\\\\\\\\\/]api[\\\\\\\\\\\\\\\\/]auth[\\\\\\\\\\\\\\\\/]forgot\")",
+      "Bash(git -C \"c:/Projetos/GestSilo/GestSIlo-Pro\" status --short)",
+      "PowerShell(npx eslint \"app/dashboard/silos/[id]/page.tsx\" \"app/dashboard/silos/components/tabs/EstoqueTab.tsx\" \"app/dashboard/silos/components/tabs/VisaoGeralTab.tsx\" \"app/dashboard/silos/components/SiloDetailHeader.tsx\" 2>&1)"
     ],
     "additionalDirectories": [
       "\\tmp"

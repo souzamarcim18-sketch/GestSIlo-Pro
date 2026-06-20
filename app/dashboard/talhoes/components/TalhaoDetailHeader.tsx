@@ -2,15 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { type Talhao, type CicloAgricola } from '@/lib/types/talhoes';
+import { type Talhao } from '@/lib/types/talhoes';
 import { type Profile } from '@/lib/supabase';
 import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
-import { getStatusDisplay } from '../helpers';
 
 interface TalhaoDetailHeaderProps {
   talhao: Talhao;
-  cicloAtivo?: CicloAgricola;
   onEdit?: () => void;
   onDelete?: () => void;
   profile?: Profile | null;
@@ -18,13 +15,11 @@ interface TalhaoDetailHeaderProps {
 
 export function TalhaoDetailHeader({
   talhao,
-  cicloAtivo,
   onEdit,
   onDelete,
   profile,
 }: TalhaoDetailHeaderProps) {
   const router = useRouter();
-  const statusDisplay = getStatusDisplay(talhao.status);
 
   return (
     <div className="space-y-2">
@@ -38,16 +33,11 @@ export function TalhaoDetailHeader({
         Voltar
       </Button>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">{talhao.nome}</h1>
-
-        <Badge style={{ backgroundColor: statusDisplay.color, color: 'white' }}>
-          {statusDisplay.label}
-        </Badge>
-        <span className="text-sm text-muted-foreground">{talhao.area_ha} ha</span>
-        {cicloAtivo && (
-          <span className="text-sm text-primary">• {cicloAtivo.cultura}</span>
-        )}
+      <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-bold tracking-tight text-primary">{talhao.nome}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{talhao.area_ha} ha</p>
+        </div>
 
         <div className="ml-auto flex gap-2">
           <Button variant="outline" size="sm" onClick={onEdit}>
