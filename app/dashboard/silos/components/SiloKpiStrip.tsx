@@ -27,18 +27,14 @@ export function SiloKpiStrip({ data, resumo }: Props) {
   const abertos = data.filter((d) => d.status === 'Aberto').length;
   const criticos = data.filter((d) => d.status === 'Crítico' || d.status === 'Esgotado').length;
 
-  const ocupacoesValidas = data
-    .map((d) => {
-      const cap = d.silo.volume_ensilado_ton_mv ?? 0;
-      if (cap === 0) return null;
-      return Math.min(Math.round((d.estoque / cap) * 100), 100);
-    })
-    .filter((v): v is number => v !== null);
+  // Ocupação agregada da frota: estoque total ÷ volume total (mesma metodologia do gauge do dashboard).
+  const silosComVolume = data.filter((d) => (d.silo.volume_ensilado_ton_mv ?? 0) > 0);
+  const volumeTotal = silosComVolume.reduce((acc, d) => acc + (d.silo.volume_ensilado_ton_mv ?? 0), 0);
+  const estoqueTotalComVolume = silosComVolume.reduce((acc, d) => acc + Math.max(d.estoque, 0), 0);
 
   const ocupacaoMedia =
-    ocupacoesValidas.length > 0
-      ? Math.round(ocupacoesValidas.reduce((a, b) => a + b, 0) / ocupacoesValidas.length)
-      : null;
+    volumeTotal > 0 ? Math.min(Math.round((estoqueTotalComVolume / volumeTotal) * 100), 100) : null;
+  const silosComDados = silosComVolume.length;
 
   const autonomiaLabel =
     resumo && resumo.autonomiaDias !== null
@@ -62,7 +58,7 @@ export function SiloKpiStrip({ data, resumo }: Props) {
         <KpiItem
           label="Ocupação Média"
           value={ocupacaoMedia !== null ? `${ocupacaoMedia}%` : '—'}
-          sub={`${ocupacoesValidas.length} silo${ocupacoesValidas.length !== 1 ? 's' : ''} com dados`}
+          sub={`${silosComDados} silo${silosComDados !== 1 ? 's' : ''} com dados`}
         />
         <KpiItem label="Abertos" value={abertos} sub="em uso" />
         <KpiItem

@@ -52,6 +52,61 @@ export function calcularEstoqueParaDias(
 }
 
 /**
+ * Calcula a autonomia estimada de um silo (em dias) contada **a partir da
+ * primeira retirada de silagem** — não a partir da data de abertura.
+ *
+ * Consumo diário = total de saídas ÷ dias decorridos desde a 1ª saída.
+ * Autonomia = estoque atual ÷ consumo diário.
+ *
+ * Retorna null se ainda não houve nenhuma saída.
+ */
+export function calcularAutonomiaPrimeiraRetirada(
+  movimentacoes: MovimentacaoSilo[],
+  estoque: number
+): number | null {
+  const saidas = movimentacoes.filter((m) => m.tipo === 'Saída');
+  if (saidas.length === 0) return null;
+
+  // Data da primeira retirada (menor data entre as saídas)
+  const primeiraRetirada = saidas.reduce((menor, m) =>
+    m.data < menor.data ? m : menor
+  );
+
+  const dataPrimeira = new Date(primeiraRetirada.data + 'T00:00:00');
+  const hoje = new Date();
+  const diasDecorridos = Math.max(
+    1,
+    Math.floor((hoje.getTime() - dataPrimeira.getTime()) / (1000 * 60 * 60 * 24))
+  );
+
+  const totalSaidas = saidas.reduce((acc, m) => acc + m.quantidade, 0);
+  if (totalSaidas <= 0) return null;
+
+  const consumoDiario = totalSaidas / diasDecorridos;
+  if (consumoDiario <= 0) return null;
+
+  return Math.floor(Math.max(estoque, 0) / consumoDiario);
+}
+
+/**
+ * Calcula a taxa de perdas de um silo: total descartado ÷ total de saídas (%).
+ * Retorna null se o silo ainda não tem saídas.
+ */
+export function calcularTaxaPerdasSilo(
+  movimentacoes: MovimentacaoSilo[]
+): number | null {
+  const saidas = movimentacoes.filter((m) => m.tipo === 'Saída');
+  const totalSaidas = saidas.reduce((acc, m) => acc + m.quantidade, 0);
+  if (totalSaidas <= 0) return null;
+
+  const totalDescarte = saidas
+    .filter((m) => m.subtipo === 'Descarte')
+    .reduce((acc, m) => acc + m.quantidade, 0);
+
+  return (totalDescarte / totalSaidas) * 100;
+}
+
+/**
  * Determina o status do silo baseado em estoque, datas e volume ensilado.
  */
 export function calcularStatusSilo(

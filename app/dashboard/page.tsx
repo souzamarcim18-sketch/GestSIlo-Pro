@@ -135,7 +135,7 @@ export default async function DashboardPage() {
       .gte('data', trintaDiasAtras),
     supabase
       .from('movimentacoes_silo')
-      .select('silo_id, tipo, quantidade')
+      .select('silo_id, tipo, subtipo, quantidade')
       .eq('fazenda_id', fazendaId),
     supabase
       .from('animais')
@@ -234,9 +234,12 @@ export default async function DashboardPage() {
   let silosGaugeDetalhe = '';
 
   if (silosData.length > 0) {
-    const totalVolume = silosData.reduce((acc, s) => acc + (s.volume_ensilado_ton_mv ?? 0), 0);
-    const totalEstoque = silosData.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
-    const ocupPct = totalVolume > 0 ? Math.round((totalEstoque / totalVolume) * 100) : 0;
+    // Ocupação agregada: estoque ÷ volume, considerando apenas silos com volume configurado
+    // (mesma metodologia do SiloKpiStrip no módulo de Silos).
+    const silosComVolume = silosData.filter((s) => (s.volume_ensilado_ton_mv ?? 0) > 0);
+    const totalVolume = silosComVolume.reduce((acc, s) => acc + (s.volume_ensilado_ton_mv ?? 0), 0);
+    const totalEstoque = silosComVolume.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
+    const ocupPct = totalVolume > 0 ? Math.min(Math.round((totalEstoque / totalVolume) * 100), 100) : 0;
     silosOcupacaoPct = `${ocupPct}%`;
     silosDetalhe = `${totalEstoque.toLocaleString('pt-BR')} / ${totalVolume.toLocaleString('pt-BR')} ton`;
     silosOcupacaoPctNum = ocupPct;
@@ -268,18 +271,39 @@ export default async function DashboardPage() {
     silosComAbertura.length > 0 ? silosComAbertura[0].nome : 'Nenhuma abertura registrada';
 
   const movsRecentes = movsRecentesRes.data ?? [];
-  const saidasConsumo = movsRecentes.filter((m) => m.tipo === 'Saída' && m.subtipo !== 'Descarte');
-  const totalConsumo30dias = saidasConsumo.reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
-  const consumoDiarioKg = (totalConsumo30dias * 1000) / 30;
+
+  // Consumo da frota — MESMA metodologia do módulo Silos (helpers.ts/calcularResumoFrota):
+  // por silo aberto, total de saídas (todo o histórico) ÷ dias desde data_abertura_real;
+  // soma-se o consumo diário de cada silo aberto. NÃO é uma janela fixa de 30 dias.
+  const saidasPorSilo: Record<string, number> = {};
+  for (const m of todasMovsSilos) {
+    if (m.tipo === 'Saída') {
+      saidasPorSilo[m.silo_id] = (saidasPorSilo[m.silo_id] ?? 0) + (m.quantidade ?? 0);
+    }
+  }
+
+  let consumoDiarioFrotaTon = 0;
+  for (const s of silosData) {
+    if (!s.data_abertura_real) continue;
+    const totalSaidasSilo = saidasPorSilo[s.id] ?? 0;
+    if (totalSaidasSilo <= 0) continue;
+    const diasAberto = Math.max(
+      1,
+      Math.floor((now.getTime() - new Date(s.data_abertura_real).getTime()) / (1000 * 60 * 60 * 24))
+    );
+    consumoDiarioFrotaTon += totalSaidasSilo / diasAberto;
+  }
+
+  const consumoDiarioKg = consumoDiarioFrotaTon * 1000;
   const silosConsumoDiario =
     consumoDiarioKg > 0
       ? `${consumoDiarioKg.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} kg/dia`
       : '—';
 
-  // Série diária de consumo dos últimos 30 dias (kg/dia) para sparkline
+  // Série diária de consumo dos últimos 30 dias (kg/dia) para sparkline (apenas ilustrativo)
   const consumoPorDia = new Map<string, number>();
-  for (const m of saidasConsumo) {
-    if (!m.data) continue;
+  for (const m of movsRecentes) {
+    if (m.tipo !== 'Saída' || !m.data) continue;
     const dia = m.data.slice(0, 10);
     consumoPorDia.set(dia, (consumoPorDia.get(dia) ?? 0) + (m.quantidade ?? 0) * 1000);
   }
@@ -290,13 +314,17 @@ export default async function DashboardPage() {
   }
 
   const totalEstoqueAtual = silosData.reduce((acc, s) => acc + Math.max(estoquePorSilo[s.id] ?? 0, 0), 0);
-  const autonomiaDias = consumoDiarioKg > 0 ? Math.round((totalEstoqueAtual * 1000) / consumoDiarioKg) : null;
+  const autonomiaDias =
+    consumoDiarioFrotaTon > 0 ? Math.floor(totalEstoqueAtual / consumoDiarioFrotaTon) : null;
   const silosAutonomiaDias =
     autonomiaDias === null ? '—' : autonomiaDias > 365 ? 'Mais de 1 ano' : `${autonomiaDias} dias`;
 
-  const saidasDescarte = movsRecentes.filter((m) => m.tipo === 'Saída' && m.subtipo === 'Descarte');
-  const totalDescarte = saidasDescarte.reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
-  const totalSaidas = movsRecentes.filter((m) => m.tipo === 'Saída').reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
+  // Taxa de perdas — todo o histórico (igual ao módulo Silos), não a janela de 30 dias.
+  const saidasHistorico = todasMovsSilos.filter((m) => m.tipo === 'Saída');
+  const totalSaidas = saidasHistorico.reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
+  const totalDescarte = saidasHistorico
+    .filter((m) => m.subtipo === 'Descarte')
+    .reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
   const silosTaxaPerdas = totalSaidas > 0 ? ((totalDescarte / totalSaidas) * 100).toFixed(1) + '%' : '—';
 
   const volumePorCultura: Record<string, number> = {};

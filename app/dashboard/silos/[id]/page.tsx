@@ -31,7 +31,11 @@ import { SiloForm } from '../components/dialogs/SiloForm';
 import { MovimentacaoDialog } from '../components/dialogs/MovimentacaoDialog';
 import { AvaliacaoBromatologicaDialog } from '../components/dialogs/AvaliacaoBromatologicaDialog';
 import { AvaliacaoPspsDialog } from '../components/dialogs/AvaliacaoPspsDialog';
-import { calcularDadosSilos } from '../helpers';
+import {
+  calcularDadosSilos,
+  calcularAutonomiaPrimeiraRetirada,
+  calcularTaxaPerdasSilo,
+} from '../helpers';
 import { toast } from 'sonner';
 import { AlertTriangle, Loader } from 'lucide-react';
 import {
@@ -183,6 +187,8 @@ export default function SiloDetailPage() {
   // Calcular dados em memória
   const cardData = calcularDadosSilos([silo], movimentacoes)[0];
   const { estoque, consumoDiario, estoquePara, status } = cardData;
+  const autonomiaPrimeiraRetirada = calcularAutonomiaPrimeiraRetirada(movimentacoes, estoque);
+  const taxaPerdas = calcularTaxaPerdasSilo(movimentacoes);
 
   return (
     <div className="p-6 md:p-8">
@@ -238,6 +244,8 @@ export default function SiloDetailPage() {
                 estoque={estoque}
                 consumoDiario={consumoDiario}
                 estoquePara={estoquePara}
+                autonomiaPrimeiraRetirada={autonomiaPrimeiraRetirada}
+                taxaPerdas={taxaPerdas}
               />
             </div>
 

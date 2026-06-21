@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { type MovimentacaoSilo } from '@/lib/supabase';
-import { ArrowDownRight, ArrowUpRight, TrendingDown } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingDown, CalendarClock, Percent } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -26,6 +26,10 @@ interface EstoqueCardsProps {
   estoque: number;
   consumoDiario: number | null;
   estoquePara: number | null;
+  /** Autonomia (dias) contada a partir da 1ª retirada de silagem. null se não houve saída. */
+  autonomiaPrimeiraRetirada: number | null;
+  /** % de perdas (descartes ÷ total de saídas). null se não houve saída. */
+  taxaPerdas: number | null;
 }
 
 /**
@@ -36,6 +40,8 @@ export function EstoqueCards({
   estoque,
   consumoDiario,
   estoquePara,
+  autonomiaPrimeiraRetirada,
+  taxaPerdas,
 }: EstoqueCardsProps) {
   const entradas = movimentacoes
     .filter((m) => m.tipo === 'Entrada')
@@ -105,6 +111,52 @@ export function EstoqueCards({
                 <p className="text-xs text-muted-foreground mt-1">{consumoDiario} t/dia</p>
               )}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-cyan-500">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Autonomia Estimada
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-2xl font-bold">
+                {autonomiaPrimeiraRetirada !== null
+                  ? `${autonomiaPrimeiraRetirada} dias`
+                  : '-'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {autonomiaPrimeiraRetirada !== null
+                  ? 'a partir da 1ª retirada'
+                  : 'sem retiradas ainda'}
+              </p>
+            </div>
+            <CalendarClock className="h-5 w-5 text-cyan-600" aria-hidden="true" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-red-500">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Perdas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-2xl font-bold">
+                {taxaPerdas !== null ? `${taxaPerdas.toFixed(1)}%` : '-'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                descartes ÷ saídas
+              </p>
+            </div>
+            <Percent className="h-5 w-5 text-red-600" aria-hidden="true" />
           </div>
         </CardContent>
       </Card>
