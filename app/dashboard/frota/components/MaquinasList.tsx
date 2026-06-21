@@ -45,6 +45,7 @@ import {
 import { toast } from 'sonner';
 import { type Maquina, type UsoMaquina, type Profile } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
+import { useAuth } from '@/providers/AuthProvider';
 import { differenceInDays } from 'date-fns';
 
 interface MaquinasListProps {
@@ -91,9 +92,13 @@ export function MaquinasList({
   onRefresh,
 }: MaquinasListProps) {
   const router = useRouter();
+  const { profile: authProfile } = useAuth();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const isAdmin = profile?.perfil === 'Administrador';
+  // Fonte de verdade do perfil: JWT via useAuth (mais confiável que o prop
+  // do servidor, que pode chegar nulo/dessincronizado). Fallback no prop.
+  const isAdmin =
+    authProfile?.perfil === 'Administrador' || profile?.perfil === 'Administrador';
 
   const handleDelete = async (maquina: Maquina) => {
     if (!confirm(`Excluir "${maquina.nome}"? Esta ação não pode ser desfeita.`)) return;

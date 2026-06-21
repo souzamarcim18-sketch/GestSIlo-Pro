@@ -128,3 +128,54 @@ export function calcularDadosSilos(
     };
   });
 }
+
+/**
+ * Resumo agregado de toda a frota de silos (somatórios para a faixa de KPIs)
+ */
+export interface ResumoFrotaSilos {
+  /** Soma do estoque atual de todos os silos (toneladas, nunca negativo) */
+  estoqueTotal: number;
+  /** Soma do consumo diário médio dos silos abertos (toneladas/dia) */
+  consumoDiarioFrota: number | null;
+  /** Autonomia estimada da frota inteira em dias (estoque total ÷ consumo diário) */
+  autonomiaDias: number | null;
+  /** % de perdas: descartes ÷ total de saídas de todos os silos */
+  taxaPerdas: number | null;
+}
+
+/**
+ * Calcula os indicadores agregados da frota a partir dos dados já pré-calculados
+ * de cada silo e do histórico completo de movimentações.
+ *
+ * - Estoque total: soma do estoque (não negativo) de cada silo.
+ * - Consumo diário da frota: soma dos consumos diários médios (desde a abertura)
+ *   dos silos que já estão abertos.
+ * - Autonomia: estoque total ÷ consumo diário da frota.
+ * - % de perdas: total descartado ÷ total de saídas (todo o histórico).
+ */
+export function calcularResumoFrota(
+  siloCardData: SiloCardData[],
+  movimentacoes: MovimentacaoSilo[]
+): ResumoFrotaSilos {
+  const estoqueTotal = siloCardData.reduce((acc, d) => acc + Math.max(d.estoque, 0), 0);
+
+  const consumosAbertos = siloCardData
+    .map((d) => d.consumoDiario)
+    .filter((v): v is number => v !== null && v > 0);
+  const consumoDiarioFrota =
+    consumosAbertos.length > 0 ? consumosAbertos.reduce((a, b) => a + b, 0) : null;
+
+  const autonomiaDias =
+    consumoDiarioFrota !== null && consumoDiarioFrota > 0
+      ? Math.floor(estoqueTotal / consumoDiarioFrota)
+      : null;
+
+  const saidas = movimentacoes.filter((m) => m.tipo === 'Saída');
+  const totalSaidas = saidas.reduce((acc, m) => acc + m.quantidade, 0);
+  const totalDescarte = saidas
+    .filter((m) => m.subtipo === 'Descarte')
+    .reduce((acc, m) => acc + m.quantidade, 0);
+  const taxaPerdas = totalSaidas > 0 ? (totalDescarte / totalSaidas) * 100 : null;
+
+  return { estoqueTotal, consumoDiarioFrota, autonomiaDias, taxaPerdas };
+}

@@ -12,13 +12,14 @@ import { q } from '@/lib/supabase/queries-audit';
 import { SiloCard, SiloKpiStrip } from './components';
 import { SiloForm } from './components/dialogs/SiloForm';
 import { AbrirSiloDialog } from './components/dialogs/AbrirSiloDialog';
-import { calcularDadosSilos, type SiloCardData } from './helpers';
+import { calcularDadosSilos, calcularResumoFrota, type SiloCardData, type ResumoFrotaSilos } from './helpers';
 import { planoPermiteMaisRegistros, parsePlanoSlug } from '@/lib/planos';
 
 type InsumoSelect = { id: string; nome: string };
 
 interface Props {
   initialSiloCardData: SiloCardData[];
+  initialResumoFrota: ResumoFrotaSilos;
   initialTalhoes: Talhao[];
   initialInsumosLona: InsumoSelect[];
   initialInsumosInoculante: InsumoSelect[];
@@ -26,9 +27,10 @@ interface Props {
   planoAtual?: string | null;
 }
 
-export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumosLona, initialInsumosInoculante, isAdmin, planoAtual }: Props) {
+export function SilosClient({ initialSiloCardData, initialResumoFrota, initialTalhoes, initialInsumosLona, initialInsumosInoculante, isAdmin, planoAtual }: Props) {
   const router = useRouter();
   const [siloCardData, setSiloCardData] = useState<SiloCardData[]>(initialSiloCardData);
+  const [resumoFrota, setResumoFrota] = useState<ResumoFrotaSilos>(initialResumoFrota);
   const [talhoes] = useState<Talhao[]>(initialTalhoes);
   const [insumosLona] = useState<InsumoSelect[]>(initialInsumosLona);
   const [insumosInoculante] = useState<InsumoSelect[]>(initialInsumosInoculante);
@@ -50,7 +52,9 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
     try {
       const silosData = await q.silos.list();
       const movsData = await q.movimentacoesSilo.listBySilos(silosData.map((s) => s.id));
-      setSiloCardData(calcularDadosSilos(silosData, movsData));
+      const cardData = calcularDadosSilos(silosData, movsData);
+      setSiloCardData(cardData);
+      setResumoFrota(calcularResumoFrota(cardData, movsData));
     } catch {
       toast.error('Erro ao carregar dados');
     }
@@ -81,7 +85,7 @@ export function SilosClient({ initialSiloCardData, initialTalhoes, initialInsumo
         </div>
       )}
 
-      <SiloKpiStrip data={siloCardData} />
+      <SiloKpiStrip data={siloCardData} resumo={resumoFrota} />
 
       <section>
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

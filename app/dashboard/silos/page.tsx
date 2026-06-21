@@ -1,7 +1,7 @@
 ﻿import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
-import { calcularDadosSilos } from './helpers';
+import { calcularDadosSilos, calcularResumoFrota } from './helpers';
 import { SilosClient } from './SilosClient';
 
 export const metadata = {
@@ -75,10 +75,12 @@ export default async function SilosPage() {
   }
 
   const siloCardData = calcularDadosSilos(silos, movimentacoes);
+  const resumoFrota = calcularResumoFrota(siloCardData, movimentacoes);
 
   return (
     <SilosClient
       initialSiloCardData={siloCardData}
+      initialResumoFrota={resumoFrota}
       initialTalhoes={talhoes}
       initialInsumosLona={insumosLona}
       initialInsumosInoculante={insumosInoculante}

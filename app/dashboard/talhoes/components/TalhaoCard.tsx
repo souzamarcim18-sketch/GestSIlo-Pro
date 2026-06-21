@@ -17,7 +17,8 @@ export function TalhaoCard({ talhao, cicloAtivo, onClick }: TalhaoCardProps) {
 
   return (
     <Card
-      className="rounded-2xl bg-card shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      className="group rounded-2xl bg-card shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      style={{ borderLeft: `4px solid ${statusDisplay.color}` }}
       onClick={onClick}
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -49,6 +50,10 @@ export function TalhaoCard({ talhao, cicloAtivo, onClick }: TalhaoCardProps) {
             </div>
           </div>
         )}
+
+        <div className="pt-2 border-t">
+          <span className="text-xs text-primary group-hover:underline inline-block">Ver detalhes →</span>
+        </div>
       </CardContent>
     </Card>
   );
