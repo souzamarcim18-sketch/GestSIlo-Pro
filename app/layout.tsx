@@ -17,9 +17,26 @@ const satoshi = localFont({
   display: 'swap',
 });
 
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://gestsilo.com.br';
+
 export const metadata: Metadata = {
-  title: 'GestSilo | Gestão Agrícola Inteligente',
-  description: 'Sistema completo de gestão agrícola para silos, talhões, insumos, frota e financeiro.',
+  metadataBase: new URL(BASE_URL),
+  title: {
+    template: '%s | GestSilo',
+    default: 'GestSilo — Gestão de Silagem e Propriedade Rural',
+  },
+  description:
+    'Plataforma completa de gestão agrícola para produtores rurais brasileiros. Controle de silos de silagem, balanço forrageiro, gestão de rebanho, talhões, insumos e financeiro.',
+  openGraph: {
+    siteName: 'GestSilo',
+    locale: 'pt_BR',
+    url: BASE_URL,
+    title: 'GestSilo — Gestão de Silagem e Propriedade Rural',
+    description:
+      'Plataforma completa de gestão agrícola para produtores rurais brasileiros. Controle de silos de silagem, balanço forrageiro, gestão de rebanho, talhões, insumos e financeiro.',
+    type: 'website',
+  },
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

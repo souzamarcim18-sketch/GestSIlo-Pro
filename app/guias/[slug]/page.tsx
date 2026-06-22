@@ -24,14 +24,16 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${guia.titulo} | GestSilo`,
+    title: guia.titulo,
     description: guia.descricao,
     alternates: { canonical: `/guias/${guia.slug}` },
     openGraph: {
       title: guia.titulo,
       description: guia.descricao,
+      locale: 'pt_BR',
       type: 'article',
       publishedTime: guia.publicadoEm,
+      url: `/guias/${guia.slug}`,
     },
   };
 }
