@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { aprovarSolicitacao, rejeitarSolicitacao, arquivarSolicitacao, deletarSolicitacao } from './actions';
+import { aprovarSolicitacao, rejeitarSolicitacao, arquivarSolicitacao, deletarSolicitacao, reenviarLink } from './actions';
 
 type Status = 'pendente' | 'aprovada' | 'rejeitada' | 'arquivada';
 
@@ -81,6 +81,11 @@ export default function SolicitacoesClient({
   // Deletar
   const [deletarTarget, setDeletarTarget] = useState<Solicitacao | null>(null);
   const [deletarError, setDeletarError] = useState('');
+
+  // Reenviar link
+  const [reenviarTarget, setReenviarTarget] = useState<Solicitacao | null>(null);
+  const [reenviarError, setReenviarError] = useState('');
+  const [reenviarOk, setReenviarOk] = useState(false);
 
   // "todos" exclui arquivadas — arquivadas só aparecem no filtro "arquivadas"
   const filtered = items.filter((s) => {
@@ -178,6 +183,32 @@ export default function SolicitacoesClient({
         setDeletarTarget(null);
       } else {
         setDeletarError(res.error ?? 'Erro desconhecido');
+      }
+    });
+  }
+
+  function handleReenviar() {
+    if (!reenviarTarget) return;
+    setReenviarError('');
+    setReenviarOk(false);
+    startTransition(async () => {
+      const res = await reenviarLink(
+        reenviarTarget.id,
+        reenviarTarget.email,
+        reenviarTarget.nome,
+        reenviarTarget.observacoes ?? '',
+      );
+      if (res.success) {
+        setItems((prev) =>
+          prev.map((s) =>
+            s.id === reenviarTarget.id
+              ? { ...s, invite_enviado_em: new Date().toISOString() }
+              : s,
+          ),
+        );
+        setReenviarOk(true);
+      } else {
+        setReenviarError(res.error ?? 'Erro desconhecido');
       }
     });
   }
@@ -330,6 +361,14 @@ export default function SolicitacoesClient({
                           </button>
                         </>
                       )}
+                      {s.status === 'aprovada' && (
+                        <button
+                          onClick={() => { setReenviarTarget(s); setReenviarError(''); setReenviarOk(false); }}
+                          style={btnStyle('green')}
+                        >
+                          Reenviar link
+                        </button>
+                      )}
                       {s.status !== 'arquivada' && (
                         <button
                           onClick={() => { setArquivarTarget(s); setArquivarError(''); }}
@@ -450,6 +489,41 @@ export default function SolicitacoesClient({
               {isPending ? 'Deletando...' : 'Deletar permanentemente'}
             </button>
           </div>
+        </Modal>
+      )}
+
+      {/* Modal Reenviar link */}
+      {reenviarTarget && (
+        <Modal onClose={() => { setReenviarTarget(null); setReenviarOk(false); }}>
+          <h2 style={modalTitle}>Reenviar link de acesso</h2>
+          {reenviarOk ? (
+            <>
+              <p style={{ ...modalDesc, color: '#9ab558' }}>
+                Link reenviado para <strong style={{ color: '#e8e8e8' }}>{reenviarTarget.email}</strong>.
+              </p>
+              <div style={modalFooter}>
+                <button onClick={() => { setReenviarTarget(null); setReenviarOk(false); }} style={btnStyle('ghost')}>
+                  Fechar
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={modalDesc}>
+                Gerar um novo link de criação de senha e reenviar por e-mail para{' '}
+                <strong style={{ color: '#e8e8e8' }}>{reenviarTarget.nome}</strong> ({reenviarTarget.email})?
+              </p>
+              {reenviarError && <p style={errorStyle}>{reenviarError}</p>}
+              <div style={modalFooter}>
+                <button onClick={() => setReenviarTarget(null)} disabled={isPending} style={btnStyle('ghost')}>
+                  Cancelar
+                </button>
+                <button onClick={handleReenviar} disabled={isPending} style={{ ...btnStyle('green'), opacity: isPending ? 0.7 : 1 }}>
+                  {isPending ? 'Reenviando...' : 'Reenviar link'}
+                </button>
+              </div>
+            </>
+          )}
         </Modal>
       )}
     </div>

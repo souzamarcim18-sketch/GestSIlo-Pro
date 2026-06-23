@@ -2,8 +2,8 @@
 
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
 import { getAdminSession } from '@/lib/admin-auth';
+import { sendAccessApprovedEmail } from '@/lib/email/resend';
 
 function getServiceClient() {
   return createClient(
@@ -18,6 +18,73 @@ async function requireAdminSession() {
   const session = await getAdminSession(cookieStore);
   if (!session) throw new Error('Não autorizado');
   return session;
+}
+
+type ServiceClient = ReturnType<typeof getServiceClient>;
+
+// Gera o link de definição de senha e envia pela Resend.
+// 'invite' para conta nova; fallback para 'recovery' se o usuário já existir.
+async function gerarEEnviarLinkAcesso(
+  supabase: ServiceClient,
+  email: string,
+  nome: string,
+  observacoes: string,
+): Promise<{ success: boolean; error?: string }> {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+  const redirectTo = `${siteUrl}/auth/confirm`;
+
+  let actionLink: string | null = null;
+
+  const { data: inviteData, error: inviteError } = await supabase.auth.admin.generateLink({
+    type: 'invite',
+    email,
+    options: { redirectTo, data: { nome } },
+  });
+
+  if (inviteError) {
+    const alreadyExists =
+      inviteError.message?.toLowerCase().includes('already been registered') ||
+      inviteError.message?.toLowerCase().includes('already registered') ||
+      inviteError.code === 'email_exists';
+
+    if (alreadyExists) {
+      // Conta já existe — gera link de recuperação para definir nova senha
+      const { data: recoveryData, error: recoveryError } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: { redirectTo },
+      });
+      if (recoveryError) {
+        console.error('gerarEEnviarLinkAcesso: recovery link error', recoveryError.message);
+        return { success: false, error: 'Não foi possível gerar o link de acesso. Tente novamente.' };
+      }
+      actionLink = recoveryData.properties?.action_link ?? null;
+    } else {
+      console.error('gerarEEnviarLinkAcesso: invite link error', inviteError.message);
+      return { success: false, error: 'Não foi possível gerar o link de acesso. Tente novamente.' };
+    }
+  } else {
+    actionLink = inviteData.properties?.action_link ?? null;
+  }
+
+  if (!actionLink) {
+    console.error('gerarEEnviarLinkAcesso: action_link ausente');
+    return { success: false, error: 'Não foi possível gerar o link de acesso. Tente novamente.' };
+  }
+
+  const { error: emailError } = await sendAccessApprovedEmail({
+    to: email,
+    nome,
+    actionLink,
+    observacoes,
+  });
+
+  if (emailError) {
+    console.error('gerarEEnviarLinkAcesso: email error', emailError);
+    return { success: false, error: 'Não foi possível enviar o e-mail. Tente novamente.' };
+  }
+
+  return { success: true };
 }
 
 export async function aprovarSolicitacao(
@@ -44,43 +111,40 @@ export async function aprovarSolicitacao(
     return { success: false, error: 'Erro ao atualizar solicitação' };
   }
 
-  const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL}/onboarding`;
-
-  const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo,
-    data: { nome_solicitante: nome },
-  });
-
-  if (inviteError) {
-    console.error('aprovarSolicitacao: invite error', inviteError.message);
-  } else {
-    await supabase
-      .from('solicitacoes_acesso')
-      .update({ invite_enviado_em: new Date().toISOString() })
-      .eq('id', id);
+  const linkRes = await gerarEEnviarLinkAcesso(supabase, email, nome, observacoes);
+  if (!linkRes.success) {
+    return { success: false, error: `Aprovação registrada, mas ${linkRes.error?.toLowerCase()} Use "Reenviar link".` };
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  await resend.emails.send({
-    from: 'noreply@gestsilo.com.br',
-    to: email,
-    subject: 'Seu acesso ao GestSilo foi aprovado!',
-    html: `
-      <div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; background: #161616; color: #e5e7eb; border-radius: 12px; padding: 32px; border: 1px solid #2a2a2a;">
-        <div style="margin-bottom: 24px;">
-          <img src="https://gestsilo.com.br/logo_verde.png" alt="GestSilo" height="32" style="object-fit: contain;" />
-        </div>
-        <h2 style="color: #ffffff; font-size: 18px; margin: 0 0 12px;">Bem-vindo ao GestSilo, ${nome}!</h2>
-        <p style="color: #9ca3af; font-size: 14px; margin: 0 0 16px;">Sua solicitação de acesso foi aprovada. Você receberá um e-mail separado com o link para criar sua senha.</p>
-        <p style="color: #9ca3af; font-size: 14px; margin: 0 0 16px;">Clique no link do e-mail de convite para definir sua senha e começar a usar a plataforma.</p>
-        ${observacoes ? `<p style="color: #9ca3af; font-size: 14px; margin: 0 0 16px;"><strong style="color: #e5e7eb;">Observação:</strong> ${observacoes}</p>` : ''}
-        <p style="color: #9ca3af; font-size: 14px; margin: 0 0 24px;">Em caso de dúvidas, entre em contato com nosso suporte respondendo este e-mail.</p>
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #2a2a2a;">
-          <p style="color: #6b7280; font-size: 12px; margin: 0;">GestSilo · Gestão Agrícola Profissional</p>
-        </div>
-      </div>
-    `,
-  });
+  await supabase
+    .from('solicitacoes_acesso')
+    .update({ invite_enviado_em: new Date().toISOString() })
+    .eq('id', id);
+
+  return { success: true };
+}
+
+export async function reenviarLink(
+  id: string,
+  email: string,
+  nome: string,
+  observacoes: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requireAdminSession();
+  } catch {
+    return { success: false, error: 'Não autorizado' };
+  }
+
+  const supabase = getServiceClient();
+
+  const linkRes = await gerarEEnviarLinkAcesso(supabase, email, nome, observacoes);
+  if (!linkRes.success) return linkRes;
+
+  await supabase
+    .from('solicitacoes_acesso')
+    .update({ invite_enviado_em: new Date().toISOString() })
+    .eq('id', id);
 
   return { success: true };
 }
