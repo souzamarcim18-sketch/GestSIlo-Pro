@@ -254,6 +254,40 @@ const movimentacoesSilo = {
     return mov;
   },
 
+  async update(
+    id: string,
+    payload: Partial<Omit<MovimentacaoSilo, 'id'>> & { valor_unitario?: number | null; comprador?: string | null },
+  ): Promise<MovimentacaoSilo> {
+    // Confirmar que a movimentação pertence a um silo desta fazenda antes de atualizar.
+    const fazendaId = await getFazendaId();
+    const { data: mov, error: movError } = await supabase
+      .from('movimentacoes_silo')
+      .select('id, silo_id')
+      .eq('id', id)
+      .single();
+    if (movError || !mov) {
+      throw new Error('Movimentação não encontrada.');
+    }
+    const { data: silo, error: checkError } = await supabase
+      .from('silos')
+      .select('id')
+      .eq('id', (mov as { silo_id: string }).silo_id)
+      .eq('fazenda_id', fazendaId)
+      .single();
+    if (checkError || !silo) {
+      throw new Error('Silo não encontrado ou não pertence a esta fazenda.');
+    }
+
+    const { data, error } = await supabase
+      .from('movimentacoes_silo')
+      .update(payload)
+      .eq('id', id)
+      .select('id, silo_id, tipo, subtipo, quantidade, data, talhao_id, responsavel, observacao, valor_unitario, comprador, receita_id')
+      .single();
+    if (error) throw error;
+    return data as MovimentacaoSilo;
+  },
+
   async remove(id: string): Promise<void> {
     await getFazendaId(); // garante sessão ativa antes de deletar
 

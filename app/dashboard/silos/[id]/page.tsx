@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { q } from '@/lib/supabase/queries-audit';
 import { getCustoSiloDetalhado, type FatiaCusto } from '@/lib/supabase/silos';
 import { deleteSiloSafely } from '@/lib/supabase/safe-delete';
+import { removerReceitaVendaSiloAction } from '../actions';
 import { supabase } from '@/lib/supabase';
 import {
   type Silo,
@@ -62,6 +63,9 @@ export default function SiloDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMovOpen, setIsMovOpen] = useState(false);
+  const [movEmEdicao, setMovEmEdicao] = useState<MovimentacaoSilo | null>(null);
+  const [movParaExcluir, setMovParaExcluir] = useState<MovimentacaoSilo | null>(null);
+  const [isExcluindoMov, setIsExcluindoMov] = useState(false);
   const [isBromOpen, setIsBromOpen] = useState(false);
   const [isPspsOpen, setIsPspsOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -153,6 +157,25 @@ export default function SiloDetailPage() {
       toast.error(err instanceof Error ? err.message : 'Erro ao deletar silo');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleExcluirMovimentacao = async () => {
+    if (!movParaExcluir) return;
+    setIsExcluindoMov(true);
+    try {
+      // Cleanup do financeiro: remove a receita vinculada antes da movimentação.
+      if (movParaExcluir.receita_id) {
+        await removerReceitaVendaSiloAction(movParaExcluir.receita_id);
+      }
+      await q.movimentacoesSilo.remove(movParaExcluir.id);
+      toast.success('Movimentação excluída com sucesso!');
+      setMovParaExcluir(null);
+      fetchData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao excluir movimentação');
+    } finally {
+      setIsExcluindoMov(false);
     }
   };
 
@@ -256,7 +279,13 @@ export default function SiloDetailPage() {
             <ObservacoesCard silo={silo} />
 
             {/* Histórico de movimentações (largura total) */}
-            <HistoricoMovimentacoes movimentacoes={movimentacoes} estoque={estoque} />
+            <HistoricoMovimentacoes
+              movimentacoes={movimentacoes}
+              estoque={estoque}
+              isAdmin={profile?.perfil === 'Administrador'}
+              onEdit={(mov) => setMovEmEdicao(mov)}
+              onDelete={(mov) => setMovParaExcluir(mov)}
+            />
           </div>
         )}
         {activeTab === 'qualidade' && (
@@ -371,6 +400,63 @@ export default function SiloDetailPage() {
           siloId={siloId}
           onSuccess={fetchData}
         />
+        <MovimentacaoDialog
+          open={!!movEmEdicao}
+          onOpenChange={(open) => {
+            if (!open) setMovEmEdicao(null);
+          }}
+          silos={[silo]}
+          siloId={siloId}
+          movimentacao={movEmEdicao}
+          onSuccess={fetchData}
+        />
+
+        {/* Confirmação de exclusão de movimentação */}
+        <Dialog
+          open={!!movParaExcluir}
+          onOpenChange={(open) => {
+            if (!open) setMovParaExcluir(null);
+          }}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Excluir Movimentação</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <DialogDescription>
+                Tem certeza que deseja excluir esta movimentação de{' '}
+                <strong>{movParaExcluir?.tipo}</strong>
+                {movParaExcluir?.subtipo ? ` (${movParaExcluir.subtipo})` : ''} de{' '}
+                <strong>{movParaExcluir?.quantidade.toFixed(2)} t</strong>? Esta ação não pode ser desfeita.
+              </DialogDescription>
+              {movParaExcluir?.receita_id && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                  <p className="text-sm text-destructive">
+                    A receita lançada no Financeiro para esta venda também será removida.
+                  </p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMovParaExcluir(null)}
+                disabled={isExcluindoMov}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleExcluirMovimentacao}
+                disabled={isExcluindoMov}
+              >
+                {isExcluindoMov ? 'Excluindo...' : 'Confirmar Exclusão'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <AvaliacaoBromatologicaDialog
           open={isBromOpen}
           onOpenChange={setIsBromOpen}

@@ -31,10 +31,10 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { movimentacaoSiloSchema, type MovimentacaoSiloInput, SUBTIPOS_MOVIMENTACAO } from '@/lib/validations/silos';
 import { z } from 'zod';
-import { type Silo } from '@/lib/supabase';
+import { type Silo, type MovimentacaoSilo } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
-import { registrarReceitaVendaSiloAction } from '../../actions';
+import { registrarReceitaVendaSiloAction, removerReceitaVendaSiloAction } from '../../actions';
 import { AlertTriangle } from 'lucide-react';
 
 const movimentacaoDialogSchema = movimentacaoSiloSchema.and(
@@ -52,6 +52,8 @@ interface MovimentacaoDialogProps {
   onOpenChange: (open: boolean) => void;
   silos: Silo[];
   siloId?: string;
+  /** Quando fornecida, o dialog opera em modo edição da movimentação. */
+  movimentacao?: MovimentacaoSilo | null;
   onSuccess: () => void;
 }
 
@@ -60,8 +62,10 @@ export function MovimentacaoDialog({
   onOpenChange,
   silos,
   siloId,
+  movimentacao,
   onSuccess,
 }: MovimentacaoDialogProps) {
+  const isEdit = !!movimentacao;
   const [jaTemEntrada, setJaTemEntrada] = useState(false);
   const [checandoEntrada, setChecandoEntrada] = useState(false);
 
@@ -84,10 +88,11 @@ export function MovimentacaoDialog({
   const subtipoAtual = form.watch('subtipo');
   const siloIdAtual = form.watch('silo_id');
 
-  // Verificar hasEntrada quando o silo muda ou o dialog abre
+  // Verificar hasEntrada quando o silo muda ou o dialog abre.
+  // Em modo edição não bloqueamos: estamos editando uma movimentação existente.
   useEffect(() => {
     const targetId = siloId || siloIdAtual;
-    if (!open || !targetId) {
+    if (!open || isEdit || !targetId) {
       setJaTemEntrada(false);
       return;
     }
@@ -97,11 +102,24 @@ export function MovimentacaoDialog({
       .then((has) => setJaTemEntrada(has))
       .catch(() => setJaTemEntrada(false))
       .finally(() => setChecandoEntrada(false));
-  }, [open, siloId, siloIdAtual]); // q é import de módulo estável; setters de useState são estáveis por garantia do React
+  }, [open, siloId, siloIdAtual, isEdit]); // q é import de módulo estável; setters de useState são estáveis por garantia do React
 
-  // Reset ao fechar
+  // Sincronizar form ao abrir/fechar: preenche em modo edição, limpa ao fechar.
   useEffect(() => {
-    if (!open) {
+    if (open && movimentacao) {
+      form.reset({
+        silo_id: movimentacao.silo_id,
+        tipo: movimentacao.tipo,
+        subtipo: movimentacao.subtipo === 'Ensilagem' ? undefined : movimentacao.subtipo ?? undefined,
+        quantidade: movimentacao.quantidade,
+        data: movimentacao.data,
+        responsavel: movimentacao.responsavel ?? '',
+        observacao: movimentacao.observacao ?? '',
+        valor_unitario: movimentacao.valor_unitario ?? undefined,
+        comprador: movimentacao.comprador ?? '',
+      });
+      setJaTemEntrada(false);
+    } else if (!open) {
       form.reset({
         silo_id: siloId || '',
         tipo: 'Saída',
@@ -115,7 +133,7 @@ export function MovimentacaoDialog({
       });
       setJaTemEntrada(false);
     }
-  }, [open, form, siloId]);
+  }, [open, form, siloId, movimentacao]);
 
   // Limpar campos de venda quando o subtipo mudar para algo diferente de 'Venda'
   useEffect(() => {
@@ -126,20 +144,56 @@ export function MovimentacaoDialog({
   }, [subtipoAtual, form]);
 
   const handleSubmit = async (data: MovimentacaoDialogInput) => {
+    const ehVenda = data.subtipo === 'Venda' && data.valor_unitario != null;
+    const payload = {
+      silo_id: data.silo_id,
+      tipo: data.tipo,
+      subtipo: data.tipo === 'Saída' ? (data.subtipo ?? null) : null,
+      quantidade: data.quantidade,
+      data: data.data,
+      responsavel: data.responsavel || null,
+      observacao: data.observacao || null,
+      talhao_id: null,
+      valor_unitario: data.subtipo === 'Venda' ? (data.valor_unitario ?? null) : null,
+      comprador: data.subtipo === 'Venda' ? (data.comprador || null) : null,
+    };
+
     try {
-      const ehVenda = data.subtipo === 'Venda' && data.valor_unitario != null;
-      const mov = await q.movimentacoesSilo.create({
-        silo_id: data.silo_id,
-        tipo: data.tipo,
-        subtipo: data.tipo === 'Saída' ? (data.subtipo ?? null) : null,
-        quantidade: data.quantidade,
-        data: data.data,
-        responsavel: data.responsavel || null,
-        observacao: data.observacao || null,
-        talhao_id: null,
-        valor_unitario: data.subtipo === 'Venda' ? (data.valor_unitario ?? null) : null,
-        comprador: data.subtipo === 'Venda' ? (data.comprador || null) : null,
-      });
+      if (isEdit && movimentacao) {
+        await q.movimentacoesSilo.update(movimentacao.id, payload);
+
+        // Sincronizar financeiro: remove a receita anterior (se existia) e recria
+        // conforme o novo estado. Mantém o financeiro coerente com a edição.
+        let financeiroOk = true;
+        if (movimentacao.receita_id) {
+          await removerReceitaVendaSiloAction(movimentacao.receita_id);
+          // Limpa o vínculo antigo; será repreenchido abaixo se ainda for venda.
+          await q.movimentacoesSilo.update(movimentacao.id, { receita_id: null });
+        }
+        if (ehVenda && data.valor_unitario != null) {
+          const res = await registrarReceitaVendaSiloAction(
+            movimentacao.id,
+            data.silo_id,
+            data.quantidade,
+            data.valor_unitario,
+            data.data,
+          );
+          financeiroOk = res.success;
+        }
+
+        if (!financeiroOk) {
+          toast.warning(
+            'Movimentação atualizada, mas houve falha ao atualizar a receita no financeiro. Registre manualmente.',
+          );
+        } else {
+          toast.success('Movimentação atualizada com sucesso!');
+        }
+        onOpenChange(false);
+        onSuccess();
+        return;
+      }
+
+      const mov = await q.movimentacoesSilo.create(payload);
 
       // Integração financeiro: registrar receita da venda via Server Action
       if (ehVenda && data.valor_unitario != null) {
@@ -172,8 +226,12 @@ export function MovimentacaoDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Registrar Movimentação</DialogTitle>
-          <DialogDescription>Registre saída de silagem do silo.</DialogDescription>
+          <DialogTitle>{isEdit ? 'Editar Movimentação' : 'Registrar Movimentação'}</DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? 'Corrija os dados da movimentação registrada.'
+              : 'Registre saída de silagem do silo.'}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -395,7 +453,9 @@ export function MovimentacaoDialog({
                 Cancelar
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting || checandoEntrada}>
-                {form.formState.isSubmitting ? 'Registrando...' : 'Registrar'}
+                {form.formState.isSubmitting
+                  ? isEdit ? 'Salvando...' : 'Registrando...'
+                  : isEdit ? 'Salvar' : 'Registrar'}
               </Button>
             </DialogFooter>
           </form>

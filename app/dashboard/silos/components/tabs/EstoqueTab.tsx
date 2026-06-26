@@ -16,8 +16,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { type MovimentacaoSilo } from '@/lib/supabase';
-import { ArrowDownRight, ArrowUpRight, TrendingDown, Gauge, Percent } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingDown, Gauge, Percent, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -165,6 +171,10 @@ export function EstoqueCards({
 interface HistoricoMovimentacoesProps {
   movimentacoes: MovimentacaoSilo[];
   estoque: number;
+  /** Quando true, exibe a coluna de ações (Editar/Excluir). */
+  isAdmin?: boolean;
+  onEdit?: (mov: MovimentacaoSilo) => void;
+  onDelete?: (mov: MovimentacaoSilo) => void;
 }
 
 /**
@@ -174,7 +184,12 @@ interface HistoricoMovimentacoesProps {
 export function HistoricoMovimentacoes({
   movimentacoes,
   estoque,
+  isAdmin = false,
+  onEdit,
+  onDelete,
 }: HistoricoMovimentacoesProps) {
+  const mostrarAcoes = isAdmin && (!!onEdit || !!onDelete);
+  const colCount = mostrarAcoes ? 7 : 6;
   // Agrupar saídas por subtipo (não por observação)
   const saidasPorSubtipo: Record<string, number> = {};
   movimentacoes
@@ -226,6 +241,9 @@ export function HistoricoMovimentacoes({
                   <TableHead scope="col">Quantidade</TableHead>
                   <TableHead scope="col">Responsável</TableHead>
                   <TableHead scope="col">Observação</TableHead>
+                  {mostrarAcoes && (
+                    <TableHead scope="col" className="text-right">Ações</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -266,12 +284,41 @@ export function HistoricoMovimentacoes({
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                         {mov.observacao || '-'}
                       </TableCell>
+                      {mostrarAcoes && (
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                              aria-label="Ações da movimentação"
+                            >
+                              <MoreVertical className="h-4 w-4" aria-hidden="true" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {onEdit && (
+                                <DropdownMenuItem onClick={() => onEdit(mov)}>
+                                  <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
+                                  Editar
+                                </DropdownMenuItem>
+                              )}
+                              {onDelete && (
+                                <DropdownMenuItem
+                                  onClick={() => onDelete(mov)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={colCount}
                       className="text-center py-8 text-muted-foreground"
                     >
                       Nenhuma movimentação registrada ainda
