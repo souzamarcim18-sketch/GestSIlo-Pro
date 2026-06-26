@@ -33,7 +33,6 @@ import { AvaliacaoBromatologicaDialog } from '../components/dialogs/AvaliacaoBro
 import { AvaliacaoPspsDialog } from '../components/dialogs/AvaliacaoPspsDialog';
 import {
   calcularDadosSilos,
-  calcularAutonomiaPrimeiraRetirada,
   calcularTaxaPerdasSilo,
 } from '../helpers';
 import { toast } from 'sonner';
@@ -187,7 +186,6 @@ export default function SiloDetailPage() {
   // Calcular dados em memória
   const cardData = calcularDadosSilos([silo], movimentacoes)[0];
   const { estoque, consumoDiario, estoquePara, status } = cardData;
-  const autonomiaPrimeiraRetirada = calcularAutonomiaPrimeiraRetirada(movimentacoes, estoque);
   const taxaPerdas = calcularTaxaPerdasSilo(movimentacoes);
 
   return (
@@ -244,7 +242,6 @@ export default function SiloDetailPage() {
                 estoque={estoque}
                 consumoDiario={consumoDiario}
                 estoquePara={estoquePara}
-                autonomiaPrimeiraRetirada={autonomiaPrimeiraRetirada}
                 taxaPerdas={taxaPerdas}
               />
             </div>

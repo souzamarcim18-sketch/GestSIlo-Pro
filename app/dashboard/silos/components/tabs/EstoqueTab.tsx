@@ -17,30 +17,28 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { type MovimentacaoSilo } from '@/lib/supabase';
-import { ArrowDownRight, ArrowUpRight, TrendingDown, CalendarClock, Percent } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, TrendingDown, Gauge, Percent } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface EstoqueCardsProps {
   movimentacoes: MovimentacaoSilo[];
   estoque: number;
+  /** Consumo médio diário (t/dia), excluindo venda e transferência. null se não houve consumo. */
   consumoDiario: number | null;
   estoquePara: number | null;
-  /** Autonomia (dias) contada a partir da 1ª retirada de silagem. null se não houve saída. */
-  autonomiaPrimeiraRetirada: number | null;
   /** % de perdas (descartes ÷ total de saídas). null se não houve saída. */
   taxaPerdas: number | null;
 }
 
 /**
- * Os 4 cards de resumo de estoque, em grid 2×2 (para ocupar a coluna direita).
+ * Os cards de resumo de estoque, em grid 2×n (para ocupar a coluna direita).
  */
 export function EstoqueCards({
   movimentacoes,
   estoque,
   consumoDiario,
   estoquePara,
-  autonomiaPrimeiraRetirada,
   taxaPerdas,
 }: EstoqueCardsProps) {
   const entradas = movimentacoes
@@ -108,7 +106,9 @@ export function EstoqueCards({
                 {estoquePara !== null ? estoquePara : '-'}
               </p>
               {consumoDiario !== null && (
-                <p className="text-xs text-muted-foreground mt-1">{consumoDiario} t/dia</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {consumoDiario.toFixed(2)} t/dia
+                </p>
               )}
             </div>
           </div>
@@ -118,24 +118,22 @@ export function EstoqueCards({
       <Card className="rounded-2xl bg-card shadow-sm border-l-4 border-l-cyan-500">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Autonomia Estimada
+            Consumo Médio
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-end justify-between">
             <div>
               <p className="text-2xl font-bold">
-                {autonomiaPrimeiraRetirada !== null
-                  ? `${autonomiaPrimeiraRetirada} dias`
-                  : '-'}
+                {consumoDiario !== null ? `${consumoDiario.toFixed(2)} t/dia` : '-'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {autonomiaPrimeiraRetirada !== null
-                  ? 'a partir da 1ª retirada'
-                  : 'sem retiradas ainda'}
+                {consumoDiario !== null
+                  ? 'exclui venda e transferência'
+                  : 'sem consumo registrado'}
               </p>
             </div>
-            <CalendarClock className="h-5 w-5 text-cyan-600" aria-hidden="true" />
+            <Gauge className="h-5 w-5 text-cyan-600" aria-hidden="true" />
           </div>
         </CardContent>
       </Card>

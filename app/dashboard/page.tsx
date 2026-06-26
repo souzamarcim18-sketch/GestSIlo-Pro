@@ -6,6 +6,7 @@ import type { CicloAgricola, ProximaOperacao } from '@/lib/types/talhoes';
 import { DashboardClient } from './DashboardClient';
 import type { DashboardData, AlertaCritico, ProximaOperacaoComBadge } from './dashboard-data';
 import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastagens, derivarAlertasSilosAbertos } from './alertas-helpers';
+import { SUBTIPOS_NAO_CONSUMO } from './silos/helpers';
 import { getAtividadesRecentes } from '@/lib/supabase/calendario';
 import { formatBRL } from '@/lib/utils';
 
@@ -273,11 +274,13 @@ export default async function DashboardPage() {
   const movsRecentes = movsRecentesRes.data ?? [];
 
   // Consumo da frota — MESMA metodologia do módulo Silos (helpers.ts/calcularResumoFrota):
-  // por silo aberto, total de saídas (todo o histórico) ÷ dias desde data_abertura_real;
-  // soma-se o consumo diário de cada silo aberto. NÃO é uma janela fixa de 30 dias.
+  // por silo aberto, total de saídas de consumo (todo o histórico) ÷ dias desde
+  // data_abertura_real; soma-se o consumo diário de cada silo aberto. NÃO é uma
+  // janela fixa de 30 dias. Venda e Transferência são excluídas — não são consumo
+  // de rebanho e distorceriam a velocidade de consumo da silagem.
   const saidasPorSilo: Record<string, number> = {};
   for (const m of todasMovsSilos) {
-    if (m.tipo === 'Saída') {
+    if (m.tipo === 'Saída' && !SUBTIPOS_NAO_CONSUMO.has(m.subtipo ?? '')) {
       saidasPorSilo[m.silo_id] = (saidasPorSilo[m.silo_id] ?? 0) + (m.quantidade ?? 0);
     }
   }
@@ -382,7 +385,8 @@ export default async function DashboardPage() {
   const finAcumulado = finAcumuladoRes.data ?? [];
   const receitaAcumulada = finAcumulado.filter((l) => l.tipo === 'Receita').reduce((acc, l) => acc + l.valor, 0);
   const despesaAcumulada = finAcumulado.filter((l) => l.tipo === 'Despesa').reduce((acc, l) => acc + l.valor, 0);
-  const saldoAcumuladoNum = receitaAcumulada - despesaAcumulada;
+  // "Total até hoje" inclui o mês corrente — finAcumuladoRes só traz dados anteriores ao mês (.lt('data', mesInicio))
+  const saldoAcumuladoNum = (receitaAcumulada + receitaMesNum) - (despesaAcumulada + despesaMesNum);
 
   // Variação percentual vs mês anterior (null quando não há base de comparação)
   const finMesAnterior = finMesAnteriorRes.data ?? [];

@@ -7,6 +7,26 @@ import { type Silo, type MovimentacaoSilo } from '@/lib/supabase';
 export type SiloStatus = 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
 
 /**
+ * Subtipos de saída que NÃO representam consumo do rebanho e, portanto, não
+ * entram no cálculo de consumo médio diário / autonomia. Venda e Transferência
+ * são saídas de caixa/logística — continuam contando no estoque e no financeiro,
+ * mas distorceriam a "velocidade de consumo" da silagem.
+ * Descarte permanece no cálculo (é silagem efetivamente saindo do silo).
+ */
+export const SUBTIPOS_NAO_CONSUMO: ReadonlySet<string> = new Set([
+  'Venda',
+  'Transferência',
+]);
+
+/**
+ * Indica se uma movimentação é uma saída que conta como consumo de silagem
+ * (exclui Venda e Transferência).
+ */
+export function ehSaidaConsumo(mov: MovimentacaoSilo): boolean {
+  return mov.tipo === 'Saída' && !SUBTIPOS_NAO_CONSUMO.has(mov.subtipo ?? '');
+}
+
+/**
  * Calcula o estoque atual de um silo baseado em suas movimentações.
  * Entrada = +, Saída = -
  */
@@ -17,7 +37,8 @@ export function calcularEstoque(movimentacoes: MovimentacaoSilo[]): number {
 }
 
 /**
- * Calcula o consumo diário médio baseado nas saídas desde a abertura.
+ * Calcula o consumo diário médio baseado nas saídas de consumo desde a abertura.
+ * Exclui Venda e Transferência (ver {@link ehSaidaConsumo}).
  * Retorna null se o silo não estiver aberto.
  */
 export function calcularConsumoDiario(
@@ -34,7 +55,7 @@ export function calcularConsumoDiario(
   );
 
   const totalSaidas = movimentacoes
-    .filter((m) => m.tipo === 'Saída')
+    .filter(ehSaidaConsumo)
     .reduce((acc, m) => acc + m.quantidade, 0);
 
   return totalSaidas > 0 ? totalSaidas / diasAberto : null;
@@ -55,16 +76,17 @@ export function calcularEstoqueParaDias(
  * Calcula a autonomia estimada de um silo (em dias) contada **a partir da
  * primeira retirada de silagem** — não a partir da data de abertura.
  *
- * Consumo diário = total de saídas ÷ dias decorridos desde a 1ª saída.
+ * Consumo diário = total de saídas de consumo ÷ dias decorridos desde a 1ª
+ * retirada de consumo. Exclui Venda e Transferência (ver {@link ehSaidaConsumo}).
  * Autonomia = estoque atual ÷ consumo diário.
  *
- * Retorna null se ainda não houve nenhuma saída.
+ * Retorna null se ainda não houve nenhuma saída de consumo.
  */
 export function calcularAutonomiaPrimeiraRetirada(
   movimentacoes: MovimentacaoSilo[],
   estoque: number
 ): number | null {
-  const saidas = movimentacoes.filter((m) => m.tipo === 'Saída');
+  const saidas = movimentacoes.filter(ehSaidaConsumo);
   if (saidas.length === 0) return null;
 
   // Data da primeira retirada (menor data entre as saídas)

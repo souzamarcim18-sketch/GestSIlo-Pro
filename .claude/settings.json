@@ -200,7 +200,8 @@
       "PowerShell(npx eslint \"app/dashboard/silos/components/SiloDetailHeader.tsx\" 2>&1)",
       "PowerShell(npx vitest run __tests__/dashboard/alertas-helpers.test.ts 2>&1)",
       "PowerShell($file = \"C:\\\\Users\\\\marci\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projetos-GestSilo-GestSIlo-Pro\\\\4a1bb0f9-9c79-4f78-8034-f6c82f2f3d0c\\\\tasks\\\\bcmst1ttl.output\"; \\(Get-Item $file\\).LastWriteTime; \\(Get-Content $file | Measure-Object -Line\\).Lines)",
-      "PowerShell(npx eslint app/auth/confirm/page.tsx app/auth/confirm/actions.ts \"app/gestsilo-admin/\\(protected\\)/solicitacoes/actions.ts\")"
+      "PowerShell(npx eslint app/auth/confirm/page.tsx app/auth/confirm/actions.ts \"app/gestsilo-admin/\\(protected\\)/solicitacoes/actions.ts\")",
+      "PowerShell(npx vitest run __tests__/silos/consumo-filtro.test.ts 2>&1)"
     ],
     "additionalDirectories": [
       "\\tmp"
