@@ -22,8 +22,10 @@ async function requireAdminSession() {
 
 type ServiceClient = ReturnType<typeof getServiceClient>;
 
-// Gera o link de definição de senha e envia pela Resend.
-// 'invite' para conta nova; fallback para 'recovery' se o usuário já existir.
+// Garante que o usuário exista no Supabase Auth (cria se ausente, com e-mail
+// já confirmado) e gera SEMPRE um link de 'recovery' para definir a senha.
+// Usar recovery de forma consistente evita o link 'invite' instável que, em
+// reenvios/contas já existentes, caía no fallback e produzia comportamento errático.
 async function gerarEEnviarLinkAcesso(
   supabase: ServiceClient,
   email: string,
@@ -33,40 +35,39 @@ async function gerarEEnviarLinkAcesso(
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
   const redirectTo = `${siteUrl}/auth/confirm`;
 
-  let actionLink: string | null = null;
-
-  const { data: inviteData, error: inviteError } = await supabase.auth.admin.generateLink({
-    type: 'invite',
+  // Cria o usuário com e-mail já confirmado (idempotente: ignora "já existe").
+  // O perfil padrão é Administrador — o produtor recém-aprovado criará a própria
+  // fazenda no onboarding. Mantém paridade com /api/auth/invite.
+  const { error: createError } = await supabase.auth.admin.createUser({
     email,
-    options: { redirectTo, data: { nome } },
+    email_confirm: true,
+    app_metadata: { perfil: 'Administrador', primeiro_acesso: true },
+    user_metadata: { nome, perfil: 'Administrador', primeiro_acesso: true },
   });
 
-  if (inviteError) {
+  if (createError) {
     const alreadyExists =
-      inviteError.message?.toLowerCase().includes('already been registered') ||
-      inviteError.message?.toLowerCase().includes('already registered') ||
-      inviteError.code === 'email_exists';
-
-    if (alreadyExists) {
-      // Conta já existe — gera link de recuperação para definir nova senha
-      const { data: recoveryData, error: recoveryError } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email,
-        options: { redirectTo },
-      });
-      if (recoveryError) {
-        console.error('gerarEEnviarLinkAcesso: recovery link error', recoveryError.message);
-        return { success: false, error: 'Não foi possível gerar o link de acesso. Tente novamente.' };
-      }
-      actionLink = recoveryData.properties?.action_link ?? null;
-    } else {
-      console.error('gerarEEnviarLinkAcesso: invite link error', inviteError.message);
+      createError.message?.toLowerCase().includes('already been registered') ||
+      createError.message?.toLowerCase().includes('already registered') ||
+      createError.code === 'email_exists';
+    if (!alreadyExists) {
+      console.error('gerarEEnviarLinkAcesso: createUser error', createError.message);
       return { success: false, error: 'Não foi possível gerar o link de acesso. Tente novamente.' };
     }
-  } else {
-    actionLink = inviteData.properties?.action_link ?? null;
   }
 
+  const { data: recoveryData, error: recoveryError } = await supabase.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: { redirectTo },
+  });
+
+  if (recoveryError) {
+    console.error('gerarEEnviarLinkAcesso: recovery link error', recoveryError.message);
+    return { success: false, error: 'Não foi possível gerar o link de acesso. Tente novamente.' };
+  }
+
+  const actionLink = recoveryData.properties?.action_link ?? null;
   if (!actionLink) {
     console.error('gerarEEnviarLinkAcesso: action_link ausente');
     return { success: false, error: 'Não foi possível gerar o link de acesso. Tente novamente.' };
