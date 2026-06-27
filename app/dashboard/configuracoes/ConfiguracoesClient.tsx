@@ -13,12 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Plus, Trash2, Scale } from 'lucide-react';
+import { Save, Plus, Scale } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Profile, Fazenda } from '@/lib/supabase';
 import { CityAutocomplete } from '@/components/CityAutocomplete';
 import { updateProfile, updateFazenda, type ConfiguracoesFazenda } from '@/lib/supabase/configuracoes';
 import { salvarConfiguracoesPesosAction } from './actions';
+import { RemoverUsuarioDialog } from './RemoverUsuarioDialog';
 import type { CityOption } from '@/hooks/useGeocoding';
 
 interface Props {
@@ -298,16 +299,8 @@ export function ConfiguracoesClient({
                           <Badge variant="outline" className="text-primary border-primary">Ativo</Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          {isAdmin && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              aria-label={`Remover acesso de ${u.nome}`}
-                              onClick={() => toast.warning(`Remoção de ${u.nome} em breve.`)}
-                            >
-                              <Trash2 className="h-4 w-4" aria-hidden="true" />
-                            </Button>
+                          {isAdmin && u.id !== userId && (
+                            <RemoverUsuarioDialog userId={u.id} userName={u.nome ?? u.email} />
                           )}
                         </TableCell>
                       </TableRow>
