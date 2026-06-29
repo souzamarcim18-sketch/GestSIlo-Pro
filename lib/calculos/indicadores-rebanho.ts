@@ -491,6 +491,143 @@ export function calcularArrobasEstimadas(
   return pesoCarcaca / 15;
 }
 
+// ========== SÉRIES PARA GRÁFICOS (INDICADORES) ==========
+
+/**
+ * Monta a série de GMD por animal para o gráfico de linha.
+ * Para cada animal com >= 2 pesagens no período, devolve as datas/pesos
+ * ordenados cronologicamente e o GMD entre primeira e última pesagem.
+ * Animais com < 2 pesagens são omitidos (não há linha a desenhar).
+ *
+ * @param pesagensAgrupadas Map de animal_id → pesagens (data + peso)
+ * @param brincoPorAnimal   Map de animal_id → brinco (para rótulo da linha)
+ * @param periodo           { dataInicio, dataFim } ISO YYYY-MM-DD
+ */
+export function montarSerieGMDPorAnimal(
+  pesagensAgrupadas: Map<string, Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[]>,
+  brincoPorAnimal: Map<string, string>,
+  periodo: { dataInicio: string; dataFim: string }
+): Array<{ animal_id: string; brinco: string; datas: Date[]; pesos: number[]; gmd: number }> {
+  const series: Array<{ animal_id: string; brinco: string; datas: Date[]; pesos: number[]; gmd: number }> = [];
+
+  for (const [animalId, pesagens] of pesagensAgrupadas) {
+    const noPeriodo = pesagens
+      .filter((p) => p.data_pesagem >= periodo.dataInicio && p.data_pesagem <= periodo.dataFim)
+      .sort((a, b) => new Date(a.data_pesagem).getTime() - new Date(b.data_pesagem).getTime());
+
+    if (noPeriodo.length < 2) continue;
+
+    const gmd = calcularGMDAnimal(noPeriodo, periodo);
+    if (gmd === null) continue;
+
+    series.push({
+      animal_id: animalId,
+      brinco: brincoPorAnimal.get(animalId) ?? animalId,
+      datas: noPeriodo.map((p) => new Date(p.data_pesagem)),
+      pesos: noPeriodo.map((p) => p.peso_kg),
+      gmd,
+    });
+  }
+
+  // Ordenar por maior GMD primeiro — o gráfico mostra as 10 primeiras linhas
+  return series.sort((a, b) => b.gmd - a.gmd);
+}
+
+/**
+ * Monta a série mensal de natalidade × mortalidade (%) para o gráfico de barras.
+ * Natalidade do mês = nascimentos no mês / rebanho atual * 100
+ * Mortalidade do mês = mortes no mês / rebanho atual * 100
+ *
+ * Usa o rebanho atual como denominador (aproximação — não há snapshot
+ * histórico de efetivo). O rótulo do mês sai no formato MM/AAAA.
+ *
+ * @param eventos      Eventos do período (precisa de tipo + data_evento)
+ * @param rebanhoAtual Total de animais ativos (denominador das taxas)
+ */
+export function montarSerieNatalidadeMortalidade(
+  eventos: Pick<EventoRebanho, 'tipo' | 'data_evento'>[],
+  rebanhoAtual: number
+): Array<{ mes: string; natalidade: number; mortalidade: number }> {
+  const porMes = new Map<string, { nascimentos: number; mortes: number }>();
+
+  for (const e of eventos) {
+    if (e.tipo !== 'nascimento' && e.tipo !== 'morte') continue;
+    const mesChave = e.data_evento.slice(0, 7); // YYYY-MM
+    if (!porMes.has(mesChave)) porMes.set(mesChave, { nascimentos: 0, mortes: 0 });
+    const bucket = porMes.get(mesChave)!;
+    if (e.tipo === 'nascimento') bucket.nascimentos++;
+    else bucket.mortes++;
+  }
+
+  return Array.from(porMes.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mesChave, { nascimentos, mortes }]) => {
+      const [ano, mes] = mesChave.split('-');
+      return {
+        mes: `${mes}/${ano}`,
+        natalidade: calcularTaxaPercentual(nascimentos, rebanhoAtual),
+        mortalidade: calcularTaxaPercentual(mortes, rebanhoAtual),
+      };
+    });
+}
+
+/**
+ * Monta o comparativo entre lotes para um indicador.
+ * Suporta 'gmd' (média de GMD dos animais do lote com >= 2 pesagens) e
+ * 'peso' (peso médio atual dos animais do lote). Ordena decrescente pelo
+ * indicador escolhido (critério de ranking T43).
+ *
+ * Indicadores 'natalidade' e 'prenhez' por lote não têm dado disponível
+ * por lote no schema atual — retornam apenas a contagem de animais, sem valor.
+ *
+ * @param animaisPorLote     Map de loteId → { nome, animalIds[] }
+ * @param pesagensAgrupadas  Map de animal_id → pesagens
+ * @param pesoAtualPorAnimal Map de animal_id → peso_atual (number | null)
+ * @param indicador          'gmd' | 'peso' | 'natalidade' | 'prenhez'
+ * @param periodo            { dataInicio, dataFim }
+ */
+export function montarComparativoLotes(
+  animaisPorLote: Map<string, { nome: string; animalIds: string[] }>,
+  pesagensAgrupadas: Map<string, Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[]>,
+  pesoAtualPorAnimal: Map<string, number | null>,
+  indicador: 'gmd' | 'peso' | 'natalidade' | 'prenhez',
+  periodo: { dataInicio: string; dataFim: string }
+): Array<{ loteId: string; loteNome: string; quantidadeAnimais: number; gmd?: number; pesoMedio?: number }> {
+  const linhas: Array<{ loteId: string; loteNome: string; quantidadeAnimais: number; gmd?: number; pesoMedio?: number }> = [];
+
+  for (const [loteId, { nome, animalIds }] of animaisPorLote) {
+    const linha: { loteId: string; loteNome: string; quantidadeAnimais: number; gmd?: number; pesoMedio?: number } = {
+      loteId,
+      loteNome: nome,
+      quantidadeAnimais: animalIds.length,
+    };
+
+    if (indicador === 'gmd') {
+      const gmds: number[] = [];
+      for (const id of animalIds) {
+        const gmd = calcularGMDAnimal(pesagensAgrupadas.get(id) ?? [], periodo);
+        if (gmd !== null) gmds.push(gmd);
+      }
+      linha.gmd = gmds.length > 0 ? gmds.reduce((a, b) => a + b, 0) / gmds.length : 0;
+    } else if (indicador === 'peso') {
+      const pesos = animalIds
+        .map((id) => pesoAtualPorAnimal.get(id))
+        .filter((p): p is number => p !== null && p !== undefined && p > 0);
+      linha.pesoMedio = pesos.length > 0 ? pesos.reduce((a, b) => a + b, 0) / pesos.length : 0;
+    }
+
+    linhas.push(linha);
+  }
+
+  // Ranking decrescente pelo indicador selecionado (T43)
+  const chave = indicador === 'peso' ? 'pesoMedio' : indicador === 'gmd' ? 'gmd' : null;
+  if (chave) {
+    linhas.sort((a, b) => (Number(b[chave] ?? 0)) - (Number(a[chave] ?? 0)));
+  }
+
+  return linhas;
+}
+
 // ========== INDICADORES LEITEIROS ==========
 
 /**

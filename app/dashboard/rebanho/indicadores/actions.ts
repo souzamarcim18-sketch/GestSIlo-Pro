@@ -14,6 +14,9 @@ import {
   calcularGMDMedioRebanho,
   calcularIntervaloEntrePartos,
   calcularIdadePrimeiroParto,
+  montarSerieGMDPorAnimal,
+  montarSerieNatalidadeMortalidade,
+  montarComparativoLotes,
   isVaca,
   isVacaProdutiva,
 } from '@/lib/calculos/indicadores-rebanho';
@@ -92,9 +95,10 @@ export async function getIndicadoresAction(filtros: FiltrosIndicadoresValidados)
 
     const periodo = calcularPeriodo(resultado.data);
     const tipoExploracao = await obterFazendasFiltros(resultado.data);
+    const supabase = await createSupabaseServerClient();
 
     // Buscar dados em paralelo
-    const [eventos, pesos, animais, partos, diagnosticos, animaisReprod, lactacoes] = await Promise.all([
+    const [eventos, pesos, animais, partos, diagnosticos, animaisReprod, lactacoes, lotesRes] = await Promise.all([
       buscarEventosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
       buscarPesosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
       buscarAnimaisFiltrados({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
@@ -102,6 +106,7 @@ export async function getIndicadoresAction(filtros: FiltrosIndicadoresValidados)
       buscarDiagnosticosPrenhez(periodo),
       buscarAnimaisReprodutivos(),
       buscarLactacoesEncerradas(),
+      supabase.from('lotes').select('id, nome'),
     ]);
 
     const composicao = calcularComposicaoRebanho(animais);
@@ -203,6 +208,33 @@ export async function getIndicadoresAction(filtros: FiltrosIndicadoresValidados)
       ? Math.round(periodosSeco.reduce((a, b) => a + b, 0) / periodosSeco.length)
       : null;
 
+    // ── Séries para os gráficos (abas GMD, Natalidade, Comparativo Lotes) ──
+    const brincoPorAnimal = new Map<string, string>(animais.map((a) => [a.id, a.brinco]));
+    const pesoAtualPorAnimal = new Map<string, number | null>(animais.map((a) => [a.id, a.peso_atual]));
+    const lotesNome = new Map<string, string>(
+      ((lotesRes.data ?? []) as Array<{ id: string; nome: string }>).map((l) => [l.id, l.nome])
+    );
+    const animaisPorLote = new Map<string, { nome: string; animalIds: string[] }>();
+    for (const a of animais) {
+      if (!a.lote_id) continue;
+      if (!animaisPorLote.has(a.lote_id)) {
+        animaisPorLote.set(a.lote_id, { nome: lotesNome.get(a.lote_id) ?? 'Sem lote', animalIds: [] });
+      }
+      animaisPorLote.get(a.lote_id)!.animalIds.push(a.id);
+    }
+
+    const seriesGraficos = {
+      gmdPorAnimal: montarSerieGMDPorAnimal(pesagensAgrupadas, brincoPorAnimal, periodoCalculo),
+      natalidadeMortalidade: montarSerieNatalidadeMortalidade(eventos, composicao.total),
+      comparativoLotes: montarComparativoLotes(
+        animaisPorLote,
+        pesagensAgrupadas,
+        pesoAtualPorAnimal,
+        'gmd',
+        periodoCalculo
+      ),
+    };
+
     const indicadores: IndicadorRebanho = {
       gmd: { valor: gmdMedio ?? null, estado: gmdMedio != null ? 'OK' : 'INSUFFICIENT_DATA' },
       taxaNatalidade: { valor: taxaNatalidade.taxa_percentual, estado: 'OK' },
@@ -216,6 +248,7 @@ export async function getIndicadoresAction(filtros: FiltrosIndicadoresValidados)
       taxaReposicao: { valor: taxaReposicao, estado: taxaReposicao != null ? 'OK' : 'INSUFFICIENT_DATA' },
       evolucaoEfetivo: { valor: [], estado: 'OK' },
       composicaoRebanho: { valor: composicao.por_categoria, estado: 'OK' },
+      seriesGraficos,
     };
 
     if (tipoExploracao !== 'LEITE') {
@@ -282,58 +315,10 @@ export async function exportarIndicadoresCSVAction(filtros: FiltrosIndicadoresVa
 
     // Calcular período
     const periodo = calcularPeriodo(resultado.data);
-
-    // Buscar dados em paralelo
-    const [eventos, pesos, animais] = await Promise.all([
-      buscarEventosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
-      buscarPesosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
-      buscarAnimaisFiltrados({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
-    ]);
-
-    // Calcular indicadores
-    const periodoCalculo = { dataInicio: periodo.data_inicial, dataFim: periodo.data_final };
-    const composicao = calcularComposicaoRebanho(animais);
-    const vacasMatrizesInicio = animais.filter((a) => isVaca(a.categoria)).length;
-
-    const pesagensAgrupadas = new Map<string, { data_pesagem: string; peso_kg: number }[]>();
-    for (const peso of pesos) {
-      if (!pesagensAgrupadas.has(peso.animal_id)) {
-        pesagensAgrupadas.set(peso.animal_id, []);
-      }
-      pesagensAgrupadas.get(peso.animal_id)!.push({ data_pesagem: peso.data_pesagem, peso_kg: peso.peso_kg });
-    }
-
-    const gmdMedio = calcularGMDMedioRebanho(pesagensAgrupadas, periodoCalculo);
-    const taxaNatalidade = calcularTaxaNatalidade(eventos, vacasMatrizesInicio, periodoCalculo);
-    const taxaMortalidade = calcularTaxaMortalidade(eventos, composicao.total, composicao.total, periodoCalculo);
-    const taxaMortalidadeBezerros = calcularTaxaMortalidadeBezerros(eventos, periodoCalculo);
-    const taxaDesfrute = calcularTaxaDesfrute(eventos, composicao.total, composicao.total, periodoCalculo);
-    const taxaDescarte = calcularTaxaDescarte(animais);
-
     const tipoExploracao = (fazendaData?.tipo_exploracao || 'MISTO') as TipoExploracao;
 
-    const indicadores: IndicadorRebanho = {
-      gmd: { valor: gmdMedio || null, estado: gmdMedio ? 'OK' : 'INSUFFICIENT_DATA' },
-      taxaNatalidade: { valor: taxaNatalidade.taxa_percentual, estado: 'OK' },
-      taxaMortalidadeGeral: { valor: taxaMortalidade.taxa_percentual, estado: 'OK' },
-      taxaMortalidadeBezerros: { valor: taxaMortalidadeBezerros.taxa_percentual, estado: 'OK' },
-      taxaDescarte: { valor: taxaDescarte.taxa_percentual, estado: 'OK' },
-      taxaPrenhez: { valor: 86, estado: 'OK' },
-      iep: { valor: 415, estado: 'OK' },
-      ipp: { valor: 24, estado: 'OK' },
-      pesoMedioPorCategoria: { valor: {}, estado: 'OK' },
-      taxaReposicao: { valor: 25, estado: 'OK' },
-      evolucaoEfetivo: { valor: [], estado: 'OK' },
-      composicaoRebanho: { valor: composicao.por_categoria, estado: 'OK' },
-    };
-
-    if (tipoExploracao !== 'LEITE') {
-      indicadores.taxaDesfrute = { valor: taxaDesfrute.taxa_percentual, estado: 'OK' };
-    }
-    if (tipoExploracao !== 'CORTE') {
-      indicadores.percentualVacasLactacao = { valor: 75, estado: 'OK' };
-      indicadores.periodoSecoMedio = { valor: 58, estado: 'OK' };
-    }
+    // Reusar o cálculo real e completo dos indicadores (sem mocks)
+    const indicadores = await getIndicadoresAction(resultado.data);
 
     // Gerar CSV
     const { gerarCsvIndicadoresRebanho } = await import('@/lib/csv/gerarCsvIndicadoresRebanho');
@@ -374,58 +359,10 @@ export async function exportarIndicadoresPDFAction(filtros: FiltrosIndicadoresVa
 
     // Calcular período
     const periodo = calcularPeriodo(resultado.data);
-
-    // Buscar dados em paralelo
-    const [eventos, pesos, animais] = await Promise.all([
-      buscarEventosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
-      buscarPesosNoPeriodo({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
-      buscarAnimaisFiltrados({ periodo, tipo_rebanho: undefined, lote_id: resultado.data.lotes?.[0] }),
-    ]);
-
-    // Calcular indicadores (mesmo que CSV)
-    const periodoCalculo = { dataInicio: periodo.data_inicial, dataFim: periodo.data_final };
-    const composicao = calcularComposicaoRebanho(animais);
-    const vacasMatrizesInicio = animais.filter((a) => isVaca(a.categoria)).length;
-
-    const pesagensAgrupadas = new Map<string, { data_pesagem: string; peso_kg: number }[]>();
-    for (const peso of pesos) {
-      if (!pesagensAgrupadas.has(peso.animal_id)) {
-        pesagensAgrupadas.set(peso.animal_id, []);
-      }
-      pesagensAgrupadas.get(peso.animal_id)!.push({ data_pesagem: peso.data_pesagem, peso_kg: peso.peso_kg });
-    }
-
-    const gmdMedio = calcularGMDMedioRebanho(pesagensAgrupadas, periodoCalculo);
-    const taxaNatalidade = calcularTaxaNatalidade(eventos, vacasMatrizesInicio, periodoCalculo);
-    const taxaMortalidade = calcularTaxaMortalidade(eventos, composicao.total, composicao.total, periodoCalculo);
-    const taxaMortalidadeBezerros = calcularTaxaMortalidadeBezerros(eventos, periodoCalculo);
-    const taxaDesfrute = calcularTaxaDesfrute(eventos, composicao.total, composicao.total, periodoCalculo);
-    const taxaDescarte = calcularTaxaDescarte(animais);
-
     const tipoExploracao = (fazendaData?.tipo_exploracao || 'MISTO') as TipoExploracao;
 
-    const indicadores: IndicadorRebanho = {
-      gmd: { valor: gmdMedio || null, estado: gmdMedio ? 'OK' : 'INSUFFICIENT_DATA' },
-      taxaNatalidade: { valor: taxaNatalidade.taxa_percentual, estado: 'OK' },
-      taxaMortalidadeGeral: { valor: taxaMortalidade.taxa_percentual, estado: 'OK' },
-      taxaMortalidadeBezerros: { valor: taxaMortalidadeBezerros.taxa_percentual, estado: 'OK' },
-      taxaDescarte: { valor: taxaDescarte.taxa_percentual, estado: 'OK' },
-      taxaPrenhez: { valor: 86, estado: 'OK' },
-      iep: { valor: 415, estado: 'OK' },
-      ipp: { valor: 24, estado: 'OK' },
-      pesoMedioPorCategoria: { valor: {}, estado: 'OK' },
-      taxaReposicao: { valor: 25, estado: 'OK' },
-      evolucaoEfetivo: { valor: [], estado: 'OK' },
-      composicaoRebanho: { valor: composicao.por_categoria, estado: 'OK' },
-    };
-
-    if (tipoExploracao !== 'LEITE') {
-      indicadores.taxaDesfrute = { valor: taxaDesfrute.taxa_percentual, estado: 'OK' };
-    }
-    if (tipoExploracao !== 'CORTE') {
-      indicadores.percentualVacasLactacao = { valor: 75, estado: 'OK' };
-      indicadores.periodoSecoMedio = { valor: 58, estado: 'OK' };
-    }
+    // Reusar o cálculo real e completo dos indicadores (sem mocks)
+    const indicadores = await getIndicadoresAction(resultado.data);
 
     // Gerar PDF via jsPDF
     const dataInicio = new Date(periodo.data_inicial);

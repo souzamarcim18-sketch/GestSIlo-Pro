@@ -11,6 +11,8 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
+  CircleDashed,
+  Milk,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react';
@@ -238,17 +240,26 @@ export function DashboardReprodutivo({
       {/* ── Seção 1: Cards de contagem rápida ── */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-border/40 bg-muted/30 p-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.13em]">Prenhez Confirmada</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.13em] flex items-center gap-1.5">
+            <Baby className="h-3.5 w-3.5" />
+            Prenhez Confirmada
+          </p>
           <p className="text-3xl font-bold mt-1">{indicadores.contagemPorStatus.prenha}</p>
           <p className="text-xs text-muted-foreground mt-1">fêmeas prenhes</p>
         </div>
         <div className="rounded-lg border border-border/40 bg-muted/30 p-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.13em]">Fêmeas em Aberto</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.13em] flex items-center gap-1.5">
+            <CircleDashed className="h-3.5 w-3.5" />
+            Fêmeas em Aberto
+          </p>
           <p className="text-3xl font-bold mt-1">{femasEmAberto}</p>
           <p className="text-xs text-muted-foreground mt-1">vazias + aguardando protocolo</p>
         </div>
         <div className="rounded-lg border border-border/40 bg-muted/30 p-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.13em]">Em Lactação</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.13em] flex items-center gap-1.5">
+            <Milk className="h-3.5 w-3.5" />
+            Em Lactação
+          </p>
           <p className="text-3xl font-bold mt-1">{indicadores.contagemPorStatus.lactacao}</p>
           <p className="text-xs text-muted-foreground mt-1">vacas lactando</p>
         </div>

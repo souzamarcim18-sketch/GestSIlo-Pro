@@ -90,6 +90,13 @@ export interface IndicadorRebanho {
   // Específicos Leite (se tipo_exploracao IN ('LEITE', 'MISTO'))
   percentualVacasLactacao?: ResultadoIndicador<number>;               // %
   periodoSecoMedio?: ResultadoIndicador<number>;                      // dias
+
+  // Séries para os gráficos (abas GMD, Natalidade e Comparativo de Lotes)
+  seriesGraficos?: {
+    gmdPorAnimal: Array<{ animal_id: string; brinco: string; datas: Date[]; pesos: number[]; gmd: number }>;
+    natalidadeMortalidade: Array<{ mes: string; natalidade: number; mortalidade: number }>;
+    comparativoLotes: ComparativoLotes[];
+  };
 }
 
 // ========== RELATÓRIO COMPLETO ==========

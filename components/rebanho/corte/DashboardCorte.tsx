@@ -18,7 +18,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, Beef, TrendingUp, Scale, Target } from 'lucide-react';
+import { KpiCard } from '@/app/dashboard/rebanho/components/KpiCard';
 import {
   LineChart,
   Line,
@@ -239,80 +240,42 @@ export function DashboardCorte({
 
       {/* SEÇÃO A: KPIs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total de Animais
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAnimaisCorte}</div>
-            <p className="text-xs text-muted-foreground mt-1">de corte / dupla aptidão</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              GMD Médio
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {gmdsMedios.length > 0 ? (
-              <>
-                <div className="text-2xl font-bold">{gmdMedioRebanho.toFixed(2)} kg/dia</div>
-                <p className="text-xs text-muted-foreground mt-1">últimas 2 pesagens · {gmdsMedios.length} animal(is)</p>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold text-muted-foreground">—</div>
-                <p className="text-xs text-muted-foreground mt-1">sem pesagens suficientes</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Peso Médio
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pesoMedioAtual !== null ? (
-              <>
-                <div className="text-2xl font-bold">{pesoMedioAtual.toFixed(0)} kg</div>
-                <p className="text-xs text-muted-foreground mt-1">{animaisComPeso.length} animal(is) com peso</p>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold text-muted-foreground">—</div>
-                <p className="text-xs text-muted-foreground mt-1">nenhuma pesagem registrada</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Arrobas Projetadas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {arrobasProjetadas !== null ? (
-              <>
-                <div className="text-2xl font-bold">{arrobasProjetadas.toFixed(0)} @</div>
-                <p className="text-xs text-muted-foreground mt-1">rendimento 52% carcaça</p>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold text-muted-foreground">—</div>
-                <p className="text-xs text-muted-foreground mt-1">registre pesagens para calcular</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <KpiCard
+          label="Total de Animais"
+          valor={totalAnimaisCorte}
+          sublabel="de corte / dupla aptidão"
+          icon={<Beef className="h-5 w-5" />}
+        />
+        <KpiCard
+          label="GMD Médio"
+          valor={gmdsMedios.length > 0 ? `${gmdMedioRebanho.toFixed(2)} kg/dia` : '—'}
+          sublabel={
+            gmdsMedios.length > 0
+              ? `últimas 2 pesagens · ${gmdsMedios.length} animal(is)`
+              : 'sem pesagens suficientes'
+          }
+          icon={<TrendingUp className="h-5 w-5" />}
+        />
+        <KpiCard
+          label="Peso Médio"
+          valor={pesoMedioAtual !== null ? `${pesoMedioAtual.toFixed(0)} kg` : '—'}
+          sublabel={
+            pesoMedioAtual !== null
+              ? `${animaisComPeso.length} animal(is) com peso`
+              : 'nenhuma pesagem registrada'
+          }
+          icon={<Scale className="h-5 w-5" />}
+        />
+        <KpiCard
+          label="Arrobas Projetadas"
+          valor={arrobasProjetadas !== null ? `${arrobasProjetadas.toFixed(0)} @` : '—'}
+          sublabel={
+            arrobasProjetadas !== null
+              ? 'rendimento 52% carcaça'
+              : 'registre pesagens para calcular'
+          }
+          icon={<Target className="h-5 w-5" />}
+        />
       </div>
 
       {/* GRÁFICO */}

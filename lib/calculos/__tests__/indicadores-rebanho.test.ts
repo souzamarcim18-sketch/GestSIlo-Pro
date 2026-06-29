@@ -30,6 +30,10 @@ import {
   // Reprodutivos
   calcularIdadePrimeiroParto,
   calcularIntervaloEntrePartos,
+  // Séries para gráficos
+  montarSerieGMDPorAnimal,
+  montarSerieNatalidadeMortalidade,
+  montarComparativoLotes,
 } from '../indicadores-rebanho';
 import type { Animal, EventoRebanho, PesoAnimal } from '@/lib/types/rebanho';
 
@@ -688,5 +692,130 @@ describe('calcularIntervaloEntrePartos', () => {
 
     // Ambas vacas usam 31 dias, média = 31
     expect(resultado).toBe(31);
+  });
+});
+
+// ========== SÉRIES PARA GRÁFICOS ==========
+
+describe('montarSerieGMDPorAnimal', () => {
+  const periodo = { dataInicio: '2026-01-01', dataFim: '2026-03-31' };
+
+  it('omite animais com menos de 2 pesagens no período', () => {
+    const pesagens = new Map<string, Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[]>([
+      ['a1', [{ data_pesagem: '2026-01-10', peso_kg: 200 }]],
+    ]);
+    const brincos = new Map([['a1', '001']]);
+    expect(montarSerieGMDPorAnimal(pesagens, brincos, periodo)).toEqual([]);
+  });
+
+  it('calcula GMD e devolve datas/pesos ordenados para animal com 2+ pesagens', () => {
+    const pesagens = new Map<string, Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[]>([
+      ['a1', [
+        { data_pesagem: '2026-02-10', peso_kg: 230 },
+        { data_pesagem: '2026-01-11', peso_kg: 200 }, // fora de ordem de propósito
+      ]],
+    ]);
+    const brincos = new Map([['a1', '001']]);
+    const serie = montarSerieGMDPorAnimal(pesagens, brincos, periodo);
+    expect(serie).toHaveLength(1);
+    expect(serie[0].brinco).toBe('001');
+    expect(serie[0].pesos).toEqual([200, 230]); // ordenado por data
+    // 30 kg em 30 dias = 1 kg/dia
+    expect(serie[0].gmd).toBeCloseTo(1.0, 5);
+  });
+
+  it('ordena a série por maior GMD primeiro', () => {
+    const pesagens = new Map<string, Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[]>([
+      ['a1', [
+        { data_pesagem: '2026-01-01', peso_kg: 200 },
+        { data_pesagem: '2026-01-11', peso_kg: 205 }, // +0.5/dia
+      ]],
+      ['a2', [
+        { data_pesagem: '2026-01-01', peso_kg: 200 },
+        { data_pesagem: '2026-01-11', peso_kg: 220 }, // +2/dia
+      ]],
+    ]);
+    const brincos = new Map([['a1', '001'], ['a2', '002']]);
+    const serie = montarSerieGMDPorAnimal(pesagens, brincos, periodo);
+    expect(serie.map((s) => s.brinco)).toEqual(['002', '001']);
+  });
+});
+
+describe('montarSerieNatalidadeMortalidade', () => {
+  it('agrupa nascimentos e mortes por mês e calcula percentuais', () => {
+    const eventos: Pick<EventoRebanho, 'tipo' | 'data_evento'>[] = [
+      { tipo: 'nascimento', data_evento: '2026-01-05' },
+      { tipo: 'nascimento', data_evento: '2026-01-20' },
+      { tipo: 'morte', data_evento: '2026-01-15' },
+      { tipo: 'nascimento', data_evento: '2026-02-10' },
+    ];
+    const serie = montarSerieNatalidadeMortalidade(eventos, 100);
+    expect(serie).toHaveLength(2);
+    expect(serie[0].mes).toBe('01/2026');
+    expect(serie[0].natalidade).toBe(2);   // 2/100
+    expect(serie[0].mortalidade).toBe(1);  // 1/100
+    expect(serie[1].mes).toBe('02/2026');
+    expect(serie[1].natalidade).toBe(1);
+  });
+
+  it('ignora eventos que não são nascimento/morte', () => {
+    const eventos: Pick<EventoRebanho, 'tipo' | 'data_evento'>[] = [
+      { tipo: 'pesagem', data_evento: '2026-01-05' },
+      { tipo: 'venda', data_evento: '2026-01-06' },
+    ];
+    expect(montarSerieNatalidadeMortalidade(eventos, 100)).toEqual([]);
+  });
+
+  it('retorna taxa 0 quando rebanho é 0 (evita divisão por zero)', () => {
+    const eventos: Pick<EventoRebanho, 'tipo' | 'data_evento'>[] = [
+      { tipo: 'nascimento', data_evento: '2026-01-05' },
+    ];
+    const serie = montarSerieNatalidadeMortalidade(eventos, 0);
+    expect(serie[0].natalidade).toBe(0);
+  });
+});
+
+describe('montarComparativoLotes', () => {
+  const periodo = { dataInicio: '2026-01-01', dataFim: '2026-03-31' };
+
+  it('calcula GMD médio por lote e ordena decrescente', () => {
+    const animaisPorLote = new Map([
+      ['l1', { nome: 'Lote A', animalIds: ['a1'] }],
+      ['l2', { nome: 'Lote B', animalIds: ['a2'] }],
+    ]);
+    const pesagens = new Map<string, Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[]>([
+      ['a1', [
+        { data_pesagem: '2026-01-01', peso_kg: 200 },
+        { data_pesagem: '2026-01-11', peso_kg: 205 }, // 0.5/dia
+      ]],
+      ['a2', [
+        { data_pesagem: '2026-01-01', peso_kg: 200 },
+        { data_pesagem: '2026-01-11', peso_kg: 220 }, // 2/dia
+      ]],
+    ]);
+    const pesoAtual = new Map<string, number | null>([['a1', 205], ['a2', 220]]);
+    const linhas = montarComparativoLotes(animaisPorLote, pesagens, pesoAtual, 'gmd', periodo);
+    expect(linhas.map((l) => l.loteNome)).toEqual(['Lote B', 'Lote A']);
+    expect(linhas[0].gmd).toBeCloseTo(2.0, 5);
+  });
+
+  it('calcula peso médio por lote quando indicador é peso', () => {
+    const animaisPorLote = new Map([
+      ['l1', { nome: 'Lote A', animalIds: ['a1', 'a2'] }],
+    ]);
+    const pesoAtual = new Map<string, number | null>([['a1', 200], ['a2', 300]]);
+    const linhas = montarComparativoLotes(animaisPorLote, new Map(), pesoAtual, 'peso', periodo);
+    expect(linhas[0].pesoMedio).toBe(250);
+    expect(linhas[0].quantidadeAnimais).toBe(2);
+  });
+
+  it('não atribui valor para indicadores sem dado por lote (natalidade/prenhez)', () => {
+    const animaisPorLote = new Map([
+      ['l1', { nome: 'Lote A', animalIds: ['a1'] }],
+    ]);
+    const linhas = montarComparativoLotes(animaisPorLote, new Map(), new Map(), 'natalidade', periodo);
+    expect(linhas[0].gmd).toBeUndefined();
+    expect(linhas[0].pesoMedio).toBeUndefined();
+    expect(linhas[0].quantidadeAnimais).toBe(1);
   });
 });

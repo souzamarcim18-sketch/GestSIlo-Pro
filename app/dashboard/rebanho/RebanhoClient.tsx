@@ -14,7 +14,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SelecionarAnimalDialog } from './components/SelecionarAnimalDialog';
-import { Plus, BarChart3, Milk, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus } from 'lucide-react';
+import { PainelResumo } from './components/PainelResumo';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Plus, BarChart3, Milk, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -58,6 +64,7 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [selecionarAnimalOpen, setSelecionarAnimalOpen] = useState(false);
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
 
   // Hidrata o cache IndexedDB com eventos recentes do servidor na montagem inicial
   useEffect(() => {
@@ -130,6 +137,8 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
   const animaisFiltrados = filtroCategoria
     ? animais.filter(a => a.categoria === filtroCategoria)
     : animais;
+
+  const filtrosAtivos = [filtroStatus, filtroTipo, filtroSexo, filtroCategoria, filtroLote].filter(Boolean).length;
 
   const rebanhoVazio = initialAnimais.length === 0 && initialLotes.length === 0;
 
@@ -233,6 +242,9 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
         </Card>
       )}
 
+      {/* Painel de visão geral do rebanho */}
+      {!rebanhoVazio && <PainelResumo animais={initialAnimais} lotes={initialLotes} />}
+
       {/* Acesso Rápido */}
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Acesso Rápido</h2>
@@ -256,83 +268,98 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
         </div>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <div className="p-6">
-          <p className="text-lg font-semibold mb-4">Filtros</p>
-          <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-6">
-            <div>
-              <label className="text-sm font-medium">Buscar por Brinco</label>
-              <Input
-                placeholder="Ex: 001"
-                value={busca}
-                onChange={(e) => handleFiltroChange('busca', e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Status</label>
-              <Select value={filtroStatus} onValueChange={(val) => handleFiltroChange('status', val)}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  <SelectItem value="Ativo">Ativo</SelectItem>
-                  <SelectItem value="Morto">Morto</SelectItem>
-                  <SelectItem value="Vendido">Vendido</SelectItem>
-                  <SelectItem value="Descartado">Descartado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Tipo Rebanho</label>
-              <Select value={filtroTipo} onValueChange={(val) => handleFiltroChange('tipo', val)}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  <SelectItem value="leiteiro">Leiteiro</SelectItem>
-                  <SelectItem value="corte">Corte</SelectItem>
-                  <SelectItem value="dupla_aptidao">Dupla Aptidão</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Sexo</label>
-              <Select value={filtroSexo} onValueChange={(val) => handleFiltroChange('sexo', val)}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  <SelectItem value="Macho">Macho</SelectItem>
-                  <SelectItem value="Fêmea">Fêmea</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Categoria</label>
-              <Select value={filtroCategoria} onValueChange={(v) => setFiltroCategoria(v ?? '')}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {categorias.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Lote</label>
-              <Select value={filtroLote} onValueChange={(val) => handleFiltroChange('lote_id', val)}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  {initialLotes.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Filtros — busca sempre visível, selects colapsáveis */}
+      <Collapsible open={filtrosAbertos} onOpenChange={setFiltrosAbertos}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Input
+              placeholder="Buscar por brinco..."
+              value={busca}
+              onChange={(e) => handleFiltroChange('busca', e.target.value)}
+            />
           </div>
+          <CollapsibleTrigger
+            render={
+              <Button variant="outline" className="shrink-0">
+                <SlidersHorizontal className="mr-2 h-4 w-4" />
+                Filtros
+                {filtrosAtivos > 0 && (
+                  <Badge variant="secondary" className="ml-2">{filtrosAtivos}</Badge>
+                )}
+                <ChevronDown
+                  className={`ml-2 h-4 w-4 transition-transform ${filtrosAbertos ? 'rotate-180' : ''}`}
+                />
+              </Button>
+            }
+          />
         </div>
-      </Card>
+        <CollapsibleContent>
+          <Card className="mt-2">
+            <div className="grid gap-4 p-4 md:grid-cols-3 lg:grid-cols-5">
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <Select value={filtroStatus} onValueChange={(val) => handleFiltroChange('status', val)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="Ativo">Ativo</SelectItem>
+                    <SelectItem value="Morto">Morto</SelectItem>
+                    <SelectItem value="Vendido">Vendido</SelectItem>
+                    <SelectItem value="Descartado">Descartado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Tipo Rebanho</label>
+                <Select value={filtroTipo} onValueChange={(val) => handleFiltroChange('tipo', val)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="leiteiro">Leiteiro</SelectItem>
+                    <SelectItem value="corte">Corte</SelectItem>
+                    <SelectItem value="dupla_aptidao">Dupla Aptidão</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Sexo</label>
+                <Select value={filtroSexo} onValueChange={(val) => handleFiltroChange('sexo', val)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="Macho">Macho</SelectItem>
+                    <SelectItem value="Fêmea">Fêmea</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Categoria</label>
+                <Select value={filtroCategoria} onValueChange={(v) => setFiltroCategoria(v ?? '')}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    {categorias.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Lote</label>
+                <Select value={filtroLote} onValueChange={(val) => handleFiltroChange('lote_id', val)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    {initialLotes.map((l) => (
+                      <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Tabela */}
       <Card>

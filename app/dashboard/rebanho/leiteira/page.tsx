@@ -6,8 +6,9 @@ import {
   totalProducaoLeiteiraPeriodo,
   getDELMedioAtivo,
 } from '@/lib/supabase/rebanho-leiteira';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Milk, CalendarDays, Gauge, Droplets, Activity, Percent } from 'lucide-react';
 import { DashboardLeiteiro } from '@/components/rebanho/leiteira/DashboardLeiteiro';
+import { KpiCard } from '@/app/dashboard/rebanho/components/KpiCard';
 import type { Animal } from '@/lib/types/rebanho';
 
 export const metadata = {
@@ -79,82 +80,41 @@ export default async function LeiteiraPage() {
 
         {/* KPIs */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Produção Hoje</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{producaoHoje.toFixed(1)} L</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Produção Média/Dia
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{producaoMediaDiaria.toFixed(1)} L</div>
-              <p className="text-xs text-muted-foreground mt-1">últimos 30 dias</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Produção Média/Vaca
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{producaoMediaPorVaca.toFixed(1)} L</div>
-              <p className="text-xs text-muted-foreground mt-1">por vaca em lactação</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                DEL Médio
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {delMedio !== null ? `${delMedio} dias` : '—'}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">dias em lactação</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Status do Rebanho
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">
-                {animalEmLactacao.length} em lactação
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {animalEmSeco.length} em seco
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Eficiência do Rebanho
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {taxaEficiencia !== null ? `${taxaEficiencia}%` : '—'}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">vacas em produção</p>
-            </CardContent>
-          </Card>
+          <KpiCard
+            label="Produção Hoje"
+            valor={`${producaoHoje.toFixed(1)} L`}
+            icon={<Milk className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Produção Média/Dia"
+            valor={`${producaoMediaDiaria.toFixed(1)} L`}
+            sublabel="últimos 30 dias"
+            icon={<CalendarDays className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Produção Média/Vaca"
+            valor={`${producaoMediaPorVaca.toFixed(1)} L`}
+            sublabel="por vaca em lactação"
+            icon={<Droplets className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="DEL Médio"
+            valor={delMedio !== null ? `${delMedio} dias` : '—'}
+            sublabel="dias em lactação"
+            icon={<Gauge className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Em lactação"
+            valor={animalEmLactacao.length}
+            sublabel={`${animalEmSeco.length} em seco`}
+            icon={<Activity className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Eficiência do Rebanho"
+            valor={taxaEficiencia !== null ? `${taxaEficiencia}%` : '—'}
+            sublabel="vacas em produção"
+            icon={<Percent className="h-5 w-5" />}
+          />
         </div>
 
         {/* Painel Interativo */}

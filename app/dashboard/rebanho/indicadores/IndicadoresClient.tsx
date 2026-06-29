@@ -485,7 +485,7 @@ export default function IndicadoresClient({
             </CardHeader>
             <CardContent>
               <GraficoGMD
-                dados={[]}
+                dados={indicadores.seriesGraficos?.gmdPorAnimal ?? []}
                 modo="por-animal"
                 periodo={filtros}
               />
@@ -514,7 +514,7 @@ export default function IndicadoresClient({
             </CardHeader>
             <CardContent>
               <GraficoNatalidadeMortalidade
-                dados={[]}
+                dados={indicadores.seriesGraficos?.natalidadeMortalidade ?? []}
                 periodo={filtros}
               />
             </CardContent>
@@ -528,7 +528,7 @@ export default function IndicadoresClient({
             </CardHeader>
             <CardContent>
               <ComparativoLotes
-                dados={[]}
+                dados={indicadores.seriesGraficos?.comparativoLotes ?? []}
                 indicador="gmd"
                 periodo={filtros}
               />
