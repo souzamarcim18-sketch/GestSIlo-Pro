@@ -11,22 +11,30 @@
 
 import type { Animal, TipoEvento, EventoRebanho, PesoAnimal } from '@/lib/types/rebanho';
 import type { IndicadoresLeiteiros } from '@/lib/types/rebanho-leiteira';
+import {
+  GRUPO_BEZERROS,
+  GRUPO_NOVILHAS,
+  GRUPO_NOVILHOS,
+  GRUPO_VACAS_LEITEIRAS,
+  GRUPO_VACAS_CORTE,
+  GRUPO_TOURO,
+  GRUPO_BOI,
+  GRUPO_DESCARTE,
+} from '@/lib/constants/categorias-rebanho';
 
-// ========== CATEGORIAS (STRINGS EXATAS DO TRIGGER recalcular_categoria_animal) ==========
+// ========== CATEGORIAS ==========
+// Strings exatas do trigger recalcular_categoria_animal — fonte única em
+// lib/constants/categorias-rebanho.ts. Os nomes públicos abaixo são mantidos
+// como aliases para preservar o contrato de import existente.
 
-export const CATEGORIAS_BEZERROS = ['Bezerro', 'Bezerra'] as const;
-export const CATEGORIAS_NOVILHAS = ['Novilha', 'Novilha Prenha'] as const;
-export const CATEGORIAS_NOVILHOS = ['Novilho'] as const;
-export const CATEGORIAS_VACAS_LEITEIRAS = [
-  'Vaca em Lactação',
-  'Vaca Seca',
-  'Vaca Prenha',
-  'Vaca Vazia',
-] as const;
-export const CATEGORIAS_VACAS_CORTE = ['Vaca Matriz'] as const;
-export const CATEGORIAS_TOURO = ['Touro'] as const;
-export const CATEGORIAS_BOI = ['Boi', 'Boi Descartado'] as const;
-export const CATEGORIAS_DESCARTE = ['Boi Descartado', 'Fêmea Descartada'] as const;
+export const CATEGORIAS_BEZERROS = GRUPO_BEZERROS;
+export const CATEGORIAS_NOVILHAS = GRUPO_NOVILHAS;
+export const CATEGORIAS_NOVILHOS = GRUPO_NOVILHOS;
+export const CATEGORIAS_VACAS_LEITEIRAS = GRUPO_VACAS_LEITEIRAS;
+export const CATEGORIAS_VACAS_CORTE = GRUPO_VACAS_CORTE;
+export const CATEGORIAS_TOURO = GRUPO_TOURO;
+export const CATEGORIAS_BOI = GRUPO_BOI;
+export const CATEGORIAS_DESCARTE = GRUPO_DESCARTE;
 
 // Agrupados para facilitar
 export const CATEGORIAS_VACAS = [

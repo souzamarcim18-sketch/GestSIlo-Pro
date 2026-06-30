@@ -711,6 +711,28 @@ export async function listAnimais(
   return JSON.parse(JSON.stringify((data as Animal[]) || []));
 }
 
+/**
+ * Busca um único animal por id (ficha do animal — SPEC-rebanho012, P2.1).
+ * Aditivo: substitui o anti-padrão de carregar todos os animais para exibir um.
+ * Usa o mesmo conjunto de colunas explícito de listAnimais (contrato Animal).
+ */
+export async function getAnimalById(animalId: string): Promise<Animal | null> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('animais')
+    .select(
+      'id, fazenda_id, brinco, nome, sexo, tipo_rebanho, data_nascimento, data_nascimento_estimada, categoria, status, lote_id, peso_atual, peso_nascimento, mae_id, pai_id, raca, observacoes, sisbov_crbio, origem, foto_url, status_reprodutivo, data_ultimo_parto, data_parto_previsto, data_proxima_secagem, escore_condicao_corporal, flag_repetidora, is_reprodutor, reprodutor_vinculado_id, deleted_at, created_at, updated_at'
+    )
+    .eq('id', animalId)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return JSON.parse(JSON.stringify(data as Animal));
+}
+
 export async function listLotes(
   limit: number = 50,
   offset: number = 0

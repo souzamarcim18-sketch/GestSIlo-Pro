@@ -4,6 +4,7 @@
  */
 
 import type { StatusReprodutivo } from './rebanho-reproducao';
+import { CATEGORIAS_POR_TIPO_REBANHO } from '@/lib/constants/categorias-rebanho';
 
 // ========== ENUMS ==========
 
@@ -36,43 +37,10 @@ export enum TipoEvento {
   MUDANCA_CATEGORIA = 'mudanca_categoria',
 }
 
-export const CATEGORIAS_POR_TIPO: Record<string, string[]> = {
-  leiteiro: [
-    'Bezerro',
-    'Bezerra',
-    'Novilha',
-    'Novilha (Prenha)',
-    'Novilho',
-    'Vaca em Lactação',
-    'Vaca Seca',
-    'Vaca Prenha',
-    'Vaca Vazia',
-    'Touro',
-  ],
-  corte: [
-    'Bezerro',
-    'Bezerra',
-    'Novilha',
-    'Novilho',
-    'Vaca Matriz',
-    'Boi',
-    'Boi Descartado',
-    'Fêmea Descartada',
-    'Touro',
-  ],
-  dupla_aptidao: [
-    'Bezerro',
-    'Bezerra',
-    'Novilha',
-    'Novilha (Prenha)',
-    'Novilho',
-    'Vaca em Lactação',
-    'Vaca Seca',
-    'Vaca Prenha',
-    'Vaca Vazia',
-    'Touro',
-  ],
-};
+// Categorias por tipo de rebanho — fonte única em lib/constants/categorias-rebanho.ts
+// (espelha as strings exatas do trigger recalcular_categoria_animal).
+export const CATEGORIAS_POR_TIPO: Record<string, readonly string[]> =
+  CATEGORIAS_POR_TIPO_REBANHO;
 
 // ========== INTERFACES PRINCIPAIS ==========
 

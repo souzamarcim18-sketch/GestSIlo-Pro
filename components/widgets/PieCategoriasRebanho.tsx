@@ -20,7 +20,6 @@ function abreviar(nome: string): string {
     'Bezerro/Bezerra': 'Bezerro',
     'Vaca em Lactação': 'Lact.',
     'Novilha Prenha': 'Nov. Prenha',
-    'Novilha (Prenha)': 'Nov. Prenha',
     'Vaca Prenha': 'V. Prenha',
     'Vaca Vazia': 'V. Vazia',
     'Boi Descartado': 'Descarte',

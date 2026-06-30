@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -27,181 +27,24 @@ import {
 import {
   listEventosPorAnimal,
   listPesosPorAnimal,
-  listAnimais,
-  listLotes,
+  getAnimalById,
+  getLoteById,
 } from '@/lib/supabase/rebanho';
 import { getHistoricoAnimalAction } from '@/lib/supabase/rebanho-movimentacoes-actions';
 import type { MovimentacaoListItem } from '@/lib/supabase/rebanho-movimentacoes';
-import { AbaProducaoLeiteira } from '@/components/rebanho/AbaProducaoLeiteira';
-import { AbaSanidade } from '@/components/rebanho/AbaSanidade';
+import { ResumoLeiteira } from '@/components/rebanho/ResumoLeiteira';
+import { ResumoSanidade } from '@/components/rebanho/ResumoSanidade';
+import { DesempenhoCorteResumo } from '@/components/rebanho/corte/DesempenhoCorteResumo';
 import { deletarAnimalAction } from '../actions';
 import { Badge } from '@/components/ui/badge';
-import {
-  calcularGMDUltimasDuas,
-  calcularProjecaoAbate,
-  calcularArrobasEstimadas,
-} from '@/lib/calculos/indicadores-rebanho';
 import { formatDate } from '@/lib/utils';
+import {
+  getBadgeColorMovimentacao,
+  getTipoLabelMovimentacao,
+  getDetalhesMovimentacao,
+  formatarIdadeAnimal,
+} from '@/lib/utils/rebanho-ficha';
 import type { Animal, EventoRebanho, PesoAnimal, Lote } from '@/lib/types/rebanho';
-
-function getBadgeColorMovimentacao(tipo: string): string {
-  switch (tipo) {
-    case 'nascimento':
-      return 'border-green-600 text-green-600';
-    case 'venda':
-      return 'border-emerald-600 text-emerald-600';
-    case 'morte':
-      return 'border-red-600 text-red-600';
-    case 'descarte':
-      return 'border-orange-600 text-orange-600';
-    case 'transferencia_lote':
-      return 'border-muted-foreground text-muted-foreground';
-    default:
-      return 'border-muted-foreground text-muted-foreground';
-  }
-}
-
-function getTipoLabelMovimentacao(tipo: string): string {
-  const labels: Record<string, string> = {
-    nascimento: 'Nascimento',
-    venda: 'Venda',
-    morte: 'Morte',
-    descarte: 'Descarte',
-    transferencia_lote: 'Transferência',
-  };
-  return labels[tipo] || tipo;
-}
-
-function getDetalhesMovimentacao(mov: MovimentacaoListItem): string {
-  switch (mov.tipo) {
-    case 'venda':
-      return `Comprador: ${mov.comprador}`;
-    case 'morte':
-      return `Causa: ${mov.observacoes || ''}`;
-    case 'transferencia_lote':
-      return `Lote: ${mov.lote_nome}`;
-    case 'descarte':
-      return `Motivo: ${mov.motivo_descarte}`;
-    default:
-      return mov.observacoes || '—';
-  }
-}
-
-function DesempenhoCorteContent({ animal, pesos }: { animal: Animal; pesos: PesoAnimal[] }) {
-  const gmdUltimas = calcularGMDUltimasDuas(pesos);
-  const pesoAlvo = 480;
-  const diasAbate = calcularProjecaoAbate(animal.peso_atual, gmdUltimas, pesoAlvo);
-  const arrobas = calcularArrobasEstimadas(animal.peso_atual, 0.52);
-  const currentTimeRef = useRef<number>(0);
-  const [dataAbateEstimada, setDataAbateEstimada] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (currentTimeRef.current === 0) {
-      currentTimeRef.current = Date.now();
-      if (diasAbate) {
-        setDataAbateEstimada(
-          new Date(currentTimeRef.current + diasAbate * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')
-        );
-      } else {
-        setDataAbateEstimada(null);
-      }
-    } else if (diasAbate) {
-      setDataAbateEstimada(
-        new Date(currentTimeRef.current + diasAbate * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')
-      );
-    } else {
-      setDataAbateEstimada(null);
-    }
-  }, [diasAbate]);
-
-  const getGmdColor = (gmd: number | null) => {
-    if (gmd === null) return 'border-muted-foreground text-muted-foreground';
-    if (gmd > 1) return 'border-green-600 text-green-600';
-    if (gmd >= 0.5) return 'border-yellow-600 text-yellow-600';
-    return 'border-red-600 text-red-600';
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground mb-1">GMD (Últimas 2 Pesagens)</p>
-          <div className="flex items-center gap-3">
-            <div className="text-2xl font-bold">
-              {gmdUltimas ? `${gmdUltimas.toFixed(2)} kg/dia` : '—'}
-            </div>
-            {gmdUltimas !== null && (
-              <Badge variant="outline" className={getGmdColor(gmdUltimas)}>
-                {gmdUltimas > 1
-                  ? 'Ótimo'
-                  : gmdUltimas >= 0.5
-                  ? 'Normal'
-                  : 'Baixo'}
-              </Badge>
-            )}
-          </div>
-          {pesos.length < 2 && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Registre 2 pesagens para calcular
-            </p>
-          )}
-        </div>
-
-        <div className="border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground mb-1">Condição Corporal</p>
-          <div className="flex items-center gap-3">
-            <div className="text-2xl font-bold">
-              {pesos.length > 0 && pesos[0].condicao_corporal
-                ? `${pesos[0].condicao_corporal}/5`
-                : '—'}
-            </div>
-            {pesos.length > 0 && pesos[0].condicao_corporal && (
-              <div className="text-sm text-muted-foreground">
-                {pesos[0].condicao_corporal === 1
-                  ? 'Muito magra'
-                  : pesos[0].condicao_corporal === 2
-                  ? 'Magra'
-                  : pesos[0].condicao_corporal === 3
-                  ? 'Normal'
-                  : pesos[0].condicao_corporal === 4
-                  ? 'Gorda'
-                  : 'Muito gorda'}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground mb-1">Arrobas Estimadas</p>
-          <div className="text-2xl font-bold">
-            {arrobas ? `${arrobas.toFixed(1)} @` : '—'}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">(rendimento 52%)</p>
-        </div>
-
-        <div className="border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground mb-1">Projeção de Abate</p>
-          <div className="space-y-1">
-            <div className="text-2xl font-bold">
-              {diasAbate ? `${diasAbate} dias` : '—'}
-            </div>
-            {diasAbate && animal.peso_atual ? (
-              <p className="text-xs text-muted-foreground">
-                {dataAbateEstimada} (Peso-alvo: {pesoAlvo}kg)
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                {animal.peso_atual && animal.peso_atual >= pesoAlvo
-                  ? 'Pronto para abate'
-                  : 'Sem dados suficientes'}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function AnimalDetailPage() {
   const router = useRouter();
@@ -216,8 +59,6 @@ export default function AnimalDetailPage() {
   const [mae, setMae] = useState<Animal | null>(null);
   const [pai, setPai] = useState<Animal | null>(null);
   const [lote, setLote] = useState<Lote | null>(null);
-  const [allAnimals, setAllAnimals] = useState<Animal[]>([]);
-  const [allLotes, setAllLotes] = useState<Lote[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -228,12 +69,8 @@ export default function AnimalDetailPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [animaisList, lotesList] = await Promise.all([
-        listAnimais({}, 1000, 0),
-        listLotes(100, 0),
-      ]);
-
-      const animalData = animaisList.find((a) => a.id === animalId);
+      // Busca por id — substitui o anti-padrão de carregar 1000 animais / 100 lotes.
+      const animalData = await getAnimalById(animalId);
       if (!animalData) {
         toast.error('Animal não encontrado');
         router.push('/dashboard/rebanho');
@@ -241,33 +78,24 @@ export default function AnimalDetailPage() {
       }
 
       setAnimal(animalData);
-      setAllAnimals(animaisList);
-      setAllLotes(lotesList);
 
-      const [eventosData, pesosData, movimentacoesData] = await Promise.all([
-        listEventosPorAnimal(animalId),
-        listPesosPorAnimal(animalId),
-        getHistoricoAnimalAction(animalId),
-      ]);
+      // Demais dados do animal + genealogia/lote resolvidos por id, em paralelo.
+      const [eventosData, pesosData, movimentacoesData, maeData, paiData, loteData] =
+        await Promise.all([
+          listEventosPorAnimal(animalId),
+          listPesosPorAnimal(animalId),
+          getHistoricoAnimalAction(animalId),
+          animalData.mae_id ? getAnimalById(animalData.mae_id) : Promise.resolve(null),
+          animalData.pai_id ? getAnimalById(animalData.pai_id) : Promise.resolve(null),
+          animalData.lote_id ? getLoteById(animalData.lote_id) : Promise.resolve(null),
+        ]);
 
       setEventos(eventosData);
       setPesos(pesosData);
       setMovimentacoes(movimentacoesData);
-
-      if (animalData.mae_id) {
-        const maeData = animaisList.find((a) => a.id === animalData.mae_id);
-        setMae(maeData || null);
-      }
-
-      if (animalData.pai_id) {
-        const paiData = animaisList.find((a) => a.id === animalData.pai_id);
-        setPai(paiData || null);
-      }
-
-      if (animalData.lote_id) {
-        const loteData = lotesList.find((l) => l.id === animalData.lote_id);
-        setLote(loteData || null);
-      }
+      setMae(maeData);
+      setPai(paiData);
+      setLote(loteData);
     } catch (err) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -424,18 +252,7 @@ export default function AnimalDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {animal.data_nascimento
-                  ? (() => {
-                      const nascimento = new Date(animal.data_nascimento);
-                      const hoje = new Date();
-                      const meses =
-                        (hoje.getFullYear() - nascimento.getFullYear()) * 12 +
-                        (hoje.getMonth() - nascimento.getMonth());
-                      return meses >= 24
-                        ? `${Math.floor(meses / 12)} anos`
-                        : `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
-                    })()
-                  : '—'}
+                {formatarIdadeAnimal(animal.data_nascimento)}
               </div>
             </CardContent>
           </Card>
@@ -619,11 +436,7 @@ export default function AnimalDetailPage() {
 
           {animal.sexo === 'Fêmea' && ['leiteiro', 'dupla_aptidao'].includes(animal.tipo_rebanho) && (
             <TabsContent value="producao-leiteira" className="mt-6">
-              <AbaProducaoLeiteira
-                animal={animal}
-                isAdmin={isAdmin}
-                canRegister={canRegisterEvent}
-              />
+              <ResumoLeiteira animal={animal} />
             </TabsContent>
           )}
 
@@ -637,20 +450,14 @@ export default function AnimalDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DesempenhoCorteContent animal={animal} pesos={pesos} />
+                  <DesempenhoCorteResumo animal={animal} pesos={pesos} />
                 </CardContent>
               </Card>
             </TabsContent>
           )}
 
           <TabsContent value="sanidade" className="mt-6">
-            <AbaSanidade
-              animal={animal}
-              animais={allAnimals}
-              lotes={allLotes}
-              isAdmin={isAdmin}
-              canRegister={canRegisterEvent}
-            />
+            <ResumoSanidade animal={animal} />
           </TabsContent>
         </Tabs>
 

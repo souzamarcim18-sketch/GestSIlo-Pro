@@ -11,6 +11,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SelecionarAnimalDialog } from './components/SelecionarAnimalDialog';
@@ -51,6 +53,26 @@ interface Props {
   initialLotes: Lote[];
   isAdmin: boolean;
 }
+
+// Acesso rápido agrupado por camada (SPEC-rebanho012, P1.3) — nenhum acesso removido.
+const ACESSO_RAPIDO_GRUPOS = [
+  {
+    titulo: 'Subdomínios',
+    cards: [
+      { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Eventos e reprodutores' },
+      { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Leiteira', descricao: 'Produção de leite' },
+      { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Corte', descricao: 'GMD e abate' },
+      { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação e alertas' },
+    ],
+  },
+  {
+    titulo: 'Indicadores e Núcleo',
+    cards: [
+      { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'KPIs e alertas' },
+      { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas e saídas' },
+    ],
+  },
+] as const;
 
 export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) {
   const router = useRouter();
@@ -164,6 +186,8 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
                   <User className="mr-2 h-4 w-4" />
                   Animal único
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Operação — em massa</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/cadastro-rapido')}>
                   <Table2 className="mr-2 h-4 w-4" />
                   Cadastro rápido (vários)
@@ -197,6 +221,8 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
                   <FileInput className="mr-2 h-4 w-4" />
                   Evento em um animal
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Operação — em massa</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/eventos/lote/novo')}>
                   <ClipboardList className="mr-2 h-4 w-4" />
                   Lançamento múltiplo
@@ -245,27 +271,24 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
       {/* Painel de visão geral do rebanho */}
       {!rebanhoVazio && <PainelResumo animais={initialAnimais} lotes={initialLotes} />}
 
-      {/* Acesso Rápido */}
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Acesso Rápido</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          {[
-            { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'KPIs e alertas' },
-            { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Eventos e reprodutores' },
-            { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Leiteira', descricao: 'Produção de leite' },
-            { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Corte', descricao: 'GMD e abate' },
-            { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação e alertas' },
-            { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas e saídas' },
-          ].map(({ href, icon: Icon, titulo, descricao }) => (
-            <Link key={href} href={href}>
-              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-accent/50 hover:border-primary/30 transition-all duration-150 cursor-pointer text-center group">
-                <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-                <p className="font-semibold text-sm leading-tight">{titulo}</p>
-                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">{descricao}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+      {/* Acesso Rápido — agrupado por camada (Subdomínios / Indicadores e Núcleo) */}
+      <div className="space-y-4">
+        {ACESSO_RAPIDO_GRUPOS.map((grupo) => (
+          <div key={grupo.titulo}>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">{grupo.titulo}</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+              {grupo.cards.map(({ href, icon: Icon, titulo, descricao }) => (
+                <Link key={href} href={href}>
+                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-accent/50 hover:border-primary/30 transition-all duration-150 cursor-pointer text-center group">
+                    <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+                    <p className="font-semibold text-sm leading-tight">{titulo}</p>
+                    <p className="text-xs text-muted-foreground leading-tight hidden sm:block">{descricao}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Filtros — busca sempre visível, selects colapsáveis */}

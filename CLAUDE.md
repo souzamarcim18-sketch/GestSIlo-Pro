@@ -102,7 +102,7 @@ Biblioteca de guias técnicos para o produtor rural, **100% pública** (sem logi
 - **Headers HTTP**: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy configurados em `next.config.ts`
 - **Monitoramento**: Sentry (`@sentry/nextjs`) — captura erros em Client/Server Components e Server Actions
 - **Backup**: GitHub Actions + Cloudflare R2 — backup semanal automatizado (toda domingo 3h UTC)
-- **Testes**: Vitest — 900+ testes passando (inclui suite de auditoria RLS em `tests/security/`; 2 falhos pré-existentes documentados)
+- **Testes**: Vitest — 942 testes passando, 0 falhas (inclui suite de auditoria RLS em `tests/security/`). As 2 falhas antes documentadas (`rls.test.ts`, `projetar-rebanho.test.ts`) não ocorrem mais no estado atual do repositório (verificado em 2026-06-30, Fase 0 do rebanho).
 
 ### Configuração de Tooling (auditoria 2026-05-29)
 - **TypeScript target**: `ES2020` em `tsconfig.json` — habilita `Promise.allSettled`, `BigInt`, `globalThis` nativos sem polyfill
@@ -1026,7 +1026,7 @@ ADMIN_SENHA_INICIAL=...                             # só para o script one-time
 1. Ler o arquivo relevante antes de editar
 2. Dizer exatamente o que vai mudar e aguardar confirmação
 3. Após concluir: rodar `npm run build` e `npm run test`
-4. Confirmar que 900+ testes passam (2 falhos pré-existentes: `rls.test.ts` timeout de rede; `projetar-rebanho.test.ts` classificação de categoria). O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
+4. Confirmar que os testes passam (baseline atual: 942 passando, 0 falhas — verificado em 2026-06-30). As 2 falhas antes documentadas (`rls.test.ts` timeout de rede; `projetar-rebanho.test.ts` classificação de categoria) não ocorrem mais no estado atual; se reaparecerem, tratar como regressão. O build emite warnings do React Compiler sobre `form.watch()` do React Hook Form em 13 arquivos — são pré-existentes e não relacionados a mudanças locais.
 5. Consultar `database-snapshot.md` para qualquer mudança de schema
 
 ---
@@ -1695,7 +1695,7 @@ Rota: `/dashboard/rebanho/eventos/lote/novo`
 - `app/dashboard/rebanho/indicadores/actions.ts` — Server Actions KPIs e alertas
 - `app/dashboard/rebanho/eventos/lote/actions.ts` — `criarEventosLoteAction` (Promise.allSettled, retorna ResultadoLote)
 
-**Testes**: 2 falhos pré-existentes sem relação com o código: `__tests__/security/rls.test.ts` (timeout de rede — tenta conectar ao Supabase real), `lib/supabase/__tests__/projetar-rebanho.test.ts` (falha de lógica pré-existente em classificação de categoria)
+**Testes**: a suíte completa está verde no estado atual (942 passando, 0 falhas — verificado em 2026-06-30). As 2 falhas antes documentadas (`__tests__/security/rls.test.ts` — timeout de rede ao Supabase real; `lib/supabase/__tests__/projetar-rebanho.test.ts` — classificação de categoria) não ocorrem mais; esta última deixou de ser sensível à divergência de strings após a fonte única de categorias em `lib/constants/categorias-rebanho.ts` (Fase 0).
 
 ### 📋 Assessoria Agronômica (100% implementado — 2026-05-20)
 

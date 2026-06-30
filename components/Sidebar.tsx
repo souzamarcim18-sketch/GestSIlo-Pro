@@ -33,6 +33,11 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
+  Milk,
+  Beef,
+  Stethoscope,
+  ArrowRightLeft,
+  Dna,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +59,8 @@ type RouteItem = {
   href: string;
   badge?: 'comingSoon' | null;
   modulo?: string;
+  /** Sub-rotas exibidas indentadas quando o item é expansível (ex.: Rebanho). */
+  subRoutes?: RouteItem[];
 };
 
 type RouteGroup = {
@@ -66,6 +73,20 @@ type RouteGroup = {
 
 type GroupKeyGerencial = 'producao' | 'suprimentos' | 'gestao';
 
+/**
+ * Submenu do Rebanho — reflete as camadas Núcleo/Indicadores/Subdomínios (SPEC-rebanho012, P1.1).
+ * Reprodutores/Parâmetros NÃO entram aqui (continuam no TabsNav interno da Reprodução).
+ */
+const rebanhoSubRoutes: RouteItem[] = [
+  { label: 'Visão geral',   icon: LayoutDashboard, href: '/dashboard/rebanho'               },
+  { label: 'Indicadores',   icon: BarChart3,       href: '/dashboard/rebanho/indicadores'   },
+  { label: 'Reprodução',    icon: Dna,             href: '/dashboard/rebanho/reproducao'    },
+  { label: 'Leiteira',      icon: Milk,            href: '/dashboard/rebanho/leiteira'      },
+  { label: 'Corte',         icon: Beef,            href: '/dashboard/rebanho/corte'         },
+  { label: 'Sanidade',      icon: Stethoscope,     href: '/dashboard/rebanho/sanidade'      },
+  { label: 'Movimentações', icon: ArrowRightLeft,  href: '/dashboard/rebanho/movimentacoes' },
+];
+
 const gerencialGroups: RouteGroup[] = [
   {
     titulo: 'Produção',
@@ -75,7 +96,7 @@ const gerencialGroups: RouteGroup[] = [
       { label: 'Pastagens',          icon: Leaf,        href: '/dashboard/pastagens',          badge: null, modulo: 'pastagens' },
       { label: 'Balanço Forrageiro', icon: Scale,       href: '/dashboard/balanco-forrageiro', badge: null, modulo: 'balanco_forrageiro' },
       { label: 'Lavouras',           icon: Sprout,      href: '/dashboard/talhoes',            badge: null, modulo: 'talhoes' },
-      { label: 'Rebanho',            icon: CowIcon,     href: '/dashboard/rebanho',            badge: null, modulo: 'rebanho' },
+      { label: 'Rebanho',            icon: CowIcon,     href: '/dashboard/rebanho',            badge: null, modulo: 'rebanho', subRoutes: rebanhoSubRoutes },
     ],
   },
   {
@@ -130,7 +151,7 @@ const sincronizacaoRoute: RouteItem = {
  * Chaves estáveis dos grupos recolhíveis. Servem de id no localStorage e de
  * `aria-controls`/`id` para acessibilidade. Não dependem do label traduzido.
  */
-const GROUP_KEYS = ['producao', 'suprimentos', 'gestao', 'ferramentas', 'sistema'] as const;
+const GROUP_KEYS = ['producao', 'suprimentos', 'gestao', 'ferramentas', 'sistema', 'rebanho'] as const;
 type GroupKey = (typeof GROUP_KEYS)[number];
 
 const COLLAPSE_STORAGE_KEY = 'gestsilo:sidebar:groups';
@@ -142,6 +163,7 @@ const DEFAULT_OPEN: Record<GroupKey, boolean> = {
   gestao: false,
   ferramentas: false,
   sistema: false,
+  rebanho: false,
 };
 
 function readGroupPreference(): Record<GroupKey, boolean> {
@@ -226,17 +248,6 @@ function GroupHeader({
     </button>
   );
 }
-
-// const rebanhoSubRoutes: RouteItem[] = [
-//   { label: 'Indicadores',    icon: BarChart3,          href: '/dashboard/rebanho/indicadores'             },
-//   { label: 'Reprodução',     icon: Heart,               href: '/dashboard/rebanho/reproducao/eventos'      },
-//   { label: 'Reprodutores',   icon: Dna,                 href: '/dashboard/rebanho/reproducao/reprodutores' },
-//   { label: 'Parâmetros',     icon: SlidersHorizontal,   href: '/dashboard/rebanho/reproducao/parametros'   },
-//   { label: 'Leiteira',       icon: Milk,                href: '/dashboard/rebanho/leiteira'                },
-//   { label: 'Corte',          icon: Beef,               href: '/dashboard/rebanho/corte'                   },
-//   { label: 'Sanidade',       icon: Stethoscope,         href: '/dashboard/rebanho/sanidade'                },
-//   { label: 'Movimentações',  icon: ArrowRightLeft,      href: '/dashboard/rebanho/movimentacoes'           },
-// ];
 
 interface SidebarProps {
   onNavigate?: () => void;
@@ -362,6 +373,94 @@ function SubNavItem({
   );
 }
 
+
+/**
+ * Item de navegação expansível (ex.: Rebanho): o rótulo é um link para o hub e
+ * um botão chevron expande/recolhe as sub-rotas, reusando o mesmo padrão de
+ * estado de expansão dos grupos (useCollapsibleGroups). Sem mecânica nova.
+ */
+function ExpandableNavItem({
+  route,
+  groupKey,
+  isOpen,
+  onToggle,
+  pathname,
+  onNavigate,
+}: {
+  route: RouteItem;
+  groupKey: GroupKey;
+  isOpen: boolean;
+  onToggle: (key: GroupKey) => void;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  const Icon = route.icon;
+  const isActive = pathname === route.href;
+  const subRoutes = route.subRoutes ?? [];
+  return (
+    <li>
+      <div
+        className={cn(
+          'group flex items-center rounded-lg mr-2',
+          isActive
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all duration-150',
+        )}
+        style={isActive ? {
+          background: 'var(--green-dim)',
+          border: '1px solid var(--green-border)',
+          borderRadius: 8,
+          boxShadow: '0 0 12px var(--green-glow)',
+        } : undefined}
+      >
+        <Link
+          href={route.href}
+          onClick={onNavigate}
+          prefetch={false}
+          aria-current={isActive ? 'page' : undefined}
+          title={route.label}
+          className="text-xs flex-1 flex items-center gap-2 min-w-0 font-semibold cursor-pointer py-1.5 px-3"
+        >
+          <Icon
+            aria-hidden="true"
+            className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')}
+          />
+          <span className="truncate">{route.label}</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => onToggle(groupKey)}
+          aria-expanded={isOpen}
+          aria-controls={`sidebar-subnav-${groupKey}`}
+          aria-label={isOpen ? `Recolher ${route.label}` : `Expandir ${route.label}`}
+          className="flex-shrink-0 rounded-md p-1.5 mr-1 text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+        >
+          <ChevronDown
+            aria-hidden="true"
+            className={cn('h-3.5 w-3.5 transition-transform duration-200', isOpen ? 'rotate-0' : '-rotate-90')}
+          />
+        </button>
+      </div>
+      <ul
+        id={`sidebar-subnav-${groupKey}`}
+        className={cn('space-y-0.5 list-none mt-0.5', !isOpen && 'hidden')}
+      >
+        {subRoutes.map((sub) => (
+          <SubNavItem
+            key={sub.href}
+            href={sub.href}
+            icon={sub.icon}
+            label={sub.label}
+            // Visão geral (hub) só ativa em match exato; demais por prefixo.
+            isActive={sub.href === '/dashboard/rebanho' ? pathname === sub.href : pathname.startsWith(sub.href)}
+            onNavigate={onNavigate}
+            badge={sub.badge}
+          />
+        ))}
+      </ul>
+    </li>
+  );
+}
 
 const PLANO_LABELS: Record<PlanoSlug, string> = {
   free: 'Free',
@@ -569,6 +668,11 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
     if (activeGroupKey) ensureGroupOpen(activeGroupKey);
   }, [activeGroupKey, ensureGroupOpen]);
 
+  // Revela o submenu do Rebanho quando a rota ativa está sob /dashboard/rebanho.
+  useEffect(() => {
+    if (pathname.startsWith('/dashboard/rebanho')) ensureGroupOpen('rebanho');
+  }, [pathname, ensureGroupOpen]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
@@ -699,6 +803,9 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
                       profile?.perfil !== 'Operador' &&
                       !!route.modulo &&
                       !planoPermiteModulo(plano, route.modulo);
+                    // Item expansível (Rebanho): só quando desbloqueado e a sidebar
+                    // está expandida. Recolhida (só ícones) usa o NavItem simples.
+                    const isExpandable = !isLocked && !isCollapsed && !!route.subRoutes?.length;
                     return (
                       <div key={route.href}>
                         {isLocked ? (
@@ -708,6 +815,17 @@ export function Sidebar({ onNavigate, collapsible = false }: SidebarProps = {}) 
                             modulo={route.modulo!}
                             onOpenUpgrade={handleOpenUpgrade}
                           />
+                        ) : isExpandable ? (
+                          <ul className="list-none">
+                            <ExpandableNavItem
+                              route={route}
+                              groupKey="rebanho"
+                              isOpen={groupsOpen.rebanho}
+                              onToggle={toggleGroup}
+                              pathname={pathname}
+                              onNavigate={onNavigate}
+                            />
+                          </ul>
                         ) : (
                           <NavItem
                             href={route.href}
