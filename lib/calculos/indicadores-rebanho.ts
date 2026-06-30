@@ -114,6 +114,59 @@ export function calcularComposicaoRebanho(
   return resultado;
 }
 
+// ========== ESTRUTURA / COMPOSIÇÃO (BASE ANALÍTICA — Fase 4, P4.2) ==========
+
+/**
+ * Estrutura do rebanho como base analítica real (SPEC-rebanho345 §7, ordem
+ * "Estrutura/Composição como base analítica"). Organiza o efetivo ativo nas
+ * dimensões já suportadas pela fonte única de categorias (D-4.2):
+ * categoria, sexo, sistema (tipo_rebanho), faixa etária e lote.
+ *
+ * É um snapshot puro (não depende de período). Reaproveita as funções puras
+ * existentes — nenhum cálculo novo de KPI é introduzido aqui.
+ */
+export interface ContagemPorLote {
+  lote_id: string | null;
+  lote_nome: string;
+  total: number;
+}
+
+export interface EstruturaRebanho {
+  total: number;
+  composicao: ComposicaoRebanho;
+  faixaEtaria: ContagemFaixaEtaria;
+  porLote: ContagemPorLote[];
+}
+
+export function calcularEstruturaRebanho(
+  animaisAtivos: Pick<Animal, 'categoria' | 'sexo' | 'tipo_rebanho' | 'lote_id'>[],
+  nomePorLote: Map<string, string>,
+): EstruturaRebanho {
+  const composicao = calcularComposicaoRebanho(animaisAtivos);
+  const faixaEtaria = contarPorFaixaEtaria(animaisAtivos);
+
+  const porLoteMap = new Map<string, number>();
+  for (const animal of animaisAtivos) {
+    const chave = animal.lote_id ?? '__sem_lote__';
+    porLoteMap.set(chave, (porLoteMap.get(chave) ?? 0) + 1);
+  }
+
+  const porLote: ContagemPorLote[] = Array.from(porLoteMap.entries())
+    .map(([chave, total]) => ({
+      lote_id: chave === '__sem_lote__' ? null : chave,
+      lote_nome: chave === '__sem_lote__' ? 'Sem lote' : nomePorLote.get(chave) ?? 'Lote desconhecido',
+      total,
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  return {
+    total: animaisAtivos.length,
+    composicao,
+    faixaEtaria,
+    porLote,
+  };
+}
+
 // ========== DISTRIBUIÇÃO POR FAIXA ETÁRIA ==========
 
 export interface ContagemFaixaEtaria {
@@ -688,5 +741,79 @@ export function calcularIndicadoresLeiteiros(
     duracao_media_lactacoes_dias: parseFloat(duracaoMediaLactacoes.toFixed(1)),
     percentual_vacas_em_lactacao: parseFloat(percentualEmLactacao.toFixed(1)),
     eficiencia_alimentar_litros_por_kg_ms: null, // Será integrado com silos em fase posterior
+  };
+}
+
+// ========== KPIs DO PAINEL LEITEIRO (extração do inline — Fase 4, P4.1) ==========
+
+/**
+ * KPIs exibidos no topo da página de Gestão Leiteira.
+ *
+ * Esta função reproduz EXATAMENTE a aritmética que vivia inline em
+ * `app/dashboard/rebanho/leiteira/page.tsx` (SPEC-rebanho345 §7.3.3, D-4.1):
+ * mesma fórmula, mesmos arredondamentos, mesmos números. Nenhum valor muda —
+ * a extração é só de localização (inline → serviço reusável), para que a
+ * superfície de Indicadores e a página de Leiteira leiam a MESMA fonte.
+ *
+ * Diferente de `calcularIndicadoresLeiteiros`: aquela é a definição genérica de
+ * `IndicadoresLeiteiros`; esta replica o painel da página, incluindo
+ * "produção hoje", DEL médio (vindo de query separada) e a taxa de eficiência
+ * arredondada sobre fêmeas adultas (lactação + seco + vazias ativas).
+ */
+export interface KpisLeiteiros {
+  /** Soma de volume do último dia do período (dataFim). */
+  producaoHojeLitros: number;
+  /** total_litros / dias do período. */
+  producaoMediaDiariaLitros: number;
+  /** total_litros / dias / vacas em lactação. */
+  producaoMediaPorVacaLitros: number;
+  /** DEL médio das vacas ativas (null quando sem lactações abertas). */
+  delMedioDias: number | null;
+  /** Contagem de animais com status_reprodutivo = 'lactacao'. */
+  vacasEmLactacao: number;
+  /** Contagem de animais com status_reprodutivo = 'seca'. */
+  vacasEmSeco: number;
+  /** % inteiro de vacas em produção sobre fêmeas adultas (null se denominador = 0). */
+  taxaEficienciaPct: number | null;
+}
+
+export function calcularKpisLeiteiros(input: {
+  animais: Pick<Animal, 'status_reprodutivo' | 'status'>[];
+  producoes: Array<{ data: string; volume_litros: number }>;
+  totalLitrosPeriodo: number;
+  delMedioDias: number | null;
+  dataInicio: string;
+  dataFim: string;
+}): KpisLeiteiros {
+  const { animais, producoes, totalLitrosPeriodo, delMedioDias, dataInicio, dataFim } = input;
+
+  const animalEmLactacao = animais.filter((a) => a.status_reprodutivo === 'lactacao');
+  const animalEmSeco = animais.filter((a) => a.status_reprodutivo === 'seca');
+  const animaisVazias = animais.filter((a) => a.status_reprodutivo === 'vazia' && a.status === 'Ativo');
+
+  const producaoHoje = producoes
+    .filter((p) => p.data === dataFim)
+    .reduce((acc, p) => acc + p.volume_litros, 0);
+
+  const diasPeriodo = Math.max(
+    1,
+    Math.floor((new Date(dataFim).getTime() - new Date(dataInicio).getTime()) / (1000 * 60 * 60 * 24)) + 1,
+  );
+  const producaoMediaDiaria = totalLitrosPeriodo / diasPeriodo;
+  const producaoMediaPorVaca =
+    animalEmLactacao.length > 0 ? totalLitrosPeriodo / diasPeriodo / animalEmLactacao.length : 0;
+
+  const totalFemeasAdultas = animalEmLactacao.length + animalEmSeco.length + animaisVazias.length;
+  const taxaEficiencia =
+    totalFemeasAdultas > 0 ? Math.round((animalEmLactacao.length / totalFemeasAdultas) * 100) : null;
+
+  return {
+    producaoHojeLitros: producaoHoje,
+    producaoMediaDiariaLitros: producaoMediaDiaria,
+    producaoMediaPorVacaLitros: producaoMediaPorVaca,
+    delMedioDias,
+    vacasEmLactacao: animalEmLactacao.length,
+    vacasEmSeco: animalEmSeco.length,
+    taxaEficienciaPct: taxaEficiencia,
   };
 }

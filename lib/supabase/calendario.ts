@@ -9,6 +9,7 @@ import {
   normalizarEventoSanitario,
   normalizarOcupacaoPiquete,
 } from '@/lib/utils/calendario';
+import { getEventosRebanhoParaCalendario } from '@/lib/rebanho/facade';
 
 type Supabase = SupabaseClient<Database>;
 
@@ -143,32 +144,47 @@ async function fetchManutencoes(
   return eventos;
 }
 
+/**
+ * Cache local por chamada: garante que a fachada seja invocada apenas UMA vez
+ * mesmo quando fetchEventosRebanho e fetchEventosSanitarios são chamadas em paralelo.
+ * O Map usa a chave `${dataInicio}|${dataFim}` e é descartado ao final de cada request
+ * (módulo é recarregado por request no Next.js App Router Server Components).
+ */
+const _fachadaCache = new Map<string, ReturnType<typeof getEventosRebanhoParaCalendario>>();
+
+function _getFachadaEventos(
+  supabase: Supabase,
+  dataInicio: string,
+  dataFim: string,
+) {
+  const key = `${dataInicio}|${dataFim}`;
+  if (!_fachadaCache.has(key)) {
+    _fachadaCache.set(key, getEventosRebanhoParaCalendario(supabase, dataInicio, dataFim));
+  }
+  return _fachadaCache.get(key)!;
+}
+
+/**
+ * Busca eventos do rebanho via fachada de domínio (Fase 5 — SPEC-rebanho345 §8.3).
+ * A normalização para EventoCalendario permanece aqui, na camada de apresentação do calendário.
+ */
 async function fetchEventosRebanho(
   supabase: Supabase,
   dataInicio: string,
   dataFim: string,
 ): Promise<EventoCalendario[]> {
-  const { data, error } = await supabase
-    .from('eventos_rebanho')
-    .select('id, tipo, observacoes, data_evento, animal_id, animais(brinco, nome)')
-    .gte('data_evento', dataInicio)
-    .lte('data_evento', dataFim)
-    .is('deleted_at', null)
-    .order('data_evento');
+  const { eventosRebanho } = await _getFachadaEventos(supabase, dataInicio, dataFim);
 
-  if (error) throw error;
-
-  return (data ?? []).map((r) => {
-    const animais = r.animais as unknown as { brinco?: string | null; nome?: string | null } | null;
-    return normalizarEventoRebanho({
+  return eventosRebanho.map((r) =>
+    normalizarEventoRebanho({
       id: r.id,
       tipo: r.tipo,
       descricao: r.observacoes,
       data_evento: r.data_evento,
       animal_id: r.animal_id,
-      animais,
-    });
-  });
+      animais: r.animais,
+    }),
+  );
 }
 
 async function fetchEventosSanitarios(
@@ -176,30 +192,12 @@ async function fetchEventosSanitarios(
   dataInicio: string,
   dataFim: string,
 ): Promise<EventoCalendario[]> {
-  const hoje = new Date().toISOString().slice(0, 10);
-
-  const [passados, futuros] = await Promise.all([
-    supabase
-      .from('eventos_sanitarios')
-      .select('id, tipo, vacina_nome, observacoes, data_evento, data_proxima_dose, animal_id')
-      .gte('data_evento', dataInicio)
-      .lte('data_evento', dataFim)
-      .order('data_evento'),
-    supabase
-      .from('eventos_sanitarios')
-      .select('id, tipo, vacina_nome, observacoes, data_proxima_dose, animal_id')
-      .gte('data_proxima_dose', dataInicio)
-      .lte('data_proxima_dose', dataFim)
-      .gte('data_proxima_dose', hoje)
-      .order('data_proxima_dose'),
-  ]);
-
-  if (passados.error) throw passados.error;
-  if (futuros.error) throw futuros.error;
+  const { eventosSanitarios } = await _getFachadaEventos(supabase, dataInicio, dataFim);
 
   const eventos: EventoCalendario[] = [];
 
-  for (const r of passados.data ?? []) {
+  for (const r of eventosSanitarios.passados) {
+    if (!r.data_evento) continue;
     eventos.push({
       id: r.id,
       fonte: 'eventos_sanitarios',
@@ -212,7 +210,7 @@ async function fetchEventosSanitarios(
     });
   }
 
-  for (const r of futuros.data ?? []) {
+  for (const r of eventosSanitarios.futuros) {
     if (!r.data_proxima_dose) continue;
     eventos.push({
       id: `${r.id}_proxima_dose`,

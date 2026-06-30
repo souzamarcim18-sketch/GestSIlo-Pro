@@ -13,7 +13,6 @@ import {
   type EditarAnimalInput,
   type CriarLoteInput,
   type EditarLoteInput,
-  type CriarEventoInput,
   type ImportarCSVInput,
 } from '@/lib/validations/rebanho';
 import {
@@ -23,7 +22,6 @@ import {
   criarLote,
   editarLote,
   deletarLote,
-  registrarEvento,
   importarAnimaisCSV,
   validarAnimaisCSV,
   cadastrarAnimaisLote,
@@ -157,19 +155,44 @@ export async function transferirAnimaisAction(
   lote_id_destino: string
 ): Promise<{ success: boolean; transferidos?: number; error?: string }> {
   try {
-    let transferidos = 0;
+    const supabase = await createSupabaseServerClient();
+    const data_evento = new Date().toISOString().split('T')[0];
 
-    for (const animal_id of animal_ids) {
-      await registrarEvento({
-        animal_id,
-        tipo: TipoEvento.TRANSFERENCIA_LOTE,
-        data_evento: new Date().toISOString().split('T')[0],
-        lote_id_destino,
-      } as CriarEventoInput);
-      transferidos++;
+    // Convergência de escrita (SPEC-rebanho345 D-3.1): a transferência em massa
+    // passa pela MESMA rota lógica do evento individual/lote — a RPC
+    // registrar_evento_com_status — em vez do insert direto legado.
+    // allSettled preserva resultado parcial (uma falha não cancela as demais).
+    const results = await Promise.allSettled(
+      animal_ids.map((animal_id) =>
+        supabase
+          .rpc('registrar_evento_com_status', {
+            p_animal_id: animal_id,
+            p_payload: {
+              tipo: TipoEvento.TRANSFERENCIA_LOTE,
+              data_evento,
+              lote_id_destino,
+            },
+          })
+          .then(({ error }) => {
+            if (error) throw new Error(error.message);
+          })
+      )
+    );
+
+    const transferidos = results.filter((r) => r.status === 'fulfilled').length;
+    revalidatePath('/dashboard/rebanho');
+
+    if (transferidos === 0) {
+      const primeiraFalha = results.find((r) => r.status === 'rejected');
+      const mensagem =
+        primeiraFalha && primeiraFalha.status === 'rejected'
+          ? primeiraFalha.reason instanceof Error
+            ? primeiraFalha.reason.message
+            : 'Erro ao transferir animais'
+          : 'Erro ao transferir animais';
+      return { success: false, error: mensagem };
     }
 
-    revalidatePath('/dashboard/rebanho');
     return { success: true, transferidos };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';

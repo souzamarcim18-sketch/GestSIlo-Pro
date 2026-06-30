@@ -9,6 +9,7 @@ import {
 import { Milk, CalendarDays, Gauge, Droplets, Activity, Percent } from 'lucide-react';
 import { DashboardLeiteiro } from '@/components/rebanho/leiteira/DashboardLeiteiro';
 import { KpiCard } from '@/app/dashboard/rebanho/components/KpiCard';
+import { calcularKpisLeiteiros } from '@/lib/calculos/indicadores-rebanho';
 import type { Animal } from '@/lib/types/rebanho';
 
 export const metadata = {
@@ -49,26 +50,17 @@ export default async function LeiteiraPage() {
   ]);
 
   const animais = JSON.parse(JSON.stringify((animaisRes.data || []) as Animal[])) as Animal[];
-  const animalEmLactacao = animais.filter((a: Animal) => a.status_reprodutivo === 'lactacao');
 
-  // Calcular KPIs
-  const producaoHoje = producoesData
-    .filter((p) => p.data === dataFim)
-    .reduce((acc, p) => acc + p.volume_litros, 0);
-
-  const totalProducao = totaisData.total_litros;
-  const diasPeriodo = Math.max(1, Math.floor((new Date(dataFim).getTime() - new Date(dataInicio).getTime()) / (1000 * 60 * 60 * 24)) + 1);
-  const producaoMediaDiaria = totalProducao / diasPeriodo;
-  const producaoMediaPorVaca = animalEmLactacao.length > 0 ? totalProducao / diasPeriodo / animalEmLactacao.length : 0;
-
-  const animalEmSeco = animais.filter((a) => a.status_reprodutivo === 'seca');
-
-  // Taxa de eficiência: vacas em lactação ÷ total de fêmeas adultas (lactação + seco + vazias)
-  const animaisVazias = animais.filter((a) => a.status_reprodutivo === 'vazia' && a.status === 'Ativo');
-  const totalFemeasAdultas = animalEmLactacao.length + animalEmSeco.length + animaisVazias.length;
-  const taxaEficiencia = totalFemeasAdultas > 0
-    ? Math.round((animalEmLactacao.length / totalFemeasAdultas) * 100)
-    : null;
+  // KPIs via serviço reusável (Fase 4, P4.1) — mesma fonte da superfície de
+  // Indicadores do Rebanho; reusa os dados já buscados (sem round-trip extra).
+  const kpis = calcularKpisLeiteiros({
+    animais,
+    producoes: producoesData.map((p) => ({ data: p.data, volume_litros: p.volume_litros })),
+    totalLitrosPeriodo: totaisData.total_litros,
+    delMedioDias: delMedio,
+    dataInicio,
+    dataFim,
+  });
 
   return (
     <div className="p-6 md:p-8">
@@ -82,36 +74,36 @@ export default async function LeiteiraPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <KpiCard
             label="Produção Hoje"
-            valor={`${producaoHoje.toFixed(1)} L`}
+            valor={`${kpis.producaoHojeLitros.toFixed(1)} L`}
             icon={<Milk className="h-5 w-5" />}
           />
           <KpiCard
             label="Produção Média/Dia"
-            valor={`${producaoMediaDiaria.toFixed(1)} L`}
+            valor={`${kpis.producaoMediaDiariaLitros.toFixed(1)} L`}
             sublabel="últimos 30 dias"
             icon={<CalendarDays className="h-5 w-5" />}
           />
           <KpiCard
             label="Produção Média/Vaca"
-            valor={`${producaoMediaPorVaca.toFixed(1)} L`}
+            valor={`${kpis.producaoMediaPorVacaLitros.toFixed(1)} L`}
             sublabel="por vaca em lactação"
             icon={<Droplets className="h-5 w-5" />}
           />
           <KpiCard
             label="DEL Médio"
-            valor={delMedio !== null ? `${delMedio} dias` : '—'}
+            valor={kpis.delMedioDias !== null ? `${kpis.delMedioDias} dias` : '—'}
             sublabel="dias em lactação"
             icon={<Gauge className="h-5 w-5" />}
           />
           <KpiCard
             label="Em lactação"
-            valor={animalEmLactacao.length}
-            sublabel={`${animalEmSeco.length} em seco`}
+            valor={kpis.vacasEmLactacao}
+            sublabel={`${kpis.vacasEmSeco} em seco`}
             icon={<Activity className="h-5 w-5" />}
           />
           <KpiCard
             label="Eficiência do Rebanho"
-            valor={taxaEficiencia !== null ? `${taxaEficiencia}%` : '—'}
+            valor={kpis.taxaEficienciaPct !== null ? `${kpis.taxaEficienciaPct}%` : '—'}
             sublabel="vacas em produção"
             icon={<Percent className="h-5 w-5" />}
           />

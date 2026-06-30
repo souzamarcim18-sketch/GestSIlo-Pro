@@ -2,6 +2,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
+import { getDemandaAnimalPorCategoria, type AnimalPorCategoriaRow } from '@/lib/rebanho/facade';
+export type { AnimalPorCategoriaRow } from '@/lib/rebanho/facade';
 
 export type PiqueteAtivoRow = {
   piquete_id: string;
@@ -27,11 +29,6 @@ export type MovimentacaoSiloRow = {
   subtipo: string | null;
   quantidade: number;
   data: string;
-};
-
-export type AnimalPorCategoriaRow = {
-  categoria: string;
-  quantidade: number;
 };
 
 type SiloJoin = { nome: string };
@@ -159,25 +156,12 @@ export async function getPiquetesAtivosParaBalanco(
   return rows;
 }
 
+/**
+ * Retorna a contagem de animais ativos por categoria para o Balanço Forrageiro.
+ * Delega à fachada de domínio do rebanho (Fase 5 — SPEC-rebanho345 §8.3).
+ */
 export async function getAnimaisAtivosPorCategoria(
   supabase: SupabaseClient<Database>
 ): Promise<AnimalPorCategoriaRow[]> {
-  const { data, error } = await supabase
-    .from('animais')
-    .select('categoria')
-    .eq('status', 'Ativo')
-    .is('deleted_at', null);
-
-  if (error || !data) return [];
-
-  const contagem = new Map<string, number>();
-  for (const row of data) {
-    if (!row.categoria) continue;
-    contagem.set(row.categoria, (contagem.get(row.categoria) ?? 0) + 1);
-  }
-
-  return Array.from(contagem.entries()).map(([categoria, quantidade]) => ({
-    categoria,
-    quantidade,
-  }));
+  return getDemandaAnimalPorCategoria(supabase);
 }

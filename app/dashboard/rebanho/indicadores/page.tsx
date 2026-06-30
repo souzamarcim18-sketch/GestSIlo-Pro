@@ -3,14 +3,10 @@ import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type FiltrosIndicadores, type TipoExploracao, type PeriodoPreset } from '@/types/rebanho-indicadores';
 import { listAlertasVacinacao } from '@/lib/supabase/rebanho-sanitario';
-import {
-  listAnimaisComPartoPrevisto,
-  listVacasSecasComPartoPrevisto,
-  listAnimaisSemPesagem,
-  type AlertaAnimal,
-} from '@/lib/supabase/rebanho-indicadores';
+import { type AlertaAnimal } from '@/lib/supabase/rebanho-indicadores';
 import IndicadoresClient from './IndicadoresClient';
 import IndicadoresSkeleton from './components/IndicadoresSkeleton';
+import { IndicadoresRebanhoSurface } from './IndicadoresRebanhoSurface';
 
 export interface AlertasRebanho {
   vacinacoes: Awaited<ReturnType<typeof listAlertasVacinacao>>;
@@ -20,7 +16,7 @@ export interface AlertasRebanho {
 }
 
 export const metadata = {
-  title: 'Indicadores Zootécnicos | GestSilo',
+  title: 'Indicadores do Rebanho | GestSilo',
 };
 
 interface PageProps {
@@ -36,15 +32,11 @@ export default async function IndicadoresPage(props: PageProps) {
     redirect('/login');
   }
 
-  // Fetch tipo_exploracao, lotes da fazenda, e alertas
-  const [
-    fazendaRes,
-    lotesRes,
-    alertasVacinacao,
-    partosPrevistos,
-    vacasSecasComParto,
-    semPesagem,
-  ] = await Promise.all([
+  // Fetch tipo_exploracao + lotes da fazenda (filtros do detalhe zootécnico).
+  // Os alertas que antes eram exibidos aqui passaram para o "Resumo executivo"
+  // da superfície única (IndicadoresRebanhoSurface), que reusa o serviço de
+  // pendências da Fase 3 — sem duplicar a lista na UI (SPEC §7.5).
+  const [fazendaRes, lotesRes] = await Promise.all([
     supabase
       .from('fazendas')
       .select('tipo_exploracao')
@@ -53,10 +45,6 @@ export default async function IndicadoresPage(props: PageProps) {
       .from('lotes')
       .select('id, fazenda_id, nome, descricao, data_criacao, created_at, updated_at')
       .order('nome', { ascending: true }),
-    listAlertasVacinacao(30),
-    listAnimaisComPartoPrevisto(30),
-    listVacasSecasComPartoPrevisto(15),
-    listAnimaisSemPesagem(60),
   ]);
 
   if (fazendaRes.error) {
@@ -65,14 +53,6 @@ export default async function IndicadoresPage(props: PageProps) {
 
   const tipoExploracao: TipoExploracao = (fazendaRes.data?.tipo_exploracao || 'MISTO') as TipoExploracao;
   const lotes = JSON.parse(JSON.stringify(lotesRes.data ?? []));
-
-  // Preparar alertas para passar ao componente cliente
-  const alertas: AlertasRebanho = {
-    vacinacoes: alertasVacinacao || [],
-    partosPrevistos: partosPrevistos || [],
-    vacasSecasComParto: vacasSecasComParto || [],
-    semPesagem: semPesagem || [],
-  };
 
   // Parse searchParams para filtros iniciais
   const searchParams = await props.searchParams;
@@ -87,18 +67,26 @@ export default async function IndicadoresPage(props: PageProps) {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
+    <div className="container mx-auto space-y-8 p-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">Indicadores Zootécnicos</h1>
-        <p className="text-sm text-muted-foreground">Acompanhe o desempenho do rebanho e análise de produtividade</p>
+        <h1 className="text-2xl font-bold text-foreground">Indicadores do Rebanho</h1>
+        <p className="text-sm text-muted-foreground">
+          Visão única do desempenho do rebanho, organizada por subdomínio
+        </p>
       </header>
 
+      {/* Superfície ÚNICA — seções por subdomínio (Fase 4). O detalhe
+          zootécnico (corte/desempenho/efetivo + filtros + export) é injetado
+          DENTRO da seção Corte; não há camada de indicadores paralela. */}
       <Suspense fallback={<IndicadoresSkeleton />}>
-        <IndicadoresClient
-          initialFiltros={initFiltros}
-          tipoExploracao={tipoExploracao}
-          lotes={lotes}
-          alertas={alertas}
+        <IndicadoresRebanhoSurface
+          corteDetalhe={
+            <IndicadoresClient
+              initialFiltros={initFiltros}
+              tipoExploracao={tipoExploracao}
+              lotes={lotes}
+            />
+          }
         />
       </Suspense>
     </div>

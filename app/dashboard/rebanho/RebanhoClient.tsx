@@ -22,7 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, BarChart3, Milk, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus, SlidersHorizontal } from 'lucide-react';
+import { Plus, BarChart3, Milk, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus, SlidersHorizontal, ListChecks } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -66,8 +66,9 @@ const ACESSO_RAPIDO_GRUPOS = [
     ],
   },
   {
-    titulo: 'Indicadores e Núcleo',
+    titulo: 'Operação e Núcleo',
     cards: [
+      { href: '/dashboard/rebanho/operacao', icon: ListChecks, titulo: 'Operação do dia', descricao: 'Pendências e rotina' },
       { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'KPIs e alertas' },
       { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas e saídas' },
     ],

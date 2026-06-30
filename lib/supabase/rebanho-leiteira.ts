@@ -1,8 +1,10 @@
 'use server';
 
 import { createSupabaseServerClient } from './server';
-import { getCurrentUserId } from '@/lib/auth/helpers';
+import { getCurrentUserId, getCurrentFazendaId } from '@/lib/auth/helpers';
 import type { ProducaoLeiteira, ProducaoLeiteiraInput } from '@/lib/types/rebanho-leiteira';
+import { calcularKpisLeiteiros, type KpisLeiteiros } from '@/lib/calculos/indicadores-rebanho';
+import type { Animal } from '@/lib/types/rebanho';
 
 // ========== CRIAR PRODUÇÃO LEITEIRA ==========
 
@@ -174,6 +176,65 @@ export async function getDELMedioAtivo(): Promise<number | null> {
   });
 
   return Math.round(somasDias.reduce((a, b) => a + b, 0) / somasDias.length);
+}
+
+// ========== KPIs DO PAINEL LEITEIRO (serviço reusável — Fase 4, P4.1) ==========
+
+/**
+ * Serviço reusável dos KPIs do painel leiteiro.
+ *
+ * Centraliza as buscas que antes viviam inline na página de Gestão Leiteira
+ * (produções no período, total do período, fêmeas leiteiras, DEL médio) e
+ * delega o cálculo à função pura `calcularKpisLeiteiros`. Os números são
+ * idênticos aos da página atual (D-4.1). Consumido tanto pela página de
+ * Leiteira quanto pela superfície única de Indicadores do Rebanho.
+ *
+ * Janela padrão: últimos 30 dias (mesma da página de Leiteira). O chamador
+ * pode passar um período explícito; quando omitido, usa os últimos 30 dias.
+ */
+export async function getKpisLeiteiros(periodo?: {
+  dataInicio: string;
+  dataFim: string;
+}): Promise<KpisLeiteiros> {
+  const supabase = await createSupabaseServerClient();
+  const fazendaId = await getCurrentFazendaId();
+
+  let dataInicio: string;
+  let dataFim: string;
+  if (periodo) {
+    dataInicio = periodo.dataInicio;
+    dataFim = periodo.dataFim;
+  } else {
+    const hoje = new Date();
+    const inicio30dias = new Date(hoje);
+    inicio30dias.setDate(inicio30dias.getDate() - 30);
+    dataInicio = inicio30dias.toISOString().split('T')[0];
+    dataFim = hoje.toISOString().split('T')[0];
+  }
+
+  const [producoes, totais, animaisRes, delMedio] = await Promise.all([
+    listProducoesLeiteirasNoPeriodo(dataInicio, dataFim),
+    totalProducaoLeiteiraPeriodo(dataInicio, dataFim),
+    supabase
+      .from('animais')
+      .select('id, status_reprodutivo, status')
+      .eq('fazenda_id', fazendaId)
+      .eq('sexo', 'Fêmea')
+      .in('tipo_rebanho', ['leiteiro', 'dupla_aptidao'])
+      .is('deleted_at', null),
+    getDELMedioAtivo(),
+  ]);
+
+  const animais = (animaisRes.data ?? []) as Pick<Animal, 'status_reprodutivo' | 'status'>[];
+
+  return calcularKpisLeiteiros({
+    animais,
+    producoes: producoes.map((p) => ({ data: p.data, volume_litros: p.volume_litros })),
+    totalLitrosPeriodo: totais.total_litros,
+    delMedioDias: delMedio,
+    dataInicio,
+    dataFim,
+  });
 }
 
 // ========== DELETAR PRODUÇÃO ==========

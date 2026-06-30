@@ -1,18 +1,27 @@
+import { CATEGORIA } from '@/lib/constants/categorias-rebanho';
+
+/**
+ * Consumo de matéria seca por categoria animal (kg MS/cabeça/dia).
+ * Chaves usam CATEGORIA (fonte única) para garantir que casam com animais.categoria.
+ * ATENÇÃO (Fase 5 — P5.4): a chave 'Novilha (Prenha)' foi corrigida para CATEGORIA.NOVILHA_PRENHA
+ * ('Novilha Prenha'). Animais desta categoria deixam de usar o fallback CONSUMO_MS_PADRAO (7.0)
+ * e passam a usar o consumo correto (8.5). Esta é uma mudança intencional de comportamento.
+ */
 export const CONSUMO_MS_POR_CATEGORIA = new Map<string, number>([
-  ['Vaca em Lactação', 14.0],
-  ['Vaca Prenha', 10.0],
-  ['Vaca Seca', 8.0],
-  ['Vaca Vazia', 8.0],
-  ['Novilha (Prenha)', 8.5],
-  ['Novilha', 7.0],
-  ['Novilho', 7.0],
-  ['Bezerro', 2.5],
-  ['Bezerra', 2.5],
-  ['Touro', 10.0],
-  ['Boi', 9.0],
-  ['Vaca Matriz', 8.5],
-  ['Boi Descartado', 8.0],
-  ['Fêmea Descartada', 7.5],
+  [CATEGORIA.VACA_LACTACAO,    14.0],
+  [CATEGORIA.VACA_PRENHA,      10.0],
+  [CATEGORIA.VACA_SECA,         8.0],
+  [CATEGORIA.VACA_VAZIA,        8.0],
+  [CATEGORIA.NOVILHA_PRENHA,    8.5],
+  [CATEGORIA.NOVILHA,           7.0],
+  [CATEGORIA.NOVILHO,           7.0],
+  [CATEGORIA.BEZERRO,           2.5],
+  [CATEGORIA.BEZERRA,           2.5],
+  [CATEGORIA.TOURO,            10.0],
+  [CATEGORIA.BOI,               9.0],
+  [CATEGORIA.VACA_MATRIZ,       8.5],
+  [CATEGORIA.BOI_DESCARTADO,    8.0],
+  [CATEGORIA.FEMEA_DESCARTADA,  7.5],
 ]);
 
 export const CONSUMO_MS_PADRAO = 7.0;

@@ -12,9 +12,8 @@ import {
   type OcupacaoPiqueteComLote,
   type EventoManejoComJoins,
   type ResultadoCalculoUA,
-  FATORES_UA_POR_CATEGORIA,
-  UA_FATOR_PADRAO,
 } from '@/lib/types/pastagens';
+import { getUAPorLote } from '@/lib/rebanho/facade';
 
 type PastagemInsert = Omit<Database['public']['Tables']['pastagens']['Insert'], 'id' | 'fazenda_id' | 'created_at' | 'updated_at'>;
 type PastagemUpdate = Omit<Database['public']['Tables']['pastagens']['Update'], 'id' | 'fazenda_id' | 'created_at'>;
@@ -442,85 +441,16 @@ export async function deleteEventoManejo(id: string): Promise<void> {
 
 // ─── Cálculo de UA ───────────────────────────────────────────────────────────
 
+/**
+ * Calcula UA total e UA/ha de um lote, com fallback por categoria quando não há pesagem.
+ * Delega à fachada de domínio do rebanho (Fase 5 — SPEC-rebanho345 §8.3).
+ */
 export async function calcularUADoLote(
   loteId: string,
   areaHa: number,
 ): Promise<ResultadoCalculoUA> {
   const supabase = await createSupabaseServerClient();
-
-  const { data: animais, error: animaisError } = await supabase
-    .from('animais')
-    .select('id, categoria')
-    .eq('lote_id', loteId)
-    .eq('status', 'Ativo');
-
-  if (animaisError) throw animaisError;
-
-  if (!animais || animais.length === 0) {
-    return {
-      ua_total: 0,
-      ua_por_ha: null,
-      peso_medio_kg: 0,
-      quantidade_animais: 0,
-      metodo: 'fator_categoria',
-      animais_sem_pesagem: 0,
-    };
-  }
-
-  const animalIds = animais.map((a) => a.id);
-  const dataLimite = new Date();
-  dataLimite.setDate(dataLimite.getDate() - 90);
-  const dataLimiteStr = dataLimite.toISOString().split('T')[0];
-
-  const { data: pesagensRaw, error: pesagensError } = await supabase
-    .from('pesos_animal')
-    .select('animal_id, peso_kg, data_pesagem')
-    .in('animal_id', animalIds)
-    .gte('data_pesagem', dataLimiteStr)
-    .order('data_pesagem', { ascending: false });
-
-  if (pesagensError) throw pesagensError;
-
-  // Pegar a pesagem mais recente por animal
-  const pesagemPorAnimal = new Map<string, number>();
-  for (const p of pesagensRaw ?? []) {
-    if (!pesagemPorAnimal.has(p.animal_id)) {
-      pesagemPorAnimal.set(p.animal_id, Number(p.peso_kg));
-    }
-  }
-
-  let uaTotal = 0;
-  let pesoTotal = 0;
-  let animaisSemPesagem = 0;
-
-  for (const animal of animais) {
-    const pesoReal = pesagemPorAnimal.get(animal.id);
-
-    if (pesoReal !== undefined) {
-      const ua = pesoReal / 450;
-      uaTotal += ua;
-      pesoTotal += pesoReal;
-    } else {
-      const fator = FATORES_UA_POR_CATEGORIA[animal.categoria ?? ''] ?? UA_FATOR_PADRAO;
-      uaTotal += fator;
-      pesoTotal += fator * 450;
-      animaisSemPesagem++;
-    }
-  }
-
-  const quantidade = animais.length;
-  const pesoMedio = quantidade > 0 ? pesoTotal / quantidade : 0;
-  const uaPorHa = areaHa > 0 ? uaTotal / areaHa : null;
-  const metodo: ResultadoCalculoUA['metodo'] = animaisSemPesagem === 0 ? 'peso_real' : 'fator_categoria';
-
-  return {
-    ua_total: uaTotal,
-    ua_por_ha: uaPorHa,
-    peso_medio_kg: pesoMedio,
-    quantidade_animais: quantidade,
-    metodo,
-    animais_sem_pesagem: animaisSemPesagem,
-  };
+  return getUAPorLote(supabase, loteId, areaHa);
 }
 
 // ─── Dados para alertas do Dashboard ─────────────────────────────────────────

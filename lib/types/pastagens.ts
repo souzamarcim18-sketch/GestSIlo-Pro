@@ -1,3 +1,5 @@
+import { CATEGORIA } from '@/lib/constants/categorias-rebanho';
+
 // ─── Enums ─────────────────────────────────────────────────────────────────
 
 export type SistemaPastejo = 'rotacionado' | 'continuo' | 'semi_intensivo';
@@ -135,24 +137,32 @@ export interface EventoManejoComJoins extends EventoManejoPastagem {
  * Usados como fallback quando não há pesagem nos últimos 90 dias.
  * Fonte: Embrapa / literatura zootécnica nacional
  */
+/**
+ * Fatores fixos de conversão por categoria animal (valores zootécnicos padrão Brasil).
+ * Chaves usam CATEGORIA (fonte única — lib/constants/categorias-rebanho.ts) para garantir
+ * que casam com o que o trigger SQL grava em animais.categoria.
+ * ATENÇÃO (Fase 5 — P5.4): a chave 'Novilha (Prenha)' foi corrigida para CATEGORIA.NOVILHA_PRENHA
+ * ('Novilha Prenha'). Animais desta categoria deixam de cair no fallback UA_FATOR_PADRAO (1.00)
+ * e passam a usar o fator correto (0.50). Esta é uma mudança intencional de comportamento.
+ */
 export const FATORES_UA_POR_CATEGORIA: Record<string, number> = {
   // Leiteiro / dupla aptidão
-  'Bezerro':                0.25,
-  'Bezerra':                0.25,
-  'Novilha (Prenha)':       0.50,
-  'Novilho':                0.50,
-  'Vaca em Lactação':       1.00,
-  'Vaca Seca':              1.00,
-  'Vaca Prenha':            1.00,
-  'Vaca Vazia':             1.00,
-  'Touro':                  1.25,
+  [CATEGORIA.BEZERRO]:        0.25,
+  [CATEGORIA.BEZERRA]:        0.25,
+  [CATEGORIA.NOVILHA_PRENHA]: 0.50,
+  [CATEGORIA.NOVILHO]:        0.50,
+  [CATEGORIA.VACA_LACTACAO]:  1.00,
+  [CATEGORIA.VACA_SECA]:      1.00,
+  [CATEGORIA.VACA_PRENHA]:    1.00,
+  [CATEGORIA.VACA_VAZIA]:     1.00,
+  [CATEGORIA.TOURO]:          1.25,
   // Corte
-  'Novilha':                0.50,
-  'Vaca Matriz':            1.00,
-  'Boi':                    1.00,
-  'Boi Descartado':         1.00,
-  'Fêmea Descartada':       1.00,
-} as const;
+  [CATEGORIA.NOVILHA]:        0.50,
+  [CATEGORIA.VACA_MATRIZ]:    1.00,
+  [CATEGORIA.BOI]:            1.00,
+  [CATEGORIA.BOI_DESCARTADO]: 1.00,
+  [CATEGORIA.FEMEA_DESCARTADA]: 1.00,
+};
 
 export const UA_FATOR_PADRAO = 1.00;
 

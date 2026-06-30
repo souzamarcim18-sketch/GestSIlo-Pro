@@ -9,6 +9,7 @@ import { daysBetween, formatarDataBR, derivarAlertasEtapa1, derivarAlertasPastag
 import { SUBTIPOS_NAO_CONSUMO } from './silos/helpers';
 import { getAtividadesRecentes } from '@/lib/supabase/calendario';
 import { formatBRL } from '@/lib/utils';
+import { getAlertasRebanhoParaDashboard, type VacinacaoAlertaRow } from '@/lib/rebanho/facade';
 
 type InsumoAlertaRow = {
   id: string;
@@ -31,14 +32,6 @@ type ProdutoAlertaRow = {
   unidade: string;
   estoque_atual: number;
   estoque_minimo: number;
-};
-
-type VacinacaoAlertaRow = {
-  id: string;
-  animal_id: string;
-  vacina_nome: string | null;
-  data_proxima_dose: string;
-  animais: { brinco: string | null; nome: string | null } | null;
 };
 
 
@@ -83,6 +76,10 @@ export default async function DashboardPage() {
   proximosQuinze.setDate(now.getDate() + 15);
   const proximosQuinzeStr = proximosQuinze.toISOString().split('T')[0];
 
+  // Dados do rebanho via fachada de domínio (Fase 5 — SPEC-rebanho345 §8.3).
+  // Executado em paralelo com o Promise.all abaixo.
+  const dadosRebanhoPromise = getAlertasRebanhoParaDashboard(supabase, fazendaId, proximosQuinzeStr);
+
   const [
     silosRes,
     talhoesRes,
@@ -91,15 +88,10 @@ export default async function DashboardPage() {
     finRes,
     movsRecentesRes,
     todasMovsSilosRes,
-    animaisCategRes,
     ciclosRes,
-    animaisTipoRes,
-    lotesRes,
-    animaisPorLoteRes,
     eventosOperacoesRes,
     insumosAlertaRes,
     manutencoesAlertaRes,
-    vacinacoesAlertaRes,
     produtosAlertaRes,
     piquetesAlertaRes,
     atividadesRecentesRes,
@@ -139,33 +131,9 @@ export default async function DashboardPage() {
       .select('silo_id, tipo, subtipo, quantidade')
       .eq('fazenda_id', fazendaId),
     supabase
-      .from('animais')
-      .select('categoria')
-      .eq('fazenda_id', fazendaId)
-      .eq('status', 'Ativo')
-      .is('deleted_at', null),
-    supabase
       .from('ciclos_agricolas')
       .select('id, cultura, data_plantio, data_colheita_prevista, data_colheita_real, talhao_id, talhoes(id, nome, fazenda_id)')
       .eq('ativo', true),
-    supabase
-      .from('animais')
-      .select('tipo_rebanho')
-      .eq('fazenda_id', fazendaId)
-      .eq('status', 'Ativo')
-      .is('deleted_at', null),
-    supabase
-      .from('lotes')
-      .select('id, nome')
-      .eq('fazenda_id', fazendaId)
-      .order('nome'),
-    supabase
-      .from('animais')
-      .select('lote_id')
-      .eq('fazenda_id', fazendaId)
-      .eq('status', 'Ativo')
-      .is('deleted_at', null)
-      .not('lote_id', 'is', null),
     supabase
       .from('eventos_dap')
       .select('id, data_esperada, data_realizada, tipo_operacao, status, cultura, talhoes(id, nome, fazenda_id)')
@@ -181,14 +149,6 @@ export default async function DashboardPage() {
       .lte('proxima_manutencao', proximosSeteStr)
       .order('proxima_manutencao', { ascending: true })
       .limit(5),
-    supabase
-      .from('eventos_sanitarios')
-      .select('id, animal_id, vacina_nome, data_proxima_dose, animais(brinco, nome)')
-      .eq('tipo', 'vacinacao')
-      .is('deleted_at', null)
-      .lte('data_proxima_dose', proximosQuinzeStr)
-      .order('data_proxima_dose', { ascending: true })
-      .limit(10),
     supabase
       .from('produtos')
       .select('id, nome, unidade, estoque_atual, estoque_minimo')
@@ -217,6 +177,14 @@ export default async function DashboardPage() {
       .gte('data', mesAnteriorInicio)
       .lte('data', mesAnteriorFim),
   ]);
+
+  // Resolve a promise da fachada de rebanho (iniciada antes do Promise.all)
+  const dadosRebanho = await dadosRebanhoPromise;
+  const animaisCategRes = { data: dadosRebanho.animaisCategoria };
+  const animaisTipoRes = { data: dadosRebanho.animaisTipo };
+  const lotesRes = { data: dadosRebanho.lotes };
+  const animaisPorLoteRes = { data: dadosRebanho.animaisPorLote };
+  const vacinacoesAlertaRes = { data: dadosRebanho.vacinacoes };
 
   // --- Silagem ---
   const silosData = silosRes.data ?? [];
@@ -519,7 +487,9 @@ export default async function DashboardPage() {
   });
 
   // Etapa 2 — alertas de vacinações
-  const vacinacoesVencendo = (vacinacoesAlertaRes.data ?? []) as unknown as VacinacaoAlertaRow[];
+  const vacinacoesVencendo = (vacinacoesAlertaRes.data ?? []).filter(
+    (v): v is VacinacaoAlertaRow & { data_proxima_dose: string } => v.data_proxima_dose !== null,
+  );
   const alertasVacinacao: AlertaCritico[] = vacinacoesVencendo.map((v) => {
     const dias = daysBetween(hoje, v.data_proxima_dose);
     const vencida = dias < 0;
