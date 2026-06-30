@@ -1,3 +1,7 @@
+// @vitest-environment node
+// O serviço de e-mail/JWT é server-side (jose webapi). Sob jsdom o Uint8Array
+// gerado por TextEncoder pertence a outro realm e jose rejeita com
+// "payload must be an instance of Uint8Array". O ambiente node alinha os globais.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { gerarTokenConfirmacao, verificarTokenConfirmacao } from '@/lib/services/email';
 

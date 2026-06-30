@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@/lib/utils', () => ({
   formatBRL: (v: number) => `R$ ${v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`,
@@ -24,8 +24,6 @@ function makeAnimal(overrides: Partial<AnimalCompleto> = {}): AnimalCompleto {
     categoria: 'Vaca em Lactação',
     status: 'Ativo',
     data_nascimento: '2020-01-15',
-    data_entrada: '2020-02-01',
-    data_desmame: null,
     fazenda_id: 'f1',
     lote_nome: 'Lote A',
     ultimo_peso_kg: 450,

@@ -9,7 +9,7 @@
  * - skip() se variáveis não disponíveis
  */
 
-import { describe, it, expect, beforeAll, afterAll, skip } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 

@@ -47,8 +47,6 @@ function makeUso(overrides: Partial<UsoMaquina> = {}): UsoMaquina {
     id: 'uso-1',
     maquina_id: 'maq-1',
     data: '2026-01-01',
-    operador: 'Operador 1',
-    atividade: 'Aração',
     horas: 8,
     km: null,
     horimetro_inicio: null,

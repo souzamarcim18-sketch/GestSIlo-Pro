@@ -54,7 +54,7 @@ describe('derivarAlertasEtapa1', () => {
   });
 
   it('não gera alerta para operação planejada', () => {
-    const op = { ...opBase, status: 'Planejado' };
+    const op = { ...opBase, status: 'Planejado' } satisfies ProximaOperacaoComBadge;
     const alertas = derivarAlertasEtapa1({
       proximasOperacoes: [op],
       autonomiaDiasNum: null,

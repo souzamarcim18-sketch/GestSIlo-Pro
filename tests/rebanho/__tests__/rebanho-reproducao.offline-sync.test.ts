@@ -13,17 +13,17 @@ if (typeof globalThis !== 'undefined' && !globalThis.crypto?.randomUUID) {
   if (!globalThis.crypto) {
     (globalThis as unknown as { crypto: Partial<Crypto> }).crypto = {};
   }
-  globalThis.crypto.randomUUID = () => {
+  globalThis.crypto.randomUUID = (): `${string}-${string}-${string}-${string}-${string}` => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (Math.random() * 16) | 0;
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
-    });
+    }) as `${string}-${string}-${string}-${string}-${string}`;
   };
 }
 
 describe('Rebanho Reprodução — Offline Sync', () => {
-  type MockSupabase = { from: ReturnType<typeof vi.fn>; rpc?: ReturnType<typeof vi.fn> };
+  type MockSupabase = { from: ReturnType<typeof vi.fn>; rpc: ReturnType<typeof vi.fn> };
   let mockSupabase: MockSupabase;
   let enqueue: typeof SyncQueueModule.enqueue;
   let enqueueRpc: typeof SyncQueueModule.enqueueRpc;
@@ -38,6 +38,13 @@ describe('Rebanho Reprodução — Offline Sync', () => {
   let markAsSynced: typeof EventosRbModule.markAsSynced;
   let markAsError: typeof EventosRbModule.markAsError;
   let deleteEventoLocal: typeof EventosRbModule.deleteEventoLocal;
+
+  /** getDb() pode retornar null (ambiente sem IndexedDB); nos testes o fake-indexeddb garante a instância. */
+  async function getDbOrThrow(): Promise<NonNullable<Awaited<ReturnType<typeof getDb>>>> {
+    const db = await getDb();
+    if (!db) throw new Error('IndexedDB indisponível no ambiente de teste');
+    return db;
+  }
 
   beforeEach(async () => {
     // Importar dinamicamente se ainda não estiver feito
@@ -106,7 +113,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         _created_at: Date.now(),
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       const queue = await db.getAll('sync_queue');
 
       expect(queue.length).toBe(1);
@@ -122,7 +129,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         observacoes: 'Nova observação',
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       const queue = await db.getAll('sync_queue');
 
       expect(queue.length).toBe(1);
@@ -134,7 +141,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         id: EVENTO_ID_1,
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       const queue = await db.getAll('sync_queue');
 
       expect(queue.length).toBe(1);
@@ -157,14 +164,14 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         data: eventoLocal,
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       const queue = await db.getAll('sync_queue');
 
       expect(queue.length).toBe(1);
       expect(queue[0].operacao).toBe('RPC');
       expect(queue[0].payload.rpc).toBe('rpc_lancar_parto');
 
-      const cached = await db.get('eventos_rebanho', EVENTO_ID_1);
+      const cached = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(cached).toBeDefined();
       expect(cached.animal_id).toBe(ANIMAL_ID);
     });
@@ -182,8 +189,8 @@ describe('Rebanho Reprodução — Offline Sync', () => {
       expect(eventoId).toBeDefined();
       expect(typeof eventoId).toBe('string');
 
-      const db = await getDb();
-      const evento = await db.get('eventos_rebanho', eventoId);
+      const db = await getDbOrThrow();
+      const evento = (await db.get('eventos_rebanho', eventoId))!;
 
       expect(evento).toBeDefined();
       expect(evento._sync_status).toBe('pending');
@@ -222,7 +229,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         payload: {},
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       expect(await db.count('sync_queue')).toBe(3);
 
       mockSupabase.from.mockReturnValue({
@@ -264,7 +271,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         id: EVENTO_ID_3,
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       mockSupabase.from.mockReturnValue({
         insert: vi.fn().mockResolvedValue({ data: {}, error: null }),
@@ -294,14 +301,14 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
       expect(result.sincronizados).toBe(1);
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       expect(await db.count('sync_queue')).toBe(0);
     });
   });
 
   describe('Conflito Animal Morto', () => {
     it('Fila tem evento, detectarConflito retorna animal_morto → marca pendente_revisao', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
         animal_id: ANIMAL_ID,
@@ -336,14 +343,14 @@ describe('Rebanho Reprodução — Offline Sync', () => {
       expect(result.conflitos).toBe(1);
       expect(result.sincronizados).toBe(0);
 
-      const evento = await db.get('eventos_rebanho', EVENTO_ID_1);
+      const evento = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evento._sync_status).toBe('pendente_revisao');
       expect(evento._conflict_motivo).toBe('animal_morto');
       expect(await db.count('sync_queue')).toBe(0);
     });
 
     it('Fila tem evento, animal status Vendido → marca conflito com motivo animal_vendido', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
         animal_id: ANIMAL_ID,
@@ -377,12 +384,12 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
       expect(result.conflitos).toBe(1);
 
-      const evento = await db.get('eventos_rebanho', EVENTO_ID_1);
+      const evento = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evento._conflict_motivo).toBe('animal_vendido');
     });
 
     it('Fila tem evento, animal Ativo → sincroniza normalmente sem conflito', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
         animal_id: ANIMAL_ID,
@@ -418,14 +425,14 @@ describe('Rebanho Reprodução — Offline Sync', () => {
       expect(result.sincronizados).toBe(1);
       expect(result.conflitos).toBe(0);
 
-      const evento = await db.get('eventos_rebanho', EVENTO_ID_1);
+      const evento = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evento._sync_status).not.toBe('pendente_revisao');
     });
   });
 
   describe('Resolução Manual via UI', () => {
     it('markAsError() → marca evento como error', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
         animal_id: ANIMAL_ID,
@@ -438,12 +445,12 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
       await markAsError(EVENTO_ID_1);
 
-      const evento = await db.get('eventos_rebanho', EVENTO_ID_1);
+      const evento = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evento._sync_status).toBe('error');
     });
 
     it('markAsSynced() → marca evento como synced', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
         animal_id: ANIMAL_ID,
@@ -456,12 +463,12 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
       await markAsSynced(EVENTO_ID_1);
 
-      const evento = await db.get('eventos_rebanho', EVENTO_ID_1);
+      const evento = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evento._sync_status).toBe('synced');
     });
 
     it('deleteEventoLocal() → remove evento do cache', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
         animal_id: ANIMAL_ID,
@@ -480,7 +487,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
     });
 
     it('hydrateEventosFromServer() preserva pending, sobrescreve synced', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
@@ -528,15 +535,15 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
       await hydrateEventosFromServer(serverEventos);
 
-      const evt1 = await db.get('eventos_rebanho', EVENTO_ID_1);
+      const evt1 = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evt1._sync_status).toBe('pending');
       expect(evt1.payload.v).toBe(1);
 
-      const evt2 = await db.get('eventos_rebanho', EVENTO_ID_2);
+      const evt2 = (await db.get('eventos_rebanho', EVENTO_ID_2))!;
       expect(evt2._sync_status).toBe('synced');
       expect(evt2.payload.v).toBe(2);
 
-      const evt3 = await db.get('eventos_rebanho', EVENTO_ID_3);
+      const evt3 = (await db.get('eventos_rebanho', EVENTO_ID_3))!;
       expect(evt3).toBeDefined();
       expect(evt3.payload.novo).toBe(true);
     });
@@ -544,7 +551,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
   describe('Queries de Filtro', () => {
     it('getEventosByAnimal() retorna eventos de um animal, ordenados por data DESC', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
@@ -574,7 +581,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
     });
 
     it('getEventosByTipo() retorna eventos de um tipo específico', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
@@ -613,7 +620,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
     });
 
     it('getEventosPendentes() retorna eventos com _sync_status=pending', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
@@ -642,7 +649,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
     });
 
     it('getAllEventosLocais() retorna todos eventos, ordenados por data DESC', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
@@ -674,7 +681,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
   describe('Idempotência', () => {
     it('Eventos com IDs diferentes são mantidos separados', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
@@ -696,8 +703,8 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         _created_at: Date.now(),
       });
 
-      const evt1 = await db.get('eventos_rebanho', EVENTO_ID_1);
-      const evt2 = await db.get('eventos_rebanho', EVENTO_ID_2);
+      const evt1 = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
+      const evt2 = (await db.get('eventos_rebanho', EVENTO_ID_2))!;
 
       expect(evt1.id).not.toBe(evt2.id);
       expect(evt1.tipo_evento).toBe('cobertura');
@@ -705,7 +712,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
     });
 
     it('Atualizar evento com mesmo ID sobrescreve a versão anterior', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
 
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
@@ -717,7 +724,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         _created_at: 1000,
       });
 
-      let evt = await db.get('eventos_rebanho', EVENTO_ID_1);
+      let evt = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evt.payload.observacoes).toBe('v1');
 
       await db.put('eventos_rebanho', {
@@ -730,7 +737,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         _created_at: 1000,
       });
 
-      evt = await db.get('eventos_rebanho', EVENTO_ID_1);
+      evt = (await db.get('eventos_rebanho', EVENTO_ID_1))!;
       expect(evt.payload.observacoes).toBe('v2 atualizado');
     });
 
@@ -759,7 +766,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         payload: {},
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       const queue = await db.getAll('sync_queue');
 
       expect(queue.length).toBe(3);
@@ -769,7 +776,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
 
   describe('Múltiplos Eventos em Fila', () => {
     it('Fila com mix de INSERT/UPDATE/DELETE → processa todos em ordem', async () => {
-      const db = await getDb();
+      const db = await getDbOrThrow();
       await db.put('eventos_rebanho', {
         id: EVENTO_ID_1,
         animal_id: ANIMAL_ID,
@@ -853,7 +860,7 @@ describe('Rebanho Reprodução — Offline Sync', () => {
         payload: {},
       });
 
-      const db = await getDb();
+      const db = await getDbOrThrow();
       const queue = await db.getAll('sync_queue');
 
       expect(queue.length).toBe(2);

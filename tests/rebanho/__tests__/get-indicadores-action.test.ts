@@ -61,6 +61,11 @@ vi.mock('@/lib/calculos/indicadores-rebanho', () => ({
     taxa_percentual: 5,
   })),
   calcularGMDMedioRebanho: vi.fn(() => 1.25),
+  calcularIntervaloEntrePartos: vi.fn(() => null),
+  calcularIdadePrimeiroParto: vi.fn(() => null),
+  montarSerieGMDPorAnimal: vi.fn(() => []),
+  montarSerieNatalidadeMortalidade: vi.fn(() => []),
+  montarComparativoLotes: vi.fn(() => []),
   isVacaProdutiva: vi.fn((cat) => cat === 'Vaca em Lactação'),
   isVaca: vi.fn((cat) => cat.includes('Vaca')),
 }));

@@ -209,7 +209,7 @@ describe('Indicadores Rebanho — Cálculos Puros', () => {
     it('calcula idade primo parto com relação mae-filho', () => {
       // a1 nasceu 2020-01-15, teve parto em 2026-02-15
       // Idade: ~6 anos = ~72 meses
-      const vacas = ANIMAIS_FIXTURE.filter((a) => a.sexo === 'F');
+      const vacas = ANIMAIS_FIXTURE.filter((a) => a.sexo === 'Fêmea');
       const datasParto = EVENTOS_FIXTURE.filter((e) => e.tipo === 'nascimento');
 
       const relacaoMaeFilho = new Map<string, string[]>();

@@ -22,6 +22,10 @@ vi.mock('@/lib/supabase/rebanho-indicadores', () => ({
   buscarPesosNoPeriodo: vi.fn(),
   buscarAnimaisFiltrados: vi.fn(),
   buscarEventosPartos: vi.fn(),
+  buscarPartosComMae: vi.fn().mockResolvedValue([]),
+  buscarDiagnosticosPrenhez: vi.fn().mockResolvedValue([]),
+  buscarAnimaisReprodutivos: vi.fn().mockResolvedValue([]),
+  buscarLactacoesEncerradas: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('@/lib/calculos/indicadores-rebanho', () => ({
@@ -57,6 +61,12 @@ vi.mock('@/lib/calculos/indicadores-rebanho', () => ({
     taxa_percentual: 5,
   })),
   calcularGMDMedioRebanho: vi.fn(() => 1.25),
+  calcularIntervaloEntrePartos: vi.fn(() => null),
+  calcularIdadePrimeiroParto: vi.fn(() => null),
+  montarSerieGMDPorAnimal: vi.fn(() => []),
+  montarSerieNatalidadeMortalidade: vi.fn(() => []),
+  montarComparativoLotes: vi.fn(() => []),
+  isVacaProdutiva: vi.fn((cat) => cat === 'Vaca em Lactação'),
   isVaca: vi.fn((cat) => cat.includes('Vaca')),
 }));
 

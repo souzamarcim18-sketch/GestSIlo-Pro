@@ -36,6 +36,7 @@ import {
   montarComparativoLotes,
 } from '../indicadores-rebanho';
 import type { Animal, EventoRebanho, PesoAnimal } from '@/lib/types/rebanho';
+import { TipoRebanho, TipoEvento } from '@/lib/types/rebanho';
 
 // ========== HELPERS DE CATEGORIA ==========
 
@@ -125,10 +126,10 @@ describe('Constantes de categorias', () => {
 describe('calcularComposicaoRebanho', () => {
   it('deve calcular corretamente com animais mistos', () => {
     const animais: Pick<Animal, 'categoria' | 'sexo' | 'tipo_rebanho'>[] = [
-      { categoria: 'Bezerro', sexo: 'Macho', tipo_rebanho: 'leiteiro' },
-      { categoria: 'Bezerra', sexo: 'Fêmea', tipo_rebanho: 'leiteiro' },
-      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: 'leiteiro' },
-      { categoria: 'Boi', sexo: 'Macho', tipo_rebanho: 'corte' },
+      { categoria: 'Bezerro', sexo: 'Macho', tipo_rebanho: TipoRebanho.LEITEIRO },
+      { categoria: 'Bezerra', sexo: 'Fêmea', tipo_rebanho: TipoRebanho.LEITEIRO },
+      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: TipoRebanho.LEITEIRO },
+      { categoria: 'Boi', sexo: 'Macho', tipo_rebanho: TipoRebanho.CORTE },
     ];
 
     const resultado = calcularComposicaoRebanho(animais);
@@ -156,9 +157,9 @@ describe('calcularComposicaoRebanho', () => {
 
   it('deve agrupar corretamente múltiplos animais da mesma categoria', () => {
     const animais: Pick<Animal, 'categoria' | 'sexo' | 'tipo_rebanho'>[] = [
-      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: 'leiteiro' },
-      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: 'leiteiro' },
-      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: 'leiteiro' },
+      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: TipoRebanho.LEITEIRO },
+      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: TipoRebanho.LEITEIRO },
+      { categoria: 'Vaca em Lactação', sexo: 'Fêmea', tipo_rebanho: TipoRebanho.LEITEIRO },
     ];
 
     const resultado = calcularComposicaoRebanho(animais);
@@ -232,9 +233,9 @@ describe('contarPorFaixaEtaria', () => {
 describe('calcularTaxaNatalidade', () => {
   it('deve calcular taxa de natalidade corretamente', () => {
     const eventos: Pick<EventoRebanho, 'tipo'>[] = [
-      { tipo: 'nascimento' },
-      { tipo: 'nascimento' },
-      { tipo: 'pesagem' },
+      { tipo: TipoEvento.NASCIMENTO },
+      { tipo: TipoEvento.NASCIMENTO },
+      { tipo: TipoEvento.PESAGEM },
     ];
 
     const resultado = calcularTaxaNatalidade(eventos, 10);
@@ -245,7 +246,7 @@ describe('calcularTaxaNatalidade', () => {
   });
 
   it('deve retornar 0% quando denominador é zero', () => {
-    const eventos: Pick<EventoRebanho, 'tipo'>[] = [{ tipo: 'nascimento' }];
+    const eventos: Pick<EventoRebanho, 'tipo'>[] = [{ tipo: TipoEvento.NASCIMENTO }];
 
     const resultado = calcularTaxaNatalidade(eventos, 0);
 
@@ -254,9 +255,9 @@ describe('calcularTaxaNatalidade', () => {
 
   it('deve ignorar eventos que não são nascimento', () => {
     const eventos: Pick<EventoRebanho, 'tipo'>[] = [
-      { tipo: 'morte' },
-      { tipo: 'venda' },
-      { tipo: 'pesagem' },
+      { tipo: TipoEvento.MORTE },
+      { tipo: TipoEvento.VENDA },
+      { tipo: TipoEvento.PESAGEM },
     ];
 
     const resultado = calcularTaxaNatalidade(eventos, 10);
@@ -269,9 +270,9 @@ describe('calcularTaxaNatalidade', () => {
 describe('calcularTaxaMortalidade', () => {
   it('deve calcular taxa de mortalidade com rebanho médio', () => {
     const eventos: Pick<EventoRebanho, 'tipo'>[] = [
-      { tipo: 'morte' },
-      { tipo: 'morte' },
-      { tipo: 'pesagem' },
+      { tipo: TipoEvento.MORTE },
+      { tipo: TipoEvento.MORTE },
+      { tipo: TipoEvento.PESAGEM },
     ];
 
     const resultado = calcularTaxaMortalidade(eventos, 100, 98);
@@ -292,9 +293,9 @@ describe('calcularTaxaMortalidade', () => {
 
   it('deve contar apenas eventos de morte', () => {
     const eventos: Pick<EventoRebanho, 'tipo'>[] = [
-      { tipo: 'morte' },
-      { tipo: 'venda' },
-      { tipo: 'nascimento' },
+      { tipo: TipoEvento.MORTE },
+      { tipo: TipoEvento.VENDA },
+      { tipo: TipoEvento.NASCIMENTO },
     ];
 
     const resultado = calcularTaxaMortalidade(eventos, 100, 97);
@@ -306,10 +307,10 @@ describe('calcularTaxaMortalidade', () => {
 describe('calcularTaxaMortalidadeBezerros', () => {
   it('deve calcular taxa de mortalidade de bezerros', () => {
     const eventos: Pick<EventoRebanho, 'tipo'>[] = [
-      { tipo: 'nascimento' },
-      { tipo: 'nascimento' },
-      { tipo: 'nascimento' },
-      { tipo: 'morte' },
+      { tipo: TipoEvento.NASCIMENTO },
+      { tipo: TipoEvento.NASCIMENTO },
+      { tipo: TipoEvento.NASCIMENTO },
+      { tipo: TipoEvento.MORTE },
     ];
 
     const resultado = calcularTaxaMortalidadeBezerros(eventos);
@@ -320,7 +321,7 @@ describe('calcularTaxaMortalidadeBezerros', () => {
   });
 
   it('deve retornar 0% quando não há nascimentos', () => {
-    const eventos: Pick<EventoRebanho, 'tipo'>[] = [{ tipo: 'morte' }];
+    const eventos: Pick<EventoRebanho, 'tipo'>[] = [{ tipo: TipoEvento.MORTE }];
 
     const resultado = calcularTaxaMortalidadeBezerros(eventos);
 
@@ -331,10 +332,10 @@ describe('calcularTaxaMortalidadeBezerros', () => {
 describe('calcularTaxaDesfrute', () => {
   it('deve calcular vendas + mortes / rebanho médio', () => {
     const eventos: Pick<EventoRebanho, 'tipo'>[] = [
-      { tipo: 'venda' },
-      { tipo: 'venda' },
-      { tipo: 'morte' },
-      { tipo: 'pesagem' },
+      { tipo: TipoEvento.VENDA },
+      { tipo: TipoEvento.VENDA },
+      { tipo: TipoEvento.MORTE },
+      { tipo: TipoEvento.PESAGEM },
     ];
 
     const resultado = calcularTaxaDesfrute(eventos, 100, 95);
@@ -345,7 +346,7 @@ describe('calcularTaxaDesfrute', () => {
   });
 
   it('deve proteger contra denominador zero', () => {
-    const eventos: Pick<EventoRebanho, 'tipo'>[] = [{ tipo: 'venda' }];
+    const eventos: Pick<EventoRebanho, 'tipo'>[] = [{ tipo: TipoEvento.VENDA }];
 
     const resultado = calcularTaxaDesfrute(eventos, 0, 0);
 
@@ -521,8 +522,11 @@ describe('calcularGMDMedioRebanho', () => {
       ],
       [
         'animal2',
-        [{ data_pesagem: '2026-05-01', peso_kg: 200 }], // ignored (< 2)
-      ] as Pick<PesoAnimal, 'data_pesagem' | 'peso_kg'>[],
+        [{ data_pesagem: '2026-05-01', peso_kg: 200 }] as Pick<
+          PesoAnimal,
+          'data_pesagem' | 'peso_kg'
+        >[], // ignored (< 2)
+      ],
     ]);
 
     const gmdMedio = calcularGMDMedioRebanho(pesagensMap, {
@@ -744,10 +748,10 @@ describe('montarSerieGMDPorAnimal', () => {
 describe('montarSerieNatalidadeMortalidade', () => {
   it('agrupa nascimentos e mortes por mês e calcula percentuais', () => {
     const eventos: Pick<EventoRebanho, 'tipo' | 'data_evento'>[] = [
-      { tipo: 'nascimento', data_evento: '2026-01-05' },
-      { tipo: 'nascimento', data_evento: '2026-01-20' },
-      { tipo: 'morte', data_evento: '2026-01-15' },
-      { tipo: 'nascimento', data_evento: '2026-02-10' },
+      { tipo: TipoEvento.NASCIMENTO, data_evento: '2026-01-05' },
+      { tipo: TipoEvento.NASCIMENTO, data_evento: '2026-01-20' },
+      { tipo: TipoEvento.MORTE, data_evento: '2026-01-15' },
+      { tipo: TipoEvento.NASCIMENTO, data_evento: '2026-02-10' },
     ];
     const serie = montarSerieNatalidadeMortalidade(eventos, 100);
     expect(serie).toHaveLength(2);
@@ -760,15 +764,15 @@ describe('montarSerieNatalidadeMortalidade', () => {
 
   it('ignora eventos que não são nascimento/morte', () => {
     const eventos: Pick<EventoRebanho, 'tipo' | 'data_evento'>[] = [
-      { tipo: 'pesagem', data_evento: '2026-01-05' },
-      { tipo: 'venda', data_evento: '2026-01-06' },
+      { tipo: TipoEvento.PESAGEM, data_evento: '2026-01-05' },
+      { tipo: TipoEvento.VENDA, data_evento: '2026-01-06' },
     ];
     expect(montarSerieNatalidadeMortalidade(eventos, 100)).toEqual([]);
   });
 
   it('retorna taxa 0 quando rebanho é 0 (evita divisão por zero)', () => {
     const eventos: Pick<EventoRebanho, 'tipo' | 'data_evento'>[] = [
-      { tipo: 'nascimento', data_evento: '2026-01-05' },
+      { tipo: TipoEvento.NASCIMENTO, data_evento: '2026-01-05' },
     ];
     const serie = montarSerieNatalidadeMortalidade(eventos, 0);
     expect(serie[0].natalidade).toBe(0);

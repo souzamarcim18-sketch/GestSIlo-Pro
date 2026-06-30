@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock do formatBRL antes de importar o módulo
 vi.mock('@/lib/utils', () => ({

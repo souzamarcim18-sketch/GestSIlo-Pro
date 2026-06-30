@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { EventoRebanho, PesoAnimal, Animal } from '@/lib/types/rebanho';
+import { StatusAnimal } from '@/lib/types/rebanho';
 import {
   buscarEventosNoPeriodo,
   buscarPesosNoPeriodo,
@@ -55,9 +56,10 @@ function makePeso(overrides: Partial<PesoAnimal> = {}): PesoAnimal {
     animal_id: 'animal-1',
     data_pesagem: '2024-01-15',
     peso_kg: 150.5,
+    metodo: 'balanca',
+    condicao_corporal: null,
     observacoes: null,
     created_at: '2024-01-15T00:00:00Z',
-    updated_at: '2024-01-15T00:00:00Z',
     ...overrides,
   };
 }
@@ -70,19 +72,31 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
     sexo: 'Fêmea',
     tipo_rebanho: 'leiteiro' as Animal['tipo_rebanho'],
     data_nascimento: '2020-01-01',
+    data_nascimento_estimada: false,
     categoria: 'Vaca em Lactação',
-    status: 'Ativo',
+    status: StatusAnimal.ATIVO,
     lote_id: 'lote-1',
     peso_atual: 450.5,
+    peso_nascimento: null,
     mae_id: null,
     pai_id: null,
     raca: 'Holandês',
     observacoes: null,
+    sisbov_crbio: null,
+    origem: null,
+    foto_url: null,
+    nome: null,
     deleted_at: null,
     created_at: '2020-01-01T00:00:00Z',
     updated_at: '2024-01-15T00:00:00Z',
     status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
+    data_ultimo_parto: null,
+    data_parto_previsto: null,
+    data_proxima_secagem: null,
+    escore_condicao_corporal: null,
+    flag_repetidora: false,
     is_reprodutor: false,
+    reprodutor_vinculado_id: null,
     ...overrides,
   };
 }
@@ -359,12 +373,12 @@ describe('buscarAnimaisFiltrados', () => {
     const animal1 = makeAnimal({
       id: 'animal-1',
       brinco: '001',
-      status: 'Ativo',
+      status: StatusAnimal.ATIVO,
     });
     const animal2 = makeAnimal({
       id: 'animal-2',
       brinco: '002',
-      status: 'Ativo',
+      status: StatusAnimal.ATIVO,
     });
 
     const mockClient = {

@@ -3,21 +3,23 @@
  * Dataset: 10 animais, 30 pesagens, 10 eventos (5 partos, 2 mortes, 3 descartes)
  */
 
+import { TipoRebanho, TipoEvento } from '@/lib/types/rebanho';
+
 export const FAZENDA_TEST_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 export const ANIMAIS_FIXTURE = [
   // Leiteiras (7)
-  { id: 'a1', fazenda_id: FAZENDA_TEST_ID, nome: 'Bessie', numero_brinco: 'BRI-001', tipo_rebanho: 'leiteiro', categoria: 'Vaca em Lactação', sexo: 'Fêmea', data_nascimento: '2020-01-15', peso_kg: 550, ativo: true },
-  { id: 'a2', fazenda_id: FAZENDA_TEST_ID, nome: 'Daisy', numero_brinco: 'BRI-002', tipo_rebanho: 'leiteiro', categoria: 'Vaca em Lactação', sexo: 'Fêmea', data_nascimento: '2019-06-20', peso_kg: 520, ativo: true },
-  { id: 'a3', fazenda_id: FAZENDA_TEST_ID, nome: 'Rosa', numero_brinco: 'BRI-003', tipo_rebanho: 'leiteiro', categoria: 'Vaca em Lactação', sexo: 'Fêmea', data_nascimento: '2019-02-10', peso_kg: 560, ativo: true },
-  { id: 'a4', fazenda_id: FAZENDA_TEST_ID, nome: 'Nora', numero_brinco: 'BRI-004', tipo_rebanho: 'leiteiro', categoria: 'Novilha', sexo: 'Fêmea', data_nascimento: '2023-05-20', peso_kg: 420, ativo: true },
-  { id: 'a5', fazenda_id: FAZENDA_TEST_ID, nome: 'Herd', numero_brinco: 'BRI-005', tipo_rebanho: 'leiteiro', categoria: 'Touro', sexo: 'Macho', data_nascimento: '2018-03-10', peso_kg: 800, ativo: true },
-  { id: 'a6', fazenda_id: FAZENDA_TEST_ID, nome: 'Vaca Seca', numero_brinco: 'BRI-006', tipo_rebanho: 'leiteiro', categoria: 'Vaca Seca', sexo: 'Fêmea', data_nascimento: '2018-08-15', peso_kg: 540, ativo: true },
-  { id: 'a7', fazenda_id: FAZENDA_TEST_ID, nome: 'Prenha', numero_brinco: 'BRI-007', tipo_rebanho: 'leiteiro', categoria: 'Vaca Prenha', sexo: 'Fêmea', data_nascimento: '2019-11-05', peso_kg: 580, ativo: true },
+  { id: 'a1', fazenda_id: FAZENDA_TEST_ID, nome: 'Bessie', numero_brinco: 'BRI-001', tipo_rebanho: TipoRebanho.LEITEIRO, categoria: 'Vaca em Lactação', sexo: 'Fêmea' as const, data_nascimento: '2020-01-15', peso_kg: 550, ativo: true },
+  { id: 'a2', fazenda_id: FAZENDA_TEST_ID, nome: 'Daisy', numero_brinco: 'BRI-002', tipo_rebanho: TipoRebanho.LEITEIRO, categoria: 'Vaca em Lactação', sexo: 'Fêmea' as const, data_nascimento: '2019-06-20', peso_kg: 520, ativo: true },
+  { id: 'a3', fazenda_id: FAZENDA_TEST_ID, nome: 'Rosa', numero_brinco: 'BRI-003', tipo_rebanho: TipoRebanho.LEITEIRO, categoria: 'Vaca em Lactação', sexo: 'Fêmea' as const, data_nascimento: '2019-02-10', peso_kg: 560, ativo: true },
+  { id: 'a4', fazenda_id: FAZENDA_TEST_ID, nome: 'Nora', numero_brinco: 'BRI-004', tipo_rebanho: TipoRebanho.LEITEIRO, categoria: 'Novilha', sexo: 'Fêmea' as const, data_nascimento: '2023-05-20', peso_kg: 420, ativo: true },
+  { id: 'a5', fazenda_id: FAZENDA_TEST_ID, nome: 'Herd', numero_brinco: 'BRI-005', tipo_rebanho: TipoRebanho.LEITEIRO, categoria: 'Touro', sexo: 'Macho' as const, data_nascimento: '2018-03-10', peso_kg: 800, ativo: true },
+  { id: 'a6', fazenda_id: FAZENDA_TEST_ID, nome: 'Vaca Seca', numero_brinco: 'BRI-006', tipo_rebanho: TipoRebanho.LEITEIRO, categoria: 'Vaca Seca', sexo: 'Fêmea' as const, data_nascimento: '2018-08-15', peso_kg: 540, ativo: true },
+  { id: 'a7', fazenda_id: FAZENDA_TEST_ID, nome: 'Prenha', numero_brinco: 'BRI-007', tipo_rebanho: TipoRebanho.LEITEIRO, categoria: 'Vaca Prenha', sexo: 'Fêmea' as const, data_nascimento: '2019-11-05', peso_kg: 580, ativo: true },
   // Corte (3)
-  { id: 'c1', fazenda_id: FAZENDA_TEST_ID, nome: 'Nata', numero_brinco: 'COR-001', tipo_rebanho: 'corte', categoria: 'Vaca Matriz', sexo: 'Fêmea', data_nascimento: '2019-08-05', peso_kg: 480, ativo: true },
-  { id: 'c2', fazenda_id: FAZENDA_TEST_ID, nome: 'Bezerro Corte', numero_brinco: 'COR-002', tipo_rebanho: 'corte', categoria: 'Bezerro', sexo: 'Macho', data_nascimento: '2025-10-01', peso_kg: 250, ativo: true },
-  { id: 'c3', fazenda_id: FAZENDA_TEST_ID, nome: 'Boi', numero_brinco: 'COR-003', tipo_rebanho: 'corte', categoria: 'Boi', sexo: 'Macho', data_nascimento: '2023-06-15', peso_kg: 520, ativo: true },
+  { id: 'c1', fazenda_id: FAZENDA_TEST_ID, nome: 'Nata', numero_brinco: 'COR-001', tipo_rebanho: TipoRebanho.CORTE, categoria: 'Vaca Matriz', sexo: 'Fêmea' as const, data_nascimento: '2019-08-05', peso_kg: 480, ativo: true },
+  { id: 'c2', fazenda_id: FAZENDA_TEST_ID, nome: 'Bezerro Corte', numero_brinco: 'COR-002', tipo_rebanho: TipoRebanho.CORTE, categoria: 'Bezerro', sexo: 'Macho' as const, data_nascimento: '2025-10-01', peso_kg: 250, ativo: true },
+  { id: 'c3', fazenda_id: FAZENDA_TEST_ID, nome: 'Boi', numero_brinco: 'COR-003', tipo_rebanho: TipoRebanho.CORTE, categoria: 'Boi', sexo: 'Macho' as const, data_nascimento: '2023-06-15', peso_kg: 520, ativo: true },
 ];
 
 export const PESAGENS_FIXTURE = [
@@ -63,18 +65,18 @@ export const PESAGENS_FIXTURE = [
 
 export const EVENTOS_FIXTURE = [
   // Partos (5)
-  { id: 'e1', animal_id: 'a1', fazenda_id: FAZENDA_TEST_ID, tipo: 'nascimento', data_evento: '2026-02-15', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro macho', usuario_id: 'test-user', deleted_at: null, created_at: '2026-02-15T10:00:00Z', updated_at: '2026-02-15T10:00:00Z' },
-  { id: 'e2', animal_id: 'a2', fazenda_id: FAZENDA_TEST_ID, tipo: 'nascimento', data_evento: '2026-03-10', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro fêmea', usuario_id: 'test-user', deleted_at: null, created_at: '2026-03-10T10:00:00Z', updated_at: '2026-03-10T10:00:00Z' },
-  { id: 'e3', animal_id: 'a3', fazenda_id: FAZENDA_TEST_ID, tipo: 'nascimento', data_evento: '2026-03-20', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro macho', usuario_id: 'test-user', deleted_at: null, created_at: '2026-03-20T10:00:00Z', updated_at: '2026-03-20T10:00:00Z' },
-  { id: 'e4', animal_id: 'a7', fazenda_id: FAZENDA_TEST_ID, tipo: 'nascimento', data_evento: '2026-01-05', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro', usuario_id: 'test-user', deleted_at: null, created_at: '2026-01-05T10:00:00Z', updated_at: '2026-01-05T10:00:00Z' },
-  { id: 'e5', animal_id: 'c1', fazenda_id: FAZENDA_TEST_ID, tipo: 'nascimento', data_evento: '2026-02-01', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro', usuario_id: 'test-user', deleted_at: null, created_at: '2026-02-01T10:00:00Z', updated_at: '2026-02-01T10:00:00Z' },
+  { id: 'e1', animal_id: 'a1', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.NASCIMENTO, data_evento: '2026-02-15', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro macho', usuario_id: 'test-user', deleted_at: null, created_at: '2026-02-15T10:00:00Z', updated_at: '2026-02-15T10:00:00Z' },
+  { id: 'e2', animal_id: 'a2', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.NASCIMENTO, data_evento: '2026-03-10', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro fêmea', usuario_id: 'test-user', deleted_at: null, created_at: '2026-03-10T10:00:00Z', updated_at: '2026-03-10T10:00:00Z' },
+  { id: 'e3', animal_id: 'a3', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.NASCIMENTO, data_evento: '2026-03-20', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro macho', usuario_id: 'test-user', deleted_at: null, created_at: '2026-03-20T10:00:00Z', updated_at: '2026-03-20T10:00:00Z' },
+  { id: 'e4', animal_id: 'a7', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.NASCIMENTO, data_evento: '2026-01-05', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro', usuario_id: 'test-user', deleted_at: null, created_at: '2026-01-05T10:00:00Z', updated_at: '2026-01-05T10:00:00Z' },
+  { id: 'e5', animal_id: 'c1', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.NASCIMENTO, data_evento: '2026-02-01', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Parto bezerro', usuario_id: 'test-user', deleted_at: null, created_at: '2026-02-01T10:00:00Z', updated_at: '2026-02-01T10:00:00Z' },
   // Mortes (2)
-  { id: 'e6', animal_id: 'c2', fazenda_id: FAZENDA_TEST_ID, tipo: 'morte', data_evento: '2026-04-15', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Morte doença', usuario_id: 'test-user', deleted_at: null, created_at: '2026-04-15T10:00:00Z', updated_at: '2026-04-15T10:00:00Z' },
-  { id: 'e7', animal_id: 'a4', fazenda_id: FAZENDA_TEST_ID, tipo: 'morte', data_evento: '2026-03-01', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Morte desconhecida', usuario_id: 'test-user', deleted_at: null, created_at: '2026-03-01T10:00:00Z', updated_at: '2026-03-01T10:00:00Z' },
+  { id: 'e6', animal_id: 'c2', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.MORTE, data_evento: '2026-04-15', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Morte doença', usuario_id: 'test-user', deleted_at: null, created_at: '2026-04-15T10:00:00Z', updated_at: '2026-04-15T10:00:00Z' },
+  { id: 'e7', animal_id: 'a4', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.MORTE, data_evento: '2026-03-01', peso_kg: null, lote_id_destino: null, comprador: null, valor_venda: null, observacoes: 'Morte desconhecida', usuario_id: 'test-user', deleted_at: null, created_at: '2026-03-01T10:00:00Z', updated_at: '2026-03-01T10:00:00Z' },
   // Vendas/Descartes (3)
-  { id: 'e8', animal_id: 'a6', fazenda_id: FAZENDA_TEST_ID, tipo: 'venda', data_evento: '2026-04-20', peso_kg: null, lote_id_destino: null, comprador: 'Frigorífico X', valor_venda: 2500, observacoes: 'Descarte vaca seca', usuario_id: 'test-user', deleted_at: null, created_at: '2026-04-20T10:00:00Z', updated_at: '2026-04-20T10:00:00Z' },
-  { id: 'e9', animal_id: 'c3', fazenda_id: FAZENDA_TEST_ID, tipo: 'venda', data_evento: '2026-02-28', peso_kg: null, lote_id_destino: null, comprador: 'Frigorífico Y', valor_venda: 3000, observacoes: 'Descarte boi', usuario_id: 'test-user', deleted_at: null, created_at: '2026-02-28T10:00:00Z', updated_at: '2026-02-28T10:00:00Z' },
-  { id: 'e10', animal_id: 'a5', fazenda_id: FAZENDA_TEST_ID, tipo: 'transferencia_lote', data_evento: '2026-05-01', peso_kg: null, lote_id_destino: 'lote-2', comprador: null, valor_venda: null, observacoes: 'Transferência', usuario_id: 'test-user', deleted_at: null, created_at: '2026-05-01T10:00:00Z', updated_at: '2026-05-01T10:00:00Z' },
+  { id: 'e8', animal_id: 'a6', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.VENDA, data_evento: '2026-04-20', peso_kg: null, lote_id_destino: null, comprador: 'Frigorífico X', valor_venda: 2500, observacoes: 'Descarte vaca seca', usuario_id: 'test-user', deleted_at: null, created_at: '2026-04-20T10:00:00Z', updated_at: '2026-04-20T10:00:00Z' },
+  { id: 'e9', animal_id: 'c3', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.VENDA, data_evento: '2026-02-28', peso_kg: null, lote_id_destino: null, comprador: 'Frigorífico Y', valor_venda: 3000, observacoes: 'Descarte boi', usuario_id: 'test-user', deleted_at: null, created_at: '2026-02-28T10:00:00Z', updated_at: '2026-02-28T10:00:00Z' },
+  { id: 'e10', animal_id: 'a5', fazenda_id: FAZENDA_TEST_ID, tipo: TipoEvento.TRANSFERENCIA_LOTE, data_evento: '2026-05-01', peso_kg: null, lote_id_destino: 'lote-2', comprador: null, valor_venda: null, observacoes: 'Transferência', usuario_id: 'test-user', deleted_at: null, created_at: '2026-05-01T10:00:00Z', updated_at: '2026-05-01T10:00:00Z' },
 ];
 
 /**

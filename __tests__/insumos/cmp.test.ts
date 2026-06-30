@@ -10,6 +10,13 @@ interface EstoqueState {
 }
 
 /**
+ * Formato de retorno combinado das operações de CMP.
+ * `novo_cmp` (entrada) e `cmp_mantido` (saída/ajuste) carregam o mesmo valor —
+ * ambos presentes para permitir reuso da mesma variável entre operações distintas.
+ */
+type ResultadoCMP = { novo_estoque: number; novo_cmp: number; cmp_mantido: number };
+
+/**
  * Calcula novo CMP após entrada de insumo.
  * CMP = (estoque_atual * custo_medio + quantidade_entrada * valor_entrada) / (estoque_atual + quantidade_entrada)
  */
@@ -17,18 +24,18 @@ function calcularCMPEntrada(
   estoque: EstoqueState,
   quantidade_entrada: number,
   valor_unitario: number
-): { novo_cmp: number; novo_estoque: number } {
+): ResultadoCMP {
   const novo_estoque = estoque.quantidade + quantidade_entrada;
 
   if (novo_estoque === 0) {
-    return { novo_cmp: 0, novo_estoque: 0 };
+    return { novo_cmp: 0, cmp_mantido: 0, novo_estoque: 0 };
   }
 
   const novo_cmp =
     (estoque.quantidade * estoque.custo_medio + quantidade_entrada * valor_unitario) /
     novo_estoque;
 
-  return { novo_cmp, novo_estoque };
+  return { novo_cmp, cmp_mantido: novo_cmp, novo_estoque };
 }
 
 /**
@@ -37,10 +44,10 @@ function calcularCMPEntrada(
 function calcularSaida(
   estoque: EstoqueState,
   quantidade_saida: number
-): { novo_estoque: number; cmp_mantido: number } {
+): ResultadoCMP {
   const novo_estoque = Math.max(0, estoque.quantidade - quantidade_saida);
 
-  return { novo_estoque, cmp_mantido: estoque.custo_medio };
+  return { novo_estoque, cmp_mantido: estoque.custo_medio, novo_cmp: estoque.custo_medio };
 }
 
 /**
@@ -49,10 +56,10 @@ function calcularSaida(
 function calcularAjuste(
   estoque: EstoqueState,
   diferenca: number
-): { novo_estoque: number; cmp_mantido: number } {
+): ResultadoCMP {
   const novo_estoque = Math.max(0, estoque.quantidade + diferenca);
 
-  return { novo_estoque, cmp_mantido: estoque.custo_medio };
+  return { novo_estoque, cmp_mantido: estoque.custo_medio, novo_cmp: estoque.custo_medio };
 }
 
 // ---------------------------------------------------------------------------

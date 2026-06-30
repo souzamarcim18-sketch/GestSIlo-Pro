@@ -15,25 +15,34 @@ import {
 } from '../eventosRebanho';
 
 // Mock IndexedDB store
+/** Item armazenado no mock — campos indexados são string; demais campos livres. */
+type MockStoreItem = {
+  id: string | number;
+  animal_id?: string;
+  tipo_evento?: string;
+  _sync_status?: string;
+  [key: string]: unknown;
+};
+
 class MockIndex {
   constructor(private store: MockObjectStore, private indexName: string) {}
 
   async getAll(key: string) {
     const ids = this.store.indexes.get(this.indexName)?.get(key) || [];
-    return ids.map((id: string) => this.store.data.get(id)).filter(Boolean);
+    return ids.map((id: string | number) => this.store.data.get(id)).filter(Boolean);
   }
 }
 
 class MockObjectStore {
-  data: Map<string, Record<string, unknown>> = new Map();
-  indexes: Map<string, Map<string, string[]>> = new Map(['by-animal', 'by-data', 'by-tipo', 'by-sync-status'].map((name) => [name, new Map()]));
+  data: Map<string | number, MockStoreItem> = new Map();
+  indexes: Map<string, Map<string, (string | number)[]>> = new Map(['by-animal', 'by-data', 'by-tipo', 'by-sync-status'].map((name) => [name, new Map()]));
   indexNames: string[] = ['by-animal', 'by-data', 'by-tipo', 'by-sync-status'];
 
   async get(key: string) {
     return this.data.get(key);
   }
 
-  async put(item: Record<string, unknown>) {
+  async put(item: MockStoreItem) {
     const existingItem = this.data.get(item.id);
 
     // Clean up old index entries if updating
@@ -143,12 +152,12 @@ class MockIndexedDB {
     return store.get(key);
   }
 
-  async put(storeName: string, item: Record<string, unknown>) {
+  async put(storeName: string, item: MockStoreItem) {
     const store = storeName === 'sync_queue' ? this.sync_queue : this.eventos_rebanho;
     return store.put(item);
   }
 
-  async add(storeName: string, item: Record<string, unknown>) {
+  async add(storeName: string, item: MockStoreItem) {
     const store = storeName === 'sync_queue' ? this.sync_queue : this.eventos_rebanho;
     const id = storeName === 'sync_queue' ? (store.data.size + 1) : item.id;
     await store.put({ ...item, id });
@@ -208,7 +217,7 @@ describe('eventosRebanho - Offline API', () => {
       expect(typeof eventoId).toBe('string');
       expect(eventoId.length).toBeGreaterThan(0);
 
-      const saved = await mockDb.get('eventos_rebanho', eventoId);
+      const saved = (await mockDb.get('eventos_rebanho', eventoId))!;
       expect(saved).toBeDefined();
       expect(saved.animal_id).toBe('animal-123');
       expect(saved.tipo_evento).toBe('cobertura');
@@ -228,9 +237,9 @@ describe('eventosRebanho - Offline API', () => {
       const queue = await mockDb.getAll('sync_queue');
       expect(queue.length).toBeGreaterThan(0);
 
-      const rpcAction = queue.find((action) => action.operacao === 'RPC');
+      const rpcAction = queue.find((action) => action.operacao === 'RPC')!;
       expect(rpcAction).toBeDefined();
-      expect(rpcAction.payload.rpc).toBe('rpc_lancar_diagnostico');
+      expect((rpcAction.payload as { rpc: string }).rpc).toBe('rpc_lancar_diagnostico');
     });
 
     it('deve salvar múltiplos eventos sem conflito de ID', async () => {
@@ -254,8 +263,8 @@ describe('eventosRebanho - Offline API', () => {
 
       expect(id1).not.toBe(id2);
 
-      const evento1 = await mockDb.get('eventos_rebanho', id1);
-      const evento2 = await mockDb.get('eventos_rebanho', id2);
+      const evento1 = (await mockDb.get('eventos_rebanho', id1))!;
+      const evento2 = (await mockDb.get('eventos_rebanho', id2))!;
 
       expect(evento1.animal_id).toBe('animal-1');
       expect(evento2.animal_id).toBe('animal-2');
@@ -430,12 +439,12 @@ describe('eventosRebanho - Offline API', () => {
         {}
       );
 
-      let evento = await mockDb.get('eventos_rebanho', eventoId);
+      let evento = (await mockDb.get('eventos_rebanho', eventoId))!;
       expect(evento._sync_status).toBe('pending');
 
       await markAsSynced(eventoId);
 
-      evento = await mockDb.get('eventos_rebanho', eventoId);
+      evento = (await mockDb.get('eventos_rebanho', eventoId))!;
       expect(evento._sync_status).toBe('synced');
     });
   });
@@ -453,7 +462,7 @@ describe('eventosRebanho - Offline API', () => {
 
       await markAsError(eventoId);
 
-      const evento = await mockDb.get('eventos_rebanho', eventoId);
+      const evento = (await mockDb.get('eventos_rebanho', eventoId))!;
       expect(evento._sync_status).toBe('error');
     });
   });
@@ -469,12 +478,12 @@ describe('eventosRebanho - Offline API', () => {
         {}
       );
 
-      let evento = await mockDb.get('eventos_rebanho', eventoId);
+      let evento = (await mockDb.get('eventos_rebanho', eventoId))!;
       expect(evento).toBeDefined();
 
       await deleteEventoLocal(eventoId);
 
-      evento = await mockDb.get('eventos_rebanho', eventoId);
+      evento = (await mockDb.get('eventos_rebanho', eventoId))!;
       expect(evento).toBeUndefined();
     });
   });
@@ -500,8 +509,8 @@ describe('eventosRebanho - Offline API', () => {
 
       await hydrateEventosFromServer(serverEventos);
 
-      const evento1 = await mockDb.get('eventos_rebanho', 'evento-server-1');
-      const evento2 = await mockDb.get('eventos_rebanho', 'evento-server-2');
+      const evento1 = (await mockDb.get('eventos_rebanho', 'evento-server-1'))!;
+      const evento2 = (await mockDb.get('eventos_rebanho', 'evento-server-2'))!;
 
       expect(evento1).toBeDefined();
       expect(evento1._sync_status).toBe('synced');
@@ -531,9 +540,9 @@ describe('eventosRebanho - Offline API', () => {
 
       await hydrateEventosFromServer(serverEventos);
 
-      const evento = await mockDb.get('eventos_rebanho', eventoLocalId);
+      const evento = (await mockDb.get('eventos_rebanho', eventoLocalId))!;
       expect(evento._sync_status).toBe('pending');
-      expect(evento.payload.updated).toBeUndefined();
+      expect((evento.payload as Record<string, unknown>).updated).toBeUndefined();
     });
 
     it('deve atualizar eventos synced com dados do servidor', async () => {
@@ -560,8 +569,8 @@ describe('eventosRebanho - Offline API', () => {
 
       await hydrateEventosFromServer(serverEventos);
 
-      const evento = await mockDb.get('eventos_rebanho', eventoLocalId);
-      expect(evento.payload.reprodutor_id).toBe('reprodutor-updated');
+      const evento = (await mockDb.get('eventos_rebanho', eventoLocalId))!;
+      expect((evento.payload as Record<string, unknown>).reprodutor_id).toBe('reprodutor-updated');
       expect(evento._sync_status).toBe('synced');
     });
   });
@@ -600,10 +609,10 @@ describe('eventosRebanho - Offline API', () => {
       const queueActions = await mockDb.getAll('sync_queue');
       expect(queueActions.length).toBeGreaterThan(0);
 
-      const rpcAction = queueActions.find((a) => a.operacao === 'RPC');
+      const rpcAction = queueActions.find((a) => a.operacao === 'RPC')!;
       expect(rpcAction).toBeDefined();
-      expect(rpcAction.payload.rpc).toBe('rpc_lancar_parto');
-      expect(rpcAction.payload.params.p_animal_id).toBe('animal-123');
+      expect((rpcAction.payload as { rpc: string }).rpc).toBe('rpc_lancar_parto');
+      expect((rpcAction.payload as { params: { p_animal_id: string } }).params.p_animal_id).toBe('animal-123');
     });
   });
 });

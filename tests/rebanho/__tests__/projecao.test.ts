@@ -6,6 +6,7 @@ import type {
   RebanhoSnapshot,
   CategoriaProjetada,
 } from '@/lib/types/rebanho';
+import { TipoRebanho, StatusAnimal, TipoEvento } from '@/lib/types/rebanho';
 
 /**
  * TESTES — PROJEÇÃO DE REBANHO (FASE 3)
@@ -23,6 +24,39 @@ const FAZENDA_ID = '11111111-1111-1111-1111-111111111111';
 const ANIMAL_ID_1 = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const ANIMAL_ID_2 = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 const ANIMAL_ID_3 = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+/**
+ * Defaults para os campos de Animal não relevantes à projeção.
+ * As fixtures espalham isto e sobrescrevem apenas o que o teste exercita.
+ */
+const ANIMAL_DEFAULTS = {
+  nome: null,
+  data_nascimento_estimada: false,
+  peso_nascimento: null,
+  sisbov_crbio: null,
+  origem: null,
+  foto_url: null,
+  status_reprodutivo: null,
+  data_ultimo_parto: null,
+  data_parto_previsto: null,
+  data_proxima_secagem: null,
+  escore_condicao_corporal: null,
+  flag_repetidora: false,
+  is_reprodutor: false,
+  reprodutor_vinculado_id: null,
+} satisfies Partial<Animal>;
+
+/**
+ * Retorna uma data ISO (YYYY-MM-DD) `anos` anos antes de hoje.
+ * Usado para fixar a idade do animal relativa ao momento da execução,
+ * evitando que datas hardcoded "envelheçam" e cruzem faixas etárias com o tempo.
+ */
+function anosAtras(anos: number): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - Math.floor(anos));
+  d.setMonth(d.getMonth() - Math.round((anos % 1) * 12));
+  return d.toISOString().split('T')[0];
+}
 
 /**
  * Stub de calcularCategoriaEmData (replicado da implementação real)
@@ -283,10 +317,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15', // ~4 anos
           categoria: 'Vaca Seca',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -302,10 +337,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0002',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
-          data_nascimento: '2024-06-15', // ~1.9 anos
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
+          data_nascimento: anosAtras(1.5), // < 2 anos → Novilha (relativo ao run)
           categoria: 'Novilha',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -334,10 +370,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Seca',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -353,10 +390,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0002',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
-          data_nascimento: '2024-06-15',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
+          data_nascimento: anosAtras(1.5), // < 2 anos → Novilha (relativo ao run)
           categoria: 'Novilha',
-          status: 'Vendido', // Inativo
+          status: StatusAnimal.VENDIDO, // Inativo
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -392,10 +430,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Prenha',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -413,7 +452,7 @@ describe('Projeção de Rebanho — Fase 3', () => {
           id: 'evento-1',
           fazenda_id: FAZENDA_ID,
           animal_id: ANIMAL_ID_1,
-          tipo: 'cobertura',
+          tipo: TipoEvento.COBERTURA,
           data_evento: dataCobertura.toISOString().split('T')[0],
           peso_kg: null, // Não é gemelar
           lote_id_destino: null,
@@ -448,10 +487,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Prenha',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -469,7 +509,7 @@ describe('Projeção de Rebanho — Fase 3', () => {
           id: 'evento-2',
           fazenda_id: FAZENDA_ID,
           animal_id: ANIMAL_ID_1,
-          tipo: 'cobertura',
+          tipo: TipoEvento.COBERTURA,
           data_evento: dataCobertura.toISOString().split('T')[0],
           peso_kg: null,
           lote_id_destino: null,
@@ -506,10 +546,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca em Lactação',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -527,7 +568,7 @@ describe('Projeção de Rebanho — Fase 3', () => {
           id: 'evento-3',
           fazenda_id: FAZENDA_ID,
           animal_id: ANIMAL_ID_1,
-          tipo: 'cobertura',
+          tipo: TipoEvento.COBERTURA,
           data_evento: dataCobertura.toISOString().split('T')[0],
           peso_kg: null,
           lote_id_destino: null,
@@ -543,7 +584,7 @@ describe('Projeção de Rebanho — Fase 3', () => {
           id: 'evento-4',
           fazenda_id: FAZENDA_ID,
           animal_id: ANIMAL_ID_1,
-          tipo: 'parto',
+          tipo: TipoEvento.PARTO,
           data_evento: dataParto.toISOString().split('T')[0],
           peso_kg: null,
           lote_id_destino: null,
@@ -577,10 +618,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Prenha',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -598,7 +640,7 @@ describe('Projeção de Rebanho — Fase 3', () => {
           id: 'evento-5',
           fazenda_id: FAZENDA_ID,
           animal_id: ANIMAL_ID_1,
-          tipo: 'cobertura',
+          tipo: TipoEvento.COBERTURA,
           data_evento: dataCobertura.toISOString().split('T')[0],
           peso_kg: 25, // Marca como gemelar
           lote_id_destino: null,
@@ -637,10 +679,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Seca',
-          status: 'Morto',
+          status: StatusAnimal.MORTO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -680,10 +723,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Seca',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -720,10 +764,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Seca',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -749,10 +794,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Macho',
-          tipo_rebanho: 'corte',
+          tipo_rebanho: TipoRebanho.CORTE,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2024-05-15',
           categoria: 'Bezerro',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -794,7 +840,9 @@ describe('Projeção de Rebanho — Fase 3', () => {
 
     it('fallback mantém compatibilidade backward quando rebanho_snapshot está ausente', async () => {
       // Simula lógica de fallback em componente de carregamento
-      const loadPlanejamentoDone = (planejamento: { id: string; rebanho_snapshot?: unknown }) => {
+      const loadPlanejamentoDone = (
+        planejamento: { id: string; rebanho_snapshot?: unknown }
+      ): { tipo_rebanho: string; total_cabecas: number; composicao: Record<string, number> } => {
         if (!planejamento.rebanho_snapshot) {
           // Fallback: usar dados legados do planejamento
           return {
@@ -803,7 +851,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
             composicao: {},
           };
         }
-        return planejamento.rebanho_snapshot;
+        return planejamento.rebanho_snapshot as {
+          tipo_rebanho: string;
+          total_cabecas: number;
+          composicao: Record<string, number>;
+        };
       };
 
       const planejamentoLegacy = { id: 'old-123' };
@@ -820,10 +872,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Seca',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -864,10 +917,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Seca',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,
@@ -895,10 +949,11 @@ describe('Projeção de Rebanho — Fase 3', () => {
           fazenda_id: FAZENDA_ID,
           brinco: '0001',
           sexo: 'Fêmea',
-          tipo_rebanho: 'leiteiro',
+          tipo_rebanho: TipoRebanho.LEITEIRO,
+          ...ANIMAL_DEFAULTS,
           data_nascimento: '2020-05-15',
           categoria: 'Vaca Seca',
-          status: 'Ativo',
+          status: StatusAnimal.ATIVO,
           lote_id: null,
           peso_atual: null,
           mae_id: null,

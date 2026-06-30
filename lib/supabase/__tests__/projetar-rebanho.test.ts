@@ -33,22 +33,34 @@ function makeAnimal(overrides: Partial<Animal> = {}): Animal {
     id: 'animal-1',
     fazenda_id: 'fazenda-1',
     brinco: '001',
+    nome: null,
     sexo: 'Fêmea',
     tipo_rebanho: 'leiteiro' as Animal['tipo_rebanho'],
     data_nascimento: '2024-01-01',
+    data_nascimento_estimada: false,
     categoria: 'Vaca em Lactação',
-    status: 'Ativo',
+    status: 'Ativo' as Animal['status'],
     lote_id: null,
     peso_atual: 450.5,
+    peso_nascimento: null,
     mae_id: null,
     pai_id: null,
     raca: 'Holandês',
     observacoes: null,
+    sisbov_crbio: null,
+    origem: null,
+    foto_url: null,
+    status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
+    data_ultimo_parto: null,
+    data_parto_previsto: null,
+    data_proxima_secagem: null,
+    escore_condicao_corporal: null,
+    flag_repetidora: false,
+    is_reprodutor: false,
+    reprodutor_vinculado_id: null,
     deleted_at: null,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
-    status_reprodutivo: 'lactacao' as Animal['status_reprodutivo'],
-    is_reprodutor: false,
     ...overrides,
   };
 }
@@ -328,6 +340,7 @@ describe('detectarRebanho()', () => {
 
   it('9. Rebanho vazio → { rebanho_detectado: false, razao: "vazio" }', async () => {
     const mockClient = {
+      rpc: vi.fn(async () => ({ data: 'pro', error: null })),
       from: vi.fn(() => createMockQueryBuilder(() => [])),
     };
 
@@ -343,6 +356,7 @@ describe('detectarRebanho()', () => {
 
   it('10. Erro 403 → { rebanho_detectado: false, razao: "sem_acesso" }', async () => {
     const mockClient = {
+      rpc: vi.fn(async () => ({ data: 'pro', error: null })),
       from: vi.fn(() => createMockQueryBuilder(null, new Error('RLS'), 403)),
     };
 
@@ -360,6 +374,7 @@ describe('detectarRebanho()', () => {
     const animal = makeAnimal({ id: 'animal-1' });
 
     const mockClient = {
+      rpc: vi.fn(async () => ({ data: 'pro', error: null })),
       from: vi.fn(() => createMockQueryBuilder(() => [animal])),
     };
 
