@@ -1,7 +1,7 @@
 ﻿import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentFazendaId } from '@/lib/auth/helpers';
-import { listAnimais, listLotes } from '@/lib/supabase/rebanho';
+import { listAnimais, listAnimaisParaPainel, countAnimais, listLotes, getPainelRebanhoExtras } from '@/lib/supabase/rebanho';
 import { RebanhoClient } from './RebanhoClient';
 
 export const metadata = {
@@ -16,9 +16,12 @@ export default async function RebanhosPage() {
 
   const fazendaId = await getCurrentFazendaId();
 
-  const [animais, lotes, profileRes] = await Promise.all([
-    listAnimais({ status: 'Ativo' }, 100, 0),
+  const [animais, animaisParaPainel, totalAnimaisAtivos, lotes, painelExtras, profileRes] = await Promise.all([
+    listAnimais({ status: 'Ativo' }, 50, 0),
+    listAnimaisParaPainel(),
+    countAnimais({ status: 'Ativo' }),
     listLotes(100, 0),
+    getPainelRebanhoExtras(),
     supabase.from('profiles').select('perfil').eq('id', user.id).single(),
   ]);
 
@@ -27,7 +30,10 @@ export default async function RebanhosPage() {
   return (
     <RebanhoClient
       initialAnimais={animais}
+      initialTotal={totalAnimaisAtivos}
+      animaisParaPainel={animaisParaPainel}
       initialLotes={lotes}
+      painelExtras={painelExtras}
       isAdmin={isAdmin}
     />
   );

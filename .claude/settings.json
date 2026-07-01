@@ -228,7 +228,10 @@
       "Bash(sed -n '/export enum TipoEvento/,/}/p' lib/types/rebanho.ts)",
       "Bash(tee /tmp/tsc_out.txt)",
       "PowerShell(cd c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro; npx next build 2>&1 | Tee-Object -Variable buildOut | Out-Null; $buildOut | Select-String -Pattern \"Type error|Failed to compile|Build failed|error TS\" | Select-Object -First 20; Write-Host \"EXIT: $LASTEXITCODE\")",
-      "PowerShell(cd c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro; npx vitest run --reporter=verbose 2>&1 | Tee-Object -Variable testOut | Out-Null; $testOut | Select-String -Pattern \"Tests|FAIL|PASS|passed|failed\" | Select-Object -Last 10; Write-Host \"EXIT: $LASTEXITCODE\")"
+      "PowerShell(cd c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro; npx vitest run --reporter=verbose 2>&1 | Tee-Object -Variable testOut | Out-Null; $testOut | Select-String -Pattern \"Tests|FAIL|PASS|passed|failed\" | Select-Object -Last 10; Write-Host \"EXIT: $LASTEXITCODE\")",
+      "Bash(node -e ' *)",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\.next\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Host \"Cleaned\")"
     ],
     "additionalDirectories": [
       "\\tmp"

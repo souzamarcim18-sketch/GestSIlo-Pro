@@ -669,6 +669,122 @@ export async function cadastrarAnimaisLote(
 // FUNÇÕES DE LISTAGEM
 // ---------------------------------------------------------------------------
 
+/** Campos mínimos necessários para calcular os KPIs do PainelResumo. Sem limite de registros. */
+export type AnimalParaPainel = {
+  status: string;
+  sexo: string | null;
+  categoria: string | null;
+  tipo_rebanho: string | null;
+  peso_atual: number | null;
+  lote_id: string | null;
+  status_reprodutivo: string | null;
+  data_parto_previsto: string | null;
+};
+
+export async function listAnimaisParaPainel(): Promise<AnimalParaPainel[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('animais')
+    .select('status, sexo, categoria, tipo_rebanho, peso_atual, lote_id, status_reprodutivo, data_parto_previsto')
+    .eq('status', 'Ativo')
+    .is('deleted_at', null);
+  if (error) throw error;
+  return (data ?? []) as AnimalParaPainel[];
+}
+
+// Dados agregados extras para o painel de visão geral do rebanho:
+// área total de pastagens (para lotação UA/ha) e contadores de alertas.
+export type PainelRebanhoExtras = {
+  areaPastagensHa: number;
+  partosProximos: number;
+  vacinacoesPendentes: number;
+  mortesRecentes: number;
+  pesagensEmAtraso: number;
+};
+
+export async function getPainelRebanhoExtras(): Promise<PainelRebanhoExtras> {
+  const supabase = await createSupabaseServerClient();
+
+  const hoje = new Date();
+  const hojeStr = hoje.toISOString().split('T')[0];
+
+  const limite30 = new Date(hoje);
+  limite30.setDate(limite30.getDate() + 30);
+  const limite30Str = limite30.toISOString().split('T')[0];
+
+  const limite15 = new Date(hoje);
+  limite15.setDate(limite15.getDate() + 15);
+  const limite15Str = limite15.toISOString().split('T')[0];
+
+  const morte30 = new Date(hoje);
+  morte30.setDate(morte30.getDate() - 30);
+  const morte30Str = morte30.toISOString().split('T')[0];
+
+  const pesagem60 = new Date(hoje);
+  pesagem60.setDate(pesagem60.getDate() - 60);
+  const pesagem60Str = pesagem60.toISOString().split('T')[0];
+
+  const [
+    pastagensRes,
+    partosRes,
+    vacinacoesRes,
+    mortesRes,
+    animaisAtivosRes,
+    pesagensRecentesRes,
+  ] = await Promise.all([
+    supabase.from('pastagens').select('area_total_ha').eq('ativo', true),
+    supabase
+      .from('animais')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'Ativo')
+      .is('deleted_at', null)
+      .gte('data_parto_previsto', hojeStr)
+      .lte('data_parto_previsto', limite30Str),
+    supabase
+      .from('eventos_sanitarios')
+      .select('id', { count: 'exact', head: true })
+      .eq('tipo', 'vacinacao')
+      .is('deleted_at', null)
+      .not('data_proxima_dose', 'is', null)
+      .lte('data_proxima_dose', limite15Str),
+    supabase
+      .from('eventos_rebanho')
+      .select('id', { count: 'exact', head: true })
+      .eq('tipo', 'morte')
+      .is('deleted_at', null)
+      .gte('data_evento', morte30Str),
+    supabase
+      .from('animais')
+      .select('id')
+      .eq('status', 'Ativo')
+      .is('deleted_at', null),
+    supabase
+      .from('pesos_animal')
+      .select('animal_id')
+      .gte('data_pesagem', pesagem60Str),
+  ]);
+
+  const areaPastagensHa = (pastagensRes.data ?? []).reduce(
+    (acc, p) => acc + (Number(p.area_total_ha) || 0),
+    0
+  );
+
+  const idsComPesagem = new Set(
+    (pesagensRecentesRes.data ?? []).map((p) => p.animal_id)
+  );
+  const pesagensEmAtraso = (animaisAtivosRes.data ?? []).filter(
+    (a) => !idsComPesagem.has(a.id)
+  ).length;
+
+  return {
+    areaPastagensHa,
+    partosProximos: partosRes.count ?? 0,
+    vacinacoesPendentes: vacinacoesRes.count ?? 0,
+    mortesRecentes: mortesRes.count ?? 0,
+    pesagensEmAtraso,
+  };
+}
+
 export async function listAnimais(
   filtros?: { status?: string; lote_id?: string; busca?: string; tipo_rebanho?: string; sexo?: string },
   limit: number = 50,
@@ -709,6 +825,27 @@ export async function listAnimais(
 
   if (error) throw error;
   return JSON.parse(JSON.stringify((data as Animal[]) || []));
+}
+
+export async function countAnimais(
+  filtros?: { status?: string; lote_id?: string; busca?: string; tipo_rebanho?: string; sexo?: string },
+): Promise<number> {
+  const supabase = await createSupabaseServerClient();
+
+  let query = supabase
+    .from('animais')
+    .select('id', { count: 'exact', head: true })
+    .is('deleted_at', null);
+
+  if (filtros?.status) query = query.eq('status', filtros.status);
+  if (filtros?.lote_id) query = query.eq('lote_id', filtros.lote_id);
+  if (filtros?.tipo_rebanho) query = query.eq('tipo_rebanho', filtros.tipo_rebanho);
+  if (filtros?.sexo) query = query.eq('sexo', filtros.sexo);
+  if (filtros?.busca) query = query.ilike('brinco', `%${filtros.busca}%`);
+
+  const { count, error } = await query;
+  if (error) throw error;
+  return count ?? 0;
 }
 
 /**

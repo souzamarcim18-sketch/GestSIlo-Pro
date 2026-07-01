@@ -45,40 +45,39 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { listAnimais } from '@/lib/supabase/rebanho';
+import { listAnimais, countAnimais } from '@/lib/supabase/rebanho';
+import type { AnimalParaPainel, PainelRebanhoExtras } from '@/lib/supabase/rebanho';
 import type { Animal, Lote } from '@/lib/types/rebanho';
+
+const PAGE_SIZE = 50;
 
 interface Props {
   initialAnimais: Animal[];
+  initialTotal: number;
+  animaisParaPainel: AnimalParaPainel[];
   initialLotes: Lote[];
+  painelExtras: PainelRebanhoExtras;
   isAdmin: boolean;
 }
 
-// Acesso rápido agrupado por camada (SPEC-rebanho012, P1.3) — nenhum acesso removido.
-const ACESSO_RAPIDO_GRUPOS = [
-  {
-    titulo: 'Subdomínios',
-    cards: [
-      { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Eventos e reprodutores' },
-      { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Leiteira', descricao: 'Produção de leite' },
-      { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Corte', descricao: 'GMD e abate' },
-      { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação e alertas' },
-    ],
-  },
-  {
-    titulo: 'Operação e Núcleo',
-    cards: [
-      { href: '/dashboard/rebanho/operacao', icon: ListChecks, titulo: 'Operação do dia', descricao: 'Pendências e rotina' },
-      { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores', descricao: 'KPIs e alertas' },
-      { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas e saídas' },
-    ],
-  },
+// Acesso rápido a todos os subdomínios do rebanho — ordem e nomenclatura
+// alinhadas ao painel de visão geral.
+const SUBDOMINIOS = [
+  { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Painel Gado de Leite', descricao: 'Produção de leite' },
+  { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Painel Gado de Corte', descricao: 'GMD e abate' },
+  { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Eventos e reprodutores' },
+  { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação e alertas' },
+  { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores zootécnicos', descricao: 'KPIs e alertas' },
+  { href: '/dashboard/rebanho/operacao', icon: ListChecks, titulo: 'Operações', descricao: 'Pendências e rotina' },
+  { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas e saídas' },
 ] as const;
 
-export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) {
+export function RebanhoClient({ initialAnimais, initialTotal, animaisParaPainel, initialLotes, painelExtras, isAdmin }: Props) {
   const router = useRouter();
   const isOnline = useOnlineStatus();
   const [animais, setAnimais] = useState<Animal[]>(initialAnimais);
+  const [total, setTotal] = useState(initialTotal);
+  const [pagina, setPagina] = useState(0);
   const [busca, setBusca] = useState('');
   const [filtroStatus, setFiltroStatus] = useState<string>('');
   const [filtroLote, setFiltroLote] = useState<string>('');
@@ -116,22 +115,25 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
   const categorias = Array.from(new Set(initialAnimais.map(a => a.categoria).filter(Boolean))).sort();
 
   const fetchAnimais = useCallback(async (params: {
-    status?: string; lote_id?: string; tipo?: string; sexo?: string; busca?: string;
+    status?: string; lote_id?: string; tipo?: string; sexo?: string; busca?: string; pagina?: number;
   }) => {
     setLoading(true);
+    const pg = params.pagina ?? 0;
+    const filtros = {
+      status: params.status || undefined,
+      lote_id: params.lote_id || undefined,
+      tipo_rebanho: params.tipo || undefined,
+      sexo: params.sexo || undefined,
+      busca: params.busca || undefined,
+    };
     try {
-      const data = await listAnimais(
-        {
-          status: params.status || undefined,
-          lote_id: params.lote_id || undefined,
-          tipo_rebanho: params.tipo || undefined,
-          sexo: params.sexo || undefined,
-          busca: params.busca || undefined,
-        },
-        100,
-        0
-      );
+      const [data, novoTotal] = await Promise.all([
+        listAnimais(filtros, PAGE_SIZE, pg * PAGE_SIZE),
+        countAnimais(filtros),
+      ]);
       setAnimais(data);
+      setTotal(novoTotal);
+      setPagina(pg);
     } catch {
       toast.error('Erro ao carregar animais');
     } finally {
@@ -148,6 +150,7 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
       sexo: filtroSexo,
       busca,
       [campo]: v,
+      pagina: 0,
     };
     if (campo === 'status') setFiltroStatus(v);
     if (campo === 'lote_id') setFiltroLote(v);
@@ -157,6 +160,17 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
     fetchAnimais(novos);
   };
 
+  const handlePaginaChange = (novaPagina: number) => {
+    fetchAnimais({
+      status: filtroStatus,
+      lote_id: filtroLote,
+      tipo: filtroTipo,
+      sexo: filtroSexo,
+      busca,
+      pagina: novaPagina,
+    });
+  };
+
   const animaisFiltrados = filtroCategoria
     ? animais.filter(a => a.categoria === filtroCategoria)
     : animais;
@@ -164,6 +178,10 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
   const filtrosAtivos = [filtroStatus, filtroTipo, filtroSexo, filtroCategoria, filtroLote].filter(Boolean).length;
 
   const rebanhoVazio = initialAnimais.length === 0 && initialLotes.length === 0;
+
+  const totalPaginas = Math.ceil(total / PAGE_SIZE);
+  const inicio = pagina * PAGE_SIZE + 1;
+  const fim = Math.min(pagina * PAGE_SIZE + animais.length, total);
 
   return (
     <div className="space-y-6">
@@ -270,26 +288,24 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
       )}
 
       {/* Painel de visão geral do rebanho */}
-      {!rebanhoVazio && <PainelResumo animais={initialAnimais} lotes={initialLotes} />}
+      {!rebanhoVazio && (
+        <PainelResumo animais={animaisParaPainel} lotes={initialLotes} extras={painelExtras} />
+      )}
 
-      {/* Acesso Rápido — agrupado por camada (Subdomínios / Indicadores e Núcleo) */}
-      <div className="space-y-4">
-        {ACESSO_RAPIDO_GRUPOS.map((grupo) => (
-          <div key={grupo.titulo}>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">{grupo.titulo}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-              {grupo.cards.map(({ href, icon: Icon, titulo, descricao }) => (
-                <Link key={href} href={href}>
-                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-accent/50 hover:border-primary/30 transition-all duration-150 cursor-pointer text-center group">
-                    <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-                    <p className="font-semibold text-sm leading-tight">{titulo}</p>
-                    <p className="text-xs text-muted-foreground leading-tight hidden sm:block">{descricao}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))}
+      {/* Acesso Rápido — todos os subdomínios do rebanho */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Subdomínios</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+          {SUBDOMINIOS.map(({ href, icon: Icon, titulo, descricao }) => (
+            <Link key={href} href={href}>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-accent/50 hover:border-primary/30 transition-all duration-150 cursor-pointer text-center group h-full">
+                <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+                <p className="font-semibold text-sm leading-tight">{titulo}</p>
+                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">{descricao}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Filtros — busca sempre visível, selects colapsáveis */}
@@ -464,9 +480,36 @@ export function RebanhoClient({ initialAnimais, initialLotes, isAdmin }: Props) 
         </CardContent>
       </Card>
 
-      <p className="text-sm text-muted-foreground">
-        Total de {animaisFiltrados.length} animal(is) encontrado(s)
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {total === 0
+            ? 'Nenhum animal encontrado'
+            : `Exibindo ${inicio}–${fim} de ${total} animal(is)`}
+        </p>
+        {totalPaginas > 1 && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePaginaChange(pagina - 1)}
+              disabled={pagina === 0 || loading}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Página {pagina + 1} de {totalPaginas}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePaginaChange(pagina + 1)}
+              disabled={pagina >= totalPaginas - 1 || loading}
+            >
+              Próxima
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
