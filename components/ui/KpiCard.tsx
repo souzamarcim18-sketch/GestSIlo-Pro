@@ -16,13 +16,13 @@ interface KpiCardProps {
 export function KpiCard({ label, valor, sublabel, icon }: KpiCardProps) {
   return (
     <Card>
-      <CardContent className="flex items-center gap-3 p-3">
-        <div className="rounded-lg bg-primary/10 p-2 text-primary">{icon}</div>
+      <CardContent className="flex items-center gap-2.5 p-3">
+        <div className="shrink-0 rounded-lg bg-primary/10 p-1.5 text-primary [&_svg]:h-4 [&_svg]:w-4">{icon}</div>
         <div className="min-w-0">
-          <p className="text-sm text-muted-foreground leading-tight">{label}</p>
-          <p className="text-2xl font-bold leading-tight text-foreground">{valor}</p>
+          <p className="text-xs text-muted-foreground leading-tight">{label}</p>
+          <p className="truncate text-xl font-bold leading-tight text-foreground">{valor}</p>
           {sublabel && (
-            <p className="mt-0.5 text-sm text-muted-foreground leading-tight">{sublabel}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground leading-tight">{sublabel}</p>
           )}
         </div>
       </CardContent>

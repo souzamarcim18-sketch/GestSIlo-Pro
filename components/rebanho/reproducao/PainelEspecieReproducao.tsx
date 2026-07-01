@@ -3,6 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardReprodutivo } from '@/components/rebanho/reproducao/DashboardReprodutivo';
 import { EventosListagem } from '@/components/rebanho/reproducao/EventosListagem';
+import { ReproducaoSyncProvider } from '@/components/rebanho/reproducao/ReproducaoSyncProvider';
 import { ReprodutoresClient } from '@/app/dashboard/rebanho/reproducao/reprodutores/ReprodutoresClient';
 import { DoadorasClient } from '@/components/rebanho/reproducao/DoadorasClient';
 import { ParametrosReprodutivosForm } from '@/components/rebanho/reproducao/ParametrosReprodutivosForm';
@@ -47,13 +48,14 @@ export function PainelEspecieReproducao({
   animaisFemea,
 }: PainelEspecieReproducaoProps) {
   return (
+    <ReproducaoSyncProvider>
     <Tabs defaultValue="dashboard" className="w-full">
-      <TabsList variant="line" className="w-full justify-start overflow-x-auto">
-        <TabsTrigger value="dashboard">Painel</TabsTrigger>
-        <TabsTrigger value="historico">Histórico</TabsTrigger>
-        <TabsTrigger value="reprodutores">Reprodutores</TabsTrigger>
-        <TabsTrigger value="doadoras">Doadoras</TabsTrigger>
-        <TabsTrigger value="parametros">Parâmetros</TabsTrigger>
+      <TabsList variant="line" className="flex h-auto w-full flex-wrap justify-start gap-1">
+        <TabsTrigger value="dashboard" className="flex-none">Painel</TabsTrigger>
+        <TabsTrigger value="historico" className="flex-none">Histórico</TabsTrigger>
+        <TabsTrigger value="reprodutores" className="flex-none">Reprodutores</TabsTrigger>
+        <TabsTrigger value="doadoras" className="flex-none">Doadoras</TabsTrigger>
+        <TabsTrigger value="parametros" className="flex-none">Parâmetros</TabsTrigger>
       </TabsList>
 
       <TabsContent value="dashboard" className="mt-4">
@@ -93,5 +95,6 @@ export function PainelEspecieReproducao({
         <ParametrosReprodutivosForm parametros={parametros} isAdmin={isAdmin} especie={especie} />
       </TabsContent>
     </Tabs>
+    </ReproducaoSyncProvider>
   );
 }

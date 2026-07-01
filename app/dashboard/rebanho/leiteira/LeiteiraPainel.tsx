@@ -22,10 +22,10 @@ interface LeiteiraPainelProps {
 export function LeiteiraPainel({ producoes, animais, totais, isAdmin, reproducao }: LeiteiraPainelProps) {
   return (
     <Tabs defaultValue="producao" className="w-full">
-      <TabsList className="w-full justify-start overflow-x-auto">
-        <TabsTrigger value="producao">Produção</TabsTrigger>
-        <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
-        <TabsTrigger value="indicadores">Indicadores</TabsTrigger>
+      <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
+        <TabsTrigger value="producao" className="flex-none">Produção</TabsTrigger>
+        <TabsTrigger value="reproducao" className="flex-none">Reprodução</TabsTrigger>
+        <TabsTrigger value="indicadores" className="flex-none">Indicadores</TabsTrigger>
       </TabsList>
 
       <TabsContent value="producao" className="mt-4">

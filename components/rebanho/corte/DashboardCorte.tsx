@@ -204,41 +204,7 @@ export function DashboardCorte({
 
   return (
     <div className="space-y-6">
-      {/* FILTROS — acima dos KPIs para contextualizar os números */}
-      <div className="flex gap-4 flex-wrap">
-        <div className="flex-1 min-w-[180px]">
-          <Label className="text-sm">Período</Label>
-          <Select value={periodo} onValueChange={(v) => v && setPeriodo(v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-              <SelectItem value="365">Últimos 12 meses</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex-1 min-w-[180px]">
-          <Label className="text-sm">Lote</Label>
-          <Select value={loteFiltroPId} onValueChange={(v) => v && setLoteFiltroPId(v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os lotes</SelectItem>
-              {lotes.map((lote) => (
-                <SelectItem key={lote.id} value={lote.id}>
-                  {lote.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* SEÇÃO A: KPIs */}
+      {/* SEÇÃO A: KPIs — sempre no topo, como no painel leiteiro */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Total de Animais"
@@ -276,6 +242,40 @@ export function DashboardCorte({
           }
           icon={<Target className="h-5 w-5" />}
         />
+      </div>
+
+      {/* FILTROS — contextualizam gráfico e projeções */}
+      <div className="flex gap-4 flex-wrap">
+        <div className="flex-1 min-w-[180px]">
+          <Label className="text-sm">Período</Label>
+          <Select value={periodo} onValueChange={(v) => v && setPeriodo(v)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+              <SelectItem value="365">Últimos 12 meses</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex-1 min-w-[180px]">
+          <Label className="text-sm">Lote</Label>
+          <Select value={loteFiltroPId} onValueChange={(v) => v && setLoteFiltroPId(v)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os lotes</SelectItem>
+              {lotes.map((lote) => (
+                <SelectItem key={lote.id} value={lote.id}>
+                  {lote.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* GRÁFICO */}

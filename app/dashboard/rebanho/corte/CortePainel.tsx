@@ -23,10 +23,10 @@ interface CortePainelProps {
 export function CortePainel({ animais, lotes, pesos, data90dias, isAdmin, reproducao }: CortePainelProps) {
   return (
     <Tabs defaultValue="desempenho" className="w-full">
-      <TabsList className="w-full justify-start overflow-x-auto">
-        <TabsTrigger value="desempenho">Desempenho</TabsTrigger>
-        <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
-        <TabsTrigger value="indicadores">Indicadores</TabsTrigger>
+      <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
+        <TabsTrigger value="desempenho" className="flex-none">Desempenho</TabsTrigger>
+        <TabsTrigger value="reproducao" className="flex-none">Reprodução</TabsTrigger>
+        <TabsTrigger value="indicadores" className="flex-none">Indicadores</TabsTrigger>
       </TabsList>
 
       <TabsContent value="desempenho" className="mt-4">

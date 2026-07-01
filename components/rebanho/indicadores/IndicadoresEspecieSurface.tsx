@@ -81,9 +81,10 @@ export function IndicadoresEspecieSurface({ especie, animais }: IndicadoresEspec
       </Card>
 
       <p className="text-xs text-muted-foreground">
+        Esta aba resume a estrutura do efetivo.{' '}
         {especie === 'leiteiro'
-          ? 'Indicadores de produção (litros/vaca, litros/ha, CCS) estão na aba Produção; indicadores reprodutivos na aba Reprodução.'
-          : 'Indicadores de desempenho (GMD, arrobas, @/ha, desfrute, desmama) estão na aba Desempenho; indicadores reprodutivos na aba Reprodução.'}
+          ? 'Os indicadores de produção (litros/vaca, litros/ha, CCS) estão detalhados na aba Produção e os reprodutivos na aba Reprodução.'
+          : 'Os indicadores de desempenho (GMD, arrobas, @/ha, desfrute, desmama) estão detalhados na aba Desempenho e os reprodutivos na aba Reprodução.'}
       </p>
     </div>
   );
