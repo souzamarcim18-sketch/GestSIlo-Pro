@@ -1,11 +1,16 @@
 // Tipos de Reprodução — Alinhados com schema real do banco (20260502000002_rebanho_fase2_main.sql)
 
 // Tipos de Reprodutor
+// tipo_rebanho segmenta o reprodutor por painel (leite × corte). dupla_aptidao
+// aparece nos dois. Espelha o CHECK chk_reprodutores_tipo_rebanho.
+export type EspecieRebanho = 'leiteiro' | 'corte' | 'dupla_aptidao';
+
 export interface Reprodutor {
   id: string;
   fazenda_id: string;
   nome: string;
   tipo: 'touro' | 'semen_ia' | 'touro_teste';
+  tipo_rebanho: EspecieRebanho;
   raca: string | null;
   numero_registro: string | null;
   data_entrada: string | null;
@@ -118,6 +123,8 @@ export interface CoberturaDoReprodutorRow {
 export interface ParametrosReprodutivosFazenda {
   id: string;
   fazenda_id: string;
+  // Parâmetros agora são por (fazenda, espécie): metas de leite ≠ corte.
+  tipo_rebanho: 'leiteiro' | 'corte';
   dias_gestacao: number;
   dias_seca: number;
   pve_dias: number;

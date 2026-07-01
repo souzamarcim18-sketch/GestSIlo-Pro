@@ -106,6 +106,7 @@ describe('Validações Rebanho Reprodução — Casos Válidos', () => {
     const result = criarReprodutorSchema.safeParse({
       nome: 'Touro Brahma 01',
       tipo: 'touro',
+      tipo_rebanho: 'corte',
       raca: 'Brahma',
       numero_registro: 'BR-2024-001',
       data_entrada: pastDate.toISOString().split('T')[0],

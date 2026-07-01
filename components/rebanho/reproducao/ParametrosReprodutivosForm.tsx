@@ -18,6 +18,8 @@ import type { ParametrosReprodutivosFazenda } from '@/lib/types/rebanho-reproduc
 interface ParametrosReprodutivosFormProps {
   parametros: ParametrosReprodutivosFazenda | null;
   isAdmin: boolean;
+  /** Espécie cujos parâmetros este form edita (leite × corte). */
+  especie?: 'leiteiro' | 'corte';
 }
 
 const fieldConfig = [
@@ -79,7 +81,7 @@ const fieldConfig = [
   },
 ];
 
-export function ParametrosReprodutivosForm({ parametros, isAdmin }: ParametrosReprodutivosFormProps) {
+export function ParametrosReprodutivosForm({ parametros, isAdmin, especie = 'leiteiro' }: ParametrosReprodutivosFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -108,7 +110,7 @@ export function ParametrosReprodutivosForm({ parametros, isAdmin }: ParametrosRe
 
     setIsLoading(true);
     try {
-      const result = await atualizarParametrosReprodutivosAction(data);
+      const result = await atualizarParametrosReprodutivosAction({ ...data, tipo_rebanho: especie });
       if (!result.success) {
         throw new Error(result.erro || 'Erro desconhecido');
       }

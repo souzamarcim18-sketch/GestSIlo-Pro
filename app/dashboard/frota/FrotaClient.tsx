@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart2, Fuel, Settings, Wrench, LayoutDashboard } from 'lucide-react';
+import { BarChart2, Fuel, Settings, Wrench, LayoutDashboard, Tractor } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useFrotaData, type FrotaTab } from './hooks/useFrotaData';
 
 const FrotaOverview = dynamic(
@@ -52,9 +53,9 @@ export function FrotaClient({ profile }: Props) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Frota e Maquinários</h2>
-        <p className="text-sm text-muted-foreground mt-2">
+      <div className="space-y-2">
+        <PageHeader icon={Tractor} titulo="Gestão de Frota e Maquinários" />
+        <p className="text-sm text-muted-foreground">
           Gerencie equipamentos, manutenções e abastecimentos da fazenda.
         </p>
       </div>

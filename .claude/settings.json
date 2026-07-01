@@ -240,7 +240,13 @@
       "Bash(tail -50 /tmp/gestsilo-dev.log | grep -i \"error\\\\|Error\\\\|⨯\\\\|failed\" | head; echo \"--- no runtime errors captured \\(routes only redirected to login\\) ---\")",
       "Bash(taskkill //F //IM node.exe)",
       "WebFetch(domain:base-ui.com)",
-      "Bash(xargs grep -l \"production-error\")"
+      "Bash(xargs grep -l \"production-error\")",
+      "PowerShell(npm test -- --run 2>&1)",
+      "Bash(node -e \"import\\('./lib/calculos/indicadores-rebanho.ts'\\).catch\\(e=>console.log\\('ERR',e.message\\)\\)\")",
+      "Bash(npx tsx *)",
+      "Bash(xxd)",
+      "Bash(grep -iB2 -A8 \"config\\\\|serialize\\\\|plugin\\\\|babel\")",
+      "Bash(npx next *)"
     ],
     "additionalDirectories": [
       "\\tmp"

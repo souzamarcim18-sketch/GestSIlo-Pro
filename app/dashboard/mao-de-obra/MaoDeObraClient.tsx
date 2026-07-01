@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Users, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { KpisSection } from './components/KpisSection';
 import { ColaboradoresList } from './components/ColaboradoresList';
 import { FolhaMensalCLT } from './components/FolhaMensalCLT';
@@ -79,46 +80,27 @@ export function MaoDeObraClient({
   return (
     <div className="space-y-6">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className="p-2 rounded-lg"
-            style={{ background: 'rgba(115,141,69,0.15)', border: '1px solid rgba(115,141,69,0.3)' }}
-          >
-            <Users className="h-5 w-5" style={{ color: '#738D45' }} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Mão de Obra</h1>
-            <p className="text-sm text-muted-foreground">
-              {initialColaboradores.filter((c) => c.ativo).length} colaborador
-              {initialColaboradores.filter((c) => c.ativo).length !== 1 ? 'es' : ''} ativo
-              {initialColaboradores.filter((c) => c.ativo).length !== 1 ? 's' : ''}
-            </p>
-          </div>
-        </div>
-        {isAdmin && (
-          <div className="flex gap-2">
-            {aba === 'colaboradores' ? (
-              <Button
-                onClick={() => setModalColaborador(true)}
-                className="gap-2 font-semibold"
-                style={{ background: '#738D45', color: '#fff' }}
-              >
-                <Plus className="h-4 w-4" />
+      <div className="space-y-2">
+        <PageHeader icon={Users} titulo="Gestão de Equipe">
+          {isAdmin && (
+            aba === 'colaboradores' ? (
+              <Button onClick={() => setModalColaborador(true)}>
+                <Plus className="mr-2 h-4 w-4" />
                 Novo Colaborador
               </Button>
             ) : (
-              <Button
-                onClick={() => setModalAtividade(true)}
-                className="gap-2 font-semibold"
-                style={{ background: '#738D45', color: '#fff' }}
-              >
-                <Plus className="h-4 w-4" />
+              <Button onClick={() => setModalAtividade(true)}>
+                <Plus className="mr-2 h-4 w-4" />
                 Registrar Atividade
               </Button>
-            )}
-          </div>
-        )}
+            )
+          )}
+        </PageHeader>
+        <p className="text-sm text-muted-foreground">
+          {initialColaboradores.filter((c) => c.ativo).length} colaborador
+          {initialColaboradores.filter((c) => c.ativo).length !== 1 ? 'es' : ''} ativo
+          {initialColaboradores.filter((c) => c.ativo).length !== 1 ? 's' : ''}
+        </p>
       </div>
 
       {/* KPIs */}

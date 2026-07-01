@@ -23,24 +23,26 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { criarReprodutorSchema, type CriarReprodutorInput } from '@/lib/validations/rebanho-reproducao';
-import { criarReprodutorAction, editarReprodutorAction } from '@/app/dashboard/rebanho/reproducao/actions';
-import type { Reprodutor } from '@/lib/types/rebanho-reproducao';
+import { criarDoadoraSchema, type CriarDoadoraInput } from '@/lib/validations/rebanho-reproducao';
+import { criarDoadoraAction, editarDoadoraAction } from '@/app/dashboard/rebanho/doadoras/actions';
+import type { Doadora } from '@/lib/types/rebanho-doadoras';
 
-interface ReprodutorFormDialogProps {
-  reprodutor?: Reprodutor;
+interface AnimalOption {
+  id: string;
+  brinco: string;
+  nome: string | null;
+}
+
+interface DoadoraFormDialogProps {
+  doadora?: Doadora;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   /** Espécie pré-selecionada conforme o painel que abriu o dialog. */
   especiePadrao?: 'leiteiro' | 'corte' | 'dupla_aptidao';
+  /** Fêmeas ativas do rebanho — usadas quando a doadora é interna. */
+  animaisFemea: AnimalOption[];
 }
-
-const tiposMap = {
-  touro: 'Touro',
-  semen_ia: 'Sêmen IA',
-  touro_teste: 'Touro Teste',
-};
 
 const especieMap = {
   leiteiro: 'Leite',
@@ -48,13 +50,14 @@ const especieMap = {
   dupla_aptidao: 'Dupla aptidão',
 };
 
-export function ReprodutorFormDialog({
-  reprodutor,
+export function DoadoraFormDialog({
+  doadora,
   isOpen,
   onOpenChange,
   onSuccess,
   especiePadrao = 'dupla_aptidao',
-}: ReprodutorFormDialogProps) {
+  animaisFemea,
+}: DoadoraFormDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -64,22 +67,24 @@ export function ReprodutorFormDialog({
     setValue,
     reset,
     formState: { errors },
-  } = useForm<CriarReprodutorInput>({
-    resolver: zodResolver(criarReprodutorSchema),
-    defaultValues: reprodutor
+  } = useForm<CriarDoadoraInput>({
+    resolver: zodResolver(criarDoadoraSchema),
+    defaultValues: doadora
       ? {
-          nome: reprodutor.nome,
-          tipo: reprodutor.tipo,
-          tipo_rebanho: reprodutor.tipo_rebanho,
-          raca: reprodutor.raca,
-          numero_registro: reprodutor.numero_registro,
-          data_entrada: reprodutor.data_entrada,
-          observacoes: reprodutor.observacoes,
+          nome: doadora.nome,
+          origem: doadora.origem,
+          tipo_rebanho: doadora.tipo_rebanho,
+          animal_id: doadora.animal_id,
+          raca: doadora.raca,
+          numero_registro: doadora.numero_registro,
+          data_entrada: doadora.data_entrada,
+          observacoes: doadora.observacoes,
         }
       : {
           nome: '',
-          tipo: 'touro',
+          origem: 'interna',
           tipo_rebanho: especiePadrao,
+          animal_id: null,
           raca: '',
           numero_registro: '',
           data_entrada: new Date().toISOString().split('T')[0],
@@ -87,84 +92,107 @@ export function ReprodutorFormDialog({
         },
   });
 
+  const origem = watch('origem');
+
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      const result = reprodutor
-        ? await editarReprodutorAction(reprodutor.id, data)
-        : await criarReprodutorAction(data);
+      // Ao trocar para externa, garante que animal_id não vaza.
+      const payload = data.origem === 'externa' ? { ...data, animal_id: null } : data;
+      const result = doadora
+        ? await editarDoadoraAction(doadora.id, payload)
+        : await criarDoadoraAction(payload);
 
       if (!result.success) {
         throw new Error(result.erro || 'Erro desconhecido');
       }
 
-      const message = reprodutor ? 'Reprodutor atualizado com sucesso' : 'Reprodutor criado com sucesso';
-      toast.success(message);
+      toast.success(doadora ? 'Doadora atualizada com sucesso' : 'Doadora criada com sucesso');
       reset();
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erro ao salvar reprodutor');
+      toast.error(error instanceof Error ? error.message : 'Erro ao salvar doadora');
     } finally {
       setIsLoading(false);
     }
   });
 
-  const tipoValue = watch('tipo');
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{reprodutor ? 'Editar Reprodutor' : 'Novo Reprodutor'}</DialogTitle>
+          <DialogTitle>{doadora ? 'Editar Doadora' : 'Nova Doadora'}</DialogTitle>
           <DialogDescription>
-            {reprodutor ? 'Atualize os dados do reprodutor' : 'Cadastre um novo reprodutor na fazenda'}
+            Doadora de oócitos para FIV/OPU. Interna (fêmea do rebanho) ou externa.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="nome">Nome *</Label>
+            <Label htmlFor="origem">Origem *</Label>
+            <Select
+              value={origem}
+              onValueChange={(v) => {
+                setValue('origem', v as CriarDoadoraInput['origem']);
+                if (v === 'externa') setValue('animal_id', null);
+              }}
+              disabled={isLoading}
+            >
+              <SelectTrigger id="origem" className="h-12">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="interna">Interna (do rebanho)</SelectItem>
+                <SelectItem value="externa">Externa (outra fazenda)</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.origem && <p className="text-sm text-red-600">{errors.origem.message}</p>}
+          </div>
+
+          {origem === 'interna' && (
+            <div className="space-y-2">
+              <Label htmlFor="animal_id">Fêmea do rebanho *</Label>
+              <Select
+                value={watch('animal_id') ?? undefined}
+                onValueChange={(v) => setValue('animal_id', v)}
+                disabled={isLoading}
+              >
+                <SelectTrigger id="animal_id" className="h-12">
+                  <SelectValue placeholder="Selecione a fêmea..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {animaisFemea.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.brinco}
+                      {a.nome ? ` — ${a.nome}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.animal_id && (
+                <p className="text-sm text-red-600">{errors.animal_id.message}</p>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="nome">Nome / Identificação *</Label>
             <Input
               id="nome"
-              placeholder="Nome do reprodutor..."
+              placeholder="Nome ou identificação da doadora..."
               {...register('nome')}
               disabled={isLoading}
               className="h-12"
             />
-            {errors.nome && (
-              <p className="text-sm text-red-600">{errors.nome.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tipo">Tipo *</Label>
-            <Select
-              value={tipoValue}
-              onValueChange={(v) => setValue('tipo', v as CriarReprodutorInput['tipo'])}
-              disabled={isLoading}
-            >
-              <SelectTrigger id="tipo" className="h-12">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(tiposMap).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.tipo && (
-              <p className="text-sm text-red-600">{errors.tipo.message}</p>
-            )}
+            {errors.nome && <p className="text-sm text-red-600">{errors.nome.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="tipo_rebanho">Espécie *</Label>
             <Select
               value={watch('tipo_rebanho')}
-              onValueChange={(v) => setValue('tipo_rebanho', v as CriarReprodutorInput['tipo_rebanho'])}
+              onValueChange={(v) => setValue('tipo_rebanho', v as CriarDoadoraInput['tipo_rebanho'])}
               disabled={isLoading}
             >
               <SelectTrigger id="tipo_rebanho" className="h-12">
@@ -187,28 +215,22 @@ export function ReprodutorFormDialog({
             <Label htmlFor="raca">Raça</Label>
             <Input
               id="raca"
-              placeholder="Ex: Holandês, Girolando..."
+              placeholder="Ex: Nelore, Gir..."
               {...register('raca')}
               disabled={isLoading}
               className="h-12"
             />
-            {errors.raca && (
-              <p className="text-sm text-red-600">{errors.raca.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="numero_registro">Número de Registro</Label>
             <Input
               id="numero_registro"
-              placeholder="Ex: ABCxxxx..."
+              placeholder="Registro genealógico..."
               {...register('numero_registro')}
               disabled={isLoading}
               className="h-12"
             />
-            {errors.numero_registro && (
-              <p className="text-sm text-red-600">{errors.numero_registro.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -229,14 +251,11 @@ export function ReprodutorFormDialog({
             <Label htmlFor="observacoes">Observações</Label>
             <Textarea
               id="observacoes"
-              placeholder="Observações sobre o reprodutor..."
+              placeholder="Observações sobre a doadora..."
               {...register('observacoes')}
               disabled={isLoading}
               className="min-h-20 resize-none"
             />
-            {errors.observacoes && (
-              <p className="text-sm text-red-600">{errors.observacoes.message}</p>
-            )}
           </div>
 
           <div className="flex gap-2 pt-2">
@@ -249,18 +268,16 @@ export function ReprodutorFormDialog({
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 h-12"
-            >
+            <Button type="submit" disabled={isLoading} className="flex-1 h-12">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Salvando...
                 </>
+              ) : doadora ? (
+                'Atualizar'
               ) : (
-                reprodutor ? 'Atualizar' : 'Criar Reprodutor'
+                'Criar Doadora'
               )}
             </Button>
           </div>

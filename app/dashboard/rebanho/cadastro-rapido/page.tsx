@@ -1,10 +1,13 @@
 import { CadastroRapidoClient } from './CadastroRapidoClient';
+import { listLotes } from '@/lib/supabase/rebanho';
 
 export const metadata = {
   title: 'Cadastro Rápido de Rebanho | GestSilo',
 };
 
-export default function CadastroRapidoPage() {
+export default async function CadastroRapidoPage() {
+  const lotes = await listLotes(200, 0);
+
   return (
     <div className="space-y-6">
       <div>
@@ -14,7 +17,7 @@ export default function CadastroRapidoPage() {
           Defina os dados que se repetem uma vez só e preencha apenas o que muda por animal.
         </p>
       </div>
-      <CadastroRapidoClient />
+      <CadastroRapidoClient lotes={lotes} />
     </div>
   );
 }

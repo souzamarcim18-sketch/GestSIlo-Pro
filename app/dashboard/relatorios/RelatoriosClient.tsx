@@ -14,6 +14,7 @@ import { q } from '@/lib/supabase/queries-audit';
 import { gerarExcel } from '@/lib/relatorios/excel-builder';
 import { gerarPdf } from '@/lib/relatorios/pdf-builder';
 import { toUtcRangeFromLocal } from '@/lib/utils/periodo';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { RelatorioRow } from '@/components/relatorios/RelatorioRow';
 import { PeriodoFilter } from '@/components/relatorios/PeriodoFilter';
 import { EntidadeFilter, ENTIDADE_TODOS, type EntidadeOption } from '@/components/relatorios/EntidadeFilter';
@@ -759,9 +760,7 @@ export function RelatoriosClient({ fazendaId, fazendaNome, entidades }: Relatori
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Relatórios e Análises</h2>
-      </div>
+      <PageHeader icon={FileBarChart} titulo="Relatórios e Análises" />
 
       {/* ── Operação ─────────────────────────────────── */}
       <Secao titulo="Operação">

@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Plus, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { AlertTriangle, Plus, ArrowDownRight, ArrowUpRight, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useInsumosComRelacoes, useInsumosAbaixoMinimo } from '@/lib/hooks/useInsumos';
 import { useUltimasEntradas, useUltimasSaidas } from '@/lib/hooks/useMovimentacoes';
 import { useCategorias } from '@/lib/hooks/useCategorias';
@@ -72,31 +73,26 @@ export function InsumosClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Insumos</h2>
-          {totalCriticos > 0 && (
-            <p className="text-sm text-destructive flex items-center gap-1 mt-1">
-              <AlertTriangle className="h-3 w-3" />
-              {totalCriticos} insumo{totalCriticos > 1 ? 's' : ''} abaixo do estoque mínimo
-            </p>
-          )}
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button variant="outline" onClick={() => { setSelectedInsumoPara({ tipo: 'entrada' }); setShowEntrada(true); }} className="flex-1 sm:flex-none">
-            <ArrowDownRight className="mr-2 h-4 w-4" />
-            Entrada
-          </Button>
-          <Button variant="outline" onClick={() => { setSelectedInsumoPara({ tipo: 'saida' }); setShowSaida(true); }} className="flex-1 sm:flex-none">
-            <ArrowUpRight className="mr-2 h-4 w-4" />
-            Saída
-          </Button>
-          <Button onClick={() => setShowNovoInsumo(true)} className="flex-1 sm:flex-none">
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Insumo
-          </Button>
-        </div>
-      </div>
+      <PageHeader icon={Package} titulo="Gestão de Insumos">
+        <Button variant="outline" onClick={() => { setSelectedInsumoPara({ tipo: 'entrada' }); setShowEntrada(true); }}>
+          <ArrowDownRight className="mr-2 h-4 w-4" />
+          Entrada
+        </Button>
+        <Button variant="outline" onClick={() => { setSelectedInsumoPara({ tipo: 'saida' }); setShowSaida(true); }}>
+          <ArrowUpRight className="mr-2 h-4 w-4" />
+          Saída
+        </Button>
+        <Button onClick={() => setShowNovoInsumo(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Insumo
+        </Button>
+      </PageHeader>
+      {totalCriticos > 0 && (
+        <p className="text-sm text-destructive flex items-center gap-1 -mt-3">
+          <AlertTriangle className="h-3 w-3" />
+          {totalCriticos} insumo{totalCriticos > 1 ? 's' : ''} abaixo do estoque mínimo
+        </p>
+      )}
 
       <AlertsSection criticos={criticos} />
       <UltimasMovimentacoes entradas={entradas} saidas={saidas} />

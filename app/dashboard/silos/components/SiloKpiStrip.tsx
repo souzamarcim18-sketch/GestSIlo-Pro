@@ -1,23 +1,25 @@
 'use client';
 
-import { Database, Gauge, DoorOpen, AlertTriangle, Layers, CalendarClock, TrendingDown, Percent } from 'lucide-react';
+import { Database, Gauge, DoorOpen, DollarSign, Layers, CalendarClock, TrendingDown, Percent } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
+import { formatBRL } from '@/lib/utils';
 import { type SiloCardData, type ResumoFrotaSilos } from '../helpers';
 
 interface Props {
   data: SiloCardData[];
   resumo?: ResumoFrotaSilos;
+  /** Custo médio da tonelada de silagem na propriedade (Σ custo / Σ toneladas). null enquanto carrega ou sem base de custo. */
+  custoMedioTonelada?: number | null;
 }
 
 const formatTon = (v: number) =>
   `${v.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} t`;
 
-export function SiloKpiStrip({ data, resumo }: Props) {
+export function SiloKpiStrip({ data, resumo, custoMedioTonelada }: Props) {
   if (data.length === 0) return null;
 
   const total = data.length;
   const abertos = data.filter((d) => d.status === 'Aberto').length;
-  const criticos = data.filter((d) => d.status === 'Crítico' || d.status === 'Esgotado').length;
 
   // Ocupação agregada da frota: estoque total ÷ volume total (mesma metodologia do gauge do dashboard).
   const silosComVolume = data.filter((d) => (d.silo.volume_ensilado_ton_mv ?? 0) > 0);
@@ -63,10 +65,10 @@ export function SiloKpiStrip({ data, resumo }: Props) {
         icon={<DoorOpen className="h-5 w-5" />}
       />
       <KpiCard
-        label="Críticos"
-        valor={criticos}
-        sublabel={criticos > 0 ? 'atenção necessária' : 'todos OK'}
-        icon={<AlertTriangle className="h-5 w-5" />}
+        label="Custo Médio por Tonelada"
+        valor={custoMedioTonelada != null && custoMedioTonelada > 0 ? `${formatBRL(custoMedioTonelada)}/t` : '—'}
+        sublabel="silagem da propriedade"
+        icon={<DollarSign className="h-5 w-5" />}
       />
       <KpiCard
         label="Estoque Total"

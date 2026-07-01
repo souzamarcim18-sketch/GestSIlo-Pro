@@ -123,7 +123,7 @@ const queryLotes = {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from('lotes')
-      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, area_ha, data_criacao, created_at, updated_at')
       .eq('nome', nome)
       .single();
 
@@ -135,7 +135,7 @@ const queryLotes = {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from('lotes')
-      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, area_ha, data_criacao, created_at, updated_at')
       .eq('id', id)
       .single();
 
@@ -148,7 +148,7 @@ const queryLotes = {
     const { data, error } = await supabase
       .from('lotes')
       .insert(payload)
-      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, area_ha, data_criacao, created_at, updated_at')
       .single();
 
     if (error) throw error;
@@ -161,7 +161,7 @@ const queryLotes = {
       .from('lotes')
       .update(payload)
       .eq('id', id)
-      .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
+      .select('id, fazenda_id, nome, descricao, tipo_rebanho, area_ha, data_criacao, created_at, updated_at')
       .single();
 
     if (error) throw error;
@@ -555,7 +555,9 @@ async function persistirAnimaisPreparados(
 
   // Resolve lotes referenciados: cache por nome para não recriar nem reconsultar.
   const cacheLotes = new Map<string, Lote>();
-  let loteAutomatico: Lote | null = null;
+  // Guarda o primeiro lote criado automaticamente (usado apenas para o feedback
+  // "Lote criado: X" na tela de conclusão).
+  let primeiroLoteCriado: Lote | null = null;
 
   const animaisParaInserir: Array<{
     payload: CriarAnimalInput & { peso_atual?: number | null };
@@ -569,14 +571,15 @@ async function persistirAnimaisPreparados(
       let lote = cacheLotes.get(chave) ?? (await queryLotes.getByNome(chave));
       if (!lote) {
         if (criarLoteAutomatico) {
-          if (!loteAutomatico) {
-            const dataHoje = new Date().toISOString().split('T')[0];
-            loteAutomatico = await queryLotes.create({
-              nome: `Importação ${dataHoje}`,
-              descricao: `Lote criado automaticamente durante cadastro via ${origem}`,
-            });
+          // Cria um lote com o NOME digitado pelo usuário (um por nome distinto),
+          // em vez de um único lote genérico "Importação <data>".
+          lote = await queryLotes.create({
+            nome: chave,
+            descricao: `Lote criado automaticamente durante cadastro via ${origem}`,
+          });
+          if (!primeiroLoteCriado) {
+            primeiroLoteCriado = lote;
           }
-          lote = loteAutomatico;
         } else {
           resultado.erros.push({
             linha: numeroLinha,
@@ -627,9 +630,9 @@ async function persistirAnimaisPreparados(
     }
   }
 
-  if (loteAutomatico) {
-    resultado.lote_criado_id = loteAutomatico.id;
-    resultado.lote_criado_nome = loteAutomatico.nome;
+  if (primeiroLoteCriado) {
+    resultado.lote_criado_id = primeiroLoteCriado.id;
+    resultado.lote_criado_nome = primeiroLoteCriado.nome;
   }
 
   return resultado;
@@ -878,7 +881,7 @@ export async function listLotes(
 
   const { data, error } = await supabase
     .from('lotes')
-    .select('id, fazenda_id, nome, descricao, tipo_rebanho, data_criacao, created_at, updated_at')
+    .select('id, fazenda_id, nome, descricao, tipo_rebanho, area_ha, data_criacao, created_at, updated_at')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -926,6 +929,30 @@ export async function countAnimaisEmLote(loteId: string): Promise<number> {
 
   if (error) throw error;
   return count || 0;
+}
+
+/**
+ * Conta animais ativos agrupados por lote em UMA única query, evitando N
+ * consultas sequenciais (uma por lote). Retorna um mapa loteId → contagem.
+ */
+export async function countAnimaisPorLote(): Promise<Record<string, number>> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('animais')
+    .select('lote_id')
+    .not('lote_id', 'is', null)
+    .is('deleted_at', null);
+
+  if (error) throw error;
+
+  const contagens: Record<string, number> = {};
+  for (const row of (data as { lote_id: string | null }[]) || []) {
+    if (row.lote_id) {
+      contagens[row.lote_id] = (contagens[row.lote_id] || 0) + 1;
+    }
+  }
+  return contagens;
 }
 
 export async function listAnimaisEmLote(loteId: string): Promise<Animal[]> {

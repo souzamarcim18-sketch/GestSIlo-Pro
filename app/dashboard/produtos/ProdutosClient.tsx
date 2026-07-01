@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Plus, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { AlertTriangle, Plus, ArrowDownRight, ArrowUpRight, PackageOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   listProdutos,
   listMovimentacoesProduto,
@@ -92,33 +93,30 @@ export function ProdutosClient({ isAdmin, initialCategorias }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Produtos</h2>
-          {criticos.length > 0 && (
-            <p className="text-sm text-destructive flex items-center gap-1 mt-1">
-              <AlertTriangle className="h-3 w-3" />
-              {criticos.length} produto{criticos.length > 1 ? 's' : ''} abaixo do estoque mínimo
-            </p>
-          )}
-        </div>
+      <PageHeader icon={PackageOpen} titulo="Gestão de Produtos">
         {isAdmin && (
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={() => setShowEntrada(true)} className="flex-1 sm:flex-none">
+          <>
+            <Button variant="outline" onClick={() => setShowEntrada(true)}>
               <ArrowDownRight className="mr-2 h-4 w-4" />
               Entrada
             </Button>
-            <Button variant="outline" onClick={() => setShowSaida(true)} className="flex-1 sm:flex-none">
+            <Button variant="outline" onClick={() => setShowSaida(true)}>
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Saída
             </Button>
-            <Button onClick={() => { setSelectedProduto(undefined); setShowNovoProduto(true); }} className="flex-1 sm:flex-none">
+            <Button onClick={() => { setSelectedProduto(undefined); setShowNovoProduto(true); }}>
               <Plus className="mr-2 h-4 w-4" />
               Novo Produto
             </Button>
-          </div>
+          </>
         )}
-      </div>
+      </PageHeader>
+      {criticos.length > 0 && (
+        <p className="text-sm text-destructive flex items-center gap-1 -mt-3">
+          <AlertTriangle className="h-3 w-3" />
+          {criticos.length} produto{criticos.length > 1 ? 's' : ''} abaixo do estoque mínimo
+        </p>
+      )}
 
       <AlertsSection criticos={criticos} />
       <UltimasMovimentacoes movimentacoes={todasMovs} />

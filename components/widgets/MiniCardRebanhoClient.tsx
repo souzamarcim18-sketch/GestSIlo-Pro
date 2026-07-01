@@ -31,7 +31,7 @@ export function MiniCardRebanhoClient({ data }: MiniCardRebanhoClientProps) {
 
   return (
     <button
-      onClick={() => router.push('/dashboard/rebanho/indicadores')}
+      onClick={() => router.push('/dashboard/rebanho')}
       className="text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 rounded-2xl w-full"
       aria-label="Rebanho - clique para ver indicadores"
     >

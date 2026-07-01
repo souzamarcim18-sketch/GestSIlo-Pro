@@ -85,6 +85,9 @@ export interface Lote {
   nome: string;
   descricao: string | null;
   tipo_rebanho: 'leiteiro' | 'corte' | 'misto' | null;
+  // Área do lote (ha) — habilita produtividade por área. Opcional (nem toda
+  // leitura/legado traz a coluna).
+  area_ha?: number | null;
   data_criacao: string;
   created_at: string;
   updated_at: string;

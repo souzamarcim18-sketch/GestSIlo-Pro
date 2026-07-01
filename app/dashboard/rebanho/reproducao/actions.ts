@@ -42,6 +42,8 @@ export async function criarReprodutorAction(
     const reprodutor = await queryReprodutores.create(parsed as CriarReprodutorInput);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true, reprodutor_id: reprodutor.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -63,6 +65,8 @@ export async function editarReprodutorAction(
     await queryReprodutores.update(id, parsed as Partial<CriarReprodutorInput>);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -80,6 +84,8 @@ export async function deletarReprodutorAction(id: string): Promise<{ success: bo
     await queryReprodutores.remove(id);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -104,6 +110,8 @@ export async function lancarCoberturaAction(
     const resultado = await queryEventosRebanho.registrarCobertura(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -126,6 +134,8 @@ export async function lancarDiagnosticoAction(
     const resultado = await queryEventosRebanho.registrarDiagnostico(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -167,6 +177,8 @@ export async function lancarPartoAction(
     const resultado = await queryEventosRebanho.registrarParto(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return {
       success: true,
       evento_id: resultado.evento_id,
@@ -193,6 +205,8 @@ export async function lancarSecagemAction(
     const resultado = await queryEventosRebanho.registrarSecagem(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -215,6 +229,8 @@ export async function lancarAbortoAction(
     const resultado = await queryEventosRebanho.registrarAborto(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -237,6 +253,8 @@ export async function lancarDescarteAction(
     const resultado = await queryEventosRebanho.registrarDescarte(parsed, userId);
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true, evento_id: resultado.id };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -273,6 +291,8 @@ export async function deletarEventoReprodutivo(id: string): Promise<{ success: b
     });
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -304,10 +324,17 @@ export async function atualizarParametrosReprodutivosAction(
 
     if (!profile?.fazenda_id) throw new Error('Fazenda não encontrada.');
 
-    // Upsert para criar ou atualizar parâmetros
-    await queryParametrosReprodutivos.upsert(profile.fazenda_id, parsed as AtualizarParametrosReprodutivosInput);
+    // Upsert por espécie (leite × corte).
+    const especie = parsed.tipo_rebanho ?? 'leiteiro';
+    await queryParametrosReprodutivos.upsert(
+      profile.fazenda_id,
+      especie,
+      parsed as AtualizarParametrosReprodutivosInput
+    );
 
     revalidatePath('/dashboard/rebanho/reproducao');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     return { success: true };
   } catch (error) {
     const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';

@@ -12,6 +12,7 @@ import type {
   EventoPartoCria,
   ParametrosReprodutivosFazenda,
   CoberturaDoReprodutorRow,
+  EspecieRebanho,
 } from '@/lib/types/rebanho-reproducao';
 import type {
   CriarReprodutorInput,
@@ -27,19 +28,29 @@ import type {
 // ========== REPRODUTORES ==========
 
 export const queryReprodutores = {
-  async list(pagina: number = 1, limite: number = 50): Promise<{ dados: Reprodutor[]; total: number }> {
+  async list(
+    pagina: number = 1,
+    limite: number = 50,
+    especies?: EspecieRebanho[]
+  ): Promise<{ dados: Reprodutor[]; total: number }> {
     if (limite > 100) limite = 100;
     const offset = (pagina - 1) * limite;
 
     const supabase = await createSupabaseServerClient();
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('reprodutores')
       .select(
-        'id, fazenda_id, nome, tipo, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at',
+        'id, fazenda_id, nome, tipo, tipo_rebanho, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at',
         { count: 'exact' }
       )
-      .is('deleted_at', null)
+      .is('deleted_at', null);
+
+    if (especies && especies.length > 0) {
+      query = query.in('tipo_rebanho', especies);
+    }
+
+    const { data, error, count } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limite - 1);
 
@@ -53,7 +64,7 @@ export const queryReprodutores = {
     const { data, error } = await supabase
       .from('reprodutores')
       .select(
-        'id, fazenda_id, nome, tipo, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, nome, tipo, tipo_rebanho, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('id', id)
       .is('deleted_at', null)
@@ -72,7 +83,7 @@ export const queryReprodutores = {
         ...payload,
       })
       .select(
-        'id, fazenda_id, nome, tipo, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, nome, tipo, tipo_rebanho, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
@@ -88,7 +99,7 @@ export const queryReprodutores = {
       .update(payload)
       .eq('id', id)
       .select(
-        'id, fazenda_id, nome, tipo, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, nome, tipo, tipo_rebanho, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
       )
       .single();
 
@@ -113,7 +124,7 @@ export const queryReprodutores = {
     const { data, error } = await supabase
       .from('reprodutores')
       .select(
-        'id, fazenda_id, nome, tipo, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
+        'id, fazenda_id, nome, tipo, tipo_rebanho, raca, numero_registro, data_entrada, observacoes, deleted_at, created_at, updated_at'
       )
       .eq('numero_registro', numero_registro)
       .is('deleted_at', null)
@@ -533,54 +544,71 @@ export const queryEventosPartoCrias = {
 
 // ========== PARÂMETROS REPRODUTIVOS ==========
 
+const PARAMETROS_COLS =
+  'id, fazenda_id, tipo_rebanho, dias_gestacao, dias_seca, pve_dias, coberturas_para_repetidora, janela_repetidora_dias, meta_taxa_prenhez_pct, meta_psm_dias, meta_iep_dias, created_at, updated_at';
+
 export const queryParametrosReprodutivos = {
-  /** Busca parâmetros de uma fazenda (retorna 1 registro ou null) - RLS filtra automaticamente */
-  async get(): Promise<ParametrosReprodutivosFazenda | null> {
+  /**
+   * Busca parâmetros de uma espécie da fazenda (leite | corte). RLS filtra a
+   * fazenda; o filtro por tipo_rebanho seleciona a linha certa (1 por espécie).
+   */
+  async get(tipo_rebanho: 'leiteiro' | 'corte' = 'leiteiro'): Promise<ParametrosReprodutivosFazenda | null> {
     const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
       .from('parametros_reprodutivos_fazenda')
-      .select(
-        'id, fazenda_id, dias_gestacao, dias_seca, pve_dias, coberturas_para_repetidora, janela_repetidora_dias, meta_taxa_prenhez_pct, meta_psm_dias, meta_iep_dias, created_at, updated_at'
-      )
+      .select(PARAMETROS_COLS)
+      .eq('tipo_rebanho', tipo_rebanho)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
     return (data as ParametrosReprodutivosFazenda) || null;
   },
 
-  /** Atualiza parâmetros reprodutivos de uma fazenda - RLS filtra automaticamente */
-  async update(payload: Partial<AtualizarParametrosReprodutivosInput>): Promise<ParametrosReprodutivosFazenda> {
+  /** Atualiza parâmetros de uma espécie da fazenda - RLS filtra automaticamente */
+  async update(
+    tipo_rebanho: 'leiteiro' | 'corte',
+    payload: Partial<AtualizarParametrosReprodutivosInput>
+  ): Promise<ParametrosReprodutivosFazenda> {
     const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
       .from('parametros_reprodutivos_fazenda')
       .update(payload)
-      .select(
-        'id, fazenda_id, dias_gestacao, dias_seca, pve_dias, coberturas_para_repetidora, janela_repetidora_dias, meta_taxa_prenhez_pct, meta_psm_dias, meta_iep_dias, created_at, updated_at'
-      )
+      .eq('tipo_rebanho', tipo_rebanho)
+      .select(PARAMETROS_COLS)
       .single();
 
     if (error) throw error;
     return data as ParametrosReprodutivosFazenda;
   },
 
-  /** Cria ou atualiza parâmetros reprodutivos (upsert) */
-  async upsert(fazenda_id: string, payload: AtualizarParametrosReprodutivosInput): Promise<ParametrosReprodutivosFazenda> {
+  /** Cria ou atualiza parâmetros de uma espécie (upsert por fazenda+espécie) */
+  async upsert(
+    fazenda_id: string,
+    tipo_rebanho: 'leiteiro' | 'corte',
+    payload: AtualizarParametrosReprodutivosInput
+  ): Promise<ParametrosReprodutivosFazenda> {
     const supabase = await createSupabaseServerClient();
+
+    // O tipo_rebanho do argumento é a fonte de verdade — não deixar o payload
+    // sobrescrevê-lo.
+    const { tipo_rebanho: _ignorado, ...dados } = payload as AtualizarParametrosReprodutivosInput & {
+      tipo_rebanho?: string;
+    };
+    void _ignorado;
 
     const { data, error } = await supabase
       .from('parametros_reprodutivos_fazenda')
       .upsert(
         {
           fazenda_id,
-          ...payload,
+          tipo_rebanho,
+          ...dados,
         },
-        { onConflict: 'fazenda_id' }
+        { onConflict: 'fazenda_id,tipo_rebanho' }
       )
-      .select(
-        'id, fazenda_id, dias_gestacao, dias_seca, pve_dias, coberturas_para_repetidora, janela_repetidora_dias, meta_taxa_prenhez_pct, meta_psm_dias, meta_iep_dias, created_at, updated_at'
-      )
+      .select(PARAMETROS_COLS)
       .single();
 
     if (error) throw error;
@@ -591,17 +619,20 @@ export const queryParametrosReprodutivos = {
 // ========== INDICADORES E DASHBOARD ==========
 
 export const queryIndicadoresReprodutivos = {
-  /** Busca contagem de animais por status reprodutivo */
+  /** Busca contagem de animais por status reprodutivo (opcionalmente por espécie) */
   async getContagemPorStatus(
-    fazenda_id: string
+    fazenda_id: string,
+    especies?: EspecieRebanho[]
   ): Promise<{ vazia: number; inseminada: number; prenha: number; lactacao: number; seca: number; descartada: number }> {
     const supabase = await createSupabaseServerClient();
 
-    const { data, error } = await supabase
+    let q = supabase
       .from('animais')
       .select('status_reprodutivo')
       .eq('fazenda_id', fazenda_id)
       .is('deleted_at', null);
+    if (especies && especies.length > 0) q = q.in('tipo_rebanho', especies);
+    const { data, error } = await q;
 
     if (error) throw error;
 

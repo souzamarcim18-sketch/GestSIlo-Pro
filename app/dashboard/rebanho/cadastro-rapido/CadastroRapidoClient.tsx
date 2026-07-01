@@ -13,7 +13,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ToggleButtonGroup } from '@/components/ui/toggle-button-group';
 import { toast } from 'sonner';
 import { cadastrarAnimaisLoteAction } from '@/app/dashboard/rebanho/actions';
-import type { CSVImportResult } from '@/lib/types/rebanho';
+import type { CSVImportResult, Lote } from '@/lib/types/rebanho';
+
+const LOTES_DATALIST_ID = 'cadastro-rapido-lotes';
 
 type Sexo = 'Fêmea' | 'Macho';
 type TipoRebanho = 'leiteiro' | 'corte' | 'dupla_aptidao';
@@ -75,7 +77,11 @@ function novaLinha(padrao: Padrao): LinhaGrade {
   };
 }
 
-export function CadastroRapidoClient() {
+interface CadastroRapidoClientProps {
+  lotes: Lote[];
+}
+
+export function CadastroRapidoClient({ lotes: lotesExistentes }: CadastroRapidoClientProps) {
   const router = useRouter();
   const [etapa, setEtapa] = useState<'padrao' | 'grade' | 'concluido'>('padrao');
 
@@ -190,10 +196,19 @@ export function CadastroRapidoClient() {
     setEtapa('padrao');
   }, []);
 
+  const lotesDatalist = (
+    <datalist id={LOTES_DATALIST_ID}>
+      {lotesExistentes.map((l) => (
+        <option key={l.id} value={l.nome} />
+      ))}
+    </datalist>
+  );
+
   // ---- Etapa 1: dados em comum ----
   if (etapa === 'padrao') {
     return (
       <Card className="max-w-2xl space-y-5 p-6">
+        {lotesDatalist}
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.13em]">Dados em comum</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -247,7 +262,11 @@ export function CadastroRapidoClient() {
               value={padrao.lote}
               onChange={(e) => setPadrao((p) => ({ ...p, lote: e.target.value }))}
               placeholder="Ex.: Lote A"
+              list={LOTES_DATALIST_ID}
             />
+            <p className="text-xs text-muted-foreground">
+              Escolha um lote existente ou digite um nome novo (será criado).
+            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -271,6 +290,7 @@ export function CadastroRapidoClient() {
   if (etapa === 'grade') {
     return (
       <div className="space-y-6">
+        {lotesDatalist}
         <Card className="space-y-3 p-4">
           <h2 className="text-sm font-semibold uppercase tracking-[0.13em] flex items-center gap-2">
             <Wand2 className="h-4 w-4" /> Gerar brincos em sequência
@@ -396,6 +416,7 @@ export function CadastroRapidoClient() {
                         value={linha.lote}
                         onChange={(e) => atualizarCampo(idx, 'lote', e.target.value)}
                         className="h-8 min-w-[110px]"
+                        list={LOTES_DATALIST_ID}
                       />
                     </td>
                     <td className="px-1 py-1">

@@ -101,6 +101,20 @@ export default function NovoLotePage() {
               </div>
 
               <div>
+                <Label htmlFor="area_ha">Área (ha)</Label>
+                <Input
+                  id="area_ha"
+                  name="area_ha"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Opcional — habilita produtividade por área"
+                  disabled={isSubmitting}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="descricao">Descrição</Label>
                 <Textarea
                   id="descricao"

@@ -1222,6 +1222,76 @@ export type Database = {
           },
         ]
       }
+      doadoras: {
+        Row: {
+          animal_id: string | null
+          created_at: string
+          data_entrada: string | null
+          deleted_at: string | null
+          fazenda_id: string | null
+          id: string
+          nome: string
+          numero_registro: string | null
+          observacoes: string | null
+          origem: string
+          raca: string | null
+          tipo_rebanho: string
+          updated_at: string
+        }
+        Insert: {
+          animal_id?: string | null
+          created_at?: string
+          data_entrada?: string | null
+          deleted_at?: string | null
+          fazenda_id?: string | null
+          id?: string
+          nome: string
+          numero_registro?: string | null
+          observacoes?: string | null
+          origem?: string
+          raca?: string | null
+          tipo_rebanho?: string
+          updated_at?: string
+        }
+        Update: {
+          animal_id?: string | null
+          created_at?: string
+          data_entrada?: string | null
+          deleted_at?: string | null
+          fazenda_id?: string | null
+          id?: string
+          nome?: string
+          numero_registro?: string | null
+          observacoes?: string | null
+          origem?: string
+          raca?: string | null
+          tipo_rebanho?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doadoras_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doadoras_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "vw_animais_completos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doadoras_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos_dap: {
         Row: {
           atividade_campo_id: string | null
@@ -2111,6 +2181,7 @@ export type Database = {
       }
       lotes: {
         Row: {
+          area_ha: number | null
           created_at: string
           data_criacao: string
           descricao: string | null
@@ -2121,6 +2192,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          area_ha?: number | null
           created_at?: string
           data_criacao?: string
           descricao?: string | null
@@ -2131,6 +2203,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          area_ha?: number | null
           created_at?: string
           data_criacao?: string
           descricao?: string | null
@@ -2656,6 +2729,7 @@ export type Database = {
           meta_psm_dias: number | null
           meta_taxa_prenhez_pct: number | null
           pve_dias: number | null
+          tipo_rebanho: string | null
           updated_at: string
         }
         Insert: {
@@ -2670,6 +2744,7 @@ export type Database = {
           meta_psm_dias?: number | null
           meta_taxa_prenhez_pct?: number | null
           pve_dias?: number | null
+          tipo_rebanho?: string | null
           updated_at?: string
         }
         Update: {
@@ -2684,13 +2759,14 @@ export type Database = {
           meta_psm_dias?: number | null
           meta_taxa_prenhez_pct?: number | null
           pve_dias?: number | null
+          tipo_rebanho?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "parametros_reprodutivos_fazenda_fazenda_id_fkey"
             columns: ["fazenda_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "fazendas"
             referencedColumns: ["id"]
           },
@@ -3125,6 +3201,7 @@ export type Database = {
       producoes_leiteiras: {
         Row: {
           animal_id: string
+          ccs_mil_cel_ml: number | null
           created_at: string
           data: string
           fazenda_id: string
@@ -3136,6 +3213,7 @@ export type Database = {
         }
         Insert: {
           animal_id: string
+          ccs_mil_cel_ml?: number | null
           created_at?: string
           data: string
           fazenda_id: string
@@ -3147,6 +3225,7 @@ export type Database = {
         }
         Update: {
           animal_id?: string
+          ccs_mil_cel_ml?: number | null
           created_at?: string
           data?: string
           fazenda_id?: string
@@ -3395,6 +3474,7 @@ export type Database = {
           observacoes: string | null
           raca: string | null
           tipo: string
+          tipo_rebanho: string | null
           updated_at: string
         }
         Insert: {
@@ -3408,6 +3488,7 @@ export type Database = {
           observacoes?: string | null
           raca?: string | null
           tipo: string
+          tipo_rebanho?: string | null
           updated_at?: string
         }
         Update: {
@@ -3421,6 +3502,7 @@ export type Database = {
           observacoes?: string | null
           raca?: string | null
           tipo?: string
+          tipo_rebanho?: string | null
           updated_at?: string
         }
         Relationships: [

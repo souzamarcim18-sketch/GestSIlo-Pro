@@ -689,6 +689,153 @@ export function montarComparativoLotes(
   return linhas;
 }
 
+// ========== INDICADORES DE CORTE / REPRODUÇÃO (deriváveis) ==========
+
+/**
+ * Taxa de Desmama = (desmames / nascimentos) * 100 no período.
+ * Ambos os eventos (`desmame` e `nascimento`) já existem no schema. Indicador
+ * central do rebanho de corte (proporção de bezerros nascidos que chegam à
+ * desmama). Puro — recebe eventos já filtrados por período.
+ */
+export function calcularTaxaDesmama(
+  eventos: Array<{ tipo: string }>
+): ResultadoTaxa {
+  const desmames = eventos.filter((e) => e.tipo === 'desmame').length;
+  const nascimentos = eventos.filter((e) => e.tipo === 'nascimento').length;
+
+  return {
+    numerador: desmames,
+    denominador: nascimentos,
+    taxa_percentual: calcularTaxaPercentual(desmames, nascimentos),
+  };
+}
+
+/**
+ * Prenhez confirmada segmentada por método de cobertura (IATF vs IA
+ * convencional vs monta natural). Usa `tipo_cobertura` das coberturas e
+ * `resultado_prenhez` dos diagnósticos positivos — colunas já existentes em
+ * `eventos_rebanho` (não expostas no tipo TS local `EventoRebanho`, por isso o
+ * Pick estendido).
+ *
+ * Retorna, por método, a contagem de coberturas e a taxa de concepção
+ * (diagnósticos positivos vinculados àquele método / coberturas do método).
+ * Como o vínculo cobertura→diagnóstico não é 1:1 no schema, a concepção é
+ * aproximada pela razão de positivos sobre coberturas do mesmo método no
+ * conjunto recebido — coerente com `getTaxaConcepçãoIA` já existente.
+ */
+export type MetodoCobertura = 'monta_natural' | 'ia_convencional' | 'iatf' | 'outro';
+
+export interface PrenhezPorMetodo {
+  metodo: MetodoCobertura;
+  coberturas: number;
+  diagnosticosPositivos: number;
+  taxaConcepcaoPct: number;
+}
+
+export function calcularTaxaPrenhezPorMetodo(
+  eventos: Array<{ tipo: string; tipo_cobertura?: string | null; resultado_prenhez?: string | null }>
+): PrenhezPorMetodo[] {
+  const metodos: MetodoCobertura[] = ['monta_natural', 'ia_convencional', 'iatf'];
+
+  const normalizar = (v?: string | null): MetodoCobertura =>
+    v === 'monta_natural' || v === 'ia_convencional' || v === 'iatf' ? v : 'outro';
+
+  const linhas: PrenhezPorMetodo[] = metodos.map((metodo) => {
+    const coberturas = eventos.filter(
+      (e) => e.tipo === 'cobertura' && normalizar(e.tipo_cobertura) === metodo
+    ).length;
+    const diagnosticosPositivos = eventos.filter(
+      (e) =>
+        e.tipo === 'diagnostico_prenhez' &&
+        e.resultado_prenhez === 'positivo' &&
+        normalizar(e.tipo_cobertura) === metodo
+    ).length;
+
+    return {
+      metodo,
+      coberturas,
+      diagnosticosPositivos,
+      taxaConcepcaoPct: calcularTaxaPercentual(diagnosticosPositivos, coberturas),
+    };
+  });
+
+  return linhas;
+}
+
+/**
+ * Idade média ao abate (meses) = média, entre animais vendidos/abatidos, do
+ * intervalo entre `data_nascimento` e a data do evento de saída (`venda`).
+ * Puro — recebe os animais e os eventos de venda já casados por animal.
+ * Retorna null se nenhum par válido.
+ *
+ * @param animais         animais com id + data_nascimento
+ * @param eventosVenda    eventos tipo 'venda' com animal_id + data_evento
+ */
+export function calcularIdadeAoAbate(
+  animais: Pick<Animal, 'id' | 'data_nascimento'>[],
+  eventosVenda: Array<{ animal_id: string; tipo: string; data_evento: string }>
+): number | null {
+  const nascimentoPorAnimal = new Map(
+    animais.map((a) => [a.id, a.data_nascimento])
+  );
+
+  const idadesMeses: number[] = [];
+  for (const ev of eventosVenda) {
+    if (ev.tipo !== 'venda') continue;
+    const nascimento = nascimentoPorAnimal.get(ev.animal_id);
+    if (!nascimento) continue;
+
+    const dn = new Date(nascimento);
+    const dv = new Date(ev.data_evento);
+    const meses =
+      (dv.getFullYear() - dn.getFullYear()) * 12 + (dv.getMonth() - dn.getMonth());
+    if (meses >= 0) idadesMeses.push(meses);
+  }
+
+  if (idadesMeses.length === 0) return null;
+  return Math.round(idadesMeses.reduce((a, b) => a + b, 0) / idadesMeses.length);
+}
+
+// ========== PRODUTIVIDADE POR ÁREA (depende de lotes.area_ha) ==========
+
+/**
+ * Produção de leite por área (litros/ha/dia) = produção média diária do
+ * conjunto / soma das áreas dos lotes com `area_ha` definido. Retorna null
+ * quando nenhuma área está cadastrada (a UI então exibe aviso, nunca estima
+ * silenciosamente — padrão do Balanço Forrageiro).
+ *
+ * @param litrosMediaDia  produção média diária (litros) — já calculada
+ * @param areasHa         áreas dos lotes envolvidos (ha); ignora null/<=0
+ */
+export function calcularProducaoLeitePorArea(
+  litrosMediaDia: number,
+  areasHa: Array<number | null | undefined>
+): number | null {
+  const areaTotal = areasHa
+    .filter((a): a is number => typeof a === 'number' && a > 0)
+    .reduce((acc, a) => acc + a, 0);
+  if (areaTotal <= 0) return null;
+  return litrosMediaDia / areaTotal;
+}
+
+/**
+ * Produção de corte por área (@/ha) = soma de arrobas estimadas do rebanho /
+ * soma das áreas com `area_ha`. Retorna null quando nenhuma área cadastrada.
+ *
+ * @param arrobasTotais   soma de @ estimadas (via calcularArrobasEstimadas)
+ * @param areasHa         áreas dos lotes (ha); ignora null/<=0
+ */
+export function calcularArrobasPorArea(
+  arrobasTotais: number,
+  areasHa: Array<number | null | undefined>
+): number | null {
+  const areaTotal = areasHa
+    .filter((a): a is number => typeof a === 'number' && a > 0)
+    .reduce((acc, a) => acc + a, 0);
+  if (areaTotal <= 0) return null;
+  return arrobasTotais / areaTotal;
+}
+
 // ========== INDICADORES LEITEIROS ==========
 
 /**

@@ -21,7 +21,7 @@ export async function criarProducaoLeiteira(
       usuario_id: usuarioId,
     })
     .select(
-      'id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at'
+      'id, fazenda_id, animal_id, data, turno, volume_litros, ccs_mil_cel_ml, observacoes, usuario_id, created_at'
     )
     .single();
 
@@ -41,7 +41,7 @@ export async function listProducoesLeiteiras(
   const { data, error } = await supabase
     .from('producoes_leiteiras')
     .select(
-      'id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at'
+      'id, fazenda_id, animal_id, data, turno, volume_litros, ccs_mil_cel_ml, observacoes, usuario_id, created_at'
     )
     .eq('animal_id', animalId)
     .order('data', { ascending: false })
@@ -71,7 +71,7 @@ export async function listProducoesLeiteirasNoPeriodo(
   const { data, error } = await supabase
     .from('producoes_leiteiras')
     .select(
-      `id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at,
+      `id, fazenda_id, animal_id, data, turno, volume_litros, ccs_mil_cel_ml, observacoes, usuario_id, created_at,
        animais:animal_id(brinco, nome, status_reprodutivo, lote_id)`
     )
     .gte('data', dataInicio)
@@ -263,7 +263,7 @@ export async function editarProducaoLeiteira(
     .update(payload)
     .eq('id', id)
     .select(
-      'id, fazenda_id, animal_id, data, turno, volume_litros, observacoes, usuario_id, created_at'
+      'id, fazenda_id, animal_id, data, turno, volume_litros, ccs_mil_cel_ml, observacoes, usuario_id, created_at'
     )
     .single();
 

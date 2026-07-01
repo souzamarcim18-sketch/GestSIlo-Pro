@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Calendar, List, Grid3x3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   Select,
   SelectContent,
@@ -289,8 +290,8 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Calendário</h2>
+      <div className="space-y-2">
+        <PageHeader icon={Calendar} titulo="Calendário de Atividades" />
         <p className="text-muted-foreground">{GRUPO_CONFIG[grupo].descricao}</p>
       </div>
 

@@ -13,7 +13,9 @@ import type {
   PeriodoBalanco,
   ResultadoConsumoReal,
 } from '@/lib/utils/balanco-forrageiro';
+import { Scale } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   Accordion,
   AccordionContent,
@@ -74,9 +76,9 @@ export function BalancoForrageiroClient({
   return (
     <div className="space-y-6">
       {/* Título */}
-      <div>
-        <h1 className="text-2xl font-bold">Balanço Forrageiro</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+      <div className="space-y-2">
+        <PageHeader icon={Scale} titulo="Balanço Forrageiro" />
+        <p className="text-sm text-muted-foreground">
           Quanto tempo seu rebanho está alimentado, somando pasto e silagem
         </p>
       </div>

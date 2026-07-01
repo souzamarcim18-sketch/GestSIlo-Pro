@@ -81,6 +81,7 @@ export default function NovoAnimalPage() {
   const [nome, setNome] = useState('');
   const [sexo, setSexo] = useState<'Macho' | 'Fêmea'>('Fêmea');
   const [pesoNascimento, setPesoNascimento] = useState('');
+  const [pesoAtual, setPesoAtual] = useState('');
   const [observacoes, setObservacoes] = useState('');
 
   const [contadorSessao, setContadorSessao] = useState(0);
@@ -129,6 +130,7 @@ export default function NovoAnimalPage() {
           origem === 'nascido' && pesoNascimento
             ? Number(pesoNascimento.replace(',', '.'))
             : '',
+        peso_atual: pesoAtual ? Number(pesoAtual.replace(',', '.')) : '',
         observacoes: observacoes.trim(),
       };
 
@@ -146,6 +148,7 @@ export default function NovoAnimalPage() {
           setBrinco(incrementarBrinco(brinco.trim()));
           setNome('');
           setPesoNascimento('');
+          setPesoAtual('');
           setObservacoes('');
           // refoco no brinco para digitar/conferir o próximo
           setTimeout(() => brincoRef.current?.select(), 0);
@@ -174,6 +177,7 @@ export default function NovoAnimalPage() {
       raca,
       origem,
       pesoNascimento,
+      pesoAtual,
       observacoes,
       router,
     ]
@@ -402,6 +406,22 @@ export default function NovoAnimalPage() {
                     />
                   </div>
                 )}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="peso_atual">Peso Atual (kg) — opcional</Label>
+                  <Input
+                    id="peso_atual"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={pesoAtual}
+                    onChange={(e) => setPesoAtual(e.target.value)}
+                    placeholder="Ex: 320"
+                    disabled={isSubmitting}
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">

@@ -10,6 +10,10 @@ export const criarReprodutorSchema = z.object({
   tipo: z.enum(['touro', 'semen_ia', 'touro_teste'], {
     message: 'Tipo de reprodutor inválido'
   }),
+  // Segmenta o reprodutor por painel (leite × corte). dupla_aptidao aparece nos dois.
+  tipo_rebanho: z.enum(['leiteiro', 'corte', 'dupla_aptidao'], {
+    message: 'Espécie inválida'
+  }),
   raca: z
     .string()
     .max(255, 'Máximo 255 caracteres')
@@ -38,6 +42,60 @@ export const editarReprodutorSchema = criarReprodutorSchema.omit({});
 
 export type CriarReprodutorInput = z.infer<typeof criarReprodutorSchema>;
 export type EditarReprodutorInput = z.infer<typeof editarReprodutorSchema>;
+
+// ========== DOADORA (FIV/OPU) ==========
+
+// Doadora interna: fêmea do rebanho (animal_id). Externa: de outra fazenda
+// (sem animal_id local). superRefine garante a coerência origem × animal_id,
+// espelhando o CHECK chk_doadoras_origem_animal.
+export const criarDoadoraSchema = z
+  .object({
+    nome: z
+      .string()
+      .min(2, 'Nome deve ter no mínimo 2 caracteres')
+      .max(255, 'Máximo 255 caracteres'),
+    origem: z.enum(['interna', 'externa'], { message: 'Origem inválida' }),
+    tipo_rebanho: z.enum(['leiteiro', 'corte', 'dupla_aptidao'], {
+      message: 'Espécie inválida',
+    }),
+    animal_id: z.string().uuid('Animal inválido').optional().nullable(),
+    raca: z.string().max(255, 'Máximo 255 caracteres').optional().nullable(),
+    numero_registro: z
+      .string()
+      .max(255, 'Máximo 255 caracteres')
+      .optional()
+      .nullable(),
+    data_entrada: z
+      .string()
+      .refine((val) => {
+        const date = new Date(val);
+        return date <= new Date() && !isNaN(date.getTime());
+      }, 'Data de entrada deve ser válida e não futura')
+      .optional()
+      .nullable(),
+    observacoes: z.string().optional().nullable(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.origem === 'interna' && !val.animal_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['animal_id'],
+        message: 'Doadora interna exige o animal do rebanho',
+      });
+    }
+    if (val.origem === 'externa' && val.animal_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['animal_id'],
+        message: 'Doadora externa não referencia animal local',
+      });
+    }
+  });
+
+export const editarDoadoraSchema = criarDoadoraSchema;
+
+export type CriarDoadoraInput = z.infer<typeof criarDoadoraSchema>;
+export type EditarDoadoraInput = z.infer<typeof editarDoadoraSchema>;
 
 // ========== COBERTURA ==========
 
@@ -241,6 +299,9 @@ export type CriarDescarteInput = z.infer<typeof criarDescarteSchema>;
 
 // Bate com tabela parametros_reprodutivos_fazenda (Seção 1.5)
 export const atualizarParametrosReprodutivosSchema = z.object({
+  // Espécie a que estes parâmetros pertencem (leite × corte). Opcional no
+  // schema (o form/action sempre fornece); default aplicado na action.
+  tipo_rebanho: z.enum(['leiteiro', 'corte']).optional(),
   dias_gestacao: z
     .number()
     .int('Deve ser um número inteiro')

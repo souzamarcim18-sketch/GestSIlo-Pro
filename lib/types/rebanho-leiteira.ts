@@ -16,6 +16,9 @@ export interface ProducaoLeiteira {
   data: string; // ISO date
   turno: TurnoProducao;
   volume_litros: number;
+  // CCS em mil células/mL — laudo opcional (entrada manual). Opcional no tipo
+  // pois nem toda leitura/legado traz a coluna.
+  ccs_mil_cel_ml?: number | null;
   observacoes: string | null;
   usuario_id: string;
   created_at: string;

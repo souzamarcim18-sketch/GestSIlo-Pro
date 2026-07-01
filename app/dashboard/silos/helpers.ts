@@ -1,5 +1,6 @@
 // app/dashboard/silos/helpers.ts
 import { type Silo, type MovimentacaoSilo } from '@/lib/supabase';
+import { getCustoSilo } from '@/lib/supabase/silos';
 
 /**
  * Status possíveis de um silo
@@ -255,4 +256,34 @@ export function calcularResumoFrota(
   const taxaPerdas = totalSaidas > 0 ? (totalDescarte / totalSaidas) * 100 : null;
 
   return { estoqueTotal, consumoDiarioFrota, autonomiaDias, taxaPerdas };
+}
+
+/**
+ * Calcula o custo médio da tonelada de silagem da propriedade inteira:
+ * soma o custo total de todos os silos que têm base de custo e divide pela
+ * soma das toneladas de silagem produzida (volume ensilado) desses silos.
+ *
+ * Diferente do custo/ton de cada silo individual — é a média ponderada pelo
+ * volume de toda a fazenda. Retorna null se nenhum silo tiver base de custo.
+ */
+export async function calcularCustoMedioToneladaPropriedade(
+  silos: Silo[]
+): Promise<number | null> {
+  const resultados = await Promise.all(
+    silos.map(async (silo) => {
+      const custo = await getCustoSilo(silo);
+      return { custo, volume: silo.volume_ensilado_ton_mv ?? 0 };
+    })
+  );
+
+  let custoTotalFrota = 0;
+  let volumeTotalFrota = 0;
+  for (const { custo, volume } of resultados) {
+    if (custo === null || volume <= 0) continue;
+    custoTotalFrota += custo.custoTotal;
+    volumeTotalFrota += volume;
+  }
+
+  if (volumeTotalFrota <= 0) return null;
+  return custoTotalFrota / volumeTotalFrota;
 }

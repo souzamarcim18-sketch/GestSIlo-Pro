@@ -28,8 +28,9 @@ import {
 } from 'recharts';
 import type { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import {
-  Plus, Pencil, Trash2,
+  Plus, Pencil, Trash2, DollarSign,
 } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
 import type { Financeiro } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
@@ -526,9 +527,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão Financeira</h2>
-
+      <PageHeader icon={DollarSign} titulo="Gestão Financeira">
         <div className="flex flex-wrap gap-2 items-center">
           <div className="flex items-center gap-2 text-sm" role="group" aria-label="Filtro de período">
             <Label htmlFor={ids.filtroInicio} className="sr-only">Data inicial do filtro</Label>
@@ -581,7 +580,7 @@ export function FinanceiroClient({ initialLancamentos, initialCategorias, isAdmi
             </DialogContent>
           </Dialog>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Cards de resumo */}
       <section aria-labelledby="resumo-heading">

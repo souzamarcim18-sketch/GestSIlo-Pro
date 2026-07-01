@@ -77,6 +77,7 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
   const [turno, setTurno] = useState<TurnoProducao>('manha');
   const [volume, setVolume] = useState('');
   const [volumeColetivo, setVolumeColetivo] = useState('');
+  const [ccs, setCcs] = useState('');
   const [observacoes, setObservacoes] = useState('');
 
   const animaisEmLactacao = useMemo(
@@ -90,6 +91,7 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
     setTurno('manha');
     setVolume('');
     setVolumeColetivo('');
+    setCcs('');
     setObservacoes('');
   }
 
@@ -100,7 +102,8 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
       if (!volume || isNaN(vol) || vol <= 0) { toast.error('Informe um volume válido.'); return; }
 
       setIsSaving(true);
-      const result = await criarProducaoLeiteiraAction({ animal_id: animalId, data, turno, volume_litros: vol, observacoes: observacoes || null });
+      const ccsNum = ccs.trim() ? parseFloat(ccs) : null;
+      const result = await criarProducaoLeiteiraAction({ animal_id: animalId, data, turno, volume_litros: vol, ccs_mil_cel_ml: ccsNum !== null && !isNaN(ccsNum) ? ccsNum : null, observacoes: observacoes || null });
       setIsSaving(false);
 
       if (result.success) {
@@ -418,6 +421,22 @@ export function DashboardLeiteiro({ producoes, animais, totais }: DashboardLeite
                 onChange={(e) => modoRegistro === 'individual' ? setVolume(e.target.value) : setVolumeColetivo(e.target.value)}
               />
             </div>
+
+            {/* CCS — apenas no modo individual (laudo por vaca) */}
+            {modoRegistro === 'individual' && (
+              <div className="space-y-1">
+                <Label htmlFor="ccs">CCS (mil cél./mL)</Label>
+                <Input
+                  id="ccs"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Opcional — ex: 250"
+                  value={ccs}
+                  onChange={(e) => setCcs(e.target.value)}
+                />
+              </div>
+            )}
 
             {/* Observações */}
             <div className="space-y-1">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { q } from '@/lib/supabase/queries-audit';
 import { SiloCard, SiloKpiStrip } from './components';
 import { SiloForm } from './components/dialogs/SiloForm';
 import { AbrirSiloDialog } from './components/dialogs/AbrirSiloDialog';
-import { calcularDadosSilos, calcularResumoFrota, type SiloCardData, type ResumoFrotaSilos } from './helpers';
+import { calcularDadosSilos, calcularResumoFrota, calcularCustoMedioToneladaPropriedade, type SiloCardData, type ResumoFrotaSilos } from './helpers';
 import { planoPermiteMaisRegistros, parsePlanoSlug } from '@/lib/planos';
 
 type InsumoSelect = { id: string; nome: string };
@@ -37,6 +37,26 @@ export function SilosClient({ initialSiloCardData, initialResumoFrota, initialTa
   const [insumosInoculante] = useState<InsumoSelect[]>(initialInsumosInoculante);
   const [isAddSiloOpen, setIsAddSiloOpen] = useState(false);
   const [abrirSiloTarget, setAbrirSiloTarget] = useState<{ id: string; nome: string; dataAberturaPrevia?: string | null } | null>(null);
+  const [custoMedioTonelada, setCustoMedioTonelada] = useState<number | null>(null);
+
+  // Custo médio da tonelada de silagem da propriedade: depende de queries por silo
+  // (custo do talhão/aquisição + insumos), então é calculado no cliente após o mount.
+  useEffect(() => {
+    let cancelled = false;
+    const silos = siloCardData.map((c) => c.silo);
+    const calcular = async () => {
+      try {
+        const custo = silos.length === 0
+          ? null
+          : await calcularCustoMedioToneladaPropriedade(silos);
+        if (!cancelled) setCustoMedioTonelada(custo);
+      } catch {
+        if (!cancelled) setCustoMedioTonelada(null);
+      }
+    };
+    calcular();
+    return () => { cancelled = true; };
+  }, [siloCardData]);
 
   const plano = parsePlanoSlug(planoAtual);
   const limiteAtingido = !planoPermiteMaisRegistros(plano, 'silos', siloCardData.length);
@@ -85,7 +105,7 @@ export function SilosClient({ initialSiloCardData, initialResumoFrota, initialTa
         </div>
       )}
 
-      <SiloKpiStrip data={siloCardData} resumo={resumoFrota} />
+      <SiloKpiStrip data={siloCardData} resumo={resumoFrota} custoMedioTonelada={custoMedioTonelada} />
 
       <section>
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

@@ -100,11 +100,31 @@ export async function mudarCategoriaAction(
 
 // ========== LOTES ==========
 
+// Normaliza a entrada de lote vinda de FormData (strings). Converte area_ha
+// '' → null e string numérica → number; tipo_rebanho '' → null.
+function normalizarLoteInput(formData: unknown): unknown {
+  if (typeof formData !== 'object' || formData === null) return formData;
+  const obj = { ...(formData as Record<string, unknown>) };
+  if ('area_ha' in obj) {
+    const v = obj.area_ha;
+    if (v === '' || v === null || v === undefined) {
+      obj.area_ha = null;
+    } else if (typeof v === 'string') {
+      const n = parseFloat(v);
+      obj.area_ha = isNaN(n) ? null : n;
+    }
+  }
+  if ('tipo_rebanho' in obj && obj.tipo_rebanho === '') {
+    obj.tipo_rebanho = null;
+  }
+  return obj;
+}
+
 export async function criarLoteAction(
   formData: unknown
 ): Promise<{ success: boolean; lote_id?: string; error?: string }> {
   try {
-    const parsed = criarLoteSchema.parse(formData);
+    const parsed = criarLoteSchema.parse(normalizarLoteInput(formData));
     const resultado = await criarLote(parsed as CriarLoteInput);
     revalidatePath('/dashboard/rebanho');
     return { success: true, lote_id: resultado.id };
@@ -123,7 +143,7 @@ export async function editarLoteAction(
   formData: unknown
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const parsed = editarLoteSchema.parse(formData);
+    const parsed = editarLoteSchema.parse(normalizarLoteInput(formData));
     await editarLote(id, parsed as EditarLoteInput);
     revalidatePath('/dashboard/rebanho');
     return { success: true };
@@ -220,7 +240,8 @@ export async function registrarEventoAction(
 
     revalidatePath('/dashboard/rebanho');
     revalidatePath(`/dashboard/rebanho/${animal_id}`);
-    revalidatePath('/dashboard/rebanho/indicadores');
+    revalidatePath('/dashboard/rebanho/leiteira');
+    revalidatePath('/dashboard/rebanho/corte');
     revalidatePath('/dashboard/rebanho/movimentacoes');
 
     return { success: true, evento_id: data as string };

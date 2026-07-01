@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { listLotes, countAnimaisEmLote } from '@/lib/supabase/rebanho';
+import { listLotes, countAnimaisPorLote } from '@/lib/supabase/rebanho';
 import type { Lote } from '@/lib/types/rebanho';
 
 export default function LotesPage() {
@@ -37,13 +37,11 @@ export default function LotesPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const lotesData = await listLotes(100, 0);
+      const [lotesData, contgs] = await Promise.all([
+        listLotes(100, 0),
+        countAnimaisPorLote(),
+      ]);
       setLotes(lotesData);
-
-      const contgs: Record<string, number> = {};
-      for (const lote of lotesData) {
-        contgs[lote.id] = await countAnimaisEmLote(lote.id);
-      }
       setContagens(contgs);
     } catch (err) {
       toast.error('Erro ao carregar lotes');

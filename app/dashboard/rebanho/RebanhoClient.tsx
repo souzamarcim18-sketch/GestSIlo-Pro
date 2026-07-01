@@ -23,7 +23,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, BarChart3, Milk, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus, SlidersHorizontal, ListChecks } from 'lucide-react';
+import { Plus, Milk, Stethoscope, ArrowRightLeft, Beef, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus, SlidersHorizontal, ListChecks } from 'lucide-react';
 import { CowIcon } from '@/components/icons/CowIcon';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Input } from '@/components/ui/input';
@@ -65,12 +65,12 @@ interface Props {
 
 // Acesso rápido a todos os subdomínios do rebanho — ordem e nomenclatura
 // alinhadas ao painel de visão geral.
+// Reprodução e Indicadores foram absorvidos pelos painéis de Leite e Corte
+// (abas por espécie), então saíram do hub.
 const SUBDOMINIOS = [
-  { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Painel Gado de Leite', descricao: 'Produção de leite' },
-  { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Painel Gado de Corte', descricao: 'GMD e abate' },
-  { href: '/dashboard/rebanho/reproducao', icon: Dna, titulo: 'Reprodução', descricao: 'Eventos e reprodutores' },
+  { href: '/dashboard/rebanho/leiteira', icon: Milk, titulo: 'Painel Gado de Leite', descricao: 'Produção, reprodução e indicadores' },
+  { href: '/dashboard/rebanho/corte', icon: Beef, titulo: 'Painel Gado de Corte', descricao: 'Desempenho, reprodução e indicadores' },
   { href: '/dashboard/rebanho/sanidade', icon: Stethoscope, titulo: 'Sanidade', descricao: 'Vacinação e alertas' },
-  { href: '/dashboard/rebanho/indicadores', icon: BarChart3, titulo: 'Indicadores zootécnicos', descricao: 'KPIs e alertas' },
   { href: '/dashboard/rebanho/operacao', icon: ListChecks, titulo: 'Operações', descricao: 'Pendências e rotina' },
   { href: '/dashboard/rebanho/movimentacoes', icon: ArrowRightLeft, titulo: 'Movimentações', descricao: 'Entradas e saídas' },
 ] as const;
@@ -300,8 +300,8 @@ export function RebanhoClient({ initialAnimais, initialTotal, animaisParaPainel,
 
       {/* Acesso Rápido — todos os subdomínios do rebanho */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Subdomínios</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Áreas de gestão</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
           {SUBDOMINIOS.map(({ href, icon: Icon, titulo, descricao }) => (
             <Link key={href} href={href}>
               <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-accent/50 hover:border-primary/30 transition-all duration-150 cursor-pointer text-center group h-full">
@@ -313,6 +313,9 @@ export function RebanhoClient({ initialAnimais, initialTotal, animaisParaPainel,
           ))}
         </div>
       </div>
+
+      {/* Lista de animais — título + filtros */}
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Lista de animais</h2>
 
       {/* Filtros — busca sempre visível, selects colapsáveis */}
       <Collapsible open={filtrosAbertos} onOpenChange={setFiltrosAbertos}>

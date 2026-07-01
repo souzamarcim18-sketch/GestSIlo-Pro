@@ -42,6 +42,10 @@ export const criarAnimalSchema = z.object({
     .union([z.coerce.number().positive().max(200), z.literal('').transform(() => null)])
     .nullable()
     .optional(),
+  peso_atual: z
+    .union([z.coerce.number().positive().max(2000), z.literal('').transform(() => null)])
+    .nullable()
+    .optional(),
   observacoes: z.string().optional().nullable(),
 });
 
@@ -80,6 +84,9 @@ export const criarLoteSchema = z.object({
   nome: z.string().min(2, 'Mínimo 2 caracteres').max(255),
   descricao: z.string().max(500).optional().nullable(),
   tipo_rebanho: z.enum(['leiteiro', 'corte', 'misto']).optional().nullable(),
+  // Área do lote (ha) — habilita KPIs de produtividade por área. Opcional.
+  // A conversão string→number (FormData) é feita na action antes do parse.
+  area_ha: z.number().min(0, 'Área não pode ser negativa').nullish(),
 });
 
 export const editarLoteSchema = criarLoteSchema;
@@ -317,6 +324,9 @@ export const criarProducaoLeiteiraSchema = z.object({
     message: 'Turno inválido',
   }),
   volume_litros: z.number().positive('Volume deve ser > 0').max(100),
+  // CCS em mil células/mL — entrada manual do laudo (opcional). Espelha
+  // chk_producoes_leiteiras_ccs_nonneg.
+  ccs_mil_cel_ml: z.number().min(0, 'CCS não pode ser negativa').optional().nullable(),
   observacoes: z.string().optional().nullable(),
 });
 

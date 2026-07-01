@@ -36,10 +36,12 @@ export function LoteForm({ lote, onSubmit, onSuccess, isLoading = false }: LoteF
       ? {
           nome: lote.nome,
           descricao: lote.descricao,
+          area_ha: lote.area_ha ?? null,
         }
       : {
           nome: '',
           descricao: '',
+          area_ha: null,
         },
   });
 
@@ -75,6 +77,22 @@ export function LoteForm({ lote, onSubmit, onSuccess, isLoading = false }: LoteF
           className="min-h-24"
         />
         {errors.descricao && <p className="text-sm text-red-600">{errors.descricao.message}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="area_ha" className="text-sm font-semibold">Área (ha)</Label>
+        <Input
+          id="area_ha"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Opcional — habilita produtividade por área"
+          {...register('area_ha', {
+            setValueAs: (v) => (v === '' || v === null ? null : parseFloat(v as string)),
+          })}
+          disabled={isLoading}
+        />
+        {errors.area_ha && <p className="text-sm text-red-600">{errors.area_ha.message}</p>}
       </div>
 
       <div className="flex gap-3 pt-4">

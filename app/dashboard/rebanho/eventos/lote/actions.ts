@@ -138,7 +138,8 @@ export async function criarEventosLoteAction(
     if (inseridos.length > 0) {
       revalidatePath('/dashboard/rebanho');
       revalidatePath('/dashboard/rebanho/[id]', 'page');
-      revalidatePath('/dashboard/rebanho/reproducao/eventos');
+      revalidatePath('/dashboard/rebanho/leiteira');
+      revalidatePath('/dashboard/rebanho/corte');
     }
 
     return {

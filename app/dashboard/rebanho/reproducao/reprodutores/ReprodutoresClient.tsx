@@ -11,9 +11,13 @@ import type { Reprodutor } from '@/lib/types/rebanho-reproducao';
 interface ReprodutoresClientProps {
   initialReprodutores: Reprodutor[];
   isAdmin: boolean;
+  /** Espécie do painel que renderiza a listagem — pré-seleciona no form. */
+  especie?: 'leiteiro' | 'corte' | 'dupla_aptidao';
+  /** Oculta o cabeçalho quando embutido numa aba (o painel já tem título). */
+  embutido?: boolean;
 }
 
-export function ReprodutoresClient({ initialReprodutores, isAdmin }: ReprodutoresClientProps) {
+export function ReprodutoresClient({ initialReprodutores, isAdmin, especie = 'dupla_aptidao', embutido = false }: ReprodutoresClientProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedReprodutor, setSelectedReprodutor] = useState<Reprodutor | null>(null);
   const router = useRouter();
@@ -34,11 +38,11 @@ export function ReprodutoresClient({ initialReprodutores, isAdmin }: Reprodutore
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className={embutido ? 'space-y-6' : 'space-y-6 p-4 sm:p-6'}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reprodutores</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          {!embutido && <h1 className="text-3xl font-bold tracking-tight">Reprodutores</h1>}
+          <p className="text-sm text-muted-foreground">
             Gerencie os reprodutores e sêmen da sua fazenda
           </p>
         </div>
@@ -65,6 +69,7 @@ export function ReprodutoresClient({ initialReprodutores, isAdmin }: Reprodutore
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSuccess={handleFormSuccess}
+        especiePadrao={especie}
       />
     </div>
   );
