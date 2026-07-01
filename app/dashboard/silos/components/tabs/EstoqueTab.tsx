@@ -259,15 +259,15 @@ export function HistoricoMovimentacoes({
                         <div className="flex items-center gap-2">
                           {mov.tipo === 'Entrada' ? (
                             <>
-                              <ArrowDownRight className="h-4 w-4 text-green-500" aria-hidden="true" />
-                              <Badge variant="secondary" className="text-sm bg-green-100 text-green-700">
+                              <ArrowDownRight className="h-4 w-4 text-primary" aria-hidden="true" />
+                              <Badge variant="outline" className="text-sm bg-primary/15 text-primary border-primary/30">
                                 Entrada
                               </Badge>
                             </>
                           ) : (
                             <>
-                              <ArrowUpRight className="h-4 w-4 text-amber-500" aria-hidden="true" />
-                              <Badge variant="secondary" className="text-sm bg-amber-100 text-amber-700">
+                              <ArrowUpRight className="h-4 w-4 text-[color:var(--status-warning)]" aria-hidden="true" />
+                              <Badge variant="outline" className="text-sm bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30">
                                 Saída
                               </Badge>
                             </>

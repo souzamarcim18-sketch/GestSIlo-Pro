@@ -10,6 +10,7 @@ import {
   type NivelTecnologia,
 } from '@/lib/constants/balanco-forrageiro';
 import type { MovimentacaoSiloRow, AnimalPorCategoriaRow, PiqueteAtivoRow } from '@/lib/supabase/balanco-forrageiro';
+import { subtipoEhConsumoRebanho } from '@/lib/validations/silos';
 
 export type { MovimentacaoSiloRow, AnimalPorCategoriaRow };
 
@@ -121,8 +122,11 @@ export function calcularConsumoHistorico(
   dataCorte.setDate(dataCorte.getDate() - periodoDias);
   const dataCorteStr = dataCorte.toISOString().split('T')[0];
 
+  // Consumo do rebanho = apenas 'Uso na alimentação' (e legados sem subtipo).
+  // Mesma régua do módulo de Silos (subtipoEhConsumoRebanho): exclui Descarte,
+  // Venda e Transferência para que a autonomia real bata entre os dois módulos.
   const saidasNoPeriodo = saidasUltimos90Dias.filter(
-    (m) => m.subtipo !== 'Descarte' && m.data >= dataCorteStr
+    (m) => subtipoEhConsumoRebanho(m.subtipo) && m.data >= dataCorteStr
   );
 
   if (saidasNoPeriodo.length === 0) {

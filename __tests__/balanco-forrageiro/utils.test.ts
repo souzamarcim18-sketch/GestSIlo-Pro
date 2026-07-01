@@ -42,7 +42,7 @@ function makeSaida(overrides: Partial<MovimentacaoSiloRow> = {}): MovimentacaoSi
     silo_id: 's1',
     silo_nome: 'Silo 1',
     tipo: 'Saída',
-    subtipo: 'Fornecimento',
+    subtipo: 'Uso na alimentação', // único subtipo que conta como consumo do rebanho
     quantidade: 1, // 1 tonelada = 1000 kg
     data: dataRelativa(5),
     ...overrides,
@@ -93,13 +93,15 @@ describe('calcularConsumoHistorico', () => {
     expect(resultado.consumo_total_kg).toBe(2000);
   });
 
-  it('exclui saídas com subtipo Descarte', () => {
+  it('exclui saídas que não são consumo do rebanho (Descarte, Venda, Transferência)', () => {
     const saidas: MovimentacaoSiloRow[] = [
       makeSaida({ quantidade: 3, subtipo: 'Descarte' }),
-      makeSaida({ quantidade: 2, subtipo: 'Fornecimento' }),
+      makeSaida({ quantidade: 5, subtipo: 'Venda' }),
+      makeSaida({ quantidade: 4, subtipo: 'Transferência' }),
+      makeSaida({ quantidade: 2, subtipo: 'Uso na alimentação' }),
     ];
     const resultado = calcularConsumoHistorico(saidas, 30, 10000);
-    expect(resultado.consumo_total_kg).toBe(2000); // apenas 2t da saída válida
+    expect(resultado.consumo_total_kg).toBe(2000); // apenas 2t da saída de consumo
   });
 
   it('calcula consumo médio diário corretamente', () => {

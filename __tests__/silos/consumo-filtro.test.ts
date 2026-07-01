@@ -3,7 +3,7 @@ import {
   ehSaidaConsumo,
   calcularConsumoDiario,
   calcularAutonomiaPrimeiraRetirada,
-  SUBTIPOS_NAO_CONSUMO,
+  calcularTaxaPerdasSilo,
 } from '@/app/dashboard/silos/helpers';
 import type { Silo, MovimentacaoSilo } from '@/lib/supabase';
 
@@ -58,15 +58,15 @@ function makeSaida(
 }
 
 // ---------------------------------------------------------------------------
-// ehSaidaConsumo / SUBTIPOS_NAO_CONSUMO
+// ehSaidaConsumo
 // ---------------------------------------------------------------------------
 describe('ehSaidaConsumo', () => {
   it('conta Uso na alimentação como consumo', () => {
     expect(ehSaidaConsumo(makeSaida(10, 'Uso na alimentação'))).toBe(true);
   });
 
-  it('conta Descarte como consumo (silagem saindo do silo)', () => {
-    expect(ehSaidaConsumo(makeSaida(10, 'Descarte'))).toBe(true);
+  it('NÃO conta Descarte como consumo (é perda, contabilizada à parte)', () => {
+    expect(ehSaidaConsumo(makeSaida(10, 'Descarte'))).toBe(false);
   });
 
   it('NÃO conta Venda como consumo', () => {
@@ -77,13 +77,36 @@ describe('ehSaidaConsumo', () => {
     expect(ehSaidaConsumo(makeSaida(10, 'Transferência'))).toBe(false);
   });
 
+  it('trata saída legada sem subtipo como consumo', () => {
+    expect(ehSaidaConsumo(makeSaida(10, null))).toBe(true);
+  });
+
   it('ignora entradas', () => {
     const entrada: MovimentacaoSilo = { ...makeSaida(10, null), tipo: 'Entrada' };
     expect(ehSaidaConsumo(entrada)).toBe(false);
   });
+});
 
-  it('o conjunto de exclusão contém exatamente Venda e Transferência', () => {
-    expect([...SUBTIPOS_NAO_CONSUMO].sort()).toEqual(['Transferência', 'Venda']);
+// ---------------------------------------------------------------------------
+// calcularTaxaPerdasSilo
+// ---------------------------------------------------------------------------
+describe('calcularTaxaPerdasSilo', () => {
+  it('base = consumo + descarte; ignora venda/transferência no denominador', () => {
+    // 20 t descarte, 80 t consumo → base 100 t → 20%. Venda não dilui.
+    const movs = [
+      makeSaida(80, 'Uso na alimentação'),
+      makeSaida(20, 'Descarte'),
+      makeSaida(400, 'Venda'),
+    ];
+    expect(calcularTaxaPerdasSilo(movs)).toBeCloseTo(20, 6);
+  });
+
+  it('retorna null quando não há consumo nem descarte', () => {
+    expect(calcularTaxaPerdasSilo([makeSaida(100, 'Venda')])).toBeNull();
+  });
+
+  it('100% quando toda a silagem usada foi descartada', () => {
+    expect(calcularTaxaPerdasSilo([makeSaida(50, 'Descarte')])).toBeCloseTo(100, 6);
   });
 });
 
@@ -91,22 +114,20 @@ describe('ehSaidaConsumo', () => {
 // calcularConsumoDiario
 // ---------------------------------------------------------------------------
 describe('calcularConsumoDiario', () => {
-  it('exclui Venda e Transferência do consumo médio', () => {
+  it('exclui Venda, Transferência e Descarte do consumo médio', () => {
     const silo = makeSilo();
-    const semVenda = [
-      makeSaida(100, 'Uso na alimentação'),
+    const soConsumo = [makeSaida(100, 'Uso na alimentação')];
+    const comRuido = [
+      ...soConsumo,
       makeSaida(50, 'Descarte'),
-    ];
-    const comVenda = [
-      ...semVenda,
       makeSaida(500, 'Venda'),
       makeSaida(300, 'Transferência'),
     ];
 
-    const consumoSem = calcularConsumoDiario(silo, semVenda)!;
-    const consumoCom = calcularConsumoDiario(silo, comVenda)!;
+    const consumoSem = calcularConsumoDiario(silo, soConsumo)!;
+    const consumoCom = calcularConsumoDiario(silo, comRuido)!;
 
-    // A venda/transferência não pode inflar o consumo: mesmo resultado.
+    // Nada além de 'Uso na alimentação' pode inflar o consumo: mesmo resultado.
     expect(consumoCom).toBeCloseTo(consumoSem, 6);
   });
 

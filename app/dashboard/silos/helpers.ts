@@ -1,6 +1,7 @@
 // app/dashboard/silos/helpers.ts
 import { type Silo, type MovimentacaoSilo } from '@/lib/supabase';
 import { getCustoSilo } from '@/lib/supabase/silos';
+import { subtipoEhConsumoRebanho } from '@/lib/validations/silos';
 
 /**
  * Status possíveis de um silo
@@ -8,23 +9,13 @@ import { getCustoSilo } from '@/lib/supabase/silos';
 export type SiloStatus = 'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Crítico' | 'Esgotado';
 
 /**
- * Subtipos de saída que NÃO representam consumo do rebanho e, portanto, não
- * entram no cálculo de consumo médio diário / autonomia. Venda e Transferência
- * são saídas de caixa/logística — continuam contando no estoque e no financeiro,
- * mas distorceriam a "velocidade de consumo" da silagem.
- * Descarte permanece no cálculo (é silagem efetivamente saindo do silo).
- */
-export const SUBTIPOS_NAO_CONSUMO: ReadonlySet<string> = new Set([
-  'Venda',
-  'Transferência',
-]);
-
-/**
- * Indica se uma movimentação é uma saída que conta como consumo de silagem
- * (exclui Venda e Transferência).
+ * Indica se uma movimentação é uma saída que conta como consumo do rebanho.
+ * Fonte única de verdade em lib/validations/silos.ts (subtipoEhConsumoRebanho):
+ * apenas 'Uso na alimentação' (e legados sem subtipo) contam. Venda,
+ * Transferência e Descarte ficam de fora do consumo médio / autonomia.
  */
 export function ehSaidaConsumo(mov: MovimentacaoSilo): boolean {
-  return mov.tipo === 'Saída' && !SUBTIPOS_NAO_CONSUMO.has(mov.subtipo ?? '');
+  return mov.tipo === 'Saída' && subtipoEhConsumoRebanho(mov.subtipo);
 }
 
 /**
@@ -112,38 +103,88 @@ export function calcularAutonomiaPrimeiraRetirada(
 }
 
 /**
- * Calcula a taxa de perdas de um silo: total descartado ÷ total de saídas (%).
- * Retorna null se o silo ainda não tem saídas.
+ * Calcula a taxa de perdas de um silo: total descartado ÷ silagem retirada do
+ * silo para uso (consumo + descarte) (%).
+ *
+ * O denominador exclui Venda e Transferência: essas são saídas de
+ * caixa/logística, não silagem "gasta" na operação — incluí-las diluiria a taxa
+ * de perdas de forma enganosa (uma venda grande faria as perdas parecerem
+ * menores). Retorna null se ainda não houve consumo nem descarte.
  */
 export function calcularTaxaPerdasSilo(
   movimentacoes: MovimentacaoSilo[]
 ): number | null {
-  const saidas = movimentacoes.filter((m) => m.tipo === 'Saída');
-  const totalSaidas = saidas.reduce((acc, m) => acc + m.quantidade, 0);
-  if (totalSaidas <= 0) return null;
-
-  const totalDescarte = saidas
-    .filter((m) => m.subtipo === 'Descarte')
+  const totalDescarte = movimentacoes
+    .filter((m) => m.tipo === 'Saída' && m.subtipo === 'Descarte')
     .reduce((acc, m) => acc + m.quantidade, 0);
 
-  return (totalDescarte / totalSaidas) * 100;
+  const totalConsumo = movimentacoes
+    .filter(ehSaidaConsumo)
+    .reduce((acc, m) => acc + m.quantidade, 0);
+
+  const baseUso = totalConsumo + totalDescarte;
+  if (baseUso <= 0) return null;
+
+  return (totalDescarte / baseUso) * 100;
+}
+
+/** Dias desde a última saída de consumo (ou null se nunca houve). */
+export function diasDesdeUltimaRetirada(
+  movimentacoes: MovimentacaoSilo[]
+): number | null {
+  const saidas = movimentacoes.filter(ehSaidaConsumo);
+  if (saidas.length === 0) return null;
+  const ultima = saidas.reduce((maior, m) => (m.data > maior.data ? m : maior));
+  const dataUltima = new Date(ultima.data + 'T00:00:00');
+  const hoje = new Date();
+  return Math.max(
+    0,
+    Math.floor((hoje.getTime() - dataUltima.getTime()) / (1000 * 60 * 60 * 24))
+  );
 }
 
 /**
- * Determina o status do silo baseado em estoque, datas e volume ensilado.
+ * Sinaliza um silo aberto que parou de consumir (≥ 3 dias sem retirada de
+ * alimentação, ou aberto há ≥ 3 dias e nunca consumido). Espelha o alerta
+ * `silo_aberto_sem_consumo` do dashboard, mas em forma pura para o card.
+ */
+export function siloAbertoSemConsumo(
+  silo: Silo,
+  estoque: number,
+  movimentacoes: MovimentacaoSilo[]
+): boolean {
+  if (!silo.data_abertura_real || estoque <= 0) return false;
+  const dias = diasDesdeUltimaRetirada(movimentacoes);
+  if (dias === null) {
+    const abertura = new Date(silo.data_abertura_real + 'T00:00:00');
+    const diasAberto = Math.floor(
+      (Date.now() - abertura.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return diasAberto >= 3;
+  }
+  return dias >= 3;
+}
+
+/**
+ * Determina o status do silo. Fonte única de verdade do status na UI.
+ *
+ * O limiar de "Crítico" é baseado na AUTONOMIA (dias restantes < 10), não em %
+ * do volume — dias restantes é o que importa para o produtor. Cai para o % de
+ * volume apenas quando não há consumo calculável (silo aberto recém-aberto).
  */
 export function calcularStatusSilo(
   silo: Silo,
   estoque: number,
-  movimentacoes: MovimentacaoSilo[]
+  movimentacoes: MovimentacaoSilo[],
+  estoquePara?: number | null
 ): SiloStatus {
   const temEntradas = movimentacoes.some((m) => m.tipo === 'Entrada');
 
   // Sem nenhuma movimentação de entrada
   if (!temEntradas) return 'Vazio';
 
-  // Tem entradas mas ainda não fechou
-  if (temEntradas && !silo.data_fechamento) return 'Enchendo';
+  // Tem entradas mas ainda não fechou (fase de enchimento do silo)
+  if (!silo.data_fechamento) return 'Enchendo';
 
   // Fechado — tem data de fechamento mas não abriu ainda
   if (silo.data_fechamento && !silo.data_abertura_real) return 'Fechado';
@@ -151,14 +192,17 @@ export function calcularStatusSilo(
   // Esgotado — já abriu e estoque zerou
   if (silo.data_abertura_real && estoque <= 0) return 'Esgotado';
 
-  // Crítico — aberto e estoque abaixo de 10% do volume ensilado
-  if (silo.data_abertura_real && silo.volume_ensilado_ton_mv) {
-    const percentual = (estoque / silo.volume_ensilado_ton_mv) * 100;
-    if (percentual <= 10) return 'Crítico';
+  // Crítico — aberto e com autonomia curta (< 10 dias). Fallback para % de
+  // volume quando não há consumo registrado para estimar autonomia.
+  if (silo.data_abertura_real && estoque > 0) {
+    if (estoquePara != null) {
+      if (estoquePara < 10) return 'Crítico';
+    } else if (silo.volume_ensilado_ton_mv) {
+      const percentual = (estoque / silo.volume_ensilado_ton_mv) * 100;
+      if (percentual <= 10) return 'Crítico';
+    }
+    return 'Aberto';
   }
-
-  // Aberto — tem data de abertura e ainda tem estoque
-  if (silo.data_abertura_real && estoque > 0) return 'Aberto';
 
   return 'Fechado';
 }
@@ -173,6 +217,8 @@ export interface SiloCardData {
   consumoDiario: number | null;
   estoquePara: number | null;
   status: SiloStatus;
+  /** Silo aberto que parou de consumir (≥ 3 dias sem retirada). */
+  abertoSemConsumo: boolean;
   dataFechamento?: string | null;
   dataAberturaReal?: string | null;
   dataAberturaPrevia?: string | null;
@@ -191,7 +237,8 @@ export function calcularDadosSilos(
     const estoque = calcularEstoque(movsDoSilo);
     const consumoDiario = calcularConsumoDiario(silo, movsDoSilo);
     const estoquePara = calcularEstoqueParaDias(estoque, consumoDiario);
-    const status = calcularStatusSilo(silo, estoque, movsDoSilo);
+    const status = calcularStatusSilo(silo, estoque, movsDoSilo, estoquePara);
+    const abertoSemConsumo = siloAbertoSemConsumo(silo, estoque, movsDoSilo);
 
     return {
       silo,
@@ -200,6 +247,7 @@ export function calcularDadosSilos(
       consumoDiario,
       estoquePara,
       status,
+      abertoSemConsumo,
       dataFechamento: silo.data_fechamento,
       dataAberturaReal: silo.data_abertura_real,
       dataAberturaPrevia: silo.data_abertura_prevista,
@@ -248,12 +296,16 @@ export function calcularResumoFrota(
       ? Math.floor(estoqueTotal / consumoDiarioFrota)
       : null;
 
-  const saidas = movimentacoes.filter((m) => m.tipo === 'Saída');
-  const totalSaidas = saidas.reduce((acc, m) => acc + m.quantidade, 0);
-  const totalDescarte = saidas
-    .filter((m) => m.subtipo === 'Descarte')
+  // Taxa de perdas da frota: descarte ÷ (consumo + descarte) — mesma base do
+  // silo individual (exclui Venda/Transferência).
+  const totalDescarte = movimentacoes
+    .filter((m) => m.tipo === 'Saída' && m.subtipo === 'Descarte')
     .reduce((acc, m) => acc + m.quantidade, 0);
-  const taxaPerdas = totalSaidas > 0 ? (totalDescarte / totalSaidas) * 100 : null;
+  const totalConsumo = movimentacoes
+    .filter(ehSaidaConsumo)
+    .reduce((acc, m) => acc + m.quantidade, 0);
+  const baseUso = totalConsumo + totalDescarte;
+  const taxaPerdas = baseUso > 0 ? (totalDescarte / baseUso) * 100 : null;
 
   return { estoqueTotal, consumoDiarioFrota, autonomiaDias, taxaPerdas };
 }

@@ -1,12 +1,11 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   supabase,
   type Silo,
   type MovimentacaoSilo,
   type AtividadeCampo,
   type Financeiro,
-  type AvaliacaoBromatologica,
 } from '../supabase';
-import { q } from './queries-audit';
 import { FAIXAS_PSPS, TMP_IDEAL_SEM_KP, TMP_IDEAL_COM_KP } from '../validations/silos';
 
 export async function updateSilo(id: string, silo: Partial<Silo>) {
@@ -119,126 +118,6 @@ export function calcularDensidade(
 }
 
 /**
- * Calcula o estoque atual do silo
- * Retorna: { total: toneladas, percentage: % do volume ensilado }
- */
-export async function calcularEstoqueAtual(
-  siloId: string
-): Promise<{ total: number; percentage: number }> {
-  const { data: entradas } = await supabase
-    .from('movimentacoes_silo')
-    .select('quantidade')
-    .eq('silo_id', siloId)
-    .eq('tipo', 'Entrada');
-
-  const { data: saidas } = await supabase
-    .from('movimentacoes_silo')
-    .select('quantidade')
-    .eq('silo_id', siloId)
-    .eq('tipo', 'Saída');
-
-  const totalEntradas = (entradas as MovimentacaoSilo[])?.reduce(
-    (acc, e) => acc + e.quantidade,
-    0
-  ) || 0;
-  const totalSaidas = (saidas as MovimentacaoSilo[])?.reduce(
-    (acc, s) => acc + s.quantidade,
-    0
-  ) || 0;
-
-  const estoque = totalEntradas - totalSaidas;
-
-  // Buscar volume ensilado para calcular percentual
-  const silo = await q.silos.getById(siloId);
-  const volumeEnsilado = silo.volume_ensilado_ton_mv || 0;
-
-  const percentage = volumeEnsilado > 0 ? (estoque / volumeEnsilado) * 100 : 0;
-
-  return {
-    total: Math.max(0, estoque), // Nunca negativo
-    percentage: Math.min(100, Math.max(0, percentage)), // Entre 0-100%
-  };
-}
-
-/**
- * Calcula o consumo diário em ton/dia
- * Usa: Σ(saídas com subtipo='Uso na alimentação') / dias desde data_abertura_real
- */
-export async function calcularConsumoDiario(
-  siloId: string
-): Promise<number> {
-  const silo = await q.silos.getById(siloId);
-
-  // Se não tem data de abertura real, não há consumo
-  if (!silo.data_abertura_real) return 0;
-
-  const { data: saidas } = await supabase
-    .from('movimentacoes_silo')
-    .select('quantidade, data')
-    .eq('silo_id', siloId)
-    .eq('tipo', 'Saída')
-    .eq('subtipo', 'Uso na alimentação');
-
-  const totalSaidasUso = (saidas as MovimentacaoSilo[])?.reduce(
-    (acc, s) => acc + s.quantidade,
-    0
-  ) || 0;
-
-  const dataAbertura = new Date(silo.data_abertura_real);
-  const hoje = new Date();
-  const diasDesdeAbertura = Math.max(
-    1,
-    Math.floor(
-      (hoje.getTime() - dataAbertura.getTime()) / (1000 * 60 * 60 * 24)
-    )
-  );
-
-  return totalSaidasUso / diasDesdeAbertura;
-}
-
-/**
- * Obtém o status atual do silo
- * Regras:
- * - Enchendo: tem entradas mas sem data_fechamento
- * - Fechado: tem data_fechamento, sem data_abertura_real
- * - Aberto: tem data_abertura_real, estoque > 0
- * - Vazio: estoque = 0
- * - Atenção: estoque para < 7 dias
- */
-export async function obterStatusSilo(
-  siloId: string
-): Promise<'Enchendo' | 'Fechado' | 'Aberto' | 'Vazio' | 'Atenção'> {
-  const silo = await q.silos.getById(siloId);
-  const { total: estoque } = await calcularEstoqueAtual(siloId);
-
-  // Vazio
-  if (estoque === 0) return 'Vazio';
-
-  // Enchendo: tem entradas mas sem data_fechamento
-  const { count: countEntradas } = await supabase
-    .from('movimentacoes_silo')
-    .select('id', { count: 'exact', head: true })
-    .eq('silo_id', siloId)
-    .eq('tipo', 'Entrada');
-
-  if (countEntradas && countEntradas > 0 && !silo.data_fechamento) {
-    return 'Enchendo';
-  }
-
-  // Fechado: tem data_fechamento, sem data_abertura_real
-  if (silo.data_fechamento && !silo.data_abertura_real) return 'Fechado';
-
-  // Atenção: estoque para < 7 dias
-  const consumoDiario = await calcularConsumoDiario(siloId);
-  if (consumoDiario > 0 && estoque / consumoDiario < 7) return 'Atenção';
-
-  // Aberto: tem data_abertura_real, estoque > 0
-  if (silo.data_abertura_real && estoque > 0) return 'Aberto';
-
-  return 'Aberto'; // Default
-}
-
-/**
  * Retorna 'ok' se o valor da peneira está dentro da faixa ideal (FAIXAS_PSPS), 'fora' caso contrário.
  */
 export function calcularStatusPeneira(
@@ -261,41 +140,6 @@ export function calcularStatusTmp(
   return tmpMm >= faixa.min && tmpMm <= faixa.max ? 'ok' : 'fora';
 }
 
-/**
- * Obtém o último MS (matéria seca) registrado em avaliações bromatológicas
- */
-export async function obterMsAtual(siloId: string): Promise<number | null> {
-  const { data: avaliacoes } = await supabase
-    .from('avaliacoes_bromatologicas')
-    .select('ms')
-    .eq('silo_id', siloId)
-    .order('data', { ascending: false })
-    .limit(1)
-    .single();
-
-  return (avaliacoes as AvaliacaoBromatologica | null)?.ms ?? null;
-}
-
-/**
- * Calcula quantos dias de estoque restam
- * Usa: estoque atual / consumo diário
- * Retorna null se não há consumo calculável
- */
-export async function obterEstoqueParaDias(
-  siloId: string
-): Promise<number | null> {
-  const { total: estoque } = await calcularEstoqueAtual(siloId);
-
-  if (estoque === 0) return 0;
-
-  const consumoDiario = await calcularConsumoDiario(siloId);
-
-  // Se não há consumo registrado, não conseguimos calcular
-  if (consumoDiario === 0) return null;
-
-  return Math.floor(estoque / consumoDiario);
-}
-
 export interface FatiaCusto {
   label: string;
   valor: number;
@@ -311,10 +155,15 @@ const GRUPO_CORRETIVOS = new Set(['Calagem', 'Gessagem']);
 /**
  * Retorna o breakdown de custos do silo para exibição no gráfico donut.
  * Retorna null se não houver nenhuma base de custo.
+ *
+ * Aceita um client opcional: em RSC passe o server client (com cookies do
+ * usuário); no browser usa o singleton anônimo por padrão.
  */
 export async function getCustoSiloDetalhado(
-  silo: Silo
+  silo: Silo,
+  client: SupabaseClient = supabase
 ): Promise<{ fatias: FatiaCusto[]; custoPorTonelada: number; custoTotal: number } | null> {
+  const db = client;
   const volumeTon = silo.volume_ensilado_ton_mv || 0;
   const fatias: FatiaCusto[] = [];
 
@@ -323,18 +172,38 @@ export async function getCustoSiloDetalhado(
     // Buscar ciclo e custos detalhados do talhão
     let talhaoId = silo.talhao_id;
 
-    // Ciclo agrícola mais recente do talhão
-    const { data: ciclo } = await supabase
+    // Data de referência = data da entrada de ensilagem (fechamento do silo).
+    // Sem isso, um talhão que já iniciou novo ciclo depois da ensilagem faria o
+    // custo exibido ser o do ciclo errado. Fallback: data_fechamento ou hoje.
+    const { data: primeiraEntrada } = await db
+      .from('movimentacoes_silo')
+      .select('data')
+      .eq('silo_id', silo.id)
+      .eq('tipo', 'Entrada')
+      .order('data', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    const dataRef =
+      primeiraEntrada?.data ??
+      silo.data_fechamento ??
+      new Date().toISOString().slice(0, 10);
+
+    // Ciclo agrícola vigente na data da ensilagem (plantado até dataRef e ainda
+    // não colhido, ou colhido depois de dataRef).
+    const { data: ciclo } = await db
       .from('ciclos_agricolas')
       .select('id')
       .eq('talhao_id', talhaoId)
+      .lte('data_plantio', dataRef)
+      .or(`data_colheita_real.is.null,data_colheita_real.gte.${dataRef}`)
       .order('data_plantio', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     // Atividades de campo agrupadas por tipo_operacao
     if (ciclo?.id) {
-      const { data: atividades } = await supabase
+      const { data: atividades } = await db
         .from('atividades_campo')
         .select('tipo_operacao, custo_total')
         .eq('ciclo_id', ciclo.id);
@@ -360,7 +229,7 @@ export async function getCustoSiloDetalhado(
     }
 
     // Despesas financeiras vinculadas ao talhão
-    const { data: custosFinanceiro } = await supabase
+    const { data: custosFinanceiro } = await db
       .from('financeiro')
       .select('valor')
       .eq('referencia_id', talhaoId)
@@ -383,7 +252,7 @@ export async function getCustoSiloDetalhado(
   }
 
   // ── 2. Insumos aplicados ao silo (lona, inoculante, outros) ──────────────
-  const { data: movsInsumo } = await supabase
+  const { data: movsInsumo } = await db
     .from('movimentacoes_insumo')
     .select('quantidade, valor_unitario, insumo_id, insumos(nome, custo_medio)')
     .eq('destino_tipo', 'silo')
@@ -430,8 +299,11 @@ export async function getCustoSiloDetalhado(
  * Calcula o custo total e por tonelada de um silo (versão resumida).
  * Delega para getCustoSiloDetalhado e descarta o breakdown.
  */
-export async function getCustoSilo(silo: Silo): Promise<{ custoPorTonelada: number; custoTotal: number } | null> {
-  const detalhado = await getCustoSiloDetalhado(silo);
+export async function getCustoSilo(
+  silo: Silo,
+  client: SupabaseClient = supabase,
+): Promise<{ custoPorTonelada: number; custoTotal: number } | null> {
+  const detalhado = await getCustoSiloDetalhado(silo, client);
   if (!detalhado) return null;
   return { custoPorTonelada: detalhado.custoPorTonelada, custoTotal: detalhado.custoTotal };
 }
