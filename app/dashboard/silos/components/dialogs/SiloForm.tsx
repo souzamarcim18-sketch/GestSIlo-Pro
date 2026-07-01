@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
@@ -13,8 +13,16 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
@@ -29,7 +37,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { siloSchema, type SiloInput, TIPOS_SILO } from '@/lib/validations/silos';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type Silo, type Talhao } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { q } from '@/lib/supabase/queries-audit';
@@ -74,12 +81,39 @@ function calcularDensidade(
   return (volume * 1000) / volumeGeom;
 }
 
-function getDensidadeBadge(densidade: number | null) {
+/** Faixa de qualidade de densidade — cor semântica do design system, sem emoji. */
+function getDensidadeInfo(densidade: number | null) {
   if (densidade === null) return null;
-  if (densidade >= 650) return { label: `🟢 ${densidade.toFixed(0)} kg/m³`, cls: 'text-green-700' };
-  if (densidade >= 550) return { label: `🟡 ${densidade.toFixed(0)} kg/m³`, cls: 'text-yellow-700' };
-  return { label: `🔴 ${densidade.toFixed(0)} kg/m³`, cls: 'text-red-700' };
+  const valor = `${densidade.toFixed(0)} kg/m³`;
+  if (densidade >= 650)
+    return { valor, nivel: 'Boa compactação', dot: 'bg-primary', text: 'text-primary' };
+  if (densidade >= 550)
+    return { valor, nivel: 'Aceitável', dot: 'bg-[color:var(--status-warning)]', text: 'text-[color:var(--status-warning)]' };
+  return { valor, nivel: 'Baixa — risco de perdas', dot: 'bg-destructive', text: 'text-destructive' };
 }
+
+const EMPTY_CREATE: SiloInput = {
+  nome: '',
+  tipo: 'Trincheira',
+  volume_ensilado_ton_mv: undefined,
+  comprimento_m: undefined,
+  largura_m: undefined,
+  altura_m: undefined,
+  cultura_ensilada: '',
+  materia_seca_percent: null,
+  talhao_id: null,
+  data_fechamento: hojeLocalISO(),
+  data_abertura_prevista: undefined,
+  data_abertura_real: undefined,
+  observacoes_gerais: '',
+  custo_aquisicao_rs_ton: null,
+  insumo_lona_id: null,
+  quantidade_lona: null,
+  insumo_lona2_id: null,
+  quantidade_lona2: null,
+  insumo_inoculante_id: null,
+  quantidade_inoculante: null,
+};
 
 export function SiloForm({
   open,
@@ -117,55 +151,13 @@ export function SiloForm({
           insumo_inoculante_id: silo.insumo_inoculante_id ?? null,
           quantidade_inoculante: null,
         }
-      : {
-          nome: '',
-          tipo: 'Trincheira',
-          volume_ensilado_ton_mv: undefined,
-          comprimento_m: undefined,
-          largura_m: undefined,
-          altura_m: undefined,
-          cultura_ensilada: '',
-          materia_seca_percent: null,
-          talhao_id: null,
-          data_fechamento: hojeLocalISO(),
-          data_abertura_prevista: undefined,
-          data_abertura_real: undefined,
-          observacoes_gerais: '',
-          custo_aquisicao_rs_ton: null,
-          insumo_lona_id: null,
-          quantidade_lona: null,
-          insumo_lona2_id: null,
-          quantidade_lona2: null,
-          insumo_inoculante_id: null,
-          quantidade_inoculante: null,
-        },
+      : EMPTY_CREATE,
   });
 
   // Reset form when dialog opens in create mode
-   
   useEffect(() => {
     if (open && mode === 'create') {
-      form.reset({
-        nome: '',
-        tipo: 'Trincheira',
-        volume_ensilado_ton_mv: undefined,
-        comprimento_m: undefined,
-        largura_m: undefined,
-        altura_m: undefined,
-        cultura_ensilada: '',
-        materia_seca_percent: null,
-        talhao_id: null,
-        data_fechamento: hojeLocalISO(),
-        data_abertura_prevista: undefined,
-        observacoes_gerais: '',
-        custo_aquisicao_rs_ton: null,
-        insumo_lona_id: null,
-        quantidade_lona: null,
-        insumo_lona2_id: null,
-        quantidade_lona2: null,
-        insumo_inoculante_id: null,
-        quantidade_inoculante: null,
-      });
+      form.reset(EMPTY_CREATE);
     }
   }, [open, mode, form]);
 
@@ -176,31 +168,33 @@ export function SiloForm({
   const talhaoId = form.watch('talhao_id');
   const dataFechamento = form.watch('data_fechamento');
   const culturaWatch = form.watch('cultura_ensilada');
+  const lonaId = form.watch('insumo_lona_id');
+  const lona2Id = form.watch('insumo_lona2_id');
+  const inoculanteId = form.watch('insumo_inoculante_id');
 
   // Modo "Outros" do seletor rápido de cultura: revela campo de texto livre.
-  // Em edit, abre como texto livre se a cultura salva não for uma das sugestões.
   const [culturaLivre, setCulturaLivre] = useState(
     mode === 'edit' && !!silo?.cultura_ensilada
       ? !(CULTURAS_SUGERIDAS as readonly string[]).includes(silo.cultura_ensilada)
       : false
   );
 
-  // Ao abrir em create, reseta o modo de texto livre da cultura
   useEffect(() => {
     if (open && mode === 'create') setCulturaLivre(false);
   }, [open, mode]);
 
-  // No create, abertura prevista é sempre fechamento + 60 dias (prazo mínimo de fermentação)
-  // No edit, sobrescreve apenas se o usuário mudar a data de fechamento
+  // No create, abertura prevista é sempre fechamento + 60 dias (prazo mínimo de
+  // fermentação) — campo readonly. No edit NÃO sobrescrevemos automaticamente:
+  // o usuário pode ter ajustado a previsão de propósito.
   useEffect(() => {
-    if (!dataFechamento) return;
+    if (mode !== 'create' || !dataFechamento) return;
     const d = new Date(dataFechamento + 'T00:00:00');
     d.setDate(d.getDate() + 60);
     form.setValue('data_abertura_prevista', d.toISOString().slice(0, 10));
-  }, [dataFechamento, form]);
+  }, [dataFechamento, mode, form]);
 
   const densidade = calcularDensidade(comprimento, largura, altura, volumeWatch);
-  const densidadeBadge = getDensidadeBadge(densidade);
+  const densidadeInfo = getDensidadeInfo(densidade);
   const showCustoAquisicao = !talhaoId;
 
   const handleSubmit = async (data: SiloInput) => {
@@ -218,7 +212,7 @@ export function SiloForm({
     }
 
     try {
-      const payload = {
+      const payloadComum = {
         nome: data.nome,
         tipo: data.tipo,
         volume_ensilado_ton_mv: data.volume_ensilado_ton_mv ?? null,
@@ -230,7 +224,6 @@ export function SiloForm({
         talhao_id: data.talhao_id || null,
         data_fechamento: data.data_fechamento ?? null,
         data_abertura_prevista: data.data_abertura_prevista ?? null,
-        data_abertura_real: data.data_abertura_real ?? null,
         observacoes_gerais: data.observacoes_gerais || null,
         custo_aquisicao_rs_ton: showCustoAquisicao ? (data.custo_aquisicao_rs_ton ?? null) : null,
         insumo_lona_id: data.insumo_lona_id || null,
@@ -239,32 +232,15 @@ export function SiloForm({
       };
 
       if (mode === 'create') {
-        const novoSilo = await q.silos.create(payload);
+        // Cadastro atômico: a RPC criar_silo_com_entrada cria o silo E a entrada
+        // de ensilagem numa única transação. Sem risco de silo órfão.
+        const novoSilo = await q.silos.createWithEntrada({
+          ...payloadComum,
+          volume_ensilado_ton_mv: data.volume_ensilado_ton_mv!,
+          data_fechamento: data.data_fechamento!,
+        });
 
-        // Criação atômica: movimentação de entrada obrigatória
-        try {
-          await q.movimentacoesSilo.create({
-            silo_id: novoSilo.id,
-            tipo: 'Entrada',
-            subtipo: 'Ensilagem',
-            quantidade: data.volume_ensilado_ton_mv!,
-            data: data.data_fechamento!,
-            responsavel: 'Sistema',
-            observacao: 'Entrada gerada automaticamente no cadastro do silo',
-            talhao_id: null,
-          });
-        } catch {
-          // Reverter silo criado — a movimentação de entrada não foi criada
-          try {
-            await q.silos.remove(novoSilo.id);
-          } catch {
-            // ignore rollback error, orphan silo será detectável manualmente
-          }
-          toast.error('Erro ao criar silo. Tente novamente.');
-          return; // manter dialog aberto
-        }
-
-        // Integração opcional com insumos (não reverte silo se falhar)
+        // Integração opcional com insumos (não reverte o silo se falhar)
         if (data.insumo_lona_id || data.insumo_lona2_id || data.insumo_inoculante_id) {
           try {
             if (data.insumo_lona_id) {
@@ -279,7 +255,7 @@ export function SiloForm({
                 destino_tipo: 'silo',
                 destino_id: novoSilo.id,
                 origem: 'silo',
-                data: new Date().toISOString().split('T')[0],
+                data: hojeLocalISO(),
                 observacoes: `Lona de cobertura para silo: ${data.nome}`,
               });
             }
@@ -296,7 +272,7 @@ export function SiloForm({
                 destino_tipo: 'silo',
                 destino_id: novoSilo.id,
                 origem: 'silo',
-                data: new Date().toISOString().split('T')[0],
+                data: hojeLocalISO(),
                 observacoes: `Lona barreira de oxigênio para silo: ${data.nome}`,
               });
             }
@@ -319,7 +295,7 @@ export function SiloForm({
                 destino_tipo: 'silo',
                 destino_id: novoSilo.id,
                 origem: 'silo',
-                data: new Date().toISOString().split('T')[0],
+                data: hojeLocalISO(),
                 observacoes: `Inoculante para silo: ${data.nome} (${data.volume_ensilado_ton_mv} ton MV)`,
               });
             }
@@ -333,7 +309,10 @@ export function SiloForm({
 
         toast.success('Silo criado com sucesso!');
       } else if (silo) {
-        await q.silos.update(silo.id, payload);
+        await q.silos.update(silo.id, {
+          ...payloadComum,
+          data_abertura_real: data.data_abertura_real ?? null,
+        });
         toast.success('Silo atualizado com sucesso!');
       }
 
@@ -352,590 +331,705 @@ export function SiloForm({
           <DialogTitle>{mode === 'create' ? 'Novo Silo' : 'Editar Silo'}</DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? 'Adicione uma nova estrutura de armazenamento.'
+              ? 'Cadastre a estrutura e a silagem armazenada. A entrada de ensilagem é registrada automaticamente.'
               : 'Atualize os dados do silo.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
-          {/* Seção A — Dados Gerais */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-nome">Nome do Silo</Label>
-            <Input
-              id="silo-nome"
-              placeholder="Ex: Silo Norte 01"
-              aria-required="true"
-              {...form.register('nome')}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+            {/* Nome */}
+            <FormField
+              control={form.control}
+              name="nome"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Silo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Silo Norte 01" aria-required="true" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.nome && (
-              <p className="text-sm text-destructive">{form.formState.errors.nome.message}</p>
-            )}
-          </div>
 
-          <div className="space-y-2">
-            <Label id="silo-tipo-label">Tipo de Estrutura</Label>
-            <Controller
+            {/* Tipo de estrutura */}
+            <FormField
               control={form.control}
               name="tipo"
               render={({ field }) => (
-                <div
-                  role="radiogroup"
-                  aria-labelledby="silo-tipo-label"
-                  className="grid grid-cols-2 sm:grid-cols-4 gap-2"
-                >
-                  {TIPOS_SILO.map((t) => {
-                    const selected = field.value === t;
-                    return (
-                      <button
-                        key={t}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        onClick={() => field.onChange(t)}
-                        className={cn(
-                          'rounded-lg border px-3 py-2.5 text-center text-sm font-medium transition-colors',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
-                          selected
-                            ? 'border-primary bg-primary/10 text-foreground'
-                            : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
-                        )}
-                      >
-                        {t}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            />
-          </div>
-
-          {/* Datas */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="silo-fechamento" className="h-5">
-                Data de Fechamento {mode === 'create' && <span className="text-destructive">*</span>}
-              </Label>
-              <Input
-                id="silo-fechamento"
-                type="date"
-                aria-required={mode === 'create'}
-                {...form.register('data_fechamento')}
-              />
-              {form.formState.errors.data_fechamento && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.data_fechamento.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="silo-abertura-prevista" className="h-5">
-                Abertura Prevista
-              </Label>
-              <Input
-                id="silo-abertura-prevista"
-                type="date"
-                readOnly={mode === 'create'}
-                className={mode === 'create' ? 'bg-muted cursor-not-allowed' : ''}
-                {...form.register('data_abertura_prevista')}
-              />
-              {mode === 'create' && (
-                <p className="text-xs text-muted-foreground">
-                  Calculada: fechamento + 60 dias (fermentação)
-                </p>
-              )}
-            </div>
-          </div>
-
-          {mode === 'edit' && (
-            <div className="space-y-2">
-              <Label htmlFor="silo-abertura-real">
-                Data de Abertura Real
-                {silo?.data_abertura_real && (
-                  <span className="text-xs text-muted-foreground ml-2">
-                    (auto-registrada na primeira saída)
-                  </span>
-                )}
-              </Label>
-              <Input
-                id="silo-abertura-real"
-                type="date"
-                {...form.register('data_abertura_real')}
-              />
-              {form.formState.errors.data_abertura_real && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.data_abertura_real.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Talhão */}
-          <div className="space-y-2">
-            <Label id="silo-talhao-label" htmlFor="silo-talhao">
-              Talhão <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
-            </Label>
-            <Controller
-              control={form.control}
-              name="talhao_id"
-              render={({ field }) =>
-                talhoes.length > 0 && talhoes.length <= MAX_TALHOES_BOTOES ? (
+                <FormItem>
+                  <FormLabel>Tipo de Estrutura</FormLabel>
                   <div
                     role="radiogroup"
-                    aria-labelledby="silo-talhao-label"
-                    className="flex flex-wrap gap-2"
+                    aria-label="Tipo de estrutura"
+                    className="grid grid-cols-2 sm:grid-cols-4 gap-2"
                   >
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={!field.value}
-                      onClick={() => field.onChange(null)}
-                      className={cn(
-                        'rounded-md border px-3 py-1.5 text-sm transition-colors',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
-                        !field.value
-                          ? 'border-primary bg-primary/10 text-foreground'
-                          : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
-                      )}
-                    >
-                      Nenhum
-                    </button>
-                    {talhoes.map((t) => {
-                      const selected = field.value === t.id;
+                    {TIPOS_SILO.map((t) => {
+                      const selected = field.value === t;
                       return (
                         <button
-                          key={t.id}
+                          key={t}
                           type="button"
                           role="radio"
                           aria-checked={selected}
-                          onClick={() => field.onChange(t.id)}
+                          onClick={() => field.onChange(t)}
                           className={cn(
-                            'rounded-md border px-3 py-1.5 text-sm transition-colors',
+                            'rounded-lg border px-3 py-2.5 text-center text-sm font-medium transition-colors',
                             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                             selected
                               ? 'border-primary bg-primary/10 text-foreground'
                               : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
                           )}
                         >
-                          {t.nome}
+                          {t}
                         </button>
                       );
                     })}
                   </div>
-                ) : (
-                  <Select
-                    onValueChange={(val) => field.onChange(val === '' ? null : val)}
-                    value={field.value ?? ''}
-                  >
-                    <SelectTrigger id="silo-talhao">
-                      <SelectValue placeholder="Selecione um talhão (opcional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {talhoes.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )
-              }
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Cultura Ensilada */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-cultura">Cultura Ensilada</Label>
+            {/* Datas */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="data_fechamento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="h-5">
+                      Data de Fechamento {mode === 'create' && <span className="text-destructive">*</span>}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        aria-required={mode === 'create'}
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="data_abertura_prevista"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="h-5">Abertura Prevista</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        readOnly={mode === 'create'}
+                        className={mode === 'create' ? 'bg-muted cursor-not-allowed' : ''}
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    {mode === 'create' && (
+                      <FormDescription className="text-xs">
+                        Calculada: fechamento + 60 dias (fermentação)
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* Seletor rápido de cultura — só quando não há talhão vinculado */}
-            {!talhaoId && (
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Sugestões de cultura">
-                {CULTURAS_SUGERIDAS.map((c) => {
-                  const selected = !culturaLivre && culturaWatch === c;
-                  return (
-                    <button
-                      key={c}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => {
-                        setCulturaLivre(false);
-                        form.setValue('cultura_ensilada', c, { shouldValidate: true });
-                      }}
-                      className={cn(
-                        'rounded-full border px-3 py-1 text-sm transition-colors',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
-                        selected
-                          ? 'border-primary bg-primary/10 text-foreground'
-                          : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+            {mode === 'edit' && (
+              <FormField
+                control={form.control}
+                name="data_abertura_real"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Data de Abertura Real
+                      {silo?.data_abertura_real && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (auto-registrada na primeira saída)
+                        </span>
                       )}
-                    >
-                      {c}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  aria-pressed={culturaLivre}
-                  onClick={() => {
-                    setCulturaLivre(true);
-                    form.setValue('cultura_ensilada', '', { shouldValidate: true });
-                  }}
-                  className={cn(
-                    'rounded-full border px-3 py-1 text-sm transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
-                    culturaLivre
-                      ? 'border-primary bg-primary/10 text-foreground'
-                      : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
-                  )}
-                >
-                  Outros
-                </button>
-              </div>
-            )}
-
-            {/* Campo de texto: sempre visível quando há talhão (readonly) ou quando "Outros" foi escolhido */}
-            {(talhaoId || culturaLivre) && (
-              <Input
-                id="silo-cultura"
-                placeholder="Ex: Milheto, Aveia"
-                readOnly={!!talhaoId}
-                className={talhaoId ? 'bg-muted cursor-not-allowed' : ''}
-                {...form.register('cultura_ensilada')}
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} value={field.value ?? ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             )}
-            {talhaoId && (
-              <p className="text-sm text-muted-foreground">
-                Cultura vinculada ao talhão selecionado
-              </p>
-            )}
-          </div>
 
-          {/* Volume */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-volume">
-              Volume Ensilado (ton MV){mode === 'create' && <span className="text-destructive"> *</span>}
-            </Label>
-            <Input
-              id="silo-volume"
-              type="number"
-              step="0.1"
-              placeholder="Ex: 150.5"
-              {...form.register('volume_ensilado_ton_mv', {
-                setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
-              })}
-            />
-            {form.formState.errors.volume_ensilado_ton_mv && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.volume_ensilado_ton_mv.message}
-              </p>
-            )}
-          </div>
-
-          {/* Matéria Seca — sempre visível */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-ms">Matéria Seca (%)</Label>
-            <Input
-              id="silo-ms"
-              type="number"
-              step="0.1"
-              placeholder="Ex: 32.5"
-              {...form.register('materia_seca_percent', {
-                setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-              })}
-            />
-          </div>
-
-          {/* Seções B/D — Dimensões e custo (recolhível, opcional) */}
-          <Accordion className="rounded-lg border border-border">
-            <AccordionItem value="dimensoes-custo" className="border-b-0">
-              <AccordionTrigger className="px-4 py-3 text-sm font-medium rounded-lg hover:bg-white/5 hover:no-underline **:data-[slot=accordion-trigger-icon]:size-5 **:data-[slot=accordion-trigger-icon]:text-foreground">
-                Dimensões e custo
-                <span className="text-xs text-muted-foreground font-normal ml-2">(opcional)</span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-4 px-4 pt-1">
-                {/* Dimensões */}
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="silo-comp">Comprimento (m)</Label>
-                      <Input
-                        id="silo-comp"
-                        type="number"
-                        step="0.1"
-                        placeholder="Ex: 10.5"
-                        {...form.register('comprimento_m', {
-                          setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
-                        })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="silo-larg">Largura (m)</Label>
-                      <Input
-                        id="silo-larg"
-                        type="number"
-                        step="0.1"
-                        placeholder="Ex: 5.0"
-                        {...form.register('largura_m', {
-                          setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
-                        })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="silo-alt">Altura (m)</Label>
-                      <Input
-                        id="silo-alt"
-                        type="number"
-                        step="0.1"
-                        placeholder="Ex: 3.0"
-                        {...form.register('altura_m', {
-                          setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
-                        })}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Indicador de densidade */}
-                  {densidadeBadge && (
-                    <div className={`text-sm font-medium ${densidadeBadge.cls}`}>
-                      Densidade estimada: {densidadeBadge.label}
-                      <span className="text-xs text-muted-foreground ml-2">
-                        (ideal ≥ 650 kg/m³)
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Custo de aquisição (apenas para silos sem talhão) */}
-                {showCustoAquisicao && (
-                  <div className="space-y-2">
-                    <Label htmlFor="silo-custo">Custo de aquisição da silagem (R$/ton)</Label>
-                    <Input
-                      id="silo-custo"
-                      type="number"
-                      step="0.01"
-                      placeholder="Ex: 180.00"
-                      {...form.register('custo_aquisicao_rs_ton', {
-                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+            {/* Talhão */}
+            <FormField
+              control={form.control}
+              name="talhao_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Talhão <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+                  </FormLabel>
+                  {talhoes.length > 0 && talhoes.length <= MAX_TALHOES_BOTOES ? (
+                    <div role="radiogroup" aria-label="Talhão" className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={!field.value}
+                        onClick={() => field.onChange(null)}
+                        className={cn(
+                          'rounded-md border px-3 py-1.5 text-sm transition-colors',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                          !field.value
+                            ? 'border-primary bg-primary/10 text-foreground'
+                            : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                        )}
+                      >
+                        Nenhum
+                      </button>
+                      {talhoes.map((t) => {
+                        const selected = field.value === t.id;
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            onClick={() => field.onChange(t.id)}
+                            className={cn(
+                              'rounded-md border px-3 py-1.5 text-sm transition-colors',
+                              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                              selected
+                                ? 'border-primary bg-primary/10 text-foreground'
+                                : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                            )}
+                          >
+                            {t.nome}
+                          </button>
+                        );
                       })}
-                    />
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
-          {/* Insumos — Lonas e Inoculante (oculto no plano free) */}
-          {isFree ? (
-            <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-              Vinculação de lonas e inoculantes ao estoque requer o plano <span className="font-semibold text-foreground">Starter</span> ou superior.
-            </div>
-          ) : (
-            <>
-              <div className="space-y-3">
-                <p className="text-sm font-medium">
-                  Lonas <span className="text-xs text-muted-foreground font-normal">(cobertura + barreira de O₂ opcional)</span>
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Lona principal — obrigatória no create */}
-                  <div className="space-y-2">
-                    <Label htmlFor="silo-lona">
-                      Lona de cobertura {mode === 'create' && <span className="text-destructive">*</span>}
-                    </Label>
-                    <Controller
-                      control={form.control}
-                      name="insumo_lona_id"
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={(val) => {
-                            field.onChange(val === '' ? null : val);
-                            if (val === '') form.setValue('quantidade_lona', null);
-                          }}
-                          value={field.value ?? ''}
-                        >
-                          <SelectTrigger id="silo-lona">
-                            <SelectValue placeholder={mode === 'create' ? 'Selecione (obrigatório)' : 'Selecione'}>
-                              {field.value
-                                ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                                : (mode === 'create' ? 'Selecione (obrigatório)' : 'Nenhuma')}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {mode === 'edit' && <SelectItem value="">Nenhuma</SelectItem>}
-                            {insumosLona.map((i) => (
-                              <SelectItem key={i.id} value={i.id}>
-                                {i.nome}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {form.formState.errors.insumo_lona_id && (
-                      <p className="text-sm text-destructive">{form.formState.errors.insumo_lona_id.message}</p>
-                    )}
-                    {form.watch('insumo_lona_id') && (
-                      <div className="space-y-1">
-                        <Label htmlFor="silo-qtd-lona" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
-                        <Input
-                          id="silo-qtd-lona"
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          placeholder="Ex: 1"
-                          {...form.register('quantidade_lona', {
-                            setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                          })}
-                        />
-                        {form.formState.errors.quantidade_lona && (
-                          <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona.message}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Lona de barreira de O₂ — opcional */}
-                  <div className="space-y-2">
-                    <Label htmlFor="silo-lona2">
-                      Barreira de oxigênio <span className="text-xs text-muted-foreground">(opcional)</span>
-                    </Label>
-                    <Controller
-                      control={form.control}
-                      name="insumo_lona2_id"
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={(val) => {
-                            field.onChange(val === '' ? null : val);
-                            if (val === '') form.setValue('quantidade_lona2', null);
-                          }}
-                          value={field.value ?? ''}
-                        >
-                          <SelectTrigger id="silo-lona2">
-                            <SelectValue placeholder="Selecione">
-                              {field.value
-                                ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                                : 'Nenhuma'}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">Nenhuma</SelectItem>
-                            {insumosLona.map((i) => (
-                              <SelectItem key={i.id} value={i.id}>
-                                {i.nome}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {form.watch('insumo_lona2_id') && (
-                      <div className="space-y-1">
-                        <Label htmlFor="silo-qtd-lona2" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
-                        <Input
-                          id="silo-qtd-lona2"
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          placeholder="Ex: 1"
-                          {...form.register('quantidade_lona2', {
-                            setValueAs: (v) => (v === '' ? null : parseFloat(v)),
-                          })}
-                        />
-                        {form.formState.errors.quantidade_lona2 && (
-                          <p className="text-sm text-destructive">{form.formState.errors.quantidade_lona2.message}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Inoculante — opcional */}
-              <div className="space-y-2">
-                <Label htmlFor="silo-inoc">
-                  Inoculante <span className="text-xs text-muted-foreground">(opcional)</span>
-                </Label>
-                <Controller
-                  control={form.control}
-                  name="insumo_inoculante_id"
-                  render={({ field }) => (
+                    </div>
+                  ) : (
                     <Select
-                      onValueChange={(val) => {
-                        field.onChange(val === '' ? null : val);
-                        if (val === '') form.setValue('quantidade_inoculante', null);
-                      }}
+                      onValueChange={(val) => field.onChange(val === '' ? null : val)}
                       value={field.value ?? ''}
                     >
-                      <SelectTrigger id="silo-inoc">
-                        <SelectValue placeholder="Selecione">
-                          {field.value
-                            ? (insumosInoculante.find((i) => i.id === field.value)?.nome ?? 'Selecione')
-                            : 'Nenhum'}
-                        </SelectValue>
-                      </SelectTrigger>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um talhão (opcional)" />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         <SelectItem value="">Nenhum</SelectItem>
-                        {insumosInoculante.map((i) => (
-                          <SelectItem key={i.id} value={i.id}>
-                            {i.nome}
+                        {talhoes.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.nome}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
-                />
-                {form.watch('insumo_inoculante_id') && (
-                  <div className="space-y-1">
-                    <Label htmlFor="silo-qtd-inoc" className="text-xs text-muted-foreground">Quantidade utilizada</Label>
-                    <Input
-                      id="silo-qtd-inoc"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      placeholder={`Ex: ${form.watch('volume_ensilado_ton_mv') ? ((form.watch('volume_ensilado_ton_mv') ?? 0) / 1000).toFixed(3) : '0.001'}`}
-                      {...form.register('quantidade_inoculante', {
-                        setValueAs: (v) => (v === '' ? null : parseFloat(v)),
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Cultura Ensilada */}
+            <FormField
+              control={form.control}
+              name="cultura_ensilada"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cultura Ensilada</FormLabel>
+
+                  {!talhaoId && (
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Sugestões de cultura">
+                      {CULTURAS_SUGERIDAS.map((c) => {
+                        const selected = !culturaLivre && culturaWatch === c;
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => {
+                              setCulturaLivre(false);
+                              field.onChange(c);
+                            }}
+                            className={cn(
+                              'rounded-full border px-3 py-1 text-sm transition-colors',
+                              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                              selected
+                                ? 'border-primary bg-primary/10 text-foreground'
+                                : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                            )}
+                          >
+                            {c}
+                          </button>
+                        );
                       })}
+                      <button
+                        type="button"
+                        aria-pressed={culturaLivre}
+                        onClick={() => {
+                          setCulturaLivre(true);
+                          field.onChange('');
+                        }}
+                        className={cn(
+                          'rounded-full border px-3 py-1 text-sm transition-colors',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                          culturaLivre
+                            ? 'border-primary bg-primary/10 text-foreground'
+                            : 'border-border bg-surface text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                        )}
+                      >
+                        Outros
+                      </button>
+                    </div>
+                  )}
+
+                  {(talhaoId || culturaLivre) && (
+                    <FormControl>
+                      <Input
+                        placeholder="Ex: Milheto, Aveia"
+                        readOnly={!!talhaoId}
+                        className={talhaoId ? 'bg-muted cursor-not-allowed' : ''}
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                  )}
+                  {talhaoId && (
+                    <FormDescription>Cultura vinculada ao talhão selecionado</FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Volume */}
+            <FormField
+              control={form.control}
+              name="volume_ensilado_ton_mv"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Volume Ensilado (ton MV){mode === 'create' && <span className="text-destructive"> *</span>}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="Ex: 150.5"
+                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))
+                      }
                     />
-                    {form.formState.errors.quantidade_inoculante && (
-                      <p className="text-sm text-destructive">{form.formState.errors.quantidade_inoculante.message}</p>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Matéria Seca */}
+            <FormField
+              control={form.control}
+              name="materia_seca_percent"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Matéria Seca (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="Ex: 32.5"
+                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(e.target.value === '' ? null : parseFloat(e.target.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Dimensões e custo (recolhível) */}
+            <Accordion className="rounded-lg border border-border">
+              <AccordionItem value="dimensoes-custo" className="border-b-0">
+                <AccordionTrigger className="px-4 py-3 text-sm font-medium rounded-lg hover:bg-white/5 hover:no-underline **:data-[slot=accordion-trigger-icon]:size-5 **:data-[slot=accordion-trigger-icon]:text-foreground">
+                  Dimensões e custo
+                  <span className="text-xs text-muted-foreground font-normal ml-2">(opcional)</span>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4 px-4 pt-1">
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="comprimento_m"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Comprimento (m)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                placeholder="Ex: 10.5"
+                                {...field}
+                                value={field.value ?? ''}
+                                onChange={(e) =>
+                                  field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="largura_m"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Largura (m)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                placeholder="Ex: 5.0"
+                                {...field}
+                                value={field.value ?? ''}
+                                onChange={(e) =>
+                                  field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="altura_m"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Altura (m)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                placeholder="Ex: 3.0"
+                                {...field}
+                                value={field.value ?? ''}
+                                onChange={(e) =>
+                                  field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {densidadeInfo && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className={cn('h-2 w-2 rounded-full', densidadeInfo.dot)} aria-hidden="true" />
+                        <span className={cn('font-medium', densidadeInfo.text)}>
+                          Densidade estimada: {densidadeInfo.valor}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          · {densidadeInfo.nivel} (ideal ≥ 650 kg/m³)
+                        </span>
+                      </div>
                     )}
                   </div>
-                )}
+
+                  {showCustoAquisicao && (
+                    <FormField
+                      control={form.control}
+                      name="custo_aquisicao_rs_ton"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Custo de aquisição da silagem (R$/ton)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Ex: 180.00"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) =>
+                                field.onChange(e.target.value === '' ? null : parseFloat(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Insumos — Lonas e Inoculante (oculto no plano free) */}
+            {isFree ? (
+              <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                Vinculação de lonas e inoculantes ao estoque requer o plano{' '}
+                <span className="font-semibold text-foreground">Starter</span> ou superior.
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">
+                    Lonas{' '}
+                    <span className="text-xs text-muted-foreground font-normal">
+                      (cobertura + barreira de O₂ opcional)
+                    </span>
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Lona principal */}
+                    <FormField
+                      control={form.control}
+                      name="insumo_lona_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Lona de cobertura {mode === 'create' && <span className="text-destructive">*</span>}
+                          </FormLabel>
+                          <Select
+                            onValueChange={(val) => {
+                              field.onChange(val === '' ? null : val);
+                              if (val === '') form.setValue('quantidade_lona', null);
+                            }}
+                            value={field.value ?? ''}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={mode === 'create' ? 'Selecione (obrigatório)' : 'Selecione'}>
+                                  {field.value
+                                    ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                                    : mode === 'create'
+                                      ? 'Selecione (obrigatório)'
+                                      : 'Nenhuma'}
+                                </SelectValue>
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {mode === 'edit' && <SelectItem value="">Nenhuma</SelectItem>}
+                              {insumosLona.map((i) => (
+                                <SelectItem key={i.id} value={i.id}>
+                                  {i.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                          {lonaId && (
+                            <FormField
+                              control={form.control}
+                              name="quantidade_lona"
+                              render={({ field: qtdField }) => (
+                                <FormItem className="space-y-1">
+                                  <FormLabel className="text-xs text-muted-foreground">Quantidade utilizada</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0.01"
+                                      placeholder="Ex: 1"
+                                      {...qtdField}
+                                      value={qtdField.value ?? ''}
+                                      onChange={(e) =>
+                                        qtdField.onChange(e.target.value === '' ? null : parseFloat(e.target.value))
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </FormItem>
+                      )}
+                    />
 
-          {/* Observações */}
-          <div className="space-y-2">
-            <Label htmlFor="silo-obs">Observações Gerais</Label>
-            <Textarea
-              id="silo-obs"
-              placeholder="Informações adicionais sobre o silo..."
-              maxLength={1000}
-              {...form.register('observacoes_gerais')}
+                    {/* Lona barreira de O₂ */}
+                    <FormField
+                      control={form.control}
+                      name="insumo_lona2_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Barreira de oxigênio <span className="text-xs text-muted-foreground">(opcional)</span>
+                          </FormLabel>
+                          <Select
+                            onValueChange={(val) => {
+                              field.onChange(val === '' ? null : val);
+                              if (val === '') form.setValue('quantidade_lona2', null);
+                            }}
+                            value={field.value ?? ''}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione">
+                                  {field.value
+                                    ? (insumosLona.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                                    : 'Nenhuma'}
+                                </SelectValue>
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Nenhuma</SelectItem>
+                              {insumosLona.map((i) => (
+                                <SelectItem key={i.id} value={i.id}>
+                                  {i.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {lona2Id && (
+                            <FormField
+                              control={form.control}
+                              name="quantidade_lona2"
+                              render={({ field: qtdField }) => (
+                                <FormItem className="space-y-1">
+                                  <FormLabel className="text-xs text-muted-foreground">Quantidade utilizada</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0.01"
+                                      placeholder="Ex: 1"
+                                      {...qtdField}
+                                      value={qtdField.value ?? ''}
+                                      onChange={(e) =>
+                                        qtdField.onChange(e.target.value === '' ? null : parseFloat(e.target.value))
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Inoculante */}
+                <FormField
+                  control={form.control}
+                  name="insumo_inoculante_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Inoculante <span className="text-xs text-muted-foreground">(opcional)</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val === '' ? null : val);
+                          if (val === '') form.setValue('quantidade_inoculante', null);
+                        }}
+                        value={field.value ?? ''}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione">
+                              {field.value
+                                ? (insumosInoculante.find((i) => i.id === field.value)?.nome ?? 'Selecione')
+                                : 'Nenhum'}
+                            </SelectValue>
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">Nenhum</SelectItem>
+                          {insumosInoculante.map((i) => (
+                            <SelectItem key={i.id} value={i.id}>
+                              {i.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {inoculanteId && (
+                        <FormField
+                          control={form.control}
+                          name="quantidade_inoculante"
+                          render={({ field: qtdField }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-xs text-muted-foreground">Quantidade utilizada</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0.01"
+                                  placeholder={`Ex: ${volumeWatch ? (volumeWatch / 1000).toFixed(3) : '0.001'}`}
+                                  {...qtdField}
+                                  value={qtdField.value ?? ''}
+                                  onChange={(e) =>
+                                    qtdField.onChange(e.target.value === '' ? null : parseFloat(e.target.value))
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
+            {/* Observações */}
+            <FormField
+              control={form.control}
+              name="observacoes_gerais"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observações Gerais</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Informações adicionais sobre o silo..."
+                      maxLength={1000}
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                form.reset();
-                onOpenChange(false);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting
-                ? 'Salvando...'
-                : mode === 'create'
-                ? 'Criar Silo'
-                : 'Atualizar'}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset();
+                  onOpenChange(false);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting
+                  ? 'Salvando...'
+                  : mode === 'create'
+                    ? 'Criar Silo'
+                    : 'Atualizar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

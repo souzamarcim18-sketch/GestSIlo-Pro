@@ -6,12 +6,46 @@ import { z } from 'zod';
 
 export const TIPOS_SILO = ['Superfície', 'Trincheira', 'Bag', 'Outros'] as const;
 export const MOMENTOS_AVALIACAO = ['Fechamento', 'Abertura', 'Monitoramento'] as const;
+
+/**
+ * Subtipos de SAÍDA selecionáveis pelo usuário no dialog de movimentação.
+ * Não inclui 'Ensilagem' — esse subtipo é exclusivo da Entrada automática gerada
+ * no cadastro do silo (ver TODOS_SUBTIPOS para o conjunto completo aceito no banco).
+ */
 export const SUBTIPOS_MOVIMENTACAO = [
   'Uso na alimentação',
   'Descarte',
   'Transferência',
   'Venda',
 ] as const;
+
+/**
+ * Todos os subtipos aceitos pelo CHECK constraint do banco
+ * (movimentacoes_silo_subtipo_check). Usar em validações que precisam aceitar
+ * a Entrada de ensilagem, não apenas as saídas selecionáveis.
+ */
+export const TODOS_SUBTIPOS = ['Ensilagem', ...SUBTIPOS_MOVIMENTACAO] as const;
+
+/**
+ * Subtipos de saída que representam consumo real da silagem pelo rebanho.
+ * Fonte única de verdade — usada tanto no módulo de Silos quanto no Balanço
+ * Forrageiro para que "consumo" signifique a mesma coisa nos dois lugares.
+ *
+ * Exclui:
+ *  - Venda / Transferência → saída de caixa/logística, não consumo do rebanho
+ *  - Descarte → perda, contabilizada à parte (taxa de perdas)
+ */
+export const SUBTIPOS_CONSUMO_REBANHO: readonly string[] = ['Uso na alimentação'];
+
+/**
+ * Verifica se um subtipo de saída conta como consumo do rebanho.
+ * Nota: mantém compatibilidade com dados legados sem subtipo, que eram
+ * majoritariamente retiradas de alimentação — trata-os como consumo.
+ */
+export function subtipoEhConsumoRebanho(subtipo: string | null | undefined): boolean {
+  if (subtipo === null || subtipo === undefined || subtipo === '') return true;
+  return SUBTIPOS_CONSUMO_REBANHO.includes(subtipo);
+}
 
 // Faixas ideais por peneira — iguais para silos com e sem Kernel Processor
 // A diferença de KP impacta apenas a interpretação do TMP (tamanho médio de partícula)

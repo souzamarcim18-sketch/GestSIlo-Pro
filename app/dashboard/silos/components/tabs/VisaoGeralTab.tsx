@@ -8,8 +8,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { type Silo, type Talhao, type Insumo } from '@/lib/supabase';
+import { type Silo, type Talhao } from '@/lib/supabase';
 import { type FatiaCusto } from '@/lib/supabase/silos';
+
+/** Subconjunto de Insumo exibido no card de insumos utilizados. */
+export type InsumoResumo = {
+  id: string;
+  nome: string;
+  unidade: string;
+  custo_medio: number;
+};
 import { calcularDensidade } from '@/lib/supabase/silos';
 import {
   PieChart,
@@ -20,10 +28,10 @@ import {
 } from 'recharts';
 import { formatBRL } from '@/lib/utils';
 
+// Paleta do donut derivada de CSS vars do design system (tema-aware).
 const CORES_DONUT = [
-  '#00A651', '#3B82F6', '#F59E0B', '#EF4444',
-  '#8B5CF6', '#EC4899', '#14B8A6', '#F97316',
-  '#6366F1', '#84CC16',
+  'var(--chart-1)', 'var(--chart-3)', 'var(--status-warning)', 'var(--destructive)',
+  'var(--chart-5)', 'var(--primary)', 'var(--chart-4)', 'var(--muted-foreground)',
 ];
 
 interface TooltipPayloadItem {
@@ -105,10 +113,15 @@ export function DadosSiloCard({ silo }: { silo: Silo }) {
                 silo.largura_m,
                 silo.altura_m
               );
-              const indicator = dens >= 650 ? '🟢' : dens >= 550 ? '🟡' : '🔴';
+              const dotColor =
+                dens >= 650
+                  ? 'bg-primary'
+                  : dens >= 550
+                    ? 'bg-[color:var(--status-warning)]'
+                    : 'bg-destructive';
               return (
                 <div className="flex items-center gap-2">
-                  <span>{indicator}</span>
+                  <span className={`h-2 w-2 rounded-full ${dotColor}`} aria-hidden="true" />
                   <p className="font-medium">{dens.toFixed(0)} kg/m³</p>
                 </div>
               );
@@ -188,7 +201,7 @@ export function RastreabilidadeCustoCard({
               {silo.talhao_id ? 'Custo de Produção' : 'Custo de Aquisição'}
             </p>
             {custo !== null ? (
-              <p className="font-semibold text-lg text-green-700">
+              <p className="font-semibold text-lg text-primary">
                 {formatBRL(custo.custoPorTonelada)}/ton
               </p>
             ) : (
@@ -221,7 +234,7 @@ export function RastreabilidadeCustoCard({
                     innerRadius={60}
                     outerRadius={90}
                     strokeWidth={2}
-                    stroke="hsl(var(--card))"
+                    stroke="var(--card)"
                   >
                     {fatiasComPct.map((_, i) => (
                       <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} />
@@ -277,8 +290,8 @@ export function InsumosCard({
   insumoLona,
   insumoInoculante,
 }: {
-  insumoLona: Insumo | null;
-  insumoInoculante: Insumo | null;
+  insumoLona: InsumoResumo | null;
+  insumoInoculante: InsumoResumo | null;
 }) {
   return (
     <Card className="rounded-2xl bg-card shadow-sm h-full">

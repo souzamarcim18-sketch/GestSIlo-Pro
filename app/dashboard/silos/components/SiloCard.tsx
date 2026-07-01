@@ -12,7 +12,7 @@ import { type Silo } from '@/lib/supabase';
 import { type SiloStatus } from '../helpers';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MoreVertical, Pencil, Eye, TrendingUp, TrendingDown, Minus, DoorOpen } from 'lucide-react';
+import { MoreVertical, Pencil, Eye, TrendingUp, TrendingDown, Minus, DoorOpen, AlertCircle } from 'lucide-react';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 
 interface SiloCardProps {
@@ -22,6 +22,7 @@ interface SiloCardProps {
   consumoDiario: number | null;
   estoquePara: number | null;
   status: SiloStatus;
+  abertoSemConsumo?: boolean;
   onClick?: () => void;
   onEdit?: () => void;
   onAbrirSilo?: () => void;
@@ -31,59 +32,67 @@ interface SiloCardProps {
   isAdmin?: boolean;
 }
 
+// Cores do gauge derivadas de CSS vars do design system (tema-aware).
+const GAUGE_BRAND = 'var(--primary)';
+const GAUGE_WARNING = 'var(--status-warning)';
+const GAUGE_DANGER = 'var(--destructive)';
+const GAUGE_INFO = 'var(--chart-3)';
+const GAUGE_MUTED = 'var(--muted-foreground)';
+
 const STATUS_CONFIG: Record<SiloStatus, { label: string; badgeClass: string; gaugeColor: string }> = {
   Enchendo: {
     label: 'Enchendo',
-    badgeClass: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    gaugeColor: '#4aaae6',
+    badgeClass: 'bg-[color:var(--chart-3)]/15 text-[color:var(--chart-3)] border-[color:var(--chart-3)]/30',
+    gaugeColor: GAUGE_INFO,
   },
   Fechado: {
     label: 'Fechado',
-    badgeClass: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    gaugeColor: '#4aaae6',
+    badgeClass: 'bg-[color:var(--chart-3)]/15 text-[color:var(--chart-3)] border-[color:var(--chart-3)]/30',
+    gaugeColor: GAUGE_INFO,
   },
   Aberto: {
     label: 'Aberto',
-    badgeClass: 'bg-green-500/15 text-green-400 border-green-500/30',
-    gaugeColor: '#00c45a',
+    badgeClass: 'bg-primary/15 text-primary border-primary/30',
+    gaugeColor: GAUGE_BRAND,
   },
   Vazio: {
     label: 'Vazio',
     badgeClass: 'bg-muted/50 text-muted-foreground border-border',
-    gaugeColor: 'var(--muted-foreground)',
+    gaugeColor: GAUGE_MUTED,
   },
   Crítico: {
     label: 'Crítico',
-    badgeClass: 'bg-red-500/15 text-red-400 border-red-500/30',
-    gaugeColor: '#e05454',
+    badgeClass: 'bg-destructive/15 text-destructive border-destructive/30',
+    gaugeColor: GAUGE_DANGER,
   },
   Esgotado: {
     label: 'Esgotado',
-    badgeClass: 'bg-red-900/20 text-red-500 border-red-700/30',
-    gaugeColor: '#e05454',
+    badgeClass: 'bg-muted/50 text-muted-foreground border-border',
+    gaugeColor: GAUGE_MUTED,
   },
 };
 
+// Cor da faixa lateral por cultura — derivada de CSS vars do design system.
 const CULTURA_COLORS: Record<string, string> = {
-  milho: '#f5a623',
-  sorgo: '#9b59b6',
-  capim: '#27ae60',
-  braquiaria: '#27ae60',
-  napier: '#27ae60',
-  cana: '#2ecc71',
-  girassol: '#f1c40f',
-  aveia: '#e8c98a',
-  azevem: '#6db86d',
-  trigo: '#d4a843',
+  milho: 'var(--status-warning)',
+  sorgo: 'var(--chart-3)',
+  capim: 'var(--primary)',
+  braquiaria: 'var(--primary)',
+  napier: 'var(--primary)',
+  cana: 'var(--primary)',
+  girassol: 'var(--status-warning)',
+  aveia: 'var(--status-warning)',
+  azevem: 'var(--primary)',
+  trigo: 'var(--status-warning)',
 };
 
 function getCulturaColor(cultura: string | null | undefined): string {
-  if (!cultura) return '#6b7280';
+  if (!cultura) return 'var(--muted-foreground)';
   const key = cultura.toLowerCase().trim();
   for (const [k, v] of Object.entries(CULTURA_COLORS)) {
     if (key.includes(k)) return v;
   }
-  return '#6b7280';
+  return 'var(--muted-foreground)';
 }
 
 function getCapacidade(silo: Silo): number {
@@ -178,6 +187,7 @@ export function SiloCard({
   msAtual,
   estoquePara,
   status,
+  abertoSemConsumo = false,
   onClick,
   onEdit,
   onAbrirSilo,
@@ -194,10 +204,10 @@ export function SiloCard({
     status === 'Vazio' || status === 'Esgotado'
       ? cfg.gaugeColor
       : percentage >= 60
-        ? '#00c45a'
+        ? GAUGE_BRAND
         : percentage >= 30
-          ? '#f5d000'
-          : '#e05454';
+          ? GAUGE_WARNING
+          : GAUGE_DANGER;
 
   const culturaColor = getCulturaColor(silo.cultura_ensilada ?? silo.tipo);
 
@@ -206,10 +216,10 @@ export function SiloCard({
     estoquePara === null
       ? 'text-muted-foreground'
       : estoquePara < 10
-        ? 'text-red-400'
+        ? 'text-destructive'
         : estoquePara < 30
-          ? 'text-yellow-400'
-          : 'text-green-400';
+          ? 'text-[color:var(--status-warning)]'
+          : 'text-primary';
 
   const diasFechado =
     dataFechamento && !dataAberturaReal
@@ -240,6 +250,16 @@ export function SiloCard({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          {abertoSemConsumo && (
+            <Badge
+              variant="outline"
+              className="gap-1 text-xs font-semibold px-2 py-0.5 border bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30"
+              title="Silo aberto há dias sem retirada de silagem"
+            >
+              <AlertCircle className="h-3 w-3" aria-hidden="true" />
+              Sem consumo
+            </Badge>
+          )}
           <Badge
             variant="outline"
             className={`text-xs font-semibold px-2 py-0.5 border ${cfg.badgeClass}`}
@@ -333,13 +353,13 @@ export function SiloCard({
         <div className="flex gap-4">
           {fechamentoFmt ? (
             <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Fechamento</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Fechamento</span>
               <span className="text-xs font-medium">{fechamentoFmt}</span>
             </div>
           ) : null}
           {aberturaFmt ? (
             <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Abertura</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Abertura</span>
               <span className="text-xs font-medium">{aberturaFmt}</span>
             </div>
           ) : null}

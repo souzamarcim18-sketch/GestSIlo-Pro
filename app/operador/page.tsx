@@ -202,6 +202,15 @@ export default function ModoOperadorPage() {
     return 'toneladas';
   }
 
+  // Aviso (não bloqueante) quando a quantidade informada passa do volume total
+  // ensilado do silo — sinaliza provável erro de digitação/unidade em campo.
+  function excedeVolume(qtd: string, unidade: UnidadeMedida): boolean {
+    const ton = converterParaToneladas(qtd, unidade);
+    const volume = siloSelecionado?.volume_ensilado_ton_mv ?? null;
+    if (ton === null || volume === null || volume <= 0) return false;
+    return ton > volume + 1e-6;
+  }
+
   // ── Reset ───────────────────────────────────────────────────────────────────
 
   function resetRetirada() {
@@ -659,6 +668,15 @@ export default function ModoOperadorPage() {
                     Volume ensilado: {siloSelecionado.volume_ensilado_ton_mv.toFixed(1)} t
                   </p>
                 )}
+
+                {excedeVolume(
+                  unidadeRetirada === 'toneladas' ? qtdRetirada : qtdUnidadeRetirada,
+                  unidadeRetirada
+                ) && (
+                  <p className="text-sm text-amber-400 text-center font-medium flex items-center justify-center gap-1.5">
+                    ⚠️ Quantidade maior que todo o volume do silo. Confira a unidade.
+                  </p>
+                )}
               </div>
 
               {/* Data */}
@@ -820,6 +838,15 @@ export default function ModoOperadorPage() {
                       </p>
                     )}
                   </div>
+                )}
+
+                {excedeVolume(
+                  unidadeDescarte === 'toneladas' ? qtdDescarte : qtdUnidadeDescarte,
+                  unidadeDescarte
+                ) && (
+                  <p className="text-sm text-amber-400 text-center font-medium">
+                    ⚠️ Quantidade maior que todo o volume do silo. Confira a unidade.
+                  </p>
                 )}
               </div>
 

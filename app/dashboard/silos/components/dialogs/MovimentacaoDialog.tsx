@@ -52,6 +52,8 @@ interface MovimentacaoDialogProps {
   onOpenChange: (open: boolean) => void;
   silos: Silo[];
   siloId?: string;
+  /** Estoque atual do silo (t), usado para avisar de saída maior que o disponível. */
+  estoqueAtual?: number;
   /** Quando fornecida, o dialog opera em modo edição da movimentação. */
   movimentacao?: MovimentacaoSilo | null;
   onSuccess: () => void;
@@ -62,6 +64,7 @@ export function MovimentacaoDialog({
   onOpenChange,
   silos,
   siloId,
+  estoqueAtual,
   movimentacao,
   onSuccess,
 }: MovimentacaoDialogProps) {
@@ -87,6 +90,16 @@ export function MovimentacaoDialog({
   const tipoAtual = form.watch('tipo');
   const subtipoAtual = form.watch('subtipo');
   const siloIdAtual = form.watch('silo_id');
+  const quantidadeAtual = form.watch('quantidade');
+
+  // Aviso (não bloqueante) de saída maior que o estoque disponível. Em edição,
+  // a própria movimentação já está subtraída do estoque, então não avisamos.
+  const excedeEstoque =
+    !isEdit &&
+    tipoAtual === 'Saída' &&
+    estoqueAtual != null &&
+    typeof quantidadeAtual === 'number' &&
+    quantidadeAtual > estoqueAtual + 1e-6;
 
   // Verificar hasEntrada quando o silo muda ou o dialog abre.
   // Em modo edição não bloqueamos: estamos editando uma movimentação existente.
@@ -364,10 +377,26 @@ export function MovimentacaoDialog({
                       onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>
+                  {tipoAtual === 'Saída' && estoqueAtual != null && (
+                    <p className="text-xs text-muted-foreground">
+                      Estoque disponível: {estoqueAtual.toFixed(1)} t
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {excedeEstoque && (
+              <Alert variant="destructive" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  A quantidade informada é maior que o estoque atual do silo
+                  ({(estoqueAtual ?? 0).toFixed(1)} t). Confira antes de registrar
+                  — isso deixaria o silo com estoque negativo.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Campos condicionais para Venda */}
             {subtipoAtual === 'Venda' && (

@@ -123,6 +123,53 @@ const silos = {
     return data as Silo;
   },
 
+  /**
+   * Cria o silo + a Entrada de ensilagem numa única transação atômica (RPC
+   * criar_silo_com_entrada). Ou ambos persistem, ou nenhum — elimina o risco de
+   * silo órfão que existia no fluxo de duas chamadas do browser.
+   * Retorna o silo criado (busca por id após a RPC).
+   */
+  async createWithEntrada(payload: {
+    nome: string;
+    tipo: string;
+    volume_ensilado_ton_mv: number;
+    data_fechamento: string;
+    data_abertura_prevista?: string | null;
+    talhao_id?: string | null;
+    cultura_ensilada?: string | null;
+    materia_seca_percent?: number | null;
+    comprimento_m?: number | null;
+    largura_m?: number | null;
+    altura_m?: number | null;
+    observacoes_gerais?: string | null;
+    custo_aquisicao_rs_ton?: number | null;
+    insumo_lona_id?: string | null;
+    insumo_lona2_id?: string | null;
+    insumo_inoculante_id?: string | null;
+  }): Promise<Silo> {
+    await getFazendaId(); // garante sessão ativa; a RPC resolve a fazenda internamente
+    const { data: novoId, error } = await supabase.rpc('criar_silo_com_entrada', {
+      p_nome: payload.nome,
+      p_tipo: payload.tipo,
+      p_volume_ensilado_ton: payload.volume_ensilado_ton_mv,
+      p_data_fechamento: payload.data_fechamento,
+      p_data_abertura_prevista: payload.data_abertura_prevista ?? null,
+      p_talhao_id: payload.talhao_id ?? null,
+      p_cultura_ensilada: payload.cultura_ensilada ?? null,
+      p_materia_seca_percent: payload.materia_seca_percent ?? null,
+      p_comprimento_m: payload.comprimento_m ?? null,
+      p_largura_m: payload.largura_m ?? null,
+      p_altura_m: payload.altura_m ?? null,
+      p_observacoes_gerais: payload.observacoes_gerais ?? null,
+      p_custo_aquisicao_rs_ton: payload.custo_aquisicao_rs_ton ?? null,
+      p_insumo_lona_id: payload.insumo_lona_id ?? null,
+      p_insumo_lona2_id: payload.insumo_lona2_id ?? null,
+      p_insumo_inoculante_id: payload.insumo_inoculante_id ?? null,
+    });
+    if (error) throw error;
+    return silos.getById(novoId as string);
+  },
+
   async update(id: string, payload: Partial<Silo>): Promise<Silo> {
     const fazendaId = await getFazendaId();
     const { data, error } = await supabase
@@ -230,23 +277,10 @@ const movimentacoesSilo = {
 
     const mov = data as MovimentacaoSilo & { valor_unitario?: number | null; comprador?: string | null; receita_id?: string | null };
 
-    // Auto-registrar data de abertura real na primeira saída
-    if (payload.tipo === 'Saída' && !(silo as { data_abertura_real: string | null }).data_abertura_real) {
-      const { count: countSaidas, error: countError } = await supabase
-        .from('movimentacoes_silo')
-        .select('id', { count: 'exact', head: true })
-        .eq('silo_id', payload.silo_id)
-        .eq('tipo', 'Saída');
-
-      // Se essa é a primeira saída (count === 1), atualizar data_abertura_real
-      if (!countError && countSaidas === 1) {
-        await supabase
-          .from('silos')
-          .update({ data_abertura_real: payload.data })
-          .eq('id', payload.silo_id)
-          .eq('fazenda_id', fazendaId);
-      }
-    }
+    // A abertura automática do silo (preencher data_abertura_real na primeira
+    // saída que não seja Descarte) é feita pelo trigger de banco
+    // trg_abrir_silo_na_primeira_saida — cobre uniformemente todos os caminhos
+    // de INSERT (dialog admin, Modo Operador, sync offline).
 
     // A integração financeiro (receita da venda de silagem) é feita pelo
     // chamador via Server Action registrarReceitaVendaSiloAction — o cliente

@@ -3915,6 +3915,27 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      criar_silo_com_entrada: {
+        Args: {
+          p_altura_m?: number
+          p_comprimento_m?: number
+          p_cultura_ensilada?: string
+          p_custo_aquisicao_rs_ton?: number
+          p_data_abertura_prevista?: string
+          p_data_fechamento: string
+          p_insumo_inoculante_id?: string
+          p_insumo_lona_id?: string
+          p_insumo_lona2_id?: string
+          p_largura_m?: number
+          p_materia_seca_percent?: number
+          p_nome: string
+          p_observacoes_gerais?: string
+          p_talhao_id?: string
+          p_tipo: string
+          p_volume_ensilado_ton: number
+        }
+        Returns: string
+      }
       get_insumos_abaixo_minimo: {
         Args: { p_fazenda_id: string }
         Returns: {
