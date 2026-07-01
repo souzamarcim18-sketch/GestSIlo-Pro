@@ -1,20 +1,12 @@
 'use client';
 
+import { Database, Gauge, DoorOpen, AlertTriangle, Layers, CalendarClock, TrendingDown, Percent } from 'lucide-react';
+import { KpiCard } from '@/components/ui/KpiCard';
 import { type SiloCardData, type ResumoFrotaSilos } from '../helpers';
 
 interface Props {
   data: SiloCardData[];
   resumo?: ResumoFrotaSilos;
-}
-
-function KpiItem({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5 px-5 py-4 text-center md:border-r md:border-border/40 md:last:border-r-0">
-      <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-xl font-bold leading-none">{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
-    </div>
-  );
 }
 
 const formatTon = (v: number) =>
@@ -52,42 +44,53 @@ export function SiloKpiStrip({ data, resumo }: Props) {
     resumo && resumo.taxaPerdas !== null ? `${resumo.taxaPerdas.toFixed(1)}%` : '—';
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card shadow-sm overflow-hidden w-full">
-      <div className="grid grid-cols-2 md:grid-cols-4 border-b border-border/40">
-        <KpiItem label="Total de Silos" value={total} />
-        <KpiItem
-          label="Ocupação Média"
-          value={ocupacaoMedia !== null ? `${ocupacaoMedia}%` : '—'}
-          sub={`${silosComDados} silo${silosComDados !== 1 ? 's' : ''} com dados`}
-        />
-        <KpiItem label="Abertos" value={abertos} sub="em uso" />
-        <KpiItem
-          label="Críticos"
-          value={criticos}
-          sub={criticos > 0 ? 'atenção necessária' : 'todos OK'}
-        />
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4">
-        <KpiItem
-          label="Estoque Total"
-          value={resumo ? formatTon(resumo.estoqueTotal) : '—'}
-          sub="somatório dos silos"
-        />
-        <KpiItem
-          label="Autonomia Estimada"
-          value={autonomiaLabel}
-          sub={resumo && resumo.consumoDiarioFrota !== null ? 'todos os silos' : 'sem consumo'}
-        />
-        <KpiItem
-          label="Consumo Médio"
-          value={consumoLabel}
-          sub={resumo && resumo.consumoDiarioFrota !== null ? 'silos abertos' : 'nenhum aberto'}
-        />
-        <KpiItem
-          label="Perdas"
-          value={perdasLabel}
-        />
-      </div>
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <KpiCard
+        label="Total de Silos"
+        valor={total}
+        icon={<Database className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Ocupação Média"
+        valor={ocupacaoMedia !== null ? `${ocupacaoMedia}%` : '—'}
+        sublabel={`${silosComDados} silo${silosComDados !== 1 ? 's' : ''} com dados`}
+        icon={<Gauge className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Abertos"
+        valor={abertos}
+        sublabel="em uso"
+        icon={<DoorOpen className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Críticos"
+        valor={criticos}
+        sublabel={criticos > 0 ? 'atenção necessária' : 'todos OK'}
+        icon={<AlertTriangle className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Estoque Total"
+        valor={resumo ? formatTon(resumo.estoqueTotal) : '—'}
+        sublabel="somatório dos silos"
+        icon={<Layers className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Autonomia Estimada"
+        valor={autonomiaLabel}
+        sublabel={resumo && resumo.consumoDiarioFrota !== null ? 'todos os silos' : 'sem consumo'}
+        icon={<CalendarClock className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Consumo Médio"
+        valor={consumoLabel}
+        sublabel={resumo && resumo.consumoDiarioFrota !== null ? 'silos abertos' : 'nenhum aberto'}
+        icon={<TrendingDown className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Perdas"
+        valor={perdasLabel}
+        icon={<Percent className="h-5 w-5" />}
+      />
     </div>
   );
 }

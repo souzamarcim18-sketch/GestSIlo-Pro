@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Map, Ruler, Sprout, Leaf } from 'lucide-react';
+import { KpiCard } from '@/components/ui/KpiCard';
 import { type Talhao, type CicloAgricola } from '@/lib/types/talhoes';
 
 interface Props {
@@ -37,43 +38,34 @@ export function TalhaoKpiStrip({ talhoes, ciclosAtivos }: Props) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <Card>
-        <CardContent className="p-4">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Áreas</div>
-          <div className="text-3xl font-bold text-foreground">{stats.totalAreas}</div>
-          <div className="text-xs text-muted-foreground mt-1">talhões cadastrados</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Área Total</div>
-          <div className="text-3xl font-bold text-foreground">{formatArea(stats.areaTotal)}</div>
-          <div className="text-xs text-muted-foreground mt-1">hectares</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Cultivo</div>
-          <div className="text-3xl font-bold text-green-400">{stats.emCultivo}</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {stats.emCultivo > 0 ? `${formatArea(stats.areaEmCultivo)} ha plantados` : 'nenhuma área plantada'}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Culturas Ativas</div>
-          <div className="text-3xl font-bold text-foreground">{stats.culturasAtivas}</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {stats.disponiveis > 0
-              ? `${stats.disponiveis} área${stats.disponiveis !== 1 ? 's' : ''} disponíve${stats.disponiveis !== 1 ? 'is' : 'l'}`
-              : 'todas em uso'}
-          </div>
-        </CardContent>
-      </Card>
+      <KpiCard
+        label="Áreas"
+        valor={stats.totalAreas}
+        sublabel="talhões cadastrados"
+        icon={<Map className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Área Total"
+        valor={formatArea(stats.areaTotal)}
+        sublabel="hectares"
+        icon={<Ruler className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Em Cultivo"
+        valor={stats.emCultivo}
+        sublabel={stats.emCultivo > 0 ? `${formatArea(stats.areaEmCultivo)} ha plantados` : 'nenhuma área plantada'}
+        icon={<Sprout className="h-5 w-5" />}
+      />
+      <KpiCard
+        label="Culturas Ativas"
+        valor={stats.culturasAtivas}
+        sublabel={
+          stats.disponiveis > 0
+            ? `${stats.disponiveis} área${stats.disponiveis !== 1 ? 's' : ''} disponíve${stats.disponiveis !== 1 ? 'is' : 'l'}`
+            : 'todas em uso'
+        }
+        icon={<Leaf className="h-5 w-5" />}
+      />
     </div>
   );
 }

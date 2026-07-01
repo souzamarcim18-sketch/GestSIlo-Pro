@@ -4,8 +4,9 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Map } from 'lucide-react';
+import { Plus, Map, Sprout } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { type Talhao, type CicloAgricola } from '@/lib/types/talhoes';
 import { q } from '@/lib/supabase/queries-audit';
 import { TalhaoCard, TalhaoForm, TalhaoKpiStrip } from './components';
@@ -48,13 +49,12 @@ export function TalhoesClient({ initialTalhoes, initialCiclosAtivos }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Lavouras e Talhões</h2>
+      <PageHeader icon={Sprout} titulo="Gestão de Lavouras e Talhões">
         <Button onClick={() => setIsAddOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Talhão
         </Button>
-      </div>
+      </PageHeader>
 
       {talhoes.length === 0 ? (
         <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed rounded-2xl bg-card shadow-sm">

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Database, Lock } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
 import { type Silo, type MovimentacaoSilo, type Talhao } from '@/lib/supabase';
 import { q } from '@/lib/supabase/queries-audit';
@@ -62,13 +63,12 @@ export function SilosClient({ initialSiloCardData, initialResumoFrota, initialTa
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão de Silagens</h2>
+      <PageHeader icon={Database} titulo="Gestão de Silagens">
         <Button onClick={handleNovoSilo}>
           {limiteAtingido ? <Lock className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
           Novo Silo
         </Button>
-      </div>
+      </PageHeader>
 
       {limiteAtingido && (
         <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center justify-between gap-3">

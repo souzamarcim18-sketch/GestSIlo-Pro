@@ -64,9 +64,12 @@ export function PastagemCard({ pastagem, isAdmin, onMutate }: PastagemCardProps)
       <Card
         role="article"
         onClick={() => router.push(`/dashboard/pastagens/${pastagem.id}`)}
-        className={`p-5 cursor-pointer transition-all hover:shadow-md hover:border-border ${
-          temAlertas || pastagem.necessita_reforma ? 'border-l-4 border-l-yellow-500/60' : ''
-        }`}
+        className="p-5 cursor-pointer transition-all hover:shadow-md hover:border-border"
+        style={{
+          borderLeft: `4px solid ${
+            temAlertas || pastagem.necessita_reforma ? '#f5d000' : 'var(--primary)'
+          }`,
+        }}
       >
         {/* Cabeçalho */}
         <div className="flex items-start justify-between gap-3">

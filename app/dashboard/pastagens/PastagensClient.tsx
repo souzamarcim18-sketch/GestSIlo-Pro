@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Leaf, AlertTriangle } from 'lucide-react';
+import { Plus, Leaf, AlertTriangle, Fence, Trees, Moon, Hammer, Ban, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { KpiCard } from '@/components/ui/KpiCard';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { PastagemCard } from './components/PastagemCard';
 import { PastagemForm } from './components/PastagemForm';
 import {
@@ -60,91 +62,32 @@ export function PastagensClient({ initialPastagens, isAdmin }: PastagensClientPr
   return (
     <div className="space-y-6">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
-            <Leaf className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Pastagens</h1>
-            <p className="text-sm text-muted-foreground">
-              {initialPastagens.length} pastagen{initialPastagens.length !== 1 ? 's' : ''} cadastrada{initialPastagens.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-        </div>
+      <PageHeader icon={Leaf} titulo="Gestão de Pastagens">
         {isAdmin && (
           <Button onClick={() => setModalAberto(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             Nova Pastagem
           </Button>
         )}
-      </div>
+      </PageHeader>
 
       {/* KPIs resumidos */}
       {initialPastagens.length > 0 && (
         <div className="space-y-3">
           {/* Linha 1 — inventário */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pastagens</div>
-                <div className="text-3xl font-bold text-foreground">{totalPastagens}</div>
-                <div className="text-xs text-muted-foreground mt-1">total cadastradas</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Piquetes</div>
-                <div className="text-3xl font-bold text-foreground">{totalPiquetes}</div>
-                <div className="text-xs text-muted-foreground mt-1">total cadastrados</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Pastejo</div>
-                <div className="text-3xl font-bold text-green-400">{emPastejo}</div>
-                <div className="text-xs text-muted-foreground mt-1">piquetes ocupados</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Descanso</div>
-                <div className="text-3xl font-bold text-blue-400">{emDescanso}</div>
-                <div className="text-xs text-muted-foreground mt-1">piquetes descansando</div>
-              </CardContent>
-            </Card>
+            <KpiCard label="Pastagens" valor={totalPastagens} sublabel="total cadastradas" icon={<Leaf className="h-5 w-5" />} />
+            <KpiCard label="Piquetes" valor={totalPiquetes} sublabel="total cadastrados" icon={<Fence className="h-5 w-5" />} />
+            <KpiCard label="Em Pastejo" valor={emPastejo} sublabel="piquetes ocupados" icon={<Trees className="h-5 w-5" />} />
+            <KpiCard label="Em Descanso" valor={emDescanso} sublabel="piquetes descansando" icon={<Moon className="h-5 w-5" />} />
           </div>
 
           {/* Linha 2 — situação / atenção */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Em Reforma</div>
-                <div className="text-3xl font-bold text-orange-400">{emReforma}</div>
-                <div className="text-xs text-muted-foreground mt-1">piquetes em reforma</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Interditados</div>
-                <div className="text-3xl font-bold text-red-400">{interditados}</div>
-                <div className="text-xs text-muted-foreground mt-1">piquetes interditados</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Necessitam Reforma</div>
-                <div className="text-3xl font-bold text-yellow-400">{necessitamReforma}</div>
-                <div className="text-xs text-muted-foreground mt-1">sinalizados p/ reforma</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Alertas</div>
-                <div className="text-3xl font-bold text-yellow-400">{totalAlertas}</div>
-                <div className="text-xs text-muted-foreground mt-1">requerem atenção</div>
-              </CardContent>
-            </Card>
+            <KpiCard label="Em Reforma" valor={emReforma} sublabel="piquetes em reforma" icon={<Hammer className="h-5 w-5" />} />
+            <KpiCard label="Interditados" valor={interditados} sublabel="piquetes interditados" icon={<Ban className="h-5 w-5" />} />
+            <KpiCard label="Necessitam Reforma" valor={necessitamReforma} sublabel="sinalizados p/ reforma" icon={<Wrench className="h-5 w-5" />} />
+            <KpiCard label="Alertas" valor={totalAlertas} sublabel="requerem atenção" icon={<AlertTriangle className="h-5 w-5" />} />
           </div>
         </div>
       )}

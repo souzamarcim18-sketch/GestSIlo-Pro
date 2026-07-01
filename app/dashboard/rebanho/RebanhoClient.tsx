@@ -24,6 +24,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Plus, BarChart3, Milk, Stethoscope, ArrowRightLeft, Beef, Dna, ClipboardList, Table2, Upload, ChevronDown, User, Users, FileInput, CalendarPlus, SlidersHorizontal, ListChecks } from 'lucide-react';
+import { CowIcon } from '@/components/icons/CowIcon';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -186,10 +188,9 @@ export function RebanhoClient({ initialAnimais, initialTotal, animaisParaPainel,
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-[#00A651]">Gestão do Rebanho</h2>
+      <PageHeader icon={CowIcon} titulo="Gestão do Rebanho">
         {isAdmin && (
-          <div className="flex flex-wrap items-center gap-2">
+          <>
             {/* Cadastro de animais */}
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -253,9 +254,9 @@ export function RebanhoClient({ initialAnimais, initialTotal, animaisParaPainel,
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+          </>
         )}
-      </div>
+      </PageHeader>
 
       <SelecionarAnimalDialog
         open={selecionarAnimalOpen}
