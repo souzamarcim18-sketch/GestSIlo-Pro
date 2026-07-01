@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Users, ClipboardList } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpisSection } from './components/KpisSection';
@@ -107,40 +107,25 @@ export function MaoDeObraClient({
       <KpisSection kpis={initialKpis} />
 
       {/* Abas */}
-      <div
-        className="flex gap-1 p-1 rounded-lg"
-        style={{ background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.08)', width: 'fit-content' }}
-      >
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setAba('atividades')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+          className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer ${
             aba === 'atividades'
-              ? 'text-white'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'border-primary/60 bg-primary/10 text-foreground font-semibold'
+              : 'border-border/50 bg-muted/20 text-muted-foreground hover:bg-accent/50 hover:border-primary/30'
           }`}
-          style={
-            aba === 'atividades'
-              ? { background: '#738D45' }
-              : undefined
-          }
         >
-          <ClipboardList className="h-4 w-4" />
           Atividades
         </button>
         <button
           onClick={() => setAba('colaboradores')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+          className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer ${
             aba === 'colaboradores'
-              ? 'text-white'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'border-primary/60 bg-primary/10 text-foreground font-semibold'
+              : 'border-border/50 bg-muted/20 text-muted-foreground hover:bg-accent/50 hover:border-primary/30'
           }`}
-          style={
-            aba === 'colaboradores'
-              ? { background: '#738D45' }
-              : undefined
-          }
         >
-          <Users className="h-4 w-4" />
           Colaboradores
         </button>
       </div>

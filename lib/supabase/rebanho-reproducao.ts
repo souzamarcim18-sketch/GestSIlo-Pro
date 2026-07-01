@@ -630,6 +630,8 @@ export const queryIndicadoresReprodutivos = {
       .from('animais')
       .select('status_reprodutivo')
       .eq('fazenda_id', fazenda_id)
+      .eq('sexo', 'Fêmea')
+      .eq('status', 'Ativo')
       .is('deleted_at', null);
     if (especies && especies.length > 0) q = q.in('tipo_rebanho', especies);
     const { data, error } = await q;
@@ -663,6 +665,8 @@ export const queryIndicadoresReprodutivos = {
       .from('animais')
       .select('status_reprodutivo')
       .eq('fazenda_id', fazenda_id)
+      .eq('sexo', 'Fêmea')
+      .eq('status', 'Ativo')
       .is('deleted_at', null);
 
     if (error) throw error;

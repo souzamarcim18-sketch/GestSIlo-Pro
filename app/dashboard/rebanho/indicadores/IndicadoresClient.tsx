@@ -234,7 +234,7 @@ export default function IndicadoresClient({
       {/* Tabs com Gráficos — séries que só existem aqui (GMD por animal,
           natalidade×mortalidade, evolução do efetivo, comparativo de lotes). */}
       <Tabs defaultValue="resumo" className="space-y-4">
-        <TabsList>
+        <TabsList variant="card">
           <TabsTrigger value="resumo">Evolução do efetivo</TabsTrigger>
           <TabsTrigger value="gmd">GMD</TabsTrigger>
           <TabsTrigger value="natalidade">Natalidade</TabsTrigger>

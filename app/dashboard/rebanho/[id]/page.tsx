@@ -260,7 +260,7 @@ export default function AnimalDetailPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="eventos">
-          <TabsList className="bg-muted">
+          <TabsList variant="card">
             <TabsTrigger value="eventos">Histórico de Eventos</TabsTrigger>
             <TabsTrigger value="movimentacoes">Movimentações</TabsTrigger>
             <TabsTrigger value="pesos">Pesagens</TabsTrigger>

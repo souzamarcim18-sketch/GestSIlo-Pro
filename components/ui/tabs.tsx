@@ -30,6 +30,10 @@ const tabsListVariants = cva(
       variant: {
         default: "bg-muted/50 border border-border",
         line: "gap-1 bg-transparent",
+        // Abas em card compacto: sem fundo/borda no container, cada aba é um
+        // "card" de largura ajustada ao conteúdo. Quebra em linha em telas
+        // estreitas. Usada nas páginas de detalhe/hub dos módulos.
+        card: "flex h-auto max-w-full flex-wrap justify-start gap-2 bg-transparent p-0",
       },
     },
     defaultVariants: {
@@ -78,6 +82,10 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
         "group-data-[variant=default]/tabs-list:data-active:bg-[var(--brand-green-vivid)] group-data-[variant=default]/tabs-list:data-active:text-white group-data-[variant=default]/tabs-list:data-active:font-semibold group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=default]/tabs-list:data-active:border-transparent",
         // Indicador inferior (variante line)
         "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
+        // Variante CARD — card compacto (largura ajustada ao conteúdo, sem esticar)
+        "group-data-[variant=card]/tabs-list:h-auto group-data-[variant=card]/tabs-list:flex-none group-data-[variant=card]/tabs-list:rounded-lg group-data-[variant=card]/tabs-list:border-border/50 group-data-[variant=card]/tabs-list:bg-muted/20 group-data-[variant=card]/tabs-list:px-4 group-data-[variant=card]/tabs-list:py-2.5 group-data-[variant=card]/tabs-list:after:hidden",
+        "group-data-[variant=card]/tabs-list:hover:border-primary/30 group-data-[variant=card]/tabs-list:hover:bg-accent/50",
+        "group-data-[variant=card]/tabs-list:data-active:border-primary/60 group-data-[variant=card]/tabs-list:data-active:bg-primary/10 group-data-[variant=card]/tabs-list:data-active:text-foreground group-data-[variant=card]/tabs-list:data-active:font-semibold",
         className
       )}
       {...props}

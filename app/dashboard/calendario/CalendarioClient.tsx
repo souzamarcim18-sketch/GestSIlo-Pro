@@ -296,15 +296,15 @@ export function CalendarioClient({ initialEventos, talhoes, mesAtual }: Props) {
       </div>
 
       {/* Abas de grupo */}
-      <div className="flex flex-wrap gap-2 rounded-xl bg-muted/50 border border-border p-[3px]">
+      <div className="flex flex-wrap gap-2">
         {GRUPOS_CALENDARIO.map((g) => (
           <button
             key={g}
             onClick={() => handleGrupoChange(g)}
-            className={`flex-1 min-w-[140px] rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+            className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer ${
               grupo === g
-                ? 'bg-[#00A651] text-white font-semibold shadow-sm'
-                : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                ? 'border-primary/60 bg-primary/10 text-foreground font-semibold'
+                : 'border-border/50 bg-muted/20 text-muted-foreground hover:bg-accent/50 hover:border-primary/30'
             }`}
           >
             {GRUPO_CONFIG[g].label}

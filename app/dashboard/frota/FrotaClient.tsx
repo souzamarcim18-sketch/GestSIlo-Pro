@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart2, Fuel, Settings, Wrench, LayoutDashboard, Tractor } from 'lucide-react';
+import { Tractor } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -66,23 +66,11 @@ export function FrotaClient({ profile }: Props) {
         className="w-full flex-1 flex flex-col"
       >
         <div className="pt-2 pb-4">
-          <TabsList className="grid grid-cols-4 gap-2 h-auto rounded-xl bg-muted/50 border border-border p-[3px] w-full">
-            <TabsTrigger value="visao-geral" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
-              <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Visão Geral</span>
-            </TabsTrigger>
-            <TabsTrigger value="manutencoes" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
-              <Wrench className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Manutenções</span>
-            </TabsTrigger>
-            <TabsTrigger value="abastecimento" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
-              <Fuel className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Abastec.</span>
-            </TabsTrigger>
-            <TabsTrigger value="custos" className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-background hover:text-foreground data-[state=active]:bg-[#00A651] data-[state=active]:text-white data-[state=active]:font-semibold data-[state=active]:shadow-sm whitespace-nowrap">
-              <Settings className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Custos</span>
-            </TabsTrigger>
+          <TabsList variant="card">
+            <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+            <TabsTrigger value="manutencoes">Manutenções</TabsTrigger>
+            <TabsTrigger value="abastecimento">Abastecimento</TabsTrigger>
+            <TabsTrigger value="custos">Custos</TabsTrigger>
           </TabsList>
         </div>
 

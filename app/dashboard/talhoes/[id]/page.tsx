@@ -125,17 +125,17 @@ export default function TalhaoDetailPage() {
         />
 
         <div className="w-full space-y-4">
-          <div className="inline-flex flex-wrap gap-1 rounded-xl bg-muted/50 border border-border p-[3px]">
+          <div className="flex flex-wrap gap-2">
             {(['visaoGeral', 'historico'] as const).map((tab) => {
               const labels = { visaoGeral: 'Visão Geral & Operações', historico: 'Histórico' };
               return (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+                  className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer ${
                     activeTab === tab
-                      ? 'bg-[#00A651] text-white font-semibold shadow-sm'
-                      : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                      ? 'border-primary/60 bg-primary/10 text-foreground font-semibold'
+                      : 'border-border/50 bg-muted/20 text-muted-foreground hover:bg-accent/50 hover:border-primary/30'
                   }`}
                 >
                   {labels[tab]}

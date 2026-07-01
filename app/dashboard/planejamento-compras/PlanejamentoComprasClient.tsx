@@ -129,7 +129,7 @@ export function PlanejamentoComprasClient({
       </div>
 
       <Tabs defaultValue="atividades">
-        <TabsList>
+        <TabsList variant="card">
           <TabsTrigger value="atividades">Atividades Planejadas</TabsTrigger>
           <TabsTrigger value="lista-compras">Lista de Compras</TabsTrigger>
         </TabsList>

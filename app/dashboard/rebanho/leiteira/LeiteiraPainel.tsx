@@ -1,15 +1,9 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Milk, HeartPulse, BarChart3 } from 'lucide-react';
 import { DashboardLeiteiro } from '@/components/rebanho/leiteira/DashboardLeiteiro';
 import { PainelEspecieReproducao } from '@/components/rebanho/reproducao/PainelEspecieReproducao';
 import { IndicadoresEspecieSurface } from '@/components/rebanho/indicadores/IndicadoresEspecieSurface';
-
-const CARD_TAB =
-  'group flex h-auto flex-col items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-3 text-center transition-all duration-150 after:hidden ' +
-  'hover:bg-accent/50 hover:border-primary/30 ' +
-  'data-active:!border-primary/60 data-active:!bg-primary/10 data-active:!text-foreground data-active:!shadow-none';
 
 type DashboardLeiteiroProps = React.ComponentProps<typeof DashboardLeiteiro>;
 type ReproducaoProps = Omit<
@@ -28,19 +22,10 @@ interface LeiteiraPainelProps {
 export function LeiteiraPainel({ producoes, animais, totais, isAdmin, reproducao }: LeiteiraPainelProps) {
   return (
     <Tabs defaultValue="producao" className="w-full">
-      <TabsList variant="line" className="grid h-auto w-full grid-cols-3 gap-2 bg-transparent p-0">
-        <TabsTrigger value="producao" className={CARD_TAB}>
-          <Milk className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
-          <span className="text-sm font-semibold leading-tight">Produção</span>
-        </TabsTrigger>
-        <TabsTrigger value="reproducao" className={CARD_TAB}>
-          <HeartPulse className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
-          <span className="text-sm font-semibold leading-tight">Reprodução</span>
-        </TabsTrigger>
-        <TabsTrigger value="indicadores" className={CARD_TAB}>
-          <BarChart3 className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
-          <span className="text-sm font-semibold leading-tight">Indicadores</span>
-        </TabsTrigger>
+      <TabsList variant="card">
+        <TabsTrigger value="producao">Produção</TabsTrigger>
+        <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
+        <TabsTrigger value="indicadores">Indicadores</TabsTrigger>
       </TabsList>
 
       <TabsContent value="producao" className="mt-4">

@@ -50,12 +50,12 @@ export function PainelEspecieReproducao({
   return (
     <ReproducaoSyncProvider>
     <Tabs defaultValue="dashboard" className="w-full">
-      <TabsList variant="line" className="flex h-auto w-full flex-wrap justify-start gap-1">
-        <TabsTrigger value="dashboard" className="flex-none">Painel</TabsTrigger>
-        <TabsTrigger value="historico" className="flex-none">Histórico</TabsTrigger>
-        <TabsTrigger value="reprodutores" className="flex-none">Reprodutores</TabsTrigger>
-        <TabsTrigger value="doadoras" className="flex-none">Doadoras</TabsTrigger>
-        <TabsTrigger value="parametros" className="flex-none">Parâmetros</TabsTrigger>
+      <TabsList variant="card">
+        <TabsTrigger value="dashboard">Painel</TabsTrigger>
+        <TabsTrigger value="historico">Histórico</TabsTrigger>
+        <TabsTrigger value="reprodutores">Reprodutores</TabsTrigger>
+        <TabsTrigger value="doadoras">Doadoras</TabsTrigger>
+        <TabsTrigger value="parametros">Parâmetros</TabsTrigger>
       </TabsList>
 
       <TabsContent value="dashboard" className="mt-4">
