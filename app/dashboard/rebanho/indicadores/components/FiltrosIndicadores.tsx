@@ -8,6 +8,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -229,24 +230,26 @@ export function FiltrosIndicadores({
               <ChevronDown className="h-4 w-4 opacity-50" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel className="text-xs">Lotes disponíveis</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {lotes.length === 0 ? (
-                <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                  Nenhum lote disponível
-                </div>
-              ) : (
-                lotes.map((lote) => (
-                  <DropdownMenuCheckboxItem
-                    key={lote.id}
-                    checked={lotesSelecionados.includes(lote.id)}
-                    onCheckedChange={() => toggleLote(lote.id)}
-                    className="text-xs"
-                  >
-                    {lote.nome}
-                  </DropdownMenuCheckboxItem>
-                ))
-              )}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs">Lotes disponíveis</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {lotes.length === 0 ? (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                    Nenhum lote disponível
+                  </div>
+                ) : (
+                  lotes.map((lote) => (
+                    <DropdownMenuCheckboxItem
+                      key={lote.id}
+                      checked={lotesSelecionados.includes(lote.id)}
+                      onCheckedChange={() => toggleLote(lote.id)}
+                      className="text-xs"
+                    >
+                      {lote.nome}
+                    </DropdownMenuCheckboxItem>
+                  ))
+                )}
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -264,18 +267,20 @@ export function FiltrosIndicadores({
               <ChevronDown className="h-4 w-4 opacity-50" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel className="text-xs">Categorias disponíveis</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {CATEGORIAS_DISPONIVEIS.map((categoria) => (
-                <DropdownMenuCheckboxItem
-                  key={categoria}
-                  checked={categoriasSelecionadas.includes(categoria)}
-                  onCheckedChange={() => toggleCategoria(categoria)}
-                  className="text-xs"
-                >
-                  {categoria}
-                </DropdownMenuCheckboxItem>
-              ))}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs">Categorias disponíveis</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {CATEGORIAS_DISPONIVEIS.map((categoria) => (
+                  <DropdownMenuCheckboxItem
+                    key={categoria}
+                    checked={categoriasSelecionadas.includes(categoria)}
+                    onCheckedChange={() => toggleCategoria(categoria)}
+                    className="text-xs"
+                  >
+                    {categoria}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

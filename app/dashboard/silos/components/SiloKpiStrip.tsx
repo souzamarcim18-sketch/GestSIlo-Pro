@@ -76,7 +76,7 @@ export function SiloKpiStrip({ data, resumo }: Props) {
         <KpiItem
           label="Autonomia Estimada"
           value={autonomiaLabel}
-          sub={resumo && resumo.consumoDiarioFrota !== null ? 'frota completa' : 'sem consumo'}
+          sub={resumo && resumo.consumoDiarioFrota !== null ? 'todos os silos' : 'sem consumo'}
         />
         <KpiItem
           label="Consumo Médio"
@@ -86,7 +86,6 @@ export function SiloKpiStrip({ data, resumo }: Props) {
         <KpiItem
           label="Perdas"
           value={perdasLabel}
-          sub="descarte ÷ saídas"
         />
       </div>
     </div>

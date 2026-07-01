@@ -8,21 +8,9 @@ import { KpiCard } from './KpiCard';
 import type { AnimalParaPainel, PainelRebanhoExtras } from '@/lib/supabase/rebanho';
 import type { Lote } from '@/lib/types/rebanho';
 
-// Recharts via next/dynamic + ssr:false (padrão do projeto para gráficos)
-const GraficoComposicao = dynamic(
-  () =>
-    import('../indicadores/components/charts/GraficoComposicao').then((m) => ({
-      default: m.GraficoComposicao,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-80 animate-pulse rounded-lg bg-muted/40" />
-    ),
-  }
-);
-
-// Mesmo gráfico de composição por categoria usado no dashboard principal
+// Mesmo gráfico de composição por categoria usado no dashboard principal —
+// reutilizado tanto para "por lote" quanto para "por categoria" para manter
+// visual e altura consistentes.
 const PieCategoriasRebanho = dynamic(
   () =>
     import('@/components/widgets/PieCategoriasRebanho').then((m) => ({
@@ -35,10 +23,6 @@ const PieCategoriasRebanho = dynamic(
     ),
   }
 );
-
-// periodo é exigido pela assinatura de GraficoComposicaoProps mas não é
-// usado na renderização do donut — passamos um stub mínimo.
-const PERIODO_STUB = { periodo: '90d' } as const;
 
 interface Props {
   animais: AnimalParaPainel[];
@@ -65,7 +49,7 @@ export function PainelResumo({ animais, lotes, extras }: Props) {
     const lotacaoUAha =
       extras.areaPastagensHa > 0 ? totalUA / extras.areaPastagensHa : null;
 
-    // Composição por lote (apenas ativos)
+    // Composição por lote (apenas ativos) — contagens absolutas por lote
     const nomePorLote = new Map(lotes.map((l) => [l.id, l.nome]));
     const porLote: Record<string, number> = {};
     for (const a of ativos) {
@@ -74,7 +58,9 @@ export function PainelResumo({ animais, lotes, extras }: Props) {
         : 'Sem lote';
       porLote[nome] = (porLote[nome] ?? 0) + 1;
     }
-    const composicaoLotes = paraPercentual(porLote, ativos.length);
+    const lotesData = Object.entries(porLote)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
     // Composição por categoria (mesmo gráfico do dashboard principal)
     const porCategoria: Record<string, number> = {};
@@ -97,7 +83,7 @@ export function PainelResumo({ animais, lotes, extras }: Props) {
       corteMachos: corte.length - femeasCount(corte),
       lotacaoUAha,
       totalLotes: lotes.length,
-      composicaoLotes,
+      lotesData,
       categoriasData,
     };
   }, [animais, lotes, extras.areaPastagensHa]);
@@ -135,10 +121,9 @@ export function PainelResumo({ animais, lotes, extras }: Props) {
           label="Lotação"
           valor={
             resumo.lotacaoUAha !== null
-              ? `${resumo.lotacaoUAha.toFixed(2)} UA/ha`
+              ? `${resumo.lotacaoUAha.toFixed(1)} UA/ha`
               : '—'
           }
-          sublabel="Soma dos pesos ÷ 450 kg ÷ área de pastagens"
           icon={<Gauge className="h-5 w-5" />}
         />
         <KpiCard
@@ -156,11 +141,14 @@ export function PainelResumo({ animais, lotes, extras }: Props) {
               Composição por lote
             </h3>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex min-h-[144px] items-center">
             {resumo.totalAtivos > 0 ? (
-              <GraficoComposicao dados={resumo.composicaoLotes} periodo={PERIODO_STUB} />
+              <PieCategoriasRebanho
+                data={resumo.lotesData}
+                total={resumo.totalAtivos}
+              />
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="w-full py-8 text-center text-sm text-muted-foreground">
                 Sem animais ativos
               </p>
             )}
@@ -217,17 +205,4 @@ export function PainelResumo({ animais, lotes, extras }: Props) {
       </div>
     </section>
   );
-}
-
-// Converte contagens absolutas em percentuais (categoria → %)
-function paraPercentual(
-  contagens: Record<string, number>,
-  total: number
-): Record<string, number> {
-  if (total === 0) return {};
-  const out: Record<string, number> = {};
-  for (const [k, v] of Object.entries(contagens)) {
-    out[k] = (v / total) * 100;
-  }
-  return out;
 }

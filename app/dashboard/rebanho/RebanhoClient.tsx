@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -206,15 +207,17 @@ export function RebanhoClient({ initialAnimais, initialTotal, animaisParaPainel,
                   Animal único
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Operação — em massa</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/cadastro-rapido')}>
-                  <Table2 className="mr-2 h-4 w-4" />
-                  Cadastro rápido (vários)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/importar')}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Importar CSV
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">Operação — em massa</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/cadastro-rapido')}>
+                    <Table2 className="mr-2 h-4 w-4" />
+                    Cadastro rápido (vários)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/importar')}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Importar CSV
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -241,11 +244,13 @@ export function RebanhoClient({ initialAnimais, initialTotal, animaisParaPainel,
                   Evento em um animal
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Operação — em massa</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/eventos/lote/novo')}>
-                  <ClipboardList className="mr-2 h-4 w-4" />
-                  Lançamento múltiplo
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">Operação — em massa</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => router.push('/dashboard/rebanho/eventos/lote/novo')}>
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    Lançamento múltiplo
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

@@ -231,7 +231,16 @@
       "PowerShell(cd c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro; npx vitest run --reporter=verbose 2>&1 | Tee-Object -Variable testOut | Out-Null; $testOut | Select-String -Pattern \"Tests|FAIL|PASS|passed|failed\" | Select-Object -Last 10; Write-Host \"EXIT: $LASTEXITCODE\")",
       "Bash(node -e ' *)",
       "Bash(Remove-Item -Recurse -Force \"c:\\\\Projetos\\\\GestSilo\\\\GestSIlo-Pro\\\\.next\" -ErrorAction SilentlyContinue)",
-      "Bash(Write-Host \"Cleaned\")"
+      "Bash(Write-Host \"Cleaned\")",
+      "Bash(npm run *)",
+      "Bash(echo \"started, pid $!\")",
+      "Bash(sleep 8; tail -30 /tmp/gestsilo-dev.log)",
+      "Bash(tail -40 /tmp/gestsilo-dev.log)",
+      "Bash(awk '/animais: \\\\{/,/Relationships/' types/supabase.ts)",
+      "Bash(tail -50 /tmp/gestsilo-dev.log | grep -i \"error\\\\|Error\\\\|⨯\\\\|failed\" | head; echo \"--- no runtime errors captured \\(routes only redirected to login\\) ---\")",
+      "Bash(taskkill //F //IM node.exe)",
+      "WebFetch(domain:base-ui.com)",
+      "Bash(xargs grep -l \"production-error\")"
     ],
     "additionalDirectories": [
       "\\tmp"
