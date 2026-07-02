@@ -248,7 +248,8 @@
       "Bash(grep -iB2 -A8 \"config\\\\|serialize\\\\|plugin\\\\|babel\")",
       "Bash(npx next *)",
       "PowerShell(npx tsc --noEmit; Write-Output \"EXIT:$LASTEXITCODE\")",
-      "PowerShell(npm run build 2>&1 | Select-String -Pattern \"Failed to compile|Type error|Module not found|✓ Compiled|✓ Generating|Compiled successfully\" | Select-Object -Last 10; Write-Output \"EXIT:$LASTEXITCODE\")"
+      "PowerShell(npm run build 2>&1 | Select-String -Pattern \"Failed to compile|Type error|Module not found|✓ Compiled|✓ Generating|Compiled successfully\" | Select-Object -Last 10; Write-Output \"EXIT:$LASTEXITCODE\")",
+      "PowerShell(npm run test -- __tests__/balanco-forrageiro/utils.test.ts)"
     ],
     "additionalDirectories": [
       "\\tmp"

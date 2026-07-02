@@ -42,7 +42,8 @@ export default async function BalancoForrageiroPage() {
   const initialDemandaLiquida = calcularDemandaLiquidaSilos(
     initialDemanda.demanda_total_kg_ms_dia,
     initialOfertaPasto.oferta_total_kg_ms_dia,
-    estoqueTotal_kg
+    estoqueTotal_kg,
+    initialConsumo.consumo_medio_diario_kg
   );
 
   return (

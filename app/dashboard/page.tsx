@@ -291,12 +291,17 @@ export default async function DashboardPage() {
     autonomiaDias === null ? '—' : autonomiaDias > 365 ? 'Mais de 1 ano' : `${autonomiaDias} dias`;
 
   // Taxa de perdas — todo o histórico (igual ao módulo Silos), não a janela de 30 dias.
-  const saidasHistorico = todasMovsSilos.filter((m) => m.tipo === 'Saída');
-  const totalSaidas = saidasHistorico.reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
-  const totalDescarte = saidasHistorico
-    .filter((m) => m.subtipo === 'Descarte')
+  // Base = descarte ÷ (consumo + descarte); exclui Venda e Transferência (saídas de
+  // caixa/logística, não silagem "gasta" na operação). Mesma metodologia de
+  // helpers.ts/calcularTaxaPerdasSilo e calcularResumoFrota.
+  const totalDescarte = todasMovsSilos
+    .filter((m) => m.tipo === 'Saída' && m.subtipo === 'Descarte')
     .reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
-  const silosTaxaPerdas = totalSaidas > 0 ? ((totalDescarte / totalSaidas) * 100).toFixed(1) + '%' : '—';
+  const totalConsumo = todasMovsSilos
+    .filter((m) => m.tipo === 'Saída' && subtipoEhConsumoRebanho(m.subtipo ?? null))
+    .reduce((acc, m) => acc + (m.quantidade ?? 0), 0);
+  const baseUsoSilos = totalConsumo + totalDescarte;
+  const silosTaxaPerdas = baseUsoSilos > 0 ? ((totalDescarte / baseUsoSilos) * 100).toFixed(1) + '%' : '—';
 
   const volumePorCultura: Record<string, number> = {};
   for (const silo of silosData) {
@@ -447,7 +452,7 @@ export default async function DashboardPage() {
 
   // Campos numéricos brutos para alertas
   const silosAutonomiaDiasNum = autonomiaDias;
-  const silosTaxaPerdasNum = totalSaidas > 0 ? (totalDescarte / totalSaidas) * 100 : null;
+  const silosTaxaPerdasNum = baseUsoSilos > 0 ? (totalDescarte / baseUsoSilos) * 100 : null;
   const manutencoesPendentesCount = manutRes.count ?? 0;
 
   // Etapa 1 — alertas derivados de dados já disponíveis

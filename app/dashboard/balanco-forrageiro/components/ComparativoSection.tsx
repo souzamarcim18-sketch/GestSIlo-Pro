@@ -42,6 +42,8 @@ export function ComparativoSection({
   const semDados = consumo.sem_dados || demanda.por_categoria.length === 0;
   const config = STATUS_CONFIG[comparativo.status];
   const autonomiaLiquidaClasses = classesAutonomia(demandaLiquida.autonomia_liquida_dias);
+  const autonomiaLiquidaRealClasses = classesAutonomia(demandaLiquida.autonomia_liquida_real_dias);
+  const temReal = demandaLiquida.demanda_liquida_real_kg_dia !== null;
 
   return (
     <div className="space-y-3">
@@ -141,21 +143,47 @@ export function ComparativoSection({
             </div>
           </div>
 
-          {!demandaLiquida.pasto_cobre_tudo && demandaLiquida.autonomia_liquida_dias !== null && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-sm text-muted-foreground">
-                Com o pasto descontado, os silos têm autonomia de{' '}
-                <span
-                  className={cn(
-                    'font-semibold px-1.5 py-0.5 rounded-full text-xs',
-                    autonomiaLiquidaClasses.bg,
-                    autonomiaLiquidaClasses.text
-                  )}
-                >
-                  {demandaLiquida.autonomia_liquida_dias} dias
-                </span>
-                {' '}para cobrir o restante da demanda.
-              </p>
+          {!demandaLiquida.pasto_cobre_tudo && (
+            <div className="mt-3 pt-3 border-t border-border space-y-2">
+              {/* Autonomia líquida REAL — pelo consumo de silagem medido */}
+              {temReal && (
+                demandaLiquida.autonomia_liquida_real_dias !== null ? (
+                  <p className="text-sm text-muted-foreground">
+                    Pelo <span className="text-foreground font-medium">consumo medido</span>, com o pasto descontado, os silos têm autonomia de{' '}
+                    <span
+                      className={cn(
+                        'font-semibold px-1.5 py-0.5 rounded-full text-xs',
+                        autonomiaLiquidaRealClasses.bg,
+                        autonomiaLiquidaRealClasses.text
+                      )}
+                    >
+                      {demandaLiquida.autonomia_liquida_real_dias} dias
+                    </span>
+                    .
+                  </p>
+                ) : (
+                  <p className="text-sm text-green-400">
+                    Pelo consumo medido, o pasto já cobre todo o consumo de silagem — silos como reserva.
+                  </p>
+                )
+              )}
+
+              {/* Autonomia líquida PROJETADA — pela demanda teórica */}
+              {demandaLiquida.autonomia_liquida_dias !== null && (
+                <p className="text-sm text-muted-foreground">
+                  Pela <span className="text-foreground font-medium">demanda teórica</span> do rebanho, essa autonomia é de{' '}
+                  <span
+                    className={cn(
+                      'font-semibold px-1.5 py-0.5 rounded-full text-xs',
+                      autonomiaLiquidaClasses.bg,
+                      autonomiaLiquidaClasses.text
+                    )}
+                  >
+                    {demandaLiquida.autonomia_liquida_dias} dias
+                  </span>
+                  {' '}(cenário de planejamento).
+                </p>
+              )}
             </div>
           )}
 

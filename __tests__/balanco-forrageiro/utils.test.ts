@@ -5,6 +5,7 @@ import {
   calcularDemandaProjetada,
   calcularComparativo,
   calcularOfertaPasto,
+  calcularDemandaLiquidaSilos,
 } from '@/lib/utils/balanco-forrageiro';
 import type { MovimentacaoSiloRow, AnimalPorCategoriaRow } from '@/lib/utils/balanco-forrageiro';
 import type { PiqueteAtivoRow } from '@/lib/supabase/balanco-forrageiro';
@@ -290,5 +291,57 @@ describe('calcularOfertaPasto', () => {
     // oferta 450, demanda 5000 → 9% < 20%
     const r = calcularOfertaPasto([makePiquete()], 5000, 1);
     expect(r.alerta_cobertura_baixa).toBe(true);
+  });
+});
+
+// ─── calcularDemandaLiquidaSilos ──────────────────────────────────────────────
+
+describe('calcularDemandaLiquidaSilos', () => {
+  it('cenário projetado: demanda − pasto e autonomia sobre estoque', () => {
+    // demanda 100, pasto 40 → líquida 60; estoque 6000 → 100 dias
+    const r = calcularDemandaLiquidaSilos(100, 40, 6000);
+    expect(r.demanda_liquida_kg_ms_dia).toBe(60);
+    expect(r.autonomia_liquida_dias).toBe(100);
+    expect(r.pasto_cobre_tudo).toBe(false);
+  });
+
+  it('projetado: pasto cobre tudo → demanda líquida 0 e autonomia null', () => {
+    const r = calcularDemandaLiquidaSilos(100, 120, 6000);
+    expect(r.demanda_liquida_kg_ms_dia).toBe(0);
+    expect(r.autonomia_liquida_dias).toBeNull();
+    expect(r.pasto_cobre_tudo).toBe(true);
+  });
+
+  it('sem consumo real (default null): variante real fica indisponível', () => {
+    const r = calcularDemandaLiquidaSilos(100, 40, 6000);
+    expect(r.demanda_liquida_real_kg_dia).toBeNull();
+    expect(r.autonomia_liquida_real_dias).toBeNull();
+    expect(r.pasto_cobre_tudo_real).toBe(false);
+  });
+
+  it('cenário real: consumo medido − pasto e autonomia sobre estoque', () => {
+    // consumo real 80, pasto 40 → líquida real 40; estoque 8000 → 200 dias
+    const r = calcularDemandaLiquidaSilos(100, 40, 8000, 80);
+    expect(r.demanda_liquida_real_kg_dia).toBe(40);
+    expect(r.autonomia_liquida_real_dias).toBe(200);
+    expect(r.pasto_cobre_tudo_real).toBe(false);
+    // projetado permanece independente
+    expect(r.autonomia_liquida_dias).toBe(133); // floor(8000/60)
+  });
+
+  it('real: autonomia real MAIOR que projetada quando consumo < demanda teórica', () => {
+    // demanda teórica 200, consumo real 100, pasto 50, estoque 15000
+    // projetado: líquida 150 → 100 dias | real: líquida 50 → 300 dias
+    const r = calcularDemandaLiquidaSilos(200, 50, 15000, 100);
+    expect(r.autonomia_liquida_dias).toBe(100);
+    expect(r.autonomia_liquida_real_dias).toBe(300);
+    expect(r.autonomia_liquida_real_dias! > r.autonomia_liquida_dias!).toBe(true);
+  });
+
+  it('real: pasto cobre todo o consumo medido → autonomia real null', () => {
+    const r = calcularDemandaLiquidaSilos(200, 120, 6000, 100);
+    expect(r.pasto_cobre_tudo_real).toBe(true);
+    expect(r.demanda_liquida_real_kg_dia).toBe(0);
+    expect(r.autonomia_liquida_real_dias).toBeNull();
   });
 });

@@ -59,9 +59,17 @@ export function VeredictoCard({ demanda, ofertaPasto, demandaLiquida }: Props) {
     );
   }
 
-  // Caso 3 — pasto não cobre tudo: o silo cobre o restante por X dias.
-  const dias = demandaLiquida.autonomia_liquida_dias;
-  const cls = classesAutonomia(dias);
+  // Caso 3 — pasto não cobre tudo: o silo cobre o restante.
+  // Duas leituras, ambas descontando o pasto:
+  //   • REAL      = estoque ÷ (consumo de silagem medido − pasto) — o ritmo observado
+  //   • PROJETADA = estoque ÷ (demanda teórica do rebanho − pasto) — a meta de planejamento
+  const diasReal = demandaLiquida.autonomia_liquida_real_dias;
+  const diasProjetado = demandaLiquida.autonomia_liquida_dias;
+  const temReal = demandaLiquida.demanda_liquida_real_kg_dia !== null;
+
+  // A tarja usa a leitura mais conservadora disponível (real quando existe, senão projetada).
+  const diasReferencia = temReal ? diasReal : diasProjetado;
+  const cls = classesAutonomia(diasReferencia);
   const critico = cls.label === 'critico';
   const atencao = cls.label === 'urgente';
 
@@ -73,24 +81,55 @@ export function VeredictoCard({ demanda, ofertaPasto, demandaLiquida }: Props) {
         ) : (
           <Leaf className={`h-8 w-8 shrink-0 ${cls.text}`} aria-hidden="true" />
         )}
-        <div className="min-w-0">
-          {dias !== null ? (
-            <p className="text-lg font-semibold text-foreground leading-snug">
-              Somando pasto e silo, seu rebanho está alimentado por mais{' '}
-              <span className={`text-3xl font-extrabold align-baseline ${cls.text}`}>{dias}</span>{' '}
-              <span className={`text-xl font-bold ${cls.text}`}>{dias === 1 ? 'dia' : 'dias'}</span>.
-            </p>
-          ) : (
-            <p className="text-lg font-semibold text-foreground">
-              Autonomia indisponível — sem estoque de silagem registrado.
-            </p>
-          )}
-          <p className="text-sm text-muted-foreground mt-1">
-            {critico
-              ? 'Estoque crítico. Planeje reposição ou ajuste o manejo do pasto com urgência.'
-              : atencao
-                ? 'Estoque em atenção. Comece a planejar a próxima silagem.'
-                : 'O pasto cobre parte da demanda; o silo supre o restante com folga.'}
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-semibold text-foreground leading-snug">
+            Somando pasto e silo, seu rebanho está alimentado por:
+          </p>
+
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* REALIDADE — pelo consumo de silagem efetivamente medido */}
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                Realidade (consumo medido)
+              </p>
+              {temReal && diasReal !== null ? (
+                <p className={`font-bold ${classesAutonomia(diasReal).text}`}>
+                  <span className="text-3xl align-baseline">{diasReal}</span>{' '}
+                  <span className="text-base font-semibold">{diasReal === 1 ? 'dia' : 'dias'}</span>
+                </p>
+              ) : temReal ? (
+                <p className="text-sm text-muted-foreground">
+                  O pasto cobre todo o consumo medido — silos como reserva.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Sem histórico de consumo no período.
+                </p>
+              )}
+            </div>
+
+            {/* PROJEÇÃO — pela demanda teórica do rebanho */}
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
+                Projeção (demanda teórica)
+              </p>
+              {diasProjetado !== null ? (
+                <p className={`font-bold ${classesAutonomia(diasProjetado).text}`}>
+                  <span className="text-3xl align-baseline">{diasProjetado}</span>{' '}
+                  <span className="text-base font-semibold">{diasProjetado === 1 ? 'dia' : 'dias'}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Autonomia indisponível — sem estoque registrado.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground mt-3">
+            A <span className="text-foreground font-medium">realidade</span> parte do consumo de silagem que você
+            já registra nos silos; a <span className="text-foreground font-medium">projeção</span> parte da demanda
+            teórica de todo o rebanho. Diferenças entre as duas são normais — nem todo o rebanho come silagem no dia a dia.
           </p>
         </div>
       </CardContent>

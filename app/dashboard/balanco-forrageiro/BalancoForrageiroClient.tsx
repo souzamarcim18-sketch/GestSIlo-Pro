@@ -65,9 +65,15 @@ export function BalancoForrageiroClient({
       calcularDemandaLiquidaSilos(
         demanda.demanda_total_kg_ms_dia,
         ofertaPasto.oferta_total_kg_ms_dia,
-        estoqueTotal_kg
+        estoqueTotal_kg,
+        consumo.consumo_medio_diario_kg
       ),
-    [demanda.demanda_total_kg_ms_dia, ofertaPasto.oferta_total_kg_ms_dia, estoqueTotal_kg]
+    [
+      demanda.demanda_total_kg_ms_dia,
+      ofertaPasto.oferta_total_kg_ms_dia,
+      estoqueTotal_kg,
+      consumo.consumo_medio_diario_kg,
+    ]
   );
 
   const estoqueTon = (estoqueTotal_kg / 1000).toFixed(1);

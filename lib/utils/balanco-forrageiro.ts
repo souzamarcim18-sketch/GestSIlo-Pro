@@ -81,9 +81,15 @@ export type ResultadoOfertaPasto = {
 };
 
 export type ResultadoDemandaLiquidaSilos = {
+  // Cenário PROJETADO — parte da demanda teórica do rebanho (por categoria).
   demanda_liquida_kg_ms_dia: number;
   autonomia_liquida_dias: number | null;
   pasto_cobre_tudo: boolean;
+  // Cenário REAL — parte do consumo de silagem efetivamente medido nos silos.
+  // Só existe quando há histórico de consumo (consumoRealDiario != null).
+  demanda_liquida_real_kg_dia: number | null;
+  autonomia_liquida_real_dias: number | null;
+  pasto_cobre_tudo_real: boolean;
 };
 
 export type BalancoForrageiroClientProps = {
@@ -329,8 +335,11 @@ export function calcularOfertaPasto(
 export function calcularDemandaLiquidaSilos(
   demandaTotalKgMsDia: number,
   ofertaPastoKgMsDia: number,
-  estoqueTotal_kg: number
+  estoqueTotal_kg: number,
+  consumoRealDiarioKg: number | null = null
 ): ResultadoDemandaLiquidaSilos {
+  // ── Cenário PROJETADO: quanto os silos precisam suprir segundo a demanda
+  //    teórica do rebanho (por categoria), descontado o pasto. É a meta.
   const demanda_liquida_kg_ms_dia = Math.max(
     0,
     demandaTotalKgMsDia - ofertaPastoKgMsDia
@@ -341,7 +350,30 @@ export function calcularDemandaLiquidaSilos(
       ? null
       : Math.floor(estoqueTotal_kg / demanda_liquida_kg_ms_dia);
 
-  return { demanda_liquida_kg_ms_dia, autonomia_liquida_dias, pasto_cobre_tudo };
+  // ── Cenário REAL: parte do consumo de silagem efetivamente medido nos silos,
+  //    descontando a mesma oferta de pasto. É o ritmo observado. Só existe
+  //    quando há histórico de consumo no período.
+  let demanda_liquida_real_kg_dia: number | null = null;
+  let autonomia_liquida_real_dias: number | null = null;
+  let pasto_cobre_tudo_real = false;
+
+  if (consumoRealDiarioKg !== null) {
+    demanda_liquida_real_kg_dia = Math.max(0, consumoRealDiarioKg - ofertaPastoKgMsDia);
+    pasto_cobre_tudo_real = ofertaPastoKgMsDia >= consumoRealDiarioKg;
+    autonomia_liquida_real_dias =
+      demanda_liquida_real_kg_dia === 0
+        ? null
+        : Math.floor(estoqueTotal_kg / demanda_liquida_real_kg_dia);
+  }
+
+  return {
+    demanda_liquida_kg_ms_dia,
+    autonomia_liquida_dias,
+    pasto_cobre_tudo,
+    demanda_liquida_real_kg_dia,
+    autonomia_liquida_real_dias,
+    pasto_cobre_tudo_real,
+  };
 }
 
 export function classesAutonomia(dias: number | null): {

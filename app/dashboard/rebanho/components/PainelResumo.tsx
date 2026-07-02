@@ -145,7 +145,8 @@ export function PainelResumo({ animais, lotes, extras }: Props) {
             {resumo.totalAtivos > 0 ? (
               <PieCategoriasRebanho
                 data={resumo.lotesData}
-                total={resumo.totalAtivos}
+                total={resumo.lotesData.length}
+                centerLabel={resumo.lotesData.length === 1 ? 'lote' : 'lotes'}
               />
             ) : (
               <p className="w-full py-8 text-center text-sm text-muted-foreground">

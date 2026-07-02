@@ -5,6 +5,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 interface Props {
   data: { name: string; value: number }[]
   total: number
+  /** Rótulo exibido abaixo do número no centro do donut. Padrão: "animais". */
+  centerLabel?: string
 }
 
 const CHART_COLORS = [
@@ -29,7 +31,7 @@ function abreviar(nome: string): string {
   return mapa[nome] ?? nome
 }
 
-export function PieCategoriasRebanho({ data, total }: Props) {
+export function PieCategoriasRebanho({ data, total, centerLabel = 'animais' }: Props) {
   if (!data || data.length === 0) {
     return (
       <div className="w-full flex items-center justify-center h-24 text-xs text-muted-foreground">
@@ -68,7 +70,7 @@ export function PieCategoriasRebanho({ data, total }: Props) {
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-xl font-extrabold text-card-foreground leading-none">{total}</span>
-          <span className="text-xs text-muted-foreground mt-0.5">animais</span>
+          <span className="text-xs text-muted-foreground mt-0.5">{centerLabel}</span>
         </div>
       </div>
 

@@ -84,7 +84,7 @@ export default async function CortePage() {
     queryEventosRebanho.listByPeriodo(fazendaId, dataInicioRepro, dataFim),
     supabase
       .from('animais')
-      .select('id, brinco, nome, lote_id, status_reprodutivo, tipo_rebanho, sexo, status')
+      .select('id, brinco, nome, lote_id, status_reprodutivo, tipo_rebanho, sexo, status, categoria')
       .eq('fazenda_id', fazendaId)
       .in('tipo_rebanho', ESPECIES_CORTE)
       .is('deleted_at', null),
